@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import os
 import re
 import shutil
@@ -163,6 +164,33 @@ class CreditCapExceeded(RuntimeError):
         self.spent_this_run = spent_this_run
         self.estimate = estimate
         self.cap = cap
+
+
+class SpendCapReached(RuntimeError):
+    """--max-credits (Run Inbox spend label): the next Submit would take the run's running total
+    past the cap. Backstop inside _submit_or_raise, same job as CreditCapExceeded."""
+
+    def __init__(self, spent_this_run: int, estimate: int, max_credits: float):
+        super().__init__(f"spent={spent_this_run} + estimate={estimate} > max-credits={max_credits:g}")
+        self.spent_this_run = spent_this_run
+        self.estimate = estimate
+        self.max_credits = max_credits
+
+
+EXIT_SPEND_CAP = 3  # Console docs/run.md §Spend label: the tool exits 3 when the cap stops it
+
+
+def spend_cap_message(spent_this_run: int, max_credits: float) -> str:
+    return f"spend cap reached: spent {spent_this_run} of {max_credits:.10g} credits"
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0. A NaN cap would never trip
+    (spent + estimate > nan is always False), so it is refused at the door."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
 
 
 # ── pure helpers (no browser — these are what tests/test_flow_shoot.py covers) ──
@@ -299,6 +327,11 @@ def _poll_hazard_or_none(result: dict) -> str | None:
 
 def credit_cap_exceeded(spent_this_run: int, estimate: int, cap: int) -> bool:
     return spent_this_run + estimate > cap
+
+
+def spend_cap_exceeded(spent_this_run: int, estimate: int, max_credits: float | None) -> bool:
+    """--max-credits not given (None) never trips: the run behaves as it did before the flag."""
+    return max_credits is not None and spent_this_run + estimate > max_credits
 
 
 def normalize_prompt_whitespace(text: str) -> str:
@@ -1484,7 +1517,8 @@ class FlowBrowser:
 def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
                       cap: int, expected_chip_count: int,
                       expect_gb: float | None = None,
-                      project: str | None = None) -> None:
+                      project: str | None = None,
+                      max_credits: float | None = None) -> None:
     """The ONLY call site for browser.submit() in the whole runner. All
     four money/correctness guards are re-checked here, immediately before
     the call — task-04851451: cmd_run already had a cap check and a
@@ -1505,6 +1539,8 @@ def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
     guards for exactly the reason this docstring already gives."""
     if browser.dry_run:
         raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
+    if spend_cap_exceeded(spent_this_run, estimate, max_credits):
+        raise SpendCapReached(spent_this_run, estimate, max_credits)
     if credit_cap_exceeded(spent_this_run, estimate, cap):
         raise CreditCapExceeded(spent_this_run, estimate, cap)
     check_free_space(expect_gb=expect_gb, project=project)
@@ -1578,6 +1614,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     cdp_url = flow_cdp.pick_cdp_url(getattr(args, "cdp_url", None))
     browser.cdp_url = cdp_url
     spent_this_run = 0
+    max_credits = getattr(args, "max_credits", None)
+    spend_cap_hit = False
     try:
         try:
             browser.attach()
@@ -1656,6 +1694,10 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                         continue
 
                 estimate = browser.read_credit_estimate()
+                if spend_cap_exceeded(spent_this_run, estimate, max_credits):
+                    _log(spend_cap_message(spent_this_run, max_credits))
+                    spend_cap_hit = True
+                    break
                 if credit_cap_exceeded(spent_this_run, estimate, args.credit_cap):
                     _log(f"CAP REACHED: spent={spent_this_run} + estimate={estimate} "
                          f"> cap={args.credit_cap} — stopping the whole run")
@@ -1669,7 +1711,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
 
                 _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
                                   expected_chip_count=len(shot["chips"]),
-                                  expect_gb=args.expect_gb, project=args.project)
+                                  expect_gb=args.expect_gb, project=args.project,
+                                  max_credits=max_credits)
                 row["attempts"] = str(int(row.get("attempts") or 0) + 1)
                 row["status"] = "submitted"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1694,7 +1737,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
                     _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
                                   expected_chip_count=len(shot["chips"]),
-                                  expect_gb=args.expect_gb, project=args.project)
+                                  expect_gb=args.expect_gb, project=args.project,
+                                  max_credits=max_credits)
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
@@ -1786,6 +1830,12 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: CAP REACHED (backstop) — stopping the whole run: {e!r}")
                 break
+            except SpendCapReached as e:
+                row["status"], row["note"] = "failed", f"spend cap: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: {spend_cap_message(spent_this_run, max_credits)} (backstop)")
+                spend_cap_hit = True
+                break
             except InsufficientFreeSpace as e:
                 row["status"], row["note"] = "failed", f"space: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1800,6 +1850,9 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
         browser.close()
 
     print(flow_ledger.status_summary(ledger_path))
+    if spend_cap_hit:
+        print(spend_cap_message(spent_this_run, max_credits))
+        return EXIT_SPEND_CAP
     final = flow_ledger.load_ledger(ledger_path)
     attempted = [n for n in todo if final[n]["status"] != "todo"]
     all_ok = all(final[n]["status"] == "verified" for n in attempted) if attempted else True
@@ -1924,10 +1977,11 @@ def build_parser() -> argparse.ArgumentParser:
     # "required" error byte-for-byte identical to before this task.
     dest_required = not _work_dir()
     ap = argparse.ArgumentParser(description=__doc__,
-                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+                                  formatter_class=argparse.RawDescriptionHelpFormatter,
+                                  allow_abbrev=False)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    p_run = sub.add_parser("run")
+    p_run = sub.add_parser("run", allow_abbrev=False)
     p_run.add_argument("--sheet", required=True)
     p_run.add_argument("--ledger", required=True)
     p_run.add_argument("--dest", required=dest_required,
@@ -1935,6 +1989,10 @@ def build_parser() -> argparse.ArgumentParser:
                              "$WORK_DIR is set (defaults to $WORK_DIR/out); "
                              "required otherwise.")
     p_run.add_argument("--credit-cap", type=int, required=True)
+    p_run.add_argument("--max-credits", type=spend_cap_arg, default=None,
+                        help="Run Inbox spend label: stop before any Submit that would take this "
+                             "run's credits past N; prints 'spend cap reached: spent X of N credits' "
+                             "and exits 3. Not given = today's behaviour (--credit-cap still applies).")
     p_run.add_argument("--only", default=None)
     p_run.add_argument("--dry-run", action="store_true")
     p_run.add_argument("--resolution", choices=["720p", "360p"], default="720p",
@@ -1965,7 +2023,7 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Override the log path. Defaults to <ledger dir>/flow_shoot.log.")
     p_run.set_defaults(func=cmd_run)
 
-    p_pull = sub.add_parser("pull")
+    p_pull = sub.add_parser("pull", allow_abbrev=False)
     p_pull.add_argument("--sheet", required=True)
     p_pull.add_argument("--ledger", required=True)
     p_pull.add_argument("--dest", required=dest_required,
@@ -1995,7 +2053,7 @@ def build_parser() -> argparse.ArgumentParser:
                          help="Override the log path. Defaults to <ledger dir>/flow_shoot.log.")
     p_pull.set_defaults(func=cmd_pull)
 
-    p_status = sub.add_parser("status")
+    p_status = sub.add_parser("status", allow_abbrev=False)
     p_status.add_argument("--ledger", required=True)
     p_status.set_defaults(func=cmd_status)
 

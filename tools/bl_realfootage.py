@@ -1128,10 +1128,10 @@ def cmd_run(args) -> int:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    run = sub.add_parser("run", help="capture every shot in a shot list")
+    run = sub.add_parser("run", help="capture every shot in a shot list", allow_abbrev=False)
     run.add_argument("--shots", required=True, help="path to shots.yaml/json")
     run.add_argument("--episode", required=True, help="episode id, e.g. bl55")
     run.add_argument("--out", help="output dir (default output/bl-realfootage/<episode>)")

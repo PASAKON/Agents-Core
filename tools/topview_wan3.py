@@ -725,7 +725,8 @@ def recover(browser: TopViewBrowser, key: str, args, ledger: dict, ledger_path: 
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 allow_abbrev=False)
     ap.add_argument("jobs", nargs="*", help="<key>.wan3.json job files, fired in this order")
     ap.add_argument("--out", required=True, help="dir for <key>.mp4 and ledger.json")
     ap.add_argument("--refs", help="dir holding the reference images by basename (default <job dir>/refs)")

@@ -729,7 +729,8 @@ def refire_blocker(browser: FlowMusicBrowser, item: dict, row: dict, ledger: dic
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 allow_abbrev=False)
     ap.add_argument("prompts", help="JSON list of {id, title, prompt, ...}")
     ap.add_argument("--out", required=True, help="dir for <id>-<n>.<ext> and ledger.json")
     ap.add_argument("--ids", help="comma-separated ids to run, in this order (default: all, file order)")

@@ -10,13 +10,16 @@ CLI:
   --out dir, default $WORK_DIR/higgsfield-credit if WORK_DIR is set, else output/higgsfield-credit
   --dry-run is DEFAULT mode; --fire must be given to spend
   --fire requires BOTH --max-per-clip N and --budget N
+  --max-credits N optional Run Inbox spend label: stop before any click that would take this run's
+    credits past N (price = the number on the submit button), print
+    'spend cap reached: spent X of N credits', exit 3. Not given = today's behaviour.
   --duration, --ratio, --resolution optional
   --limit N clips per run (default all)
 
 Exit codes:
   0: done
   2: bad arguments
-  3: SpendRefused
+  3: SpendRefused (or --max-credits reached)
   4: page problem (settings did not read back, label unreadable, textbox missing)
   5: a clip did not finish (timeout / unknown)
 """
@@ -25,6 +28,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import os
 import sys
 import time
@@ -51,6 +55,14 @@ from scripts.higgsfield.gen_loop import (
 
 
 COMPOSER_URL = "https://higgsfield.ai/ai/video"
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0 (a NaN cap would never trip)."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
 
 
 class ArgumentParsingError(Exception):
@@ -331,7 +343,7 @@ def cleanup_cdp(
 def build_parser() -> NonExitingArgumentParser:
     """Build the command line argument parser."""
     parser = NonExitingArgumentParser(
-        description="Higgsfield Credit Fire Runner"
+        description="Higgsfield Credit Fire Runner", allow_abbrev=False
     )
     parser.add_argument("--prompts", required=True, help="Prompts CSV path")
     parser.add_argument(
@@ -349,6 +361,12 @@ def build_parser() -> NonExitingArgumentParser:
     )
     parser.add_argument(
         "--budget", type=int, default=None, help="Total credit budget"
+    )
+    parser.add_argument(
+        "--max-credits",
+        type=spend_cap_arg,
+        default=None,
+        help="Run Inbox spend label: stop before any click that would take this run's credits past N",
     )
     parser.add_argument(
         "--duration", default=None, help="Optional duration setting (e.g. 5s)"
@@ -580,6 +598,7 @@ def main(
         # poll_for_result ->
         # download to <out>/<clip_id>.mp4.
         # Timeout or unknown result = write outcome, stop run, exit 5.
+        spent_credits = 0
         for r in todo:
             cid = str(r["clip_id"])
             prompt_text = str(r["prompt"])
@@ -614,7 +633,16 @@ def main(
                 )
                 return 4
 
-            # 4. guard.check(label) (SpendRefused = exit 3, nothing clicked)
+            # 4a. --max-credits (Run card spend label): this run's total so far + this click's
+            # price (the label, read above) past N = stop, nothing clicked. Checked first so the
+            # card's cap, not the ledger budget, is the one that speaks when both would stop.
+            if args.max_credits is not None and spent_credits + price > args.max_credits:
+                print(
+                    f"spend cap reached: spent {spent_credits:.10g} of {args.max_credits:.10g} credits"
+                )
+                return 3
+
+            # 4b. guard.check(label) (SpendRefused = exit 3, nothing clicked)
             try:
                 price = guard.check(label)
             except SpendRefused as e:
@@ -623,6 +651,7 @@ def main(
 
             # 5. remember newest hf_ timestamp
             t0_max = adapter.newest_ts()
+            spent_credits += price  # counted before the click: a click that lands is charged
 
             # 6. click_submit once (EXACTLY ONE submit-click call site in the loop)
             adapter.click_submit()
