@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ==========================================================================
+         FONT DECLARATIONS
+         Every subset file is declared as its OWN family name and combined in a
+         font-family list so every Thai, Latin, digit, and currency glyph is found.
+         ========================================================================== */
+      @font-face {
+        font-family: 'Kanit800_1';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit800_2';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit800_3';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit800_4';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Kanit600_1';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit600_2';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit600_3';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Kanit600_4';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Archivo800_1';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Archivo800_2';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Archivo800_3';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'DejaVuMono';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('assets/fonts/DejaVuSansMono.ttf') format('truetype');
+      }
+      @font-face {
+        font-family: 'DejaVuMonoBold';
+        font-style: normal;
+        font-weight: 700;
+        font-display: block;
+        src: url('assets/fonts/DejaVuSansMono-Bold.ttf') format('truetype');
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #0C1016;
+        --card-bg: #161B22;
+        --card-bar: #1C222B;
+        --card-border: #2A313C;
+        --white: #F2F4F7;
+        --grey: #8B949E;
+        --yellow: #FED100;
+        --red: #F0444B;
+        --green: #3FB950;
+
+        --font-kanit-800: 'Kanit800_1', 'Kanit800_2', 'Kanit800_3', 'Kanit800_4', 'DejaVuMonoBold', sans-serif;
+        --font-kanit-600: 'Kanit600_1', 'Kanit600_2', 'Kanit600_3', 'Kanit600_4', 'DejaVuMono', sans-serif;
+        --font-archivo-800: 'Archivo800_1', 'Archivo800_2', 'Archivo800_3', 'Kanit800_1', 'Kanit800_2', 'Kanit800_3', 'Kanit800_4', sans-serif;
+        --font-mono: 'DejaVuMono', 'DejaVuMonoBold', 'Kanit600_1', 'Kanit600_2', 'Kanit600_3', 'Kanit600_4', monospace;
+        --font-mono-bold: 'DejaVuMonoBold', 'DejaVuMono', 'Kanit600_1', 'Kanit600_2', 'Kanit600_3', 'Kanit600_4', monospace;
+      }
+
+      html, body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--white);
+        font-family: var(--font-kanit-600);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        background: var(--bg);
+        overflow: hidden;
+      }
+
+      /* Single flat near-black background plate */
+      .bg-flat {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+        z-index: 0;
+      }
+
+      /* Always-on top-left brand: x 120, y 150, logo 64px high + mono grey label 24px */
+      .brand-top {
+        position: absolute;
+        left: 120px;
+        top: 150px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        z-index: 50;
+      }
+      .brand-top img {
+        height: 64px;
+        width: auto;
+        display: block;
+      }
+      .brand-top .brand-label {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        color: var(--grey);
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+        line-height: 1;
+      }
+
+      /* Always-on legal line: y ~1440, centred inside safe area x 120..960 */
+      .legal-line {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 1436px;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 22px;
+        color: var(--grey);
+        white-space: nowrap;
+        line-height: 1.3;
+        z-index: 50;
+      }
+
+      /* Scene containers */
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      /* HEADLINE band: y 300..520, centred inside x 120..960 */
+      .headline-band {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 312px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+      }
+      .hl-line {
+        font-family: var(--font-kanit-800);
+        font-weight: 800;
+        font-size: 76px;
+        line-height: 1.18;
+        white-space: nowrap;
+      }
+      .hl-white { color: var(--white); }
+      .hl-yellow { color: var(--yellow); }
+
+      /* UI Card base style: #161B22, 2px border #2A313C, radius 18px */
+      .ui-card {
+        position: absolute;
+        background: var(--card-bg);
+        border: 2px solid var(--card-border);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      /* Top bar on mock window cards (Card B & Card D): 56px (#1C222B) with 3 grey dots + mono grey label */
+      .card-topbar {
+        width: 100%;
+        height: 56px;
+        background: var(--card-bar);
+        border-bottom: 1px solid var(--card-border);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 18px;
+      }
+      .dots-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dot-grey {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--grey);
+        opacity: 0.65;
+      }
+      .topbar-label {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        color: var(--grey);
+        white-space: nowrap;
+        line-height: 1;
+      }
+
+      /* ================= SCENE A: 0.00 - 3.60 ================= */
+      #card-a {
+        left: 160px;
+        top: 660px;
+        width: 760px;
+        height: 300px;
+        padding: 26px 36px;
+      }
+      .card-a-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 36px;
+      }
+      .mono-label {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        color: var(--grey);
+        white-space: nowrap;
+        line-height: 1.2;
+      }
+      #pill-fast {
+        font-family: var(--font-mono-bold);
+        font-size: 26px;
+        color: var(--red);
+        border: 2px solid var(--red);
+        background: transparent;
+        border-radius: 999px;
+        padding: 4px 16px;
+        white-space: nowrap;
+        line-height: 1.15;
+        opacity: 0;
+      }
+      #timer-digits {
+        font-family: var(--font-archivo-800);
+        font-weight: 800;
+        font-size: 150px;
+        color: var(--white);
+        line-height: 1;
+        text-align: center;
+        margin-top: 10px;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+      }
+      .timer-track {
+        width: 100%;
+        height: 8px;
+        background: var(--card-border);
+        border-radius: 4px;
+        margin-top: 16px;
+        overflow: hidden;
+      }
+      #timer-bar-fill {
+        width: 100%;
+        height: 100%;
+        background: var(--yellow);
+        border-radius: 4px;
+        transform-origin: left center;
+        transform: scaleX(0);
+      }
+      #held-status {
+        margin-top: 14px;
+        font-family: var(--font-mono);
+        font-size: 24px;
+        color: var(--green);
+        white-space: nowrap;
+        line-height: 1.2;
+        opacity: 0;
+      }
+
+      /* ================= SCENE B: 3.60 - 6.40 ================= */
+      #card-b {
+        left: 120px;
+        top: 630px;
+        width: 840px;
+        height: 367px; /* 56px topbar + 311px cropped still */
+      }
+      /* Crop window for stills/cxm-post-claim.png:
+         Still coordinates y 760..1160 (height 400px), full width 1080px.
+         Scaled to card width 840px -> scale = 840 / 1080 = 0.777778.
+         Cropped height = 400 * (840 / 1080) = 311.11px.
+         Still top offset = -760 * (840 / 1080) = -591.11px. */
+      .post-crop {
+        position: relative;
+        width: 840px;
+        height: 311px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      .post-crop img.clip {
+        position: absolute;
+        left: 0;
+        top: -591.11px;
+        width: 840px;
+        height: 1493.33px;
+        max-width: none;
+        display: block;
+      }
+      /* Yellow highlighter: still coords x 120, y 850, w 720, h 60
+         Converted to crop coords (scale 840/1080 = 7/9, relative to y=760):
+         left = 120 * 7/9 = 93.33px
+         top  = (850 - 760) * 7/9 = 70px
+         width = 720 * 7/9 = 560px
+         height = 60 * 7/9 = 46.67px */
+      #claim-highlighter {
+        position: absolute;
+        left: 93.33px;
+        top: 70px;
+        width: 560px;
+        height: 46.67px;
+        background: var(--yellow);
+        opacity: 0.35;
+        mix-blend-mode: multiply;
+        border-radius: 6px;
+        transform-origin: left center;
+        transform: scaleX(0);
+        pointer-events: none;
+      }
+
+      /* Card C: 640 x 260, border yellow 2px, centred over Card B */
+      #card-c {
+        left: 220px;
+        top: 684px;
+        width: 640px;
+        height: 260px;
+        border: 2px solid var(--yellow);
+        padding: 22px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        opacity: 0;
+        z-index: 20;
+      }
+      #profit-num {
+        font-family: var(--font-archivo-800);
+        font-weight: 800;
+        font-size: 120px;
+        color: var(--yellow);
+        line-height: 1;
+        white-space: nowrap;
+        letter-spacing: -0.02em;
+      }
+      .card-c-sub {
+        font-family: var(--font-kanit-600);
+        font-weight: 600;
+        font-size: 34px;
+        color: var(--white);
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      /* ================= SCENE C: 6.40 - 9.30 ================= */
+      #card-d {
+        left: 120px;
+        top: 590px;
+        width: 840px;
+        height: 420px;
+      }
+      .email-body {
+        padding: 44px 44px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      .email-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        font-family: var(--font-mono);
+        font-size: 30px;
+        line-height: 1.3;
+        white-space: nowrap;
+      }
+      .email-key {
+        color: var(--grey);
+        white-space: nowrap;
+      }
+      .email-val-white {
+        color: var(--white);
+        font-family: var(--font-mono-bold);
+        white-space: nowrap;
+      }
+      .email-val-red {
+        color: var(--red);
+        font-family: var(--font-mono-bold);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+      }
+      .email-divider {
+        width: 100%;
+        height: 1px;
+        background: var(--card-border);
+      }
+      .email-footnote {
+        margin-top: 28px;
+        font-family: var(--font-mono);
+        font-size: 22px;
+        color: var(--grey);
+        white-space: nowrap;
+      }
+      #type-cursor {
+        display: inline-block;
+        width: 16px;
+        height: 30px;
+        background: var(--red);
+        margin-left: 4px;
+        vertical-align: middle;
+        opacity: 0;
+      }
+      #type-error-line {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 1030px;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 26px;
+        color: var(--red);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* ================= SCENE D: 9.30 - 10.00 ================= */
+      .step-bars-row {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 718px;
+        display: flex;
+        justify-content: center;
+        gap: 36px;
+      }
+      .step-bar {
+        width: 120px;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--grey);
+        opacity: 0.55;
+      }
+      .chips-row {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 760px; /* centre y = 760 + 60 = 820 */
+        display: flex;
+        justify-content: center;
+        gap: 36px;
+      }
+      .chip-card {
+        width: 120px;
+        height: 120px;
+        background: var(--card-bg);
+        border: 2px solid var(--card-border);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-archivo-800);
+        font-weight: 800;
+        font-size: 64px;
+        color: var(--white);
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      /* ================= CAPTION BAND: y ~1180 ================= */
+      #caption-band {
+        position: absolute;
+        left: 120px;
+        width: 840px;
+        top: 1146px; /* vertical centre around y ~1180 */
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 40;
+      }
+      .cap-chunk {
+        position: absolute;
+        left: 0;
+        width: 840px;
+        text-align: center;
+        font-family: var(--font-kanit-800);
+        font-weight: 800;
+        font-size: 64px;
+        color: var(--white);
+        line-height: 1.2;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .cap-chunk.cap-intro {
+        font-family: var(--font-kanit-600);
+        font-weight: 600;
+        font-size: 44px;
+        color: var(--grey);
+      }
+      .yel {
+        color: var(--yellow);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10"
+         data-width="1080" data-height="1920">
+
+      <!-- Narration audio: starts at 0, never re-timed -->
+      <audio id="va" src="assets/voice-10s.wav" data-start="0" data-duration="10"
+             data-track-index="5" data-volume="1"></audio>
+
+      <!-- Flat #0C1016 background -->
+      <div class="bg-flat"></div>
+
+      <!-- Always-on top-left brand -->
+      <div class="brand-top" id="brand-top">
+        <img src="assets/bl-logo.png" alt="BLACK LIQUIDITY" />
+        <span class="brand-label nowrap-fit" data-max-w="700">BLACK LIQUIDITY · EP62</span>
+      </div>
+
+      <!-- Always-on legal line (y ~1440) -->
+      <div class="legal-line nowrap-fit" data-max-w="840">
+        เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง
+      </div>
+
+      <!-- ================= SCENE A (0.00 - 3.60) ================= -->
+      <div class="scene" id="scene-a">
+        <div class="headline-band">
+          <div class="hl-line hl-white nowrap-fit" data-max-w="840">ถือออเดอร์ 2 ชั่วโมง</div>
+          <div class="hl-line hl-yellow nowrap-fit" data-max-w="840">แต่โดนหาว่าเร็วเกิน?</div>
+        </div>
+
+        <div class="ui-card" id="card-a">
+          <div class="card-a-header">
+            <span class="mono-label nowrap-fit" data-max-w="440">ระยะเวลาที่ถือออเดอร์</span>
+            <span id="pill-fast" class="nowrap-fit" data-max-w="240">"เร็วเกินไป?"</span>
+          </div>
+          <div id="timer-digits" class="nowrap-fit" data-max-w="680">0:00:00</div>
+          <div class="timer-track">
+            <div id="timer-bar-fill"></div>
+          </div>
+          <div id="held-status" class="nowrap-fit" data-max-w="680">● ถือไว้ 2 ชม.</div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE B (3.60 - 6.40) ================= -->
+      <div class="scene" id="scene-b">
+        <div class="headline-band">
+          <div class="hl-line hl-white nowrap-fit" data-max-w="840">เธอเล่าว่า CXM</div>
+          <div class="hl-line hl-yellow nowrap-fit" data-max-w="840">ไม่จ่ายกำไร</div>
+        </div>
+
+        <div class="ui-card" id="card-b">
+          <div class="card-topbar">
+            <div class="dots-group">
+              <span class="dot-grey"></span>
+              <span class="dot-grey"></span>
+              <span class="dot-grey"></span>
+            </div>
+            <span class="topbar-label nowrap-fit" data-max-w="700">โพสต์ของเธอ · ชื่อเบลอแล้ว</span>
+          </div>
+          <div class="post-crop">
+            <img class="clip" src="assets/stills/cxm-post-claim.png" alt="Post claim"
+                 data-start="3.60" data-duration="2.80" data-track-index="1" />
+            <div id="claim-highlighter"></div>
+          </div>
+        </div>
+
+        <div class="ui-card" id="card-c">
+          <div class="mono-label nowrap-fit" data-max-w="580">กำไรที่เธอบอกว่าไม่ได้รับ</div>
+          <div id="profit-num" class="nowrap-fit" data-max-w="584" data-measure-text="฿6,000,000">฿0</div>
+          <div class="card-c-sub nowrap-fit" data-max-w="584">เกือบ 6 ล้านบาท (ตามที่เธอเล่า)</div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE C (6.40 - 9.30) ================= -->
+      <div class="scene" id="scene-c">
+        <div class="headline-band">
+          <div class="hl-line hl-white nowrap-fit" data-max-w="840">CXM แจ้งในอีเมลว่า</div>
+          <div class="hl-line hl-yellow nowrap-fit" data-max-w="840">"Toxic Trading"</div>
+        </div>
+
+        <div class="ui-card" id="card-d">
+          <div class="card-topbar">
+            <div class="dots-group">
+              <span class="dot-grey"></span>
+              <span class="dot-grey"></span>
+              <span class="dot-grey"></span>
+            </div>
+            <span class="topbar-label nowrap-fit" data-max-w="700">อีเมล · ตามที่เธอเล่า</span>
+          </div>
+          <div class="email-body">
+            <div class="email-row">
+              <span class="email-key">From:&nbsp;&nbsp;</span><span class="email-val-white">CXM</span>
+            </div>
+            <div class="email-divider"></div>
+            <div class="email-row">
+              <span class="email-key">เหตุผล:&nbsp;</span><span class="email-val-red"><span id="typed-text"></span><span id="type-cursor"></span></span>
+            </div>
+            <div class="email-divider"></div>
+            <div class="email-footnote nowrap-fit" data-max-w="750">เนื้อหาจำลองจากคำบอกเล่าในโพสต์ · ตามที่เธอเล่า</div>
+          </div>
+        </div>
+
+        <div id="type-error-line" class="nowrap-fit" data-max-w="840">TypeError: กำไร is undefined</div>
+      </div>
+
+      <!-- ================= SCENE D (9.30 - 10.00) ================= -->
+      <div class="scene" id="scene-d">
+        <div class="step-bars-row" id="step-bars">
+          <div class="step-bar"></div>
+          <div class="step-bar"></div>
+          <div class="step-bar"></div>
+        </div>
+        <div class="chips-row">
+          <div class="chip-card" id="chip-1">1</div>
+          <div class="chip-card" id="chip-2">2</div>
+          <div class="chip-card" id="chip-3">3</div>
+        </div>
+      </div>
+
+      <!-- ================= CAPTION BAND (y ~1180) ================= -->
+      <div id="caption-band">
+        <div class="cap-chunk cap-intro nowrap-fit" id="cap-0" data-max-w="840">ตามที่เจ้าของโพสต์เล่า</div>
+        <div class="cap-chunk nowrap-fit" id="cap-1" data-max-w="840">ถือออเดอร์</div>
+        <div class="cap-chunk nowrap-fit" id="cap-2" data-max-w="840"><span class="yel">สองชั่วโมง</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-3" data-max-w="840">แต่โดนข้อหา</div>
+        <div class="cap-chunk nowrap-fit" id="cap-4" data-max-w="840">เทรด<span class="yel">เร็วเกินไป?</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-5" data-max-w="840">เธอเล่าว่า</div>
+        <div class="cap-chunk nowrap-fit" id="cap-6" data-max-w="840">CXM <span class="yel">ไม่จ่ายกำไร</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-7" data-max-w="840"><span class="yel">เกือบ 6 ล้านบาท</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-8" data-max-w="840">CXM แจ้งใน<span class="yel">อีเมล</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-9" data-max-w="840">ว่าเป็น</div>
+        <div class="cap-chunk nowrap-fit" id="cap-10" data-max-w="840"><span class="yel">ท็อกซิกเทรดดิ้ง</span></div>
+        <div class="cap-chunk nowrap-fit" id="cap-11" data-max-w="840"><span class="yel">3 คำถาม</span>ที่ยังไร้คำตอบ</div>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      /* Fit any single-line text element so it never overflows its container or safe area */
+      function fitAllNoWrapLines() {
+        var nodes = document.querySelectorAll(".nowrap-fit");
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          el.style.whiteSpace = "nowrap";
+          var sample = el.getAttribute("data-measure-text");
+          var prevText = null;
+          if (sample) {
+            prevText = el.textContent;
+            el.textContent = sample;
+          }
+          var maxW = parseFloat(el.getAttribute("data-max-w")) || 840;
+          var size = parseFloat(window.getComputedStyle(el).fontSize);
+          for (var step = 0; step < 8; step++) {
+            var rectW = el.getBoundingClientRect().width;
+            if (rectW <= maxW || size <= 20) break;
+            size = Math.max(20, Math.floor(size * (maxW / rectW) * 0.97));
+            el.style.fontSize = size + "px";
+          }
+          if (prevText !== null) {
+            el.textContent = prevText;
+          }
+        }
+      }
+
+      fitAllNoWrapLines();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fitAllNoWrapLines);
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      var timerEl = document.getElementById("timer-digits");
+      var profitEl = document.getElementById("profit-num");
+      var typedEl = document.getElementById("typed-text");
+      var cursorEl = document.getElementById("type-cursor");
+
+      var timerState = { sec: 0 };
+      var profitState = { val: 0 };
+      var TYPED_TARGET = "Toxic Trading";
+
+      function formatHMS(secVal) {
+        var s = Math.max(0, Math.min(7200, Math.round(secVal)));
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var sec = s % 60;
+        var mm = m < 10 ? "0" + m : "" + m;
+        var ss = sec < 10 ? "0" + sec : "" + sec;
+        return h + ":" + mm + ":" + ss;
+      }
+
+      function formatBaht(val) {
+        var n = Math.max(0, Math.min(6000000, Math.round(val)));
+        return "฿" + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      function updateTimerText() {
+        timerEl.textContent = formatHMS(timerState.sec);
+      }
+
+      function updateProfitText() {
+        profitEl.textContent = formatBaht(profitState.val);
+      }
+
+      /* ==========================================================================
+         INITIAL STATES AT FRAME 0 (t = 0.00)
+         Frame 0 already shows Scene A headline, Card A, and Caption 0.
+         ========================================================================== */
+      tl.set("#scene-a", { autoAlpha: 1 }, 0);
+      tl.set("#scene-b", { autoAlpha: 0 }, 0);
+      tl.set("#scene-c", { autoAlpha: 0 }, 0);
+      tl.set("#scene-d", { autoAlpha: 0 }, 0);
+
+      tl.set("#card-a", { borderColor: "#2A313C", scale: 1, opacity: 1, y: 0 }, 0);
+      tl.set("#pill-fast", { opacity: 0, scale: 0.96 }, 0);
+      tl.set("#timer-bar-fill", { scaleX: 0 }, 0);
+      tl.set("#held-status", { opacity: 0, y: 16 }, 0);
+      tl.set(timerState, { sec: 0, onUpdate: updateTimerText }, 0);
+
+      tl.set("#card-b", { opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }, 0);
+      tl.set("#claim-highlighter", { scaleX: 0 }, 0);
+      tl.set("#card-c", { opacity: 0, scale: 0.96, y: 24 }, 0);
+      tl.set(profitState, { val: 0, onUpdate: updateProfitText }, 0);
+
+      tl.set("#card-d", { borderColor: "#2A313C", opacity: 1, scale: 1, y: 0 }, 0);
+      tl.set("#type-cursor", { opacity: 0 }, 0);
+      tl.set("#type-error-line", { opacity: 0, y: 16 }, 0);
+
+      tl.set("#chip-1", { opacity: 1, scale: 0.9, borderColor: "#2A313C", color: "#F2F4F7" }, 0);
+      tl.set("#chip-2", { opacity: 0, scale: 0.9, borderColor: "#2A313C", color: "#F2F4F7" }, 0);
+      tl.set("#chip-3", { opacity: 0, scale: 0.9, borderColor: "#2A313C", color: "#F2F4F7" }, 0);
+
+      /* ==========================================================================
+         CAPTION TIMELINE (Hard cuts at exact timestamps + 3-frame 12px rise)
+         ========================================================================== */
+      var captions = [
+        { id: "#cap-0",  t0: 0.00, t1: 1.00, first: true },
+        { id: "#cap-1",  t0: 1.00, t1: 1.80 },
+        { id: "#cap-2",  t0: 1.80, t1: 2.50 },
+        { id: "#cap-3",  t0: 2.50, t1: 3.05 },
+        { id: "#cap-4",  t0: 3.05, t1: 3.60 },
+        { id: "#cap-5",  t0: 3.60, t1: 4.30 },
+        { id: "#cap-6",  t0: 4.30, t1: 5.20 },
+        { id: "#cap-7",  t0: 5.20, t1: 6.40 },
+        { id: "#cap-8",  t0: 6.40, t1: 7.30 },
+        { id: "#cap-9",  t0: 7.30, t1: 8.10 },
+        { id: "#cap-10", t0: 8.10, t1: 9.30 },
+        { id: "#cap-11", t0: 9.30, t1: 10.00 }
+      ];
+
+      captions.forEach(function (c) {
+        tl.set(c.id, { opacity: 0, y: 0 }, 0);
+        if (c.first) {
+          tl.set(c.id, { opacity: 1, y: 0 }, c.t0);
+        } else {
+          tl.set(c.id, { opacity: 1 }, c.t0);
+          tl.fromTo(c.id, { y: 12 }, { y: 0, duration: 3 / 30, ease: "power2.out" }, c.t0);
+        }
+        if (c.t1 < 10.00) {
+          tl.set(c.id, { opacity: 0 }, c.t1);
+        }
+      });
+
+      /* ==========================================================================
+         SCENE A: 0.00 - 3.60 ("held 2 hours")
+         ========================================================================== */
+      /* 1.00 - 2.40: Timer counts 0:00:00 -> 2:00:00 (ease-out, integer seconds) + yellow bar */
+      tl.fromTo(
+        timerState,
+        { sec: 0 },
+        { sec: 7200, duration: 1.40, ease: "power2.out", onUpdate: updateTimerText },
+        1.00
+      );
+      tl.fromTo(
+        "#timer-bar-fill",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 1.40, ease: "power2.out" },
+        1.00
+      );
+
+      /* 2.40: Green status line "● ถือไว้ 2 ชม." enters (8 frames, ease-out) */
+      tl.fromTo(
+        "#held-status",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 8 / 30, ease: "power2.out" },
+        2.40
+      );
+
+      /* 3.05: Card A border turns red (6 frames) + red pill "เร็วเกินไป?" appears */
+      tl.to(
+        "#card-a",
+        { borderColor: "#F0444B", duration: 6 / 30, ease: "power2.out" },
+        3.05
+      );
+      tl.fromTo(
+        "#pill-fast",
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 8 / 30, ease: "power2.out" },
+        3.05
+      );
+
+      /* ==========================================================================
+         SCENE B: 3.60 - 6.40 (Her post, then the number)
+         ========================================================================== */
+      tl.set("#scene-a", { autoAlpha: 0 }, 3.60);
+      tl.set("#scene-b", { autoAlpha: 1 }, 3.60);
+
+      /* Card B settles in over 8 frames at 3.60 */
+      tl.fromTo(
+        "#card-b",
+        { scale: 0.96, y: 24 },
+        { scale: 1, y: 0, duration: 8 / 30, ease: "power2.out" },
+        3.60
+      );
+
+      /* 3.80 - 4.30: Yellow highlighter sweeps left-to-right over claim line */
+      tl.fromTo(
+        "#claim-highlighter",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.50, ease: "power2.out" },
+        3.80
+      );
+
+      /* 5.20: Card B blurs (8px) and dims to 35%; Card C enters on top & counts ฿0 -> ฿6,000,000 (5.20 - 5.90) */
+      tl.to(
+        "#card-b",
+        { opacity: 0.35, filter: "blur(8px)", duration: 8 / 30, ease: "power2.out" },
+        5.20
+      );
+      tl.fromTo(
+        "#card-c",
+        { opacity: 0, scale: 0.96, y: 24 },
+        { opacity: 1, scale: 1, y: 0, duration: 8 / 30, ease: "power2.out" },
+        5.20
+      );
+      tl.fromTo(
+        profitState,
+        { val: 0 },
+        { val: 6000000, duration: 0.70, ease: "power2.out", onUpdate: updateProfitText },
+        5.20
+      );
+
+      /* ==========================================================================
+         SCENE C: 6.40 - 9.30 (The email)
+         ========================================================================== */
+      tl.set("#scene-b", { autoAlpha: 0 }, 6.40);
+      tl.set("#scene-c", { autoAlpha: 1 }, 6.40);
+
+      /* Card D settles in over 8 frames at 6.40 */
+      tl.fromTo(
+        "#card-d",
+        { scale: 0.96, y: 24 },
+        { scale: 1, y: 0, duration: 8 / 30, ease: "power2.out" },
+        6.40
+      );
+
+      /* 7.30: "Toxic Trading" types on (1 character per 2 frames, block cursor) */
+      tl.set("#type-cursor", { opacity: 1 }, 7.30);
+      for (var cIdx = 1; cIdx <= TYPED_TARGET.length; cIdx++) {
+        (function (count) {
+          var tChar = 7.30 + (count - 1) * (2 / 30);
+          tl.set(typedEl, { textContent: TYPED_TARGET.slice(0, count) }, tChar);
+        })(cIdx);
+      }
+
+      /* Typing ends after 13 chars (7.30 + 12 * 2/30 = 8.10s): Card D border turns red (6 frames) */
+      var typingEndTime = 7.30 + (TYPED_TARGET.length - 1) * (2 / 30);
+      tl.to(
+        "#card-d",
+        { borderColor: "#F0444B", duration: 6 / 30, ease: "power2.out" },
+        typingEndTime
+      );
+
+      /* 8.10: Under Card D, red mono line 26px fades in: "TypeError: กำไร is undefined" */
+      tl.fromTo(
+        "#type-error-line",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 8 / 30, ease: "power2.out" },
+        8.10
+      );
+
+      /* ==========================================================================
+         SCENE D: 9.30 - 10.00 (The teaser)
+         ========================================================================== */
+      tl.set("#scene-c", { autoAlpha: 0 }, 9.30);
+      tl.set("#scene-d", { autoAlpha: 1 }, 9.30);
+
+      /* Chips 1, 2, 3 pop in at 9.30, 9.40, 9.50 (scale 0.9 -> 1, 6 frames) */
+      tl.fromTo(
+        "#chip-1",
+        { opacity: 1, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 6 / 30, ease: "power2.out" },
+        9.30
+      );
+      tl.fromTo(
+        "#chip-2",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 6 / 30, ease: "power2.out" },
+        9.40
+      );
+      tl.fromTo(
+        "#chip-3",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 6 / 30, ease: "power2.out" },
+        9.50
+      );
+
+      /* 9.70: Chip 3 gets yellow border and yellow digit */
+      tl.to(
+        "#chip-3",
+        { borderColor: "#FED100", color: "#FED100", duration: 6 / 30, ease: "power2.out" },
+        9.70
+      );
+
+      /* Hold timeline to exactly 10.0s */
+      tl.set({}, {}, 10.00);
+
+      /* Pure deterministic state sync on any timeline seek */
+      tl.eventCallback("onUpdate", function () {
+        var t = tl.time();
+
+        /* Sync Scene A timer */
+        if (t < 1.00) {
+          timerEl.textContent = "0:00:00";
+        } else if (t >= 2.40) {
+          timerEl.textContent = "2:00:00";
+        } else {
+          updateTimerText();
+        }
+
+        /* Sync Scene B profit count-up */
+        if (t < 5.20) {
+          profitEl.textContent = "฿0";
+        } else if (t >= 5.90) {
+          profitEl.textContent = "฿6,000,000";
+        } else {
+          updateProfitText();
+        }
+
+        /* Sync Scene C typewriter */
+        if (t < 7.30) {
+          typedEl.textContent = "";
+        } else {
+          var chars = Math.min(
+            TYPED_TARGET.length,
+            Math.floor((t - 7.30 + 0.0001) / (2 / 30)) + 1
+          );
+          typedEl.textContent = TYPED_TARGET.slice(0, chars);
+        }
+      });
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+      timerEl.textContent = "0:00:00";
+      profitEl.textContent = "฿0";
+      typedEl.textContent = "";
+    </script>
+  </body>
+</html>

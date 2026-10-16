@@ -65,3 +65,10 @@ none.
 
 ## Decided for CEO
 (none yet)
+
+## M9 · 10 s redo in the codeded.th style (CEO 16 Oct 18:26 TH) · done 16 Oct ~19:00 TH
+- CEO liked none of R0..H2; pointed at TikTok @codeded.th (clean dev-explainer motion). Studied 4 of its clips
+  (#0C1016 flat bg, karaoke Thai captions with one yellow #FED100 keyword, small dark UI cards, blur-dim on focus change, hard cuts).
+- SPEC: prototypes/bl-ep62-coded10/SPEC.md. Argon gemini-4-argon-high built CR (Remotion, 469 s) + CH (HyperFrames, 472 s); no edits by me.
+- Renders: CH 52 s, CR 105 s (no B-roll → light). Drive AI Drafts: CR 1FLCZpzXxbw_nG92aSH_rQFzhuysWe6JX,
+  CH 1hhty-sByfBJDaS7whjbW-9XG538wUDSf, sheet 1ROTfWgoDX-EPxGWT_aSniZtZrZ9AFrZY (md5 match).
