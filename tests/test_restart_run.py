@@ -127,7 +127,9 @@ def test_service_managed(tmp_path, capsys):
 
 @pytest.mark.parametrize('action', ['park', 'compact_then_resume'])
 def test_timeout_fallback(tmp_path, monkeypatch, capsys, action):
-    rr.tmux_session.has_session.return_value = True
+    # The pane stays until force_saved's session-kill has run.
+    rr.tmux_session.has_session.side_effect = lambda name: not any(
+        'session-kill.sh' in ' '.join(c) for c in commands())
     rr.session_status.get.return_value = {'status': 'open'}
     monkeypatch.setattr(rr, 'boundary', lambda r: 'old')
     assert rr.prep(args(tmp_path, [row(action)])) == 0
@@ -201,7 +203,7 @@ def test_resume_messages(tmp_path, mode, count):
 
 def test_resume_idempotent(tmp_path):
     manifest([entry()])
-    rr.live_sessions.read_registry.return_value = [dict(role='cto', sid='1234abcd')]
+    rr.tmux_session.has_session.return_value = True
     assert rr.resume(args(tmp_path)) == 0
     assert rr.resume(args(tmp_path)) == 0
     assert commands() == []

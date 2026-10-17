@@ -176,6 +176,23 @@ def saved(row):
     return bool(record and record.get('status') == 'saved')
 
 
+GONE_WAIT_S = 60
+
+
+def gone(row):
+    """Wait until the saved pane is really closed. session-kill records 'saved'
+    first and kills tmux a few seconds later; a resume that runs inside that gap
+    sees the old pane, calls it already_live and never relaunches it (17 Oct 2026:
+    0/6 came back)."""
+    if until(lambda: not tmux_session.has_session(pane(row)), GONE_WAIT_S):
+        return True
+    subprocess.run([tmux_session.tmux_bin(), 'kill-session', '-t', pane(row)],
+                   capture_output=True, text=True, timeout=30)
+    if until(lambda: not tmux_session.has_session(pane(row)), 10):
+        return True
+    raise RuntimeError('saved pane did not close')
+
+
 def launcher(row, host):
     role, sid = identity(row)
     if role == 'project_head':
@@ -269,9 +286,12 @@ def prep(args):
                     print(f"wait saved; on timeout: bash scripts/session-kill.sh --status force_saved {pane(row)}")
                     continue
                 if until(lambda: saved(row), args.wait_max):
+                    gone(row)
                     continue
             run(['bash', 'scripts/session-kill.sh', '--status', 'force_saved', pane(row)], args.dry_run)
             print(f"force_saved: {row['name']}")
+            if not args.dry_run:
+                gone(row)
         except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
             print(f"failed: {row['name']}: {exc}")
             failed = True
@@ -301,7 +321,9 @@ def resume(args):
     if path.resolve() != (STATE / f'{args.host}-resume.json').resolve():
         raise ValueError('unexpected resume manifest path')
     entries = json.loads(path.read_text())
-    existing = live(args.host)
+    # Only the dry run trusts the published registry: it can be minutes stale
+    # and still list a session that was just saved and closed.
+    existing = live(args.host) if args.dry_run else set()
     failed = False
     for row in entries:
         try:
@@ -410,7 +432,9 @@ def clean(args):
 def report(args):
     entries = json.loads(manifest_file(args.host).read_text())
     existing = live(args.host)
-    missing = [r['name'] for r in entries if identity(r) not in existing]
+    # A pane that exists on this host counts; the registry alone lags by minutes.
+    missing = [r['name'] for r in entries
+               if identity(r) not in existing and not tmux_session.has_session(pane(r))]
     result = dict(back=len(entries) - len(missing), total=len(entries), missing=missing)
     if args.json:
         print(json.dumps(result, ensure_ascii=False))
