@@ -485,6 +485,9 @@ if (-not (Test-Path $claude)) {
     if ($found) { $claude = $found.Source }
 }
 $code = 1
+# claude takes its project (CLAUDE.md, .claude, memory slug) from the cwd. A
+# scheduled task starts in C:\WINDOWS\system32 (PH #5b17d4c7, 2026-10-17).
+Set-Location -LiteralPath $root
 try {
     Invoke-NativeExe -Exe $claude -Arguments $fullArgs
     $code = $LASTEXITCODE

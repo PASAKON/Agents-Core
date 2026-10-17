@@ -286,6 +286,21 @@ def test_the_task_script_builder_refuses_what_could_break_out(value):
         nd._one_shot_task_script(f"name-{value}", "-File x")
 
 
+def test_the_task_starts_in_the_repo_not_system32(monkeypatch):
+    # PH #5b17d4c7 (2026-10-17) came up in C:\WINDOWS\system32: no CLAUDE.md,
+    # no .claude, wrong memory slug. The action must carry the repo as its cwd.
+    monkeypatch.setattr(nd, "ROOT", Path(r"C:\Users\x\mooniex\repo\MoonieX-Agents"))
+    script = nd._one_shot_task_script("mooniex-ph-abcd1234", "-File x")
+    assert ("-Argument '-File x' -WorkingDirectory "
+            "'C:\\Users\\x\\mooniex\\repo\\MoonieX-Agents';") in script
+
+
+def test_the_launcher_sets_the_location_before_claude_starts():
+    src = (ROOT / "windows" / "cxo-claude.ps1").read_text(encoding="utf-8")
+    loc = src.index("Set-Location -LiteralPath $root")
+    assert src.index("$root = ") < loc < src.index("Invoke-NativeExe -Exe $claude")
+
+
 # ---------------------------------------------------------------------------
 # spawn_worker
 # ---------------------------------------------------------------------------
