@@ -439,8 +439,8 @@ def test_the_script_without_a_token_says_hub_error_and_exits_3():
 
 def test_the_doc_carries_the_authorized_keys_line_the_script_expects():
     doc = DOC.read_text(encoding="utf-8")
-    line = ('command="cd /opt/MoonieXHQ/Agents/Core && exec bash scripts/hub/with-org-db-env.sh '
-            '.venv/bin/python -E -s tools/hold_release_card.py",from="<winbox tailnet ip>",restrict')
+    line = ('command="cd /opt/MoonieXHQ/Agents/Core && exec .venv/bin/python '
+            '-E -s tools/hold_release_card.py",from="<winbox tailnet ip>",restrict')
     assert line in doc
     assert "id_hold_release" in doc and "pc_lease.py ask-release" in doc
 

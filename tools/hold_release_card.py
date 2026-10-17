@@ -7,8 +7,11 @@ OrgMesh P3-A (CEO 2026-10-17, option A). The CEO's hold on the winbox screen
 is ASK. This is the one thing a winbox PH can ask for, over a key that can run nothing
 else (docs/ops/winbox-hold-release.md):
 
-    command="cd /opt/MoonieXHQ/Agents/Core && exec bash scripts/hub/with-org-db-env.sh \\
-        .venv/bin/python -E -s tools/hold_release_card.py",from="<winbox ip>",restrict <key>
+    command="cd /opt/MoonieXHQ/Agents/Core && exec .venv/bin/python -E -s \\
+        tools/hold_release_card.py",from="<winbox ip>",restrict <key>
+
+installed for a NON-root Contabo user that holds only the Run Inbox token (0600). No
+hub wrapper: ask_run does not use lib.db, so the process gets no ORG_DB_URL.
 
 sshd puts what the client typed in SSH_ORIGINAL_COMMAND. Exactly one form is accepted:
 

@@ -98,14 +98,16 @@ Only the PUBLIC half (`id_hold_release.pub`) goes anywhere. Never put the privat
 One line in that user's `~/.ssh/authorized_keys`, with the public key and winbox's tailnet
 address filled in from `tailscale status` on the day (a placeholder here on purpose):
 
-    command="cd /opt/MoonieXHQ/Agents/Core && exec bash scripts/hub/with-org-db-env.sh .venv/bin/python -E -s tools/hold_release_card.py",from="<winbox tailnet ip>",restrict <key>
+    command="cd /opt/MoonieXHQ/Agents/Core && exec .venv/bin/python -E -s tools/hold_release_card.py",from="<winbox tailnet ip>",restrict <key>
 
 - `command=` runs this script whatever the client asked; the client's text only fills
   `SSH_ORIGINAL_COMMAND`.
 - `from=` limits the key to winbox's tailnet address.
 - `restrict` switches off the pty, port, agent and X11 forwarding and `~/.ssh/rc`.
 - `-E -s` ignores `PYTHON*` variables and the user site.
-- `with-org-db-env.sh` gives the process the hub environment; the script prints none of it.
+- No hub wrapper (`with-org-db-env.sh`): `ask_run` does not use `lib.db`, so the key never drives a
+  process holding `ORG_DB_URL`. The user is a non-root Contabo user (never root) that holds only
+  the Run Inbox token.
 
 Needs on Contabo: `.venv/bin/python` in `/opt/MoonieXHQ/Agents/Core`, and a Run Inbox token for
 that user (`RUN_INBOX_TOKEN` or `~/.config/mooniex/run-inbox.token`, mode 0600) that the hub
