@@ -20,10 +20,10 @@ Per-slot detail lives in `mimi-weekly-calendar.md`; this file holds milestones, 
 | 1 | Wed 14 poster «เบื้องหลัง EP5» published 19:30 | **DONE** published 14 Oct 19:30 TH with the NEW logo (swapped on CEO's typed go); seen on the Page timeline at 19:41 («12 นาทีที่แล้ว», AI label) and in Content library «เผยแพร่แล้ว» | https://www.facebook.com/61594776486312/posts/122110710759492549 |
 | 2 | Thu 15 EP6-teaser poster published 19:30 | **DONE** published 15 Oct 19:30 TH, checked 19:4x TH (post page shows the text; Fri + Sat still «กำหนดเวลาแล้ว») | https://www.facebook.com/61594776486312/posts/122111569269492549 |
 | 3 | Fri 16 «ข่าวด่วนในบ้าน» clip published 19:30 | **DONE** published 16 Oct 19:30 TH as Reel, label «เนื้อหาที่สร้างโดย AI» shows; checked 19:4x TH (Sat EP6 still «กำหนดเวลาแล้ว» พรุ่งนี้ 19:30) | https://www.facebook.com/reel/1427604912167276 (post 122112019809492549) |
-| 4 | Sat 17 EP6 Reel + first comment 19:33 | **SCHEDULED** 14 Oct 20:1x TH (same go + Q-20261014-0225-3e78): file EP6-cut-v1-M1L.mp4 (= the 540p he saw, null −44.9 dB; Hook B CCTV opening), cover 1 = cards/cover-e6x11.png, AI label on; list reads «วันเสาร์ เวลา 19:30» · first comment cron 7d35228a (19:33), live check 01bee335 (19:46) | `ep6-session-files/cut/EP6-cut-v1-M1L.mp4` |
+| 4 | Sat 17 EP6 Reel + first comment 19:33 | **DONE** published 17 Oct 19:30 TH as Reel, label «เนื้อหาที่สร้างโดย AI» shows; first comment (docs/scripts/mimi-ep6-first-comment.txt) posted as the Page 19:3x TH, 1 copy. **Not pinned**: the comment's menu offers only แก้ไข/ลบ on this Reel (fb_reel_post --comment-only pinned=false, menu re-read by hand) | https://www.facebook.com/reel/879429691858374 (post 122112021279492549) |
 | 5 | Sun 18 EP7 published | waits CEO «go ยิง» (typed, in chat). 6 plates uploaded to Flow + dry run 12/12 OK 14 Oct 09:52 TH (balance 348 = 348); ready to shoot. Delegation (worker brief `mimi-ep7-worker-brief.md`, approved by C-level) waits BOTH his «go ยิง» AND his engine answer (Flow vs Higgsfield Seedance 2.0 free lane) | `docs/scripts/khaoniao-ep7-*` |
 
-Progress: 3/5.
+Progress: 4/5.
 
 EP7 $0 prep: `mimi-ep7-prep.md` (live balance 348 on 14 Oct 09:4x Thai; test shots 2+4; cut plan).
 
