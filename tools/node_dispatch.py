@@ -711,10 +711,15 @@ def _one_shot_task_script(task_name: str, argument: str) -> str:
     if not _PS_ARGUMENT_RE.fullmatch(argument):
         raise Refusal("task argument has a character PowerShell could act on")
     name = f"'{task_name}'"
+    # Without -WorkingDirectory the task starts in C:\WINDOWS\system32: the PH's
+    # claude then has no repo CLAUDE.md, no .claude and the wrong memory slug
+    # (PH #5b17d4c7, 2026-10-17).
+    workdir = _ps_safe("working directory", str(ROOT))
     return (
         "$ErrorActionPreference = 'Stop'; "
         "$me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name; "
-        f"$act = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '{argument}'; "
+        f"$act = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '{argument}' "
+        f"-WorkingDirectory '{workdir}'; "
         "$pri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited; "
         "$set = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
         "-DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Seconds 0); "
