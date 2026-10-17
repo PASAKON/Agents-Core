@@ -32,8 +32,11 @@ hosts:
     remote_control: true   # session shows in the CEO Claude app
     terminal_window: false   # CEO 2026-10-15: works from the Claude app, travels; no iTerm window on a new session
     ssh: null
-    # Mac sshd stays closed until G2 (Remote Login + sshd hardening, at the end).
-    mesh_ssh: null
+    # Mac sshd opened 2026-10-17 (ADR 0034, G2): key-only drop-in, AllowUsers pinned to
+    # Contabo's tailnet address, forced command node_dispatch for the org_dispatch key.
+    # Only mesh_ssh is read for a dispatch (lib/mesh.py); `ssh` stays null, so no admin
+    # alias is ever dialled for the Mac.
+    mesh_ssh: gob@100.64.2.37
     agents_root: /Users/gob/MoonieXHQ/Agents/Core
     worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
     provides: [chrome, macos_cu, blender_bridge]

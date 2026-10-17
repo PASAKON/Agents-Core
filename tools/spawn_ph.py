@@ -61,12 +61,18 @@ Over the org mesh (M13c, no card): a Contabo C-level runs
     bash scripts/hub/org-python.sh -m tools.spawn_ph mesh --host winbox --project <Name> [--dry-run]
 
 which sends `spawn_ph <lane> <owner sid> <project>` through lib.mesh to
-tools/node_dispatch on winbox. There `spawn_from_mesh` runs the same gates as
-spawn() (host flag, one PH per project, role doc, resource gate, CEO hold) and starts
-the window through a one-shot interactive scheduled task, which lands in the desktop
-session an ssh shell cannot reach. The owner is the identity the dispatching side
-proved with its C-level check; no text from the caller reaches the brief, which is a
-fixed stub (the owner sends the real brief by message).
+tools/node_dispatch on winbox or the Mac (`--host mac`, ADR 0034, opened 2026-10-17).
+There `spawn_from_mesh` runs the same gates as spawn() (host flag, one PH per project,
+role doc, resource gate) and starts the session:
+
+- winbox: through a one-shot interactive scheduled task, which lands in the desktop
+  session an ssh shell cannot reach; the CEO hold applies there (his game owns that PC);
+- the Mac: as a detached tmux session running the same command spawn() builds
+  (`launch_command`), with no CEO hold and no session-0 check: the Mac has neither.
+
+The owner is the identity the dispatching side proved with its C-level check; no text
+from the caller reaches the brief, which is a fixed stub (the owner sends the real
+brief by message).
 """
 from __future__ import annotations
 
@@ -108,7 +114,8 @@ _NONCE_RE = re.compile(r"[0-9a-f]{16}")
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
 CARD_BRIEF_MAX = 300
 CARD_ARGS_MAX = 480     # the hub refuses script args over 500 characters
-MESH_HOSTS = ("winbox",)    # hosts with a `spawn_ph` verb: Windows, where a scheduled task reaches the desktop
+# Hosts with a `spawn_ph` verb: winbox (a scheduled task reaches the desktop) and the Mac (a detached tmux session).
+MESH_HOSTS = ("winbox", "mac")
 MCP_SCREEN_RE = re.compile(r"MCP server", re.IGNORECASE)
 
 
@@ -405,6 +412,22 @@ def launch_command(sid: str, lane: str, project: str, owner: str, prompt: str) -
             f"--initial-prompt {shlex.quote(prompt)}")
 
 
+def dismiss_mcp_screen(name: str) -> bool | None:
+    """Press Escape in tmux session `name` when it shows Claude Code's new-MCP-servers
+    screen (a blind Escape would interrupt the Project Head's first turn). True when
+    it was dismissed, False when the screen was not there, None when tmux cannot be asked."""
+    from tools import tmux_session
+    try:
+        time.sleep(SPAWN_PROMPT_DELAY_S)
+        if MCP_SCREEN_RE.search(tmux_session.capture(name, 60)):
+            subprocess.run([tmux_session.tmux_bin(), "send-keys", "-t", name, "Escape"],
+                           capture_output=True, text=True, timeout=10)
+            return True
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return False
+
+
 def _make_plan(project: str, lane: str, owner: str) -> dict:
     sid = uuid.uuid4().hex[:8]
     name = f"{roles.PH_ROLE}-{sid}"
@@ -480,40 +503,34 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
         if isinstance(e, Refused):
             raise
         raise Refused(f"{'window' if os.name == 'nt' else 'tmux'} spawn failed: {e}") from e
-    dismissed: bool | None = False
-    try:
-        time.sleep(SPAWN_PROMPT_DELAY_S)
-        if MCP_SCREEN_RE.search(tmux_session.capture(name, 60)):
-            subprocess.run([tmux_session.tmux_bin(), "send-keys", "-t", name, "Escape"],
-                           capture_output=True, text=True, timeout=10)
-            dismissed = True
-    except (OSError, subprocess.SubprocessError):
-        dismissed = None
-    return {**plan, "mcp_screen_dismissed": dismissed}
+    return {**plan, "mcp_screen_dismissed": dismiss_mcp_screen(name)}
 
 
 MESH_BRIEF = ("Your owner {owner} sends your brief by message. "
               "Run /session-open once it arrives.\n")
 
 
-def spawn_from_mesh(project: str, lane: str, owner_sid: str, *, launch) -> dict:
+def spawn_from_mesh(project: str, lane: str, owner_sid: str, *, launch, windows: bool = True) -> dict:
     """Start a Project Head for a C-level on another host (M13c). Runs on the
-    host that opens the window (winbox), called by tools/node_dispatch's
+    host that opens the session (winbox or the Mac), called by tools/node_dispatch's
     `spawn_ph` verb; nobody here proves who the owner is: the mesh key and the
     dispatching side's C-level check do (tools.spawn_ph mesh).
 
     Same gates as spawn(), minus the caller check and the Windows session-0 check
-    (`launch` puts the window on the desktop itself): the host flag, one Project
-    Head per project, the role doc, the resource gate and the CEO hold. The brief
-    is a fixed stub; nothing the caller sent goes into it.
+    (on winbox `launch` puts the window on the desktop itself): the host flag, one
+    Project Head per project, the role doc and the resource gate, plus the CEO
+    hold when `windows` (the use-PC button belongs to winbox; the Mac has none).
+    The brief is a fixed stub; nothing the caller sent goes into it.
 
-    `launch(sid, args)` starts powershell.exe with `args` (windows_launcher_args)
-    and raises if it cannot. If it raises, the claim and the owner record are
-    taken back and the error propagates."""
+    `launch(sid, what)` starts the session and raises if it cannot. With
+    `windows` (winbox), `what` is the argv powershell.exe gets (windows_launcher_args).
+    Without it (the Mac), `what` is the shell command string for tmux session
+    `project_head-<sid>` (launch_command, the one spawn() runs). If `launch`
+    raises, the claim and the owner record are taken back and the error propagates."""
     why = _flag_refusal() or roles.ph_lane_refusal(lane)
     if not why and not _SID_RE.fullmatch(owner_sid or ""):
         why = f"owner session id must be 8 lowercase hex characters (got {owner_sid!r})"
-    why = why or ceo_hold_refusal()
+    why = why or (ceo_hold_refusal() if windows else None)
     if why:
         raise Refused(why)
     with _claim_lock(LOCKS_DIR):
@@ -523,7 +540,8 @@ def spawn_from_mesh(project: str, lane: str, owner_sid: str, *, launch) -> dict:
         plan = _make_plan(project, lane, owner_sid)
         _write_claim(plan, MESH_BRIEF.format(owner=plan["owner"]))
     try:
-        launch(plan["session_id"], windows_launcher_args(plan["session_id"], lane, project))
+        launch(plan["session_id"],
+               windows_launcher_args(plan["session_id"], lane, project) if windows else plan["command"])
     except BaseException:
         _drop_claim(plan["tmux_session"])
         raise
@@ -679,16 +697,7 @@ def resume(sid: str, dry_run: bool = False) -> dict:
             tmux_session.create(name, ROOT, plan.pop("command"))
         except Exception as e:  # noqa: BLE001
             raise Refused(f"tmux resume failed: {e}") from e
-    dismissed: bool | None = False
-    try:
-        time.sleep(SPAWN_PROMPT_DELAY_S)
-        if MCP_SCREEN_RE.search(tmux_session.capture(name, 60)):
-            subprocess.run([tmux_session.tmux_bin(), "send-keys", "-t", name, "Escape"],
-                           capture_output=True, text=True, timeout=10)
-            dismissed = True
-    except (OSError, subprocess.SubprocessError):
-        dismissed = None
-    return {**plan, "mcp_screen_dismissed": dismissed}
+    return {**plan, "mcp_screen_dismissed": dismiss_mcp_screen(name)}
 
 
 def main(argv: list[str] | None = None) -> int:

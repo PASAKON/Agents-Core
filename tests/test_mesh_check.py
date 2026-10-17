@@ -812,8 +812,9 @@ def test_parse_args_get_task_does_not_require_expect():
 # Every cell has a green, a red and an unreachable test. Nothing here dials a
 # host: subprocess.run is a recorder or a tripwire, mesh.dispatch is a fake far
 # side, and the hub is a tmp_path SQLite ledger (the same isolation
-# tests/test_w23_mesh_dispatch.py uses). self is pinned to "mac" (mesh_ssh:
-# null in config/hosts.yaml); contabo and winbox carry a real mesh_ssh.
+# tests/test_w23_mesh_dispatch.py uses). self is pinned to "mac"; every host in
+# config/hosts.yaml carries a mesh_ssh (the Mac's since 2026-10-17), so a test that
+# needs a closed target builds one with _without_mesh_ssh().
 # ---------------------------------------------------------------------------
 
 from lib import config as hub_config  # noqa: E402
@@ -839,6 +840,13 @@ def hub(monkeypatch, tmp_path):
 def _as_host(monkeypatch, name: str) -> None:
     monkeypatch.setenv("ORG_HOST", name)
     hub_config.self_host.cache_clear()
+
+
+def _without_mesh_ssh(monkeypatch, name: str = "mac") -> None:
+    """`name` as a host whose hosts.yaml entry has no mesh_ssh: closed (by design)."""
+    real = hub_config.host
+    monkeypatch.setattr(hub_config, "host",
+                        lambda n: {**real(n), "mesh_ssh": None} if n == name else real(n))
 
 
 class FakeSsh:
@@ -981,6 +989,7 @@ def test_sec_unreachable_when_nothing_answers(hub, monkeypatch, stage, how):
 
 
 def test_sec_target_without_mesh_ssh_is_closed_and_never_dialled(hub, monkeypatch):
+    _without_mesh_ssh(monkeypatch)
     _no_ssh(monkeypatch)
     assert m.check_sec("mac") == {"ok": False, "reason": "closed (by design)", "kind": "closed"}
 
@@ -1202,6 +1211,7 @@ def test_l5_unreachable_when_the_letter_cannot_be_written(hub, monkeypatch):
 
 
 def test_l5_target_without_mesh_ssh_is_closed_and_writes_no_letter(hub, monkeypatch):
+    _without_mesh_ssh(monkeypatch)
     _probe_worker("mac")
     _no_ssh(monkeypatch)
     _far(monkeypatch, lambda *a: pytest.fail("must not be dialled"))
@@ -1231,7 +1241,8 @@ def test_l6_green_when_probe_answers_in_time_and_the_hosts_row_is_fresh(hub, mon
 
 
 def test_l6_the_running_host_answers_in_process_so_it_is_never_closed(hub, monkeypatch):
-    assert not hub_config.host("mac").get("mesh_ssh")  # the Mac has none, yet it is not closed
+    _without_mesh_ssh(monkeypatch)
+    assert not hub_config.host("mac").get("mesh_ssh")  # it has none here, yet it is not closed
     _far(monkeypatch, _probing("mac"))
     assert m.l6_probe("mac")["ok"] is True
 
@@ -1289,6 +1300,7 @@ def test_l6_unreachable_when_probe_gets_no_answer_or_the_hub_cannot_be_read(hub,
 
 
 def test_l6_a_host_with_no_mesh_ssh_is_closed_when_it_is_not_the_one_we_run_on(hub, monkeypatch):
+    _without_mesh_ssh(monkeypatch)
     _as_host(monkeypatch, "contabo")
     _far(monkeypatch, lambda *a: pytest.fail("must not be dialled"))
     assert m.l6_probe("mac") == {"ok": False, "reason": "closed (by design)", "kind": "closed"}
@@ -1619,7 +1631,8 @@ def _row_of(md: str, level: str, first_col: str) -> str:
     return [ln for ln in section.splitlines() if ln.startswith(f"| {first_col} ")][0]
 
 
-def test_render_a_target_with_no_mesh_ssh_is_closed_by_design_and_never_counts():
+def test_render_a_target_with_no_mesh_ssh_is_closed_by_design_and_never_counts(monkeypatch):
+    _without_mesh_ssh(monkeypatch)
     md, any_fail, n_ok, n_fail = m.render(_empty(), "w3")
     for level in ("SEC", "L5"):
         for frm in ("contabo", "winbox"):
@@ -1768,6 +1781,7 @@ def test_amain_live_exits_1_on_an_unreachable_cell_and_prints_it(monkeypatch, tm
 def test_amain_live_exits_0_when_everything_claimed_is_green_or_closed(monkeypatch, tmp_path, capsys):
     calls: list = []
     _amain_stubs(monkeypatch, tmp_path, calls)
+    _without_mesh_ssh(monkeypatch)
     assert asyncio.run(m.amain(["--expect", "w2", "--live"])) == 0
     assert "closed (by design)" in capsys.readouterr().out  # SEC / L5 into the Mac
 
