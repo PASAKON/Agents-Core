@@ -137,9 +137,11 @@ def this_host() -> str:
 
 
 def collect_runs(tasks: list[dict], *, now: float | None = None,
-                 is_local=None, **probes) -> list[dict]:
+                 is_local=None, keep: set[str] | None = None,
+                 **probes) -> list[dict]:
     """The runs worth showing: this host's, active or ended in the last
-    RUN_WATCH_ENDED_S, worst first. `probes` go to inspect_run (tests)."""
+    RUN_WATCH_ENDED_S, worst first. `keep`: task ids shown even past that
+    window (a sticky 🔴 not yet acked). `probes` go to inspect_run (tests)."""
     from tools.worker_reap import is_local_row
     is_local = is_local or is_local_row
     now = time.time() if now is None else now
@@ -153,7 +155,7 @@ def collect_runs(tasks: list[dict], *, now: float | None = None,
             continue
         if run["state"] in ("done", "failed"):
             ended = run_liveness.parse_ts(run["ended"])
-            if ended is None or ended < cutoff:
+            if (ended is None or ended < cutoff) and str(task.get("id")) not in (keep or ()):
                 continue
         runs.append(run)
     runs.sort(key=lambda r: (_SEVERITY[r["state"]], r["started"] or ""))
@@ -421,6 +423,12 @@ def acknowledge_runs(
 ack_runs = acknowledge_runs
 
 
+def sticky_bad(*, host: str | None = None,
+               state_dir: Path | str | None = None) -> list[str]:
+    """Task ids holding the light 🔴 (in ack.json `bad`), not yet acked."""
+    return sorted(_load_ack_state(state_file(host, state_dir)).get("bad", {}))
+
+
 def compute_light(
     runs: list[dict],
     *,
@@ -559,7 +567,12 @@ def main(argv=None) -> int:
         if args.cmd == "tail":
             return cmd_tail(args)
         tasks = fetch_tasks()
-        runs = collect_runs(tasks)
+        # `status` also shows every sticky 🔴 run, even one past the ended
+        # window, so showing it can ack it (E2E B8, 17 Oct: three aged-out
+        # runs held the light red with no way to clear it).
+        keep = (set(sticky_bad(host=host, state_dir=args.state_dir))
+                if args.cmd == "status" else set())
+        runs = collect_runs(tasks, keep=keep)
     except HubUnreachable:
         print("hub unreachable")
         return EXIT_HUB
