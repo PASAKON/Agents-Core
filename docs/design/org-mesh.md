@@ -18,8 +18,12 @@ collector for `tools/mesh_check.py`. Dispatch uses `node_dispatch` over ssh with
 the `org_dispatch` key. This decision (ADR 0036 in Agents-Rules) supersedes the older topology below.
 
 Peers (Mac and winbox) pull files from GitHub and take orders over
-`node_dispatch`. Mac SSH dispatch is **planned, ADR 0034**: a key-only sshd
-drop-in and forced command `node_dispatch`; it is not live yet.
+`node_dispatch`. Mac SSH dispatch is **opened 2026-10-17, ADR 0034** (OrgMesh P4): a
+key-only sshd drop-in with `AllowUsers` pinned to Contabo's tailnet address and forced
+command `node_dispatch`; `config/hosts.yaml` carries its `mesh_ssh`. The `spawn_ph` verb
+runs there too: a Contabo C-level starts a Project Head on the Mac with
+`python -m tools.spawn_ph mesh --host mac --project <Name>`, as a detached tmux session
+(`via: tmux`), with no CEO hold (that is winbox's). Details: `docs/ops/ph-anywhere.md`.
 
 Agents-Rules, Agents-Wikis and Agents-Memory are plain git checkouts on every
 host. GitHub is the file source. Every launcher pulls at session start:

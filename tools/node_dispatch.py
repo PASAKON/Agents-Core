@@ -1080,30 +1080,51 @@ def _launch_ph_schtask(sid: str, args: list[str]) -> None:
                       f"{(r.stderr or r.stdout).strip()[:200]}")
 
 
+def _launch_ph_tmux(sid: str, command: str) -> None:
+    """Mac: start the Project Head as a detached tmux session running `command`, the
+    string tools.spawn_ph.launch_command builds for spawn-ph.sh (scripts/cxo-claude.sh
+    --role project_head, the PH env exported in it). Every value in it is a validated
+    token and shlex-quoted there; nothing the caller sent reaches it. Then the same
+    new-MCP-servers dismissal spawn() does, because nobody watches this pane."""
+    from tools import spawn_ph, tmux_session
+    name = f"{roles.PH_ROLE}-{sid}"
+    try:
+        tmux_session.create(name, spawn_ph.ROOT, command)
+    except Exception as e:
+        raise Failure(f"tmux spawn failed: {e}") from e
+    spawn_ph.dismiss_mcp_screen(name)
+
+
 def verb_spawn_ph(lane: str, owner_sid: str, project: str) -> dict:
-    """Start a Project Head for C-level `lane`-`owner_sid` on this Windows host
-    (M13c). The gates, the claim and the owner record are
-    tools.spawn_ph.spawn_from_mesh's; the window comes from a one-shot
-    interactive scheduled task, which lands on the desktop and not in the
-    session 0 sshd gives us. The dispatching side's C-level check
+    """Start a Project Head for C-level `lane`-`owner_sid` on this host (M13c).
+    The gates, the claim and the owner record are tools.spawn_ph.spawn_from_mesh's.
+    Windows: the window comes from a one-shot interactive scheduled task, which
+    lands on the desktop and not in the session 0 sshd gives us; the CEO hold applies.
+    Mac (ADR 0034): a detached tmux session, `via: "tmux"`; no CEO hold. Linux is
+    refused: it spawns locally or by card. The dispatching side's C-level check
     (`python -m tools.spawn_ph mesh`) and the dispatch key are the authority for
     the owner; the verb takes no text for the brief."""
-    if not _is_windows():
-        raise Refusal("spawn_ph over the mesh is winbox-only; Linux/Mac spawn locally or by card")
+    if _is_windows():
+        launch, windows, via = _launch_ph_schtask, True, "schtask"
+    elif _os_name() == "darwin":
+        launch, windows, via = _launch_ph_tmux, False, "tmux"
+    else:
+        raise Refusal("spawn_ph over the mesh runs on winbox and the Mac only; Linux spawns locally or by card")
     from tools import spawn_ph
     key = f"ph:{_self_host()}:{project.casefold()}:start"
-    # spawn_ph's flock is a no-op on Windows: this slot is what keeps two calls
-    # for one project from both passing the "already held" check.
+    # This slot is what keeps two calls for one project from both passing the "already
+    # held" check on Windows, where spawn_ph's flock is a no-op; on the Mac it also
+    # spans the launch, which runs after that flock is released.
     token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
     if token is None:
         raise Refusal(f"spawn_ph: another start of project {project} is in progress on this host")
     try:
-        result = spawn_ph.spawn_from_mesh(project, lane, owner_sid, launch=_launch_ph_schtask)
+        result = spawn_ph.spawn_from_mesh(project, lane, owner_sid, launch=launch, windows=windows)
     except spawn_ph.Refused as e:
         raise Refusal(str(e)) from e
     finally:
         _release(key, token)
-    return {**result, "via": "schtask"}
+    return {**result, "via": via}
 
 
 def verb_stop_clevel(role: str, sid: str) -> dict:

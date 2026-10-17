@@ -465,8 +465,15 @@ def test_a_window_only_when_l3_and_l5_are_both_claimed_and_the_target_can_be_dia
     assert m.l5_window_for("mac", "contabo", "w1") is None      # L5 not claimed before w2
     assert m.l5_window_for("mac", "winbox", "w2") is None       # L5 into winbox is w3
     assert m.l5_window_for("mac", "winbox", "w3") is not None
-    assert m.l5_window_for("contabo", "mac", "w2") is None      # mac has no mesh_ssh: closed
+    assert m.l5_window_for("contabo", "mac", "w2") is not None  # the Mac has a mesh_ssh since 2026-10-17
     assert m.l5_window_for("mac", "mac", "w3") is None          # nothing to deliver to yourself
+
+
+def test_no_window_into_a_host_without_a_mesh_ssh(monkeypatch):
+    real = hub_config.host
+    monkeypatch.setattr(hub_config, "host",
+                        lambda name: {**real(name), "mesh_ssh": None} if name == "mac" else real(name))
+    assert m.l5_window_for("contabo", "mac", "w2") is None      # closed (by design): no letter, no window
 
 
 def test_no_window_for_a_host_the_config_does_not_know(monkeypatch):

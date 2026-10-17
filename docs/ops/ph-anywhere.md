@@ -164,7 +164,7 @@ It prints one JSON line (node_dispatch's reply: `session_id`, `project`, `owner`
   the host flag `ORG_PH_ROLES`, one Project Head per project (ignoring case), the role
   doc, the resource gate and the CEO hold. It does not check for Windows session 0: the
   window comes from a one-shot interactive scheduled task, which lands on the desktop.
-  Windows only; any other OS is refused.
+  Windows and the Mac only (see "On the Mac" below); Linux is refused.
 - **What it writes.** The same claim and owner record as `spawn()`
   (`project_head-<id>.project`, `.spawned_by` = `cxo:<lane>:<owner sid>`) and a fixed
   brief stub, "Your owner <lane>-<sid> sends your brief by message. Run /session-open
@@ -175,3 +175,14 @@ It prints one JSON line (node_dispatch's reply: `session_id`, `project`, `owner`
   also gives the wt tab) from the scheduled task. It is a console window, not a tab in the
   CEO's Windows Terminal window, and every token must pass `_PS_ARGUMENT_RE` or the call is
   refused, never escaped.
+
+**On the Mac** (OrgMesh P4, ADR 0034). `--host mac` sends the same verb and the same three
+arguments to the Mac, whose sshd opened 2026-10-17 (`config/hosts.yaml` `mesh_ssh`; the
+org_dispatch key, `from=` and the forced command are the CEO's, by hand). On Darwin
+`node_dispatch` runs the same `spawn_from_mesh` gates, minus the CEO hold (winbox's use-PC
+button; the Mac has none), and starts a detached tmux session `project_head-<id>` with the
+command `spawn-ph.sh` builds (`scripts/cxo-claude.sh --role project_head`, the `ORG_PH_*`
+env exported in it), then dismisses Claude Code's new-MCP-servers screen like a local
+spawn. It answers `via: "tmux"`. The brief is the same fixed stub; the claim slot is
+`ph:mac:<project>:start`. The Mac needs the host flag too (`/etc/org-flags/ORG_PH_ROLES`,
+since a forced command does not carry the env).

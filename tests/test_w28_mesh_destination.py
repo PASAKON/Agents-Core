@@ -47,7 +47,7 @@ def _testbox(monkeypatch, **entry):
     monkeypatch.setattr(config, "host", lambda name: entry if name == "testbox" else real(name))
 
 
-@pytest.mark.parametrize("host", ["contabo", "winbox"])
+@pytest.mark.parametrize("host", ["contabo", "winbox", "mac"])
 def test_a_remote_call_reads_no_ssh_config_and_dials_mesh_ssh(host):
     cfg = config.host(host)
     argv = mesh.build_argv(host, "probe", ())
@@ -81,14 +81,11 @@ def test_every_declared_mesh_ssh_is_a_user_at_a_tailnet_address(host):
     assert dest != entry.get("ssh")
 
 
-def test_the_mac_takes_no_mesh_calls_until_its_sshd_opens(monkeypatch):
-    """G2 (Remote Login + sshd hardening) is the CEO's step at the very end."""
-    assert DECLARED["mac"]["mesh_ssh"] is None
-    monkeypatch.setenv("ORG_HOST", "contabo")
-    config.self_host.cache_clear()
-    _tripwire(monkeypatch)
-    with pytest.raises(mesh.MeshUnreachable, match="no mesh_ssh"):
-        mesh.dispatch("mac", "probe")
+def test_the_mac_is_dialled_through_mesh_ssh_and_never_an_admin_alias():
+    """The Mac's sshd opened 2026-10-17 (ADR 0034): a mesh call dials its tailnet
+    address, and `ssh` stays null so no admin alias exists to dial."""
+    assert DECLARED["mac"]["ssh"] is None
+    assert mesh.mesh_destination("mac") == DECLARED["mac"]["mesh_ssh"]
 
 
 @pytest.mark.parametrize("value", [None, ""])

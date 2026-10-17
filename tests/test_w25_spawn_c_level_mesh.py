@@ -242,9 +242,18 @@ def test_flag_on_unreachable_says_so_and_queues_nothing(flag_on, fake_mesh, rela
     assert relay[-1][:3] == ("spawn_c_level", "cto", "unreachable")
 
 
+def _mac_without_mesh_ssh(monkeypatch):
+    """The Mac as hosts.yaml had it before its sshd opened (2026-10-17), so a host
+    with no mesh_ssh stays covered now that every real host has one."""
+    real = config.host
+    monkeypatch.setattr(config, "host",
+                        lambda name: {**real(name), "mesh_ssh": None} if name == "mac" else real(name))
+
+
 def test_flag_on_mac_from_a_remote_relay_is_unreachable_not_queued(flag_on, monkeypatch):
-    """The Mac has `mesh_ssh: null` (it dials out, nobody dials it): the real
-    lib.mesh answers unreachable without ever running ssh, and no queue row follows."""
+    """A host with `mesh_ssh: null` takes no mesh call: the real lib.mesh answers
+    unreachable without ever running ssh, and no queue row follows."""
+    _mac_without_mesh_ssh(monkeypatch)
     _no_subprocess(monkeypatch)
     result = _spawn("cfo", "mac")
     assert result["status"] == "unreachable" and result["reason"] == "host mac unreachable"
@@ -370,8 +379,9 @@ def test_parallel_mac_enqueues_beside_the_mesh_call(flag_on, parallel_on, fake_m
 
 def test_parallel_mac_still_queues_when_the_mesh_leg_is_unreachable(flag_on, parallel_on,
                                                                     monkeypatch, relay):
-    """From Contabo the Mac has no mesh_ssh, so this is the normal parallel-run answer
-    until it gets one: the queue keeps the spawn working, the audit records the gap."""
+    """A Mac with no mesh_ssh is the normal parallel-run answer until it has one: the
+    queue keeps the spawn working, the audit records the gap."""
+    _mac_without_mesh_ssh(monkeypatch)
     _no_subprocess(monkeypatch)
     result = _spawn("cfo", "mac")
     assert result["status"] == "queued"
