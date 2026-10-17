@@ -423,3 +423,51 @@ def test_relay_open_reads_console_cli(monkeypatch):
     assert rr.relay_open() is True
     monkeypatch.setattr(rr.subprocess, 'run', fake(exc=OSError('no node')))
     assert rr.relay_open() is None
+
+
+def _shell(tmp_path, *argv, fail=''):
+    """Run a copy of org-restart.sh with HOME unset and a logging org-python.sh."""
+    scripts = tmp_path / 'scripts'
+    (scripts / 'hub').mkdir(parents=True)
+    (scripts / 'org-restart.sh').write_text((REPO / 'scripts/org-restart.sh').read_text())
+    (scripts / 'hub/org-python.sh').write_text(
+        'echo "$HOME|$*" >> "$CALL_LOG"\n'
+        'case " $* " in *" $FAIL "*) exit 4;; esac\n')
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    (bindir / 'systemd-run').write_text('#!/bin/sh\necho "systemd-run $*" >> "$CALL_LOG"\n')
+    (bindir / 'systemd-run').chmod(0o755)
+    log = tmp_path / 'calls'
+    env = {k: v for k, v in os.environ.items() if k != 'HOME'}
+    env.update(PATH=f'{bindir}:' + os.environ['PATH'], CALL_LOG=str(log), FAIL=fail or 'never')
+    result = REAL_RUN(['bash', str(scripts / 'org-restart.sh'), 'contabo', *argv],
+                      env=env, capture_output=True, text=True)
+    return result, log.read_text().splitlines() if log.exists() else []
+
+
+def test_restart_shell_sets_home_when_systemd_leaves_it_unset(tmp_path):
+    result, calls = _shell(tmp_path, '--dry-run')
+    assert result.returncode == 0, result.stdout + result.stderr
+    home = calls[0].split('|')[0]
+    assert home and home != '/.config'
+    assert 'prep --wait-max 600 --dry-run' in calls[0]
+    assert not any(c.startswith('systemd-run') for c in calls)
+    assert 'would reboot' in result.stdout
+
+
+def test_restart_shell_sessions_only_resumes_without_reboot(tmp_path):
+    result, calls = _shell(tmp_path, '--sessions-only')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert [c.split('|')[1].split()[-1] for c in calls] == ['600', 'resume', '--notify']
+    assert not any(c.startswith('systemd-run') for c in calls)
+
+
+def test_restart_shell_sessions_only_rolls_back_when_prep_fails(tmp_path):
+    result, calls = _shell(tmp_path, '--sessions-only', fail='prep')
+    assert result.returncode == 4
+    assert calls[-1].endswith('--host contabo resume')
+    assert not any('--notify' in c or c.startswith('systemd-run') for c in calls)
+
+
+def test_resume_unit_sets_home():
+    assert 'Environment=HOME=/root' in (REPO / 'deploy/systemd/org-resume.service').read_text()

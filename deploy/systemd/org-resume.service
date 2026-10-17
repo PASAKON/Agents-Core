@@ -9,6 +9,7 @@ Type=oneshot
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=TMUX_TMPDIR=/tmp
+Environment=HOME=/root
 EnvironmentFile=-/etc/mooniex/org-resume.env
 ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/org-resume.sh
 KillMode=process
