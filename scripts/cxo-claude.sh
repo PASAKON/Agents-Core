@@ -619,9 +619,15 @@ cleanup() {
   # one that still holds an unread letter (the next launch picks those up).
   if [ "$ROLE" = "coo" ]; then rmdir "$ROOT/state/inbox/$ROLE-$CXO_SESSION_ID" 2>/dev/null || true; fi
   # A Project Head's project claim and owner record (tools/spawn_ph.py) end
-  # with the session: a later launch under the same id is not its continuation.
+  # with the session, but are parked, not deleted: `spawn-ph.sh --resume <id>`
+  # (a SafeRestart resume, a CEO resume) needs both. A .parked file claims no
+  # project. 17 Oct 2026: deleting them left 4 PHs unresumable after a restart.
   if [ "$IS_PH" = "1" ]; then
-    rm -f "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.project" "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.spawned_by"
+    for _rec in project spawned_by; do
+      if [ -f "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.$_rec" ]; then
+        mv -f "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.$_rec" "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.$_rec.parked"
+      fi
+    done
   fi
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ "$IS_PH" = "0" ] && [ -e "$ACTIVE_FILE" ]; then
