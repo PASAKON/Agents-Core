@@ -468,3 +468,43 @@ def test_role_and_skill_files_exist_and_match_contract():
 def test_launch_argv_takes_an_absolute_claude_path():
     argv = watcher.build_launch_argv("contabo", claude_bin="/root/.local/bin/claude")
     assert "/root/.local/bin/claude" in argv and "claude" not in argv
+
+
+def test_status_shows_and_acks_sticky_red_runs_past_the_ended_window(
+    tmp_path: Path, monkeypatch, capsys
+):
+    """E2E B8 on Contabo 17 Oct: ack.json held three failed runs as bad, all
+    past the ended window, so `status --bad` said "no bad runs" and the light
+    stayed 🔴 with two healthy runs. `status` must show them so it can ack them."""
+    state_dir = tmp_path / "state" / "run-watch" / "contabo"
+    old = ("task-68c6a98f", "task-a4a427a7", "task-a96578ed")
+    tasks = [row("task-run00001")] + [
+        row(t, status="failed", spawned_at=iso(3600 * (h + 2)), updated_at=iso(3600 * h))
+        for h, t in zip((20, 12, 4), old)
+    ]
+    probes = stubs(alive={"task-run00001"}, logs={"task-run00001": NOW - 5})
+    live = rw.collect_runs(tasks, now=NOW, **probes)
+    assert [r["task"] for r in live] == ["task-run00001"]          # all three aged out
+
+    # Seed the sticky state the way an earlier tick did, while they were fresh.
+    fresh = rw.collect_runs(tasks, now=NOW, keep=set(old), **probes)
+    assert {r["task"] for r in fresh if r["state"] == "failed"} == set(old)
+    rw.compute_light(fresh, host="contabo", state_dir=state_dir)
+    assert rw.compute_light(live, host="contabo", state_dir=state_dir) == (1, "\U0001F534")
+    assert rw.sticky_bad(host="contabo", state_dir=state_dir) == sorted(old)
+
+    monkeypatch.setattr(rw, "this_host", lambda: "contabo")
+    monkeypatch.setattr(rw, "fetch_tasks", lambda: tasks)
+    real_collect = rw.collect_runs
+    monkeypatch.setattr(
+        rw, "collect_runs", lambda ts, **kw: real_collect(ts, now=NOW, **{**probes, **kw})
+    )
+    assert rw.main(["status", "--bad", "--state-dir", str(state_dir)]) == 0
+    out = capsys.readouterr().out
+    assert all(t in out for t in old)
+
+    assert rw.sticky_bad(host="contabo", state_dir=state_dir) == []
+    assert rw.compute_light(live, host="contabo", state_dir=state_dir) == (1, "\U0001F7E2")
+    # Once acked they are no longer kept: the next status is back to the live window.
+    assert rw.main(["status", "--bad", "--state-dir", str(state_dir)]) == 0
+    assert capsys.readouterr().out.strip() == "no bad runs"
