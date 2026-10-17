@@ -53,6 +53,7 @@ hosts:
     os: windows
     # OrgMesh KIT (mesh_check): the clones live under the repo dir, not under hq/Agents.
     kit_paths:
+      core: C:/Users/passg/mooniex/repo/MoonieX-Agents
       rules: C:/Users/passg/mooniex/repo/Agents-Rules
       wikis: C:/Users/passg/mooniex/repo/Agents-Wikis
       memory: C:/Users/passg/mooniex/repo/Agents-Memory

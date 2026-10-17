@@ -58,16 +58,34 @@ No fetch occurs unless `--kit-fetch` explicitly requests one on the host
 running the command; peer collection never fetches. Missing facts are `n/a`;
 an existing directory without `.git` is `not-git` and fails.
 
-Paths use `hosts.yaml` host `kit_paths: {rules, wikis, memory}` overrides,
+Paths use `hosts.yaml` host `kit_paths: {core, rules, wikis, memory}` overrides,
 then the `machine-contract.yaml` machine HQ's `Agents/{Rules,Wikis,Memory}`
 layout. Without configured paths, rules/wikis use `WIKI_ROOT_ORG` and
 `WIKI_ROOT_MOONIEX`; memory uses `~/.claude/projects/<checkout-slug>/memory`.
 Symlinks and Windows junctions are resolved before inspecting `.git`.
+The collecting host passes its target host's kit paths to both deployed and
+piped collectors. Core defaults to ROOT; its selected path controls checkout
+checks and the fallback memory slug, even when the remote cwd is elsewhere.
 
 Green requires rules/wikis/memory HEAD equal origin/main, core zero commits
 behind or a merge base at most 24 hours old, checkout skill
 count at least 120 (`.claude/skills/*/SKILL.md`), `roles/project_head.md`,
 the platform PH launcher, and a successful hook interpreter `--version`.
+It also requires both `.claude/skills/session-{open,close}/SKILL.md` files,
+`IRON-RULES.md` under the selected rules directory, and SessionStart command
+hooks referencing `session-deadline-check`. The `memory_pull` fact checks for
+a `-m tools.memory_sync pull` call in the PH launcher (`scripts/cxo-claude.sh`
+on POSIX, `windows/cxo-claude.ps1` on Windows), ignoring comment lines.
+Memory pull is a launcher action, not a SessionStart hook. `memory_script`
+checks that core's `tools/memory_sync.py` exists independently of settings.
+The deadline hook/file and memory pull/file are reported separately as present/missing
+in the compact facts table; missing facts fail closed with a reason capped
+at 80 characters.
+Settings are parsed read-only from core's `.claude/settings.json`. On Windows,
+an explicit `--settings` in `windows/cxo-claude.ps1` takes precedence: literal
+paths and a single literal variable assignment (including PSScriptRoot/../)
+are supported. Dynamic/ambiguous overrides fail closed. No hook or PowerShell
+code is executed, and no settings contents or commands are printed.
 An up-to-date core is green even if its last commit is old. Divergence of
 rules/wikis/memory fails even when the checkout is only ahead.
 Org skills load from the checkout. Home skills remain in the facts and table

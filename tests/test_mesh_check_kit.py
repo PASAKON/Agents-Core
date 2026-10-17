@@ -1,6 +1,7 @@
 """KIT probes use local fixture repositories only; no network or SSH."""
 import copy
 import asyncio
+import base64
 import json
 import os
 import subprocess
@@ -29,7 +30,8 @@ def green(checkout):
     repo = m.kit_git(checkout)
     return {**{name: copy.deepcopy(repo) for name in ("core", "rules", "wikis", "memory")},
             "skills_repo": 120, "skills_home": 120, "role": True,
-            "launcher": True, "hooks": True}
+            "launcher": True, "hooks": True,
+            **{key: True for key in m.KIT_SESSION_FACTS}}
 
 
 def test_git_facts_and_no_fetch(checkout, monkeypatch):
@@ -230,6 +232,7 @@ def test_wave_and_render(checkout, monkeypatch):
     text, failed, good, bad = m.render(cells, "w5")
     assert failed and (good, bad) == (2, 1)
     assert "## KIT facts" in text
+    assert "memory pull/file" in text and "memory hook/file" not in text
     assert ("KIT", "contabo", "winbox") not in m.EXPECT
 
 
@@ -265,3 +268,222 @@ def test_old_peer_falls_back_to_piped_source(monkeypatch):
     assert m._collect_peer_local("winbox", {"os": "windows", "agents_root": "C:/fixture"},
                                  Path("fixture.py")) == {"kit": {}}
     assert len(calls) == 2 and "stdin_path" in calls[-1]
+
+
+@pytest.mark.parametrize("override", [False, True])
+def test_core_path_controls_all_checkout_facts(tmp_path, monkeypatch, override):
+    root, core, home = (tmp_path / name for name in ("root", "core", "home"))
+    root.mkdir()
+    for name in ("roles/project_head.md", "scripts/spawn-ph.sh", "windows/cxo-claude.ps1",
+                 ".claude/skills/example/SKILL.md"):
+        path = core / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+    generator = core / "scripts/lib/cxo_mcp_config.py"
+    generator.parent.mkdir(parents=True)
+    generator.write_text("def _names_for(role): return ['org']\n"
+                         "def _build(*args): return {}\n"
+                         "def hub_route(root): return 'infisical'\n")
+    monkeypatch.setattr(m, "kit_git", lambda path, **kwargs: {"path": str(path)})
+    monkeypatch.setattr(m, "_kit_run", lambda *a, **k: None)
+    paths = {"core": str(core), "rules": "/fixture/rules", "wikis": "/fixture/wikis"} if override else None
+    facts = m.kit_facts(root, home=home, path_overrides=paths)
+    selected = core if override else root
+    assert facts["core"]["path"] == str(selected)
+    assert facts["skills_repo"] == int(override)
+    assert facts["role"] is override
+    assert facts["launcher"] is override
+    assert facts["mcp_names"] == (["org"] if override else "n/a")
+    slug = m.re.sub(r"[^A-Za-z0-9]", "-", str(selected))
+    assert facts["memory"]["path"] == str(home / ".claude/projects" / slug / "memory")
+    if override:
+        assert facts["rules"]["path"] == paths["rules"]
+        assert facts["wikis"]["path"] == paths["wikis"]
+
+
+@pytest.mark.parametrize("platform", ["windows", "linux"])
+def test_peer_transports_paths_to_deployed_and_piped_collectors(monkeypatch, platform):
+    paths = {key: f"C:/kit with spaces/$literal/{key}" for key in ("core", "rules", "wikis", "memory")}
+    calls = []
+
+    def ssh(alias, command, **kwargs):
+        calls.append(command)
+        encoded = command.split("--kit-paths-b64 ")[1]
+        assert m._parse_args(["--local", "--kit-paths-b64", encoded]).kit_paths_b64 == paths
+        return None if "stdin_path" not in kwargs else '{"kit": {}}'
+
+    monkeypatch.setattr(m, "_ssh_run", ssh)
+    assert m._collect_peer_local("peer", {"os": platform, "agents_root": "/wrong",
+                                         "kit_paths": paths}, Path("fixture.py")) == {"kit": {}}
+    assert len(calls) == 2
+
+
+def test_piped_source_receives_paths_without_config(checkout, tmp_path):
+    cwd = tmp_path / "wrong"
+    cwd.mkdir()
+    paths = {key: str(checkout) for key in ("core", "rules", "wikis", "memory")}
+    encoded = base64.b64encode(json.dumps(paths).encode()).decode()
+    result = subprocess.run([sys.executable, "-S", "-", "--local", "--json",
+                             "--kit-paths-b64", encoded], cwd=cwd,
+                            input=Path(m.__file__).read_text(), capture_output=True,
+                            text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    facts = json.loads(result.stdout)["kit"]
+    for key in paths:
+        assert facts[key]["head"] == git(checkout, "rev-parse", "HEAD")
+
+
+def test_configured_core_and_caller_precedence(tmp_path):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/hosts.yaml").write_text(
+        "hosts:\n  winbox:\n    kit_paths:\n      core: C:/configured/core\n")
+    home = tmp_path / "home"
+    configured = m.kit_paths(tmp_path, home, "winbox")
+    assert configured["core"] == Path("C:/configured/core")
+    assert configured["memory"] == home / ".claude/projects/C--configured-core/memory"
+    passed = m.kit_paths(tmp_path, home, "winbox", {"core": "C:/caller/core"})
+    assert passed["core"] == Path("C:/caller/core")
+    assert passed["memory"] == home / ".claude/projects/C--caller-core/memory"
+
+
+@pytest.fixture
+def session_kit(tmp_path):
+    core, rules = tmp_path / "core space", tmp_path / "rules"
+    for path in (core / ".claude/skills/session-open/SKILL.md",
+                 core / ".claude/skills/session-close/SKILL.md",
+                 core / "scripts/session-deadline-check.py", core / "tools/memory_sync.py",
+                 core / "windows/cxo-claude.ps1", core / "scripts/cxo-claude.sh", rules / "IRON-RULES.md"):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("raise RuntimeError('must never execute')")
+    settings = {"hooks": {"SessionStart": [{"hooks": [
+        {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-$PWD}"/scripts/session-deadline-check.py'}]}]}}
+    (core / "scripts/cxo-claude.sh").write_text('python3 -m tools.memory_sync pull\n')
+    (core / "windows/cxo-claude.ps1").write_text('& $venvPy -m tools.memory_sync pull\n')
+    (core / ".claude/settings.json").write_text(json.dumps(settings))
+    return core, rules
+
+
+def test_session_present(session_kit):
+    assert all(m.kit_session_facts(*session_kit).values())
+    assert all(m.kit_session_facts(*session_kit, windows=True).values())
+
+
+@pytest.mark.parametrize("windows", [False, True])
+@pytest.mark.parametrize("source,expected", [
+    (None, False), ("", False),
+    ("  # python3 -m tools.memory_sync pull", False),
+    ("python3 -m tools.memory_sync push", False),
+    ("python3 -m tools.memory_sync pull_other", False),
+    ("python3 -m tools.memory_sync pull", True),
+    ("& $venvPy -m tools.memory_sync pull", True)])
+def test_memory_pull_launcher(session_kit, checkout, windows, source, expected):
+    core, rules = session_kit
+    launcher = core / ("windows/cxo-claude.ps1" if windows else "scripts/cxo-claude.sh")
+    if source is None:
+        launcher.unlink()
+    else:
+        launcher.write_text(source)
+    facts = m.kit_session_facts(core, rules, windows=windows)
+    assert facts["memory_pull"] is expected
+    assert facts["memory_script"]
+    assert "memory_hook" not in facts
+    if not expected:
+        assert "memory_pull" in m.check_kit({**green(checkout), **facts})["reason"]
+
+
+def test_memory_hook_does_not_replace_launcher(session_kit):
+    core, rules = session_kit
+    (core / "scripts/cxo-claude.sh").write_text("")
+    (core / ".claude/settings.json").write_text(json.dumps({"hooks": {"SessionStart": [
+        {"hooks": [{"type": "command", "command": "python3 -m tools.memory_sync pull"}]}]}}))
+    assert not m.kit_session_facts(core, rules)["memory_pull"]
+
+
+@pytest.mark.parametrize("key,path", [
+    ("session_open", ".claude/skills/session-open/SKILL.md"),
+    ("session_close", ".claude/skills/session-close/SKILL.md"),
+    ("deadline_script", "scripts/session-deadline-check.py"),
+    ("memory_script", "tools/memory_sync.py"), ("iron_rules", "IRON-RULES.md")])
+def test_session_missing_file(session_kit, checkout, key, path):
+    core, rules = session_kit
+    ((rules if key == "iron_rules" else core) / path).unlink()
+    facts = m.kit_session_facts(core, rules)
+    assert facts[key] is False
+    cell = m.check_kit({**green(checkout), **facts})
+    assert not cell["ok"] and key in cell["reason"] and len(cell["reason"]) <= 80
+
+
+@pytest.mark.parametrize("index,label", [(0, "deadline")])
+def test_missing_session_hook(session_kit, checkout, index, label):
+    core, rules = session_kit
+    path = core / ".claude/settings.json"
+    data = json.loads(path.read_text())
+    removed = data["hooks"]["SessionStart"][0]["hooks"].pop(index)
+    data["hooks"]["Stop"] = [{"hooks": [removed]}]
+    path.write_text(json.dumps(data))
+    facts = m.kit_session_facts(core, rules)
+    assert not facts[label + "_hook"] and not facts[label + "_script"]
+    assert not m.check_kit({**green(checkout), **facts})["ok"]
+
+
+@pytest.mark.parametrize("content", ["{", "[]", '{"hooks": null}', '{"hooks":{"SessionStart":[null]}}'])
+def test_malformed_settings(session_kit, content):
+    core, rules = session_kit
+    (core / ".claude/settings.json").write_text(content)
+    facts = m.kit_session_facts(core, rules)
+    assert not facts["deadline_hook"] and facts["memory_pull"] and facts["memory_script"]
+
+
+@pytest.mark.parametrize("argument", ['".claude/alternate.json"', '$settings'])
+def test_windows_launcher_settings_override(session_kit, argument):
+    core, rules = session_kit
+    (core / ".claude/alternate.json").write_text('{}')
+    (core / "windows/cxo-claude.ps1").write_text(
+        '$settings = "$PSScriptRoot/../.claude/alternate.json"\n'
+        f'& claude --settings {argument}\n')
+    facts = m.kit_session_facts(core, rules, windows=True)
+    assert not facts["deadline_hook"] and not facts["memory_pull"] and facts["memory_script"]
+
+
+def test_unknown_windows_override_fails_closed(session_kit):
+    core, rules = session_kit
+    (core / "windows/cxo-claude.ps1").write_text('& claude --settings $dynamic')
+    assert not m.kit_session_facts(core, rules, windows=True)["deadline_hook"]
+
+
+def test_windows_override_present_and_missing_settings(session_kit):
+    core, rules = session_kit
+    settings = core / ".claude/settings.json"
+    alternate = core / ".claude/alternate.json"
+    settings.rename(alternate)
+    (core / "windows/cxo-claude.ps1").write_text(
+        '& claude --settings ".claude/alternate.json"\n& $venvPy -m tools.memory_sync pull\n')
+    assert all(m.kit_session_facts(core, rules, windows=True).values())
+    alternate.unlink()
+    facts = m.kit_session_facts(core, rules, windows=True)
+    assert not facts["deadline_hook"] and facts["memory_pull"] and facts["memory_script"]
+
+
+@pytest.mark.parametrize("key", m.KIT_SESSION_FACTS)
+def test_missing_session_fact_is_red(checkout, key):
+    facts = green(checkout)
+    del facts[key]
+    cell = m.check_kit(facts)
+    assert not cell["ok"] and key in cell["reason"]
+
+
+def test_script_must_be_referenced_under_core(session_kit, tmp_path):
+    core, rules = session_kit
+    outside = tmp_path / "session-deadline-check.py"
+    outside.touch()
+    (core / ".claude/settings.json").write_text(json.dumps({"hooks": {"SessionStart": [
+        {"hooks": [{"type": "command", "command": f'python "{outside}"'}]}]}}))
+    facts = m.kit_session_facts(core, rules)
+    assert facts["deadline_hook"] and not facts["deadline_script"]
+
+
+def test_session_checks_use_overridden_core(session_kit, tmp_path, monkeypatch):
+    core, rules = session_kit
+    monkeypatch.setattr(m, "_kit_run", lambda *a, **kw: None)
+    facts = m.kit_facts(tmp_path, home=tmp_path, path_overrides={"core": str(core), "rules": str(rules)})
+    assert all(facts[key] for key in m.KIT_SESSION_FACTS)
