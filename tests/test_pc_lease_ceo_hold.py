@@ -1343,3 +1343,219 @@ def test_installer_stops_when_the_box_copy_is_not_write_protected(install):
     r, log = install.run(FAKE_SCP_IGNORES_READONLY="1")
     assert r.returncode != 0 and "SUCCEEDED" in r.stderr
     assert desktop_step(log) == []
+
+
+# --- ask-release: a locked-out agent may ASK the CEO, never lift the hold ----------
+# (OrgMesh P3-A, docs/ops/winbox-hold-release.md; the Contabo half is
+# tests/test_hold_release_card.py.) ssh is replaced by a recorder; nothing leaves the process.
+
+HINT = 'held -> ask the CEO: pc_lease.py ask-release --ceo-said "<his words>"'
+CARD = "RUN-20261017-0712-ab12"
+
+
+@pytest.fixture
+def release(box, tmp_path, monkeypatch):
+    """`box` plus a release key on disk and a recorder where ssh would run."""
+    key = tmp_path / ".ssh" / "id_hold_release"
+    key.parent.mkdir()
+    key.write_text("not a real key", encoding="utf-8")
+    box.m.RELEASE_KEY = key
+    for k in ("PC_LEASE_RELEASE_TARGET", "ORG_SESSION_ID", "CXO_SESSION_ID"):
+        monkeypatch.delenv(k, raising=False)
+    sent = []
+    st = SimpleNamespace(rc=0, out=CARD + "\n", err="", boom=None)
+
+    def fake_ssh(argv):
+        sent.append(argv)
+        if st.boom:
+            raise st.boom
+        return SimpleNamespace(returncode=st.rc, stdout=st.out, stderr=st.err)
+
+    box.m.run_release_ssh = fake_ssh
+    return SimpleNamespace(box=box, key=key, sent=sent, st=st, run=box.run)
+
+
+def snapshot(box):
+    return {p.name: p.read_bytes() for p in sorted(box.mp.iterdir()) if p.name != "pc_lease.log"}
+
+
+def test_ask_release_builds_the_ssh_line_and_prints_the_card(release, capsys):
+    assert release.run("ask-release", "--ceo-said", "lift it please", "--who", "ph-7cf") == 0
+    assert release.sent == [["ssh", "-i", str(release.key), "-o", "IdentitiesOnly=yes",
+                             "-o", "BatchMode=yes", "-o", "ConnectTimeout=20", "hold-release",
+                             'ask-release --ceo-said "lift it please" --who ph-7cf']]
+    out = capsys.readouterr().out
+    assert f"OK - asked the CEO. Run card {CARD} is on his phone." in out and out.isascii()
+    assert f"{CARD}" in release.box.m.LOG.read_text(encoding="utf-8")
+
+
+def test_ask_release_changes_nothing_on_the_box(release, capsys):
+    put_lease(release.box)
+    put_hold(release.box)
+    before = snapshot(release.box)
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 0
+    assert snapshot(release.box) == before, "ask-release touched the hold or the lease"
+    assert release.box.calls == [], "ask-release asked Cookie Run something"
+
+
+@pytest.mark.parametrize("env,explicit,who", [
+    ({}, None, "winbox-ph"),
+    ({"ORG_SESSION_ID": "project_head-6c487e37"}, None, "project_head-6c487e37"),
+    ({"CXO_SESSION_ID": "ph-1"}, None, "ph-1"),
+    ({"ORG_SESSION_ID": "ph-env"}, "ph-flag", "ph-flag"),
+    ({}, "weird id; rm -rf /", "weird-id-rm--rf"),
+    ({}, "..", "winbox-ph"),
+    ({}, "x" * 80, "x" * 40),
+])
+def test_ask_release_names_the_session_safely(release, monkeypatch, env, explicit, who):
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    argv = ["ask-release", "--ceo-said", "lift it please"] + (["--who", explicit] if explicit else [])
+    assert release.run(*argv) == 0
+    assert release.sent[0][-1] == f'ask-release --ceo-said "lift it please" --who {who}'
+
+
+def test_ask_release_takes_the_ssh_alias_from_the_environment(release, monkeypatch):
+    monkeypatch.setenv("PC_LEASE_RELEASE_TARGET", "my-alias")
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 0
+    assert release.sent[0][-2] == "my-alias"
+
+
+@pytest.mark.parametrize("target", ["-oProxyCommand=calc", "-F", "a b", "a;b", "", "root@host name"])
+def test_ask_release_will_not_take_an_option_for_an_alias(release, monkeypatch, capsys, target):
+    monkeypatch.setenv("PC_LEASE_RELEASE_TARGET", target)
+    rc = release.run("ask-release", "--ceo-said", "lift it please")
+    if target == "":                       # empty means "not set": the default alias
+        assert rc == 0 and release.sent[0][-2] == "hold-release"
+    else:
+        assert rc == 1 and release.sent == [] and "FAILED" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("words", ["ab", "x" * 121, "\u0e1b\u0e25\u0e14\u0e25\u0e47\u0e2d\u0e01",
+                                   'he said "yes"', "tab\there", "line\nbreak", "caf\u00e9 ok",
+                                   "!!! ???", "a-b"])
+def test_ask_release_refuses_words_the_server_would_refuse(release, capsys, words):
+    assert release.run("ask-release", "--ceo-said", words) == 2
+    out = capsys.readouterr().out
+    assert out.startswith("REFUSED: ") and out.isascii()
+    assert release.sent == [], "ssh was started for words that cannot pass"
+
+
+def test_ask_release_without_a_key_says_where_to_make_one(release, capsys):
+    release.key.unlink()
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 1
+    out = capsys.readouterr().out
+    assert out.startswith("FAILED: no release key") and "winbox-hold-release.md" in out
+    assert release.sent == []
+
+
+def test_ask_release_passes_a_refusal_from_contabo_on(release, capsys):
+    release.st.rc, release.st.out = 2, ""
+    release.st.err = "refused: a hold-release card is already waiting for the CEO (RUN-1); one at a time."
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 2
+    out = capsys.readouterr().out
+    assert out.startswith("REFUSED: a hold-release card is already waiting for the CEO (RUN-1)")
+    assert CARD not in out
+
+
+@pytest.mark.parametrize("rc,out,err", [(3, "", "hub error (403) freeform_needs_c_level"),
+                                        (255, "", "ssh: connect to host x port 22: refused"),
+                                        (0, "something else\n", ""),
+                                        (0, "", ""),
+                                        (0, CARD + "\nextra\n", "")])
+def test_ask_release_reports_a_failed_ask_as_failed(release, capsys, rc, out, err):
+    release.st.rc, release.st.out, release.st.err = rc, out, err
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 1
+    text = capsys.readouterr().out
+    assert text.startswith("FAILED: ") and "OK - asked" not in text and text.isascii()
+
+
+@pytest.mark.parametrize("boom", [FileNotFoundError("ssh"), OSError("denied"),
+                                  subprocess.TimeoutExpired("ssh", 60)])
+def test_ask_release_survives_ssh_not_running(release, capsys, boom):
+    release.st.boom = boom
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 1
+    assert capsys.readouterr().out.startswith("FAILED: could not run ssh")
+
+
+def test_ask_release_never_prints_what_contabo_wrote_beyond_one_ascii_line(release, capsys):
+    release.st.rc = 3
+    release.st.err = "first\n" + "\u0e01" * 50 + " " + "z" * 900
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 1
+    out = capsys.readouterr().out
+    assert out.isascii() and len(out) < 450 and "first" not in out
+
+
+def test_the_real_ssh_call_sends_the_remote_command_as_one_argument(release, tmp_path, monkeypatch):
+    """Through a real subprocess and a stub `ssh` that records its argv."""
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    rec = tmp_path / "argv.txt"
+    (bindir / "ssh").write_text('#!/bin/sh\nfor a in "$@"; do printf "%s\\n" "$a"; done > '
+                                f'{rec}\necho {CARD}\n')
+    (bindir / "ssh").chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bindir}:{os.environ['PATH']}")
+    m = load(PC_LEASE, "pc_lease_real_ssh")
+    m.RELEASE_KEY = release.key
+    monkeypatch.setattr(sys, "argv", ["pc_lease.py", "ask-release", "--ceo-said", "lift it please",
+                                      "--who", "ph-7cf"])
+    m.LOG = tmp_path / "pc_lease.log"
+    assert m.main() == 0
+    assert rec.read_text().splitlines() == [
+        "-i", str(release.key), "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes",
+        "-o", "ConnectTimeout=20", "hold-release",
+        'ask-release --ceo-said "lift it please" --who ph-7cf']
+
+
+# --- the hint every refusal under the hold ends with ---------------------------------
+
+def test_status_under_the_hold_says_who_to_ask_without_changing_its_first_line(box, capsys):
+    put_hold(box)
+    assert box.run("status") == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert re.fullmatch(r"PC: CEO - the CEO is using this PC since \d\d:\d\d\. "
+                        r"Hands off the screen\.", lines[0])
+    assert HINT in lines and "FREE" not in "\n".join(lines)
+
+
+def test_status_without_the_hold_does_not_send_anyone_to_ask(box, capsys):
+    assert box.run("status") == 0
+    assert "ask-release" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("verb", [["take", "--who", "cto: x"], ["extend", "--minutes", "5"]])
+def test_take_and_extend_refusals_end_with_the_hint(box, capsys, verb):
+    put_lease(box)
+    put_hold(box)
+    assert box.run(*verb) == 2
+    out = capsys.readouterr().out
+    assert out.splitlines()[-1] == HINT and out.isascii()
+
+
+@pytest.mark.parametrize("verb", ["gate", "ceo-check"])
+def test_gate_refusals_carry_the_hint_on_stderr_only(box, capsys, verb):
+    put_hold(box)
+    assert box.run(verb) == 3
+    cap = capsys.readouterr()
+    assert cap.out == "" and cap.err.splitlines()[-1] == HINT
+
+
+def test_ask_release_is_listed_for_agents_and_the_buttons_still_are_not(box, capsys):
+    with pytest.raises(SystemExit):
+        box.run("--help")
+    out = capsys.readouterr().out
+    assert "ask-release" in out and "ceo-on" not in out and "ceo-off" not in out
+
+
+def test_lifting_the_hold_still_needs_the_ceo_after_ask_release_exists(box, release, capsys,
+                                                                       monkeypatch):
+    put_hold(box)
+    monkeypatch.delenv("PC_LEASE_CEO_BUTTON")
+    assert release.run("ask-release", "--ceo-said", "lift it please") == 0
+    assert box.m.CEO_HOLD.exists()
+    assert release.run("ceo-off") == 2 and box.m.CEO_HOLD.exists()
+    assert release.run("take", "--who", "cto: x", "--force") == 2
+
+
+def test_the_lease_version_was_bumped_for_ask_release(box):
+    assert box.m.LEASE_VERSION >= 4

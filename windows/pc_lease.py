@@ -14,6 +14,7 @@ returns.
   pc_lease.py tick                 # the watchdog; a scheduled task calls this
   pc_lease.py ceo-on               # the CEO's "use PC" button (windows/desktop/)
   pc_lease.py ceo-off              # the CEO's "done" button
+  pc_lease.py ask-release --ceo-said "<his words>" [--who <id>]   # ask him to lift his hold
 
 Three rules are load-bearing:
 
@@ -28,7 +29,9 @@ Three rules are load-bearing:
   Minecraft over the Dota 2 game the CEO was playing. His two desktop buttons
   write and remove CEO_HOLD.json; while it exists take, extend and gate refuse,
   and nothing here minimises a window or restarts Cookie Run. It has no expiry:
-  only the CEO ends it.
+  only the CEO ends it. An agent the hold has locked out may ASK him to end it
+  (ask-release raises one Run card on his phone; his tap is the authority) and
+  may do nothing else about it.
 
 Output is deliberately ASCII-only: it travels back through a PowerShell argument
 layer that turns non-ASCII into "?", and "?" is a single-char wildcard in
@@ -39,6 +42,8 @@ import contextlib
 import http.client
 import json
 import os
+import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -70,11 +75,22 @@ PIPE = "http://127.0.0.1:8794"
 # any stale checkout put an older pc_lease.py back -- one that knows nothing of
 # the CEO's hold). An edit without a bump stays on your machine and the wrapper
 # says so. scripts/lib/winbox_deploy.sh reads the line by this exact shape.
-LEASE_VERSION = 3
+LEASE_VERSION = 4
 
 DEFAULT_MINUTES = 120         # "others need 1-2 hours" -- CEO 2026-09-14
 MAX_MINUTES = 480
 RESUME_TRIES = 3               # tick gives up after this, loudly, instead of looping
+
+# ask-release: the key that can run one thing on Contabo (docs/ops/winbox-hold-release.md).
+# The ssh alias carries HostName and User, so no address lives in this repo.
+RELEASE_KEY = Path.home() / ".ssh" / "id_hold_release"
+RELEASE_TARGET_ENV = "PC_LEASE_RELEASE_TARGET"
+RELEASE_TARGET = "hold-release"
+RELEASE_WHO = "winbox-ph"
+RELEASE_WORDS_MIN, RELEASE_WORDS_MAX = 3, 120
+RELEASE_SSH_TIMEOUT_S = 60
+# What every refusal under the hold ends with: the one thing an agent may do about it.
+ASK_RELEASE_HINT = 'held -> ask the CEO: pc_lease.py ask-release --ceo-said "<his words>"'
 
 
 
@@ -339,7 +355,8 @@ def ceo_refusal(hold: dict) -> list[str]:
     """The refusal every agent-facing command prints while the CEO holds the PC."""
     return [f"REFUSED: the CEO is using this PC (CEO hold since {hhmm(hold['since'])}).",
             "  Wait for the CEO's release button on the winbox desktop. --force does",
-            "  not override this and nothing else does either: he is at the keyboard."]
+            "  not override this and nothing else does either: he is at the keyboard.",
+            ASK_RELEASE_HINT]
 
 
 def fold_into_hold(lease: dict, why: str) -> bool:
@@ -628,6 +645,7 @@ def cmd_status(_args) -> int:
         print("    take, extend and gate refuse until he presses the release button.")
         if hold.get("corrupt"):
             print("    (the hold file is unreadable - it counts as held until he releases it)")
+        print(ASK_RELEASE_HINT)
 
     if lease and remaining(lease) > 0:
         mins = int(remaining(lease) // 60)
@@ -976,6 +994,7 @@ def refuse_for_ceo_hold() -> bool:
     say(f"REFUSED: the CEO is using the winbox screen (since {hhmm(hold['since'])}).")
     say("  Hands off until he presses the release button on his desktop. No")
     say("  lease, --as, --force or WINBOX_NO_LEASE gets past this.")
+    say(ASK_RELEASE_HINT)
     return True
 
 
@@ -1356,6 +1375,82 @@ def _ceo_on_farm() -> int:
     return 0
 
 
+# --- asking the CEO to lift his hold -----------------------------------------
+# A hold the agents cannot lift is the point of it, and a hold nobody can ask him to lift
+# keeps the farm down until he happens to look. So an agent may ask, once, in his own
+# words, and he decides on his phone. This raises a Run card on Contabo through a key
+# that can run nothing else (tools/hold_release_card.py is its forced command), and
+# changes nothing here: no hold, lease, window or farm.
+
+def release_words_problem(words: str) -> str | None:
+    """Why the forced command would refuse these words, or None. Same rule as the
+    server's, said before ssh is started. The server is the one that decides."""
+    if not RELEASE_WORDS_MIN <= len(words) <= RELEASE_WORDS_MAX:
+        return f"the words are {RELEASE_WORDS_MIN} to {RELEASE_WORDS_MAX} characters (got {len(words)})"
+    if not all(" " <= c <= "~" for c in words):
+        return "the words must be plain ASCII (no accents, no Thai, no tab or line break)"
+    if '"' in words:
+        return "the words must not contain a double quote"
+    if len(re.sub(r"[^A-Za-z0-9]+", "", words)) < 3:
+        return "the words need at least 3 letters or digits"
+    return None
+
+
+def release_who(explicit: str | None) -> str:
+    """The id the card names as its requester: --who, else the session id, else a fixed name."""
+    raw = explicit or os.environ.get("ORG_SESSION_ID") or os.environ.get("CXO_SESSION_ID") or ""
+    return re.sub(r"[^A-Za-z0-9_-]+", "-", raw).strip("-_")[:40] or RELEASE_WHO
+
+
+def release_argv(words: str, who: str) -> list[str]:
+    """The ssh command line. The remote command is ONE element holding its own double quotes:
+    ssh joins its arguments with spaces, and the forced command reads the words between them."""
+    target = os.environ.get(RELEASE_TARGET_ENV) or RELEASE_TARGET
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._@-]*", target):
+        raise ValueError(f"{RELEASE_TARGET_ENV} is an ssh host alias, not an option or a path")
+    return ["ssh", "-i", str(RELEASE_KEY), "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes",
+            "-o", "ConnectTimeout=20", target, f'ask-release --ceo-said "{words}" --who {who}']
+
+
+def run_release_ssh(argv: list[str]):
+    return subprocess.run(argv, capture_output=True, encoding="utf-8", errors="replace",
+                          timeout=RELEASE_SSH_TIMEOUT_S, stdin=subprocess.DEVNULL,
+                          creationflags=0x08000000 if os.name == "nt" else 0)
+
+
+def cmd_ask_release(args) -> int:
+    words = (args.ceo_said or "").strip()
+    who = release_who(args.who)
+    problem = release_words_problem(words)
+    if problem:
+        print(f"REFUSED: {problem}.")
+        return 2
+    if not RELEASE_KEY.is_file():
+        print(f"FAILED: no release key at {ascii_only(str(RELEASE_KEY))}.")
+        print("        Set it up first: docs/ops/winbox-hold-release.md (Agents-Core).")
+        return 1
+    try:
+        argv = release_argv(words, who)
+        r = run_release_ssh(argv)
+    except (OSError, ValueError, subprocess.SubprocessError) as e:
+        print(f"FAILED: could not run ssh: {ascii_only(str(e))[:200]}")
+        return 1
+
+    out = ascii_only((r.stdout or "").strip())
+    err = ascii_only((r.stderr or "").strip().splitlines()[-1] if (r.stderr or "").strip() else "")
+    if r.returncode == 0 and re.fullmatch(r"RUN-[A-Za-z0-9][A-Za-z0-9-]{3,63}", out):
+        log(f"ask-release by {who}: card {out}, words {ascii_only(words)!r}")
+        print(f"OK - asked the CEO. Run card {out} is on his phone.")
+        print("     The hold stays until he taps it. Check with `status`; do not ask again meanwhile.")
+        return 0
+    log(f"ask-release by {who}: not raised (ssh exit {r.returncode}): {err[:200]!r}")
+    if r.returncode == 2:
+        print(f"REFUSED: {err.removeprefix('refused: ')[:300] or 'the release host refused the ask'}")
+        return 2
+    print(f"FAILED: the ask was not raised (exit {r.returncode}). {err[:300]}".rstrip())
+    return 1
+
+
 def cmd_ceo_off(_args) -> int:
     """The "done" button: lift the hold, then put Cookie Run back if it was ours."""
     try:
@@ -1450,7 +1545,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description="who owns the winbox screen")
     sub = p.add_subparsers(
         dest="cmd", required=True,
-        metavar="{status,take,give-back,extend,gate,ceo-check,clear-screen,tick}")
+        metavar="{status,take,give-back,extend,gate,ceo-check,clear-screen,tick,ask-release}")
 
     sub.add_parser("status").set_defaults(fn=cmd_status)
 
@@ -1474,6 +1569,12 @@ def main() -> int:
                    help="who is calling; suppresses the NOTE when it is the lease holder")
     g.set_defaults(fn=cmd_gate)
     sub.add_parser("ceo-check").set_defaults(fn=cmd_ceo_check)
+    a = sub.add_parser("ask-release", help="ask the CEO, on his phone, to lift his hold "
+                                           "(changes nothing here)")
+    a.add_argument("--ceo-said", required=True,
+                   help="his words, plain ASCII, 3-120 characters; shown to him on the card")
+    a.add_argument("--who", default="", help="your session id (default: from the environment)")
+    a.set_defaults(fn=cmd_ask_release)
     sub.add_parser("tick").set_defaults(fn=cmd_tick)
     # The CEO's two buttons. Left out of --help on purpose (no help=, and the
     # metavar above lists only the agent verbs): an agent the hold has locked
