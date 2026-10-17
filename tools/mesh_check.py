@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 import contextlib
 import copy
 import importlib.util
@@ -72,6 +73,7 @@ import ntpath
 import os
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import time
@@ -291,7 +293,7 @@ def kit_git(path: Path | None, *, fetch=False) -> dict:
     return facts
 
 
-def kit_paths(root: Path, home: Path, host: str | None) -> dict:
+def kit_paths(root: Path, home: Path, host: str | None, overrides: dict | None = None) -> dict:
     """Host kit_paths overrides the machine contract's HQ layout; then env/slug."""
     paths = {}
     try:
@@ -307,12 +309,15 @@ def kit_paths(root: Path, home: Path, host: str | None) -> dict:
     except Exception:
         # Includes optional YAML parser errors on a partially deployed host.
         pass
+    paths.update(overrides or {})
+    core = Path(os.path.expandvars(str(paths.get("core") or root))).expanduser()
+    paths["core"] = core
     paths.setdefault("rules", os.environ.get("WIKI_ROOT_ORG"))
     paths.setdefault("wikis", os.environ.get("WIKI_ROOT_MOONIEX"))
-    slug = re.sub(r"[^A-Za-z0-9]", "-", str(root))
+    slug = re.sub(r"[^A-Za-z0-9]", "-", str(core))
     paths.setdefault("memory", str(home / ".claude/projects" / slug / "memory"))
     return {key: Path(os.path.expandvars(str(value))).expanduser() if value else None
-            for key, value in paths.items() if key in ("rules", "wikis", "memory")}
+            for key, value in paths.items() if key in ("core", "rules", "wikis", "memory")}
 
 
 def kit_mcp_names(raw) -> list[str] | str:
@@ -327,11 +332,100 @@ def kit_mcp_names(raw) -> list[str] | str:
         return "n/a"
 
 
+KIT_SESSION_FACTS = ("session_open", "session_close", "deadline_hook", "deadline_script",
+                     "memory_pull", "memory_script", "iron_rules")
+
+
+def kit_settings_path(core: Path, *, windows=False) -> Path | None:
+    """Resolve literal launcher settings without evaluating PowerShell."""
+    default = core / ".claude/settings.json"
+    if not windows:
+        return default
+    try:
+        source = (core / "windows/cxo-claude.ps1").read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+    source = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("#"))
+    matches = re.findall(r'''["']?--settings["']?\s*(?:,|=)?\s*("[^"]*"|'[^']*'|[^\s,)]+)''', source)
+    if not matches:
+        return default
+    if len(set(matches)) != 1:
+        return None
+    value = matches[0]
+    if re.fullmatch(r"\$\w+", value):
+        assignments = re.findall(re.escape(value) + r'''\s*=\s*("[^"]*"|'[^']*')''', source)
+        if len(assignments) != 1:
+            return None
+        value = assignments[0]
+    value = value.strip("\"'").replace("\\", "/")
+    for prefix in ("$PSScriptRoot/../", "${PSScriptRoot}/../"):
+        if value.startswith(prefix):
+            value = str(core / value[len(prefix):])
+    if "$" in value or "`" in value or not value:
+        return None
+    path = Path(value)
+    return path if path.is_absolute() else core / path
+
+
+def kit_session_facts(core: Path, rules: Path | None, *, windows=False) -> dict:
+    """Read only booleans from session configuration; never emit commands."""
+    facts = {key: False for key in KIT_SESSION_FACTS}
+    for name in ("open", "close"):
+        facts["session_" + name] = (core / f".claude/skills/session-{name}/SKILL.md").is_file()
+    facts["iron_rules"] = rules is not None and (rules / "IRON-RULES.md").is_file()
+    facts["memory_script"] = (core / "tools/memory_sync.py").is_file()
+    launcher = core / ("windows/cxo-claude.ps1" if windows else "scripts/cxo-claude.sh")
+    try:
+        source = launcher.read_text(encoding="utf-8")
+        facts["memory_pull"] = any(
+            re.search(r"(?<![\w.-])-m\s+tools\.memory_sync\s+pull(?=\s|[;&|)]|$)", line)
+            for line in source.splitlines() if not line.lstrip().startswith("#"))
+    except (OSError, UnicodeError):
+        pass
+    settings = kit_settings_path(core, windows=windows)
+    try:
+        data = json.loads(settings.read_text(encoding="utf-8")) if settings else {}
+        groups = data.get("hooks", {}).get("SessionStart", [])
+        commands = [hook["command"] for group in groups for hook in group.get("hooks", [])
+                    if hook.get("type") == "command" and isinstance(hook.get("command"), str)]
+    except (OSError, UnicodeError, ValueError, AttributeError, TypeError):
+        commands = []
+    for label, marker in (("deadline", "session-deadline-check"),):
+        for command in commands:
+            if not re.search(r"(?<![\w-])" + marker + r"(?![\w-])", command):
+                continue
+            facts[label + "_hook"] = True
+            # Expand only known checkout placeholders, never environment values.
+            for placeholder in ('${CLAUDE_PROJECT_DIR:-$PWD}', '${CLAUDE_PROJECT_DIR}',
+                                '$CLAUDE_PROJECT_DIR', '$PWD'):
+                command = command.replace(placeholder, str(core))
+            try:
+                tokens = shlex.split(command.replace("\\", "/"))
+            except ValueError:
+                continue
+            for i, token in enumerate(tokens):
+                if Path(token).name == marker + ".py":
+                    path = Path(token)
+                    if not path.is_absolute():
+                        path = core / path
+                else:
+                    continue
+                try:
+                    path.resolve().relative_to(core.resolve())
+                    facts[label + "_script"] |= path.is_file()
+                except (OSError, RuntimeError, ValueError):
+                    pass
+    return facts
+
+
 def kit_facts(root: Path = ROOT, *, fetch=False, home: Path | None = None,
-              host: str | None = None) -> dict:
+              host: str | None = None, path_overrides: dict | None = None) -> dict:
     home = home or Path.home()
+    paths = kit_paths(root, home, host, path_overrides)
+    root = paths["core"]
     facts = {name: kit_git(path, fetch=fetch)
-             for name, path in {"core": root, **kit_paths(root, home, host)}.items()}
+             for name, path in paths.items()}
+    facts.update(kit_session_facts(root, paths.get("rules"), windows=os.name == "nt"))
     for label, base in (("repo", root), ("home", home)):
         try:
             facts["skills_" + label] = sum(p.is_file() for p in (base / ".claude/skills").glob("*/SKILL.md"))
@@ -404,7 +498,7 @@ def check_kit(raw) -> dict:
     for key in ("skills_repo",):
         if type(facts.get(key)) is not int or facts[key] < 120:
             failed.append(key.replace("skills_", "skills-") + "<120")
-    for key in ("role", "launcher", "hooks"):
+    for key in ("role", "launcher", "hooks", *KIT_SESSION_FACTS):
         if facts.get(key) is not True:
             failed.append(key)
     return {"ok": not failed, "reason": "; ".join(failed)[:80] or None, "facts": facts}
@@ -1747,7 +1841,7 @@ def check_invariant() -> dict:
 # --local: this host's L0-L2 cells only, no ssh, writes nothing
 # ---------------------------------------------------------------------------
 
-async def local_payload(*, kit_fetch=False) -> dict:
+async def local_payload(*, kit_fetch=False, kit_path_overrides=None) -> dict:
     """This host's L0-L2 cells. The L1 cell to this host is n/a, where "this
     host" is `_running_host_guess(ROOT)`, the source build_matrix labels its row
     with: one identity per run. When it cannot say (None) every host is dialled,
@@ -1762,7 +1856,8 @@ async def local_payload(*, kit_fetch=False) -> dict:
         payload["l0"] = {"ok": False, "reason": "no repo access"}
         payload["l1"] = {}
         payload["l2"] = {"ok": False, "reason": "no repo access"}
-    payload["kit"] = kit_facts(fetch=kit_fetch, host=_running_host_guess(ROOT) if HAVE_CONFIG else None)
+    payload["kit"] = kit_facts(fetch=kit_fetch, host=_running_host_guess(ROOT) if HAVE_CONFIG else None,
+                               path_overrides=kit_path_overrides)
     return payload
 
 
@@ -1772,15 +1867,24 @@ def _collect_peer_local(alias: str, cfg: dict, script_path: Path) -> dict | None
     have pulled this branch yet)."""
     remote_root = cfg.get("agents_root")
     is_windows = cfg.get("os") == "windows"
+    # Base64 keeps host-native paths (including spaces and shell metacharacters)
+    # a single safe argument under both POSIX shells and Windows cmd.exe.
+    paths = {k: v for k, v in (cfg.get("kit_paths") or {}).items()
+             if k in ("core", "rules", "wikis", "memory") and v}
+    kit_args = ""
+    if paths:
+        encoded = base64.b64encode(json.dumps(paths).encode()).decode()
+        kit_args = f" --kit-paths-b64 {encoded}"
     if remote_root:
         python = f"{remote_root}\\.venv\\Scripts\\python.exe" if is_windows \
             else f"{remote_root}/.venv/bin/python"
-        deployed_cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --local --json'
+        deployed_cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --local --json{kit_args}'
         data = _try_json(_ssh_run(alias, deployed_cmd, timeout=30))
         if data is not None and "kit" in data:
             return data
 
     piped_cmd = "python - --local --json" if is_windows else "python3 - --local --json"
+    piped_cmd += kit_args
     if remote_root:
         piped_cmd = f'cd "{remote_root}" && {piped_cmd}'
     return _try_json(_ssh_run(alias, piped_cmd, timeout=30, stdin_path=script_path))
@@ -1961,14 +2065,15 @@ def render(combined: dict, expect: str) -> tuple[str, bool, int, int]:
         lines.append("")
 
     lines.extend(["## KIT facts", "", "Git columns: HEAD / commits behind / merge-base age (hours).", "",
-                  "| host | result | core | rules | wikis | memory | skills repo/home | home check | MCP names |",
-                  "|---|---|---|---|---|---|---|---|---|"])
+                  "| host | result | core | rules | wikis | memory | skills repo/home | session open/close | deadline hook/file | memory pull/file | IRON | home check | MCP names |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|---|---|"])
     for h in HOSTS:
         cell = combined.get("KIT", {}).get(h, {}).get(h, check_kit(None))
         facts = cell.get("facts", {})
         names = kit_mcp_names({"mcpServers": {n: {} for n in facts.get("mcp_names", [])}}) if isinstance(facts.get("mcp_names"), list) else "n/a"
         names = ", ".join(names) if isinstance(names, list) else names
         verdict = "ok" if cell.get("ok") else cell.get("reason", "n/a")
+        session = ["present" if facts.get(key) is True else "missing" for key in KIT_SESSION_FACTS]
         repos = []
         for name in ("core", "rules", "wikis", "memory"):
             repo = facts.get(name, {})
@@ -1976,7 +2081,10 @@ def render(combined: dict, expect: str) -> tuple[str, bool, int, int]:
             repos.append(f"{str(repo.get('head', 'n/a'))[:8]}/{repo.get('behind', 'n/a')}/{repo.get('merge_base_age_hours', 'n/a')}"
                          if repo.get("status") == "ok" else repo.get("status", "n/a"))
         lines.append(f"| {h} | {verdict} | " + " | ".join(repos) +
-                     f" | {facts.get('skills_repo', 'n/a')}/{facts.get('skills_home', 'n/a')} | {facts.get('claude_home', 'n/a')} | {names} |")
+                     f" | {facts.get('skills_repo', 'n/a')}/{facts.get('skills_home', 'n/a')}"
+                     f" | {session[0]}/{session[1]} | {session[2]}/{session[3]}"
+                     f" | {session[4]}/{session[5]} | {session[6]}"
+                     f" | {facts.get('claude_home', 'n/a')} | {names} |")
     return "\n".join(lines), tally["fail"] > 0, tally["ok"], tally["fail"]
 
 
@@ -2010,6 +2118,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")
     ap.add_argument("--kit-fetch", action="store_true", help="explicitly fetch this host's kit origin/main refs")
+    ap.add_argument("--kit-paths-b64", help=argparse.SUPPRESS,
+                    type=lambda value: json.loads(base64.b64decode(value, validate=True)))
     ap.add_argument("--get-task", metavar="TASK_ID", help="print db.get_task(TASK_ID) as JSON")
     ap.add_argument("--join-drill", nargs=2, metavar=("VERB", "ARG"),
                     help="hub side of scripts/drill-join.sh: task-create <host>, task-close <id>, "
@@ -2036,7 +2146,7 @@ async def amain(argv: list[str] | None = None) -> int:
         return 0
 
     if args.local:
-        payload = await local_payload(kit_fetch=args.kit_fetch)
+        payload = await local_payload(kit_fetch=args.kit_fetch, kit_path_overrides=args.kit_paths_b64)
         print(json.dumps(payload))
         return 0
 
