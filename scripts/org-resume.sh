@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# systemd starts the unit with no HOME; the hub wrapper needs it to find ORG_DB_URL.
+export HOME="${HOME:-$(getent passwd "$(id -u)" | cut -d: -f6)}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 [[ -f state/restart/pending-contabo.json ]] || exit 0
