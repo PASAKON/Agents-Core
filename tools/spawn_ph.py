@@ -621,6 +621,25 @@ def resume_command(sid: str, lane: str, project: str, owner: str) -> str:
             f"--resume {shlex.quote(sid)}")
 
 
+PARKED_SUFFIX = ".parked"
+
+
+def _record(name: str, suffix: str) -> Path:
+    """The live record, or the copy the launcher parked when the session ended
+    (scripts/cxo-claude.sh cleanup). A parked .project claims no project."""
+    live = LOCKS_DIR / f"{name}.{suffix}"
+    parked = LOCKS_DIR / f"{name}.{suffix}{PARKED_SUFFIX}"
+    return live if live.exists() or not parked.exists() else parked
+
+
+def _unpark(name: str) -> None:
+    """Put parked records back as live ones before the resumed session starts."""
+    for suffix in ("project", "spawned_by"):
+        parked = LOCKS_DIR / f"{name}.{suffix}{PARKED_SUFFIX}"
+        if parked.exists():
+            parked.replace(LOCKS_DIR / f"{name}.{suffix}")
+
+
 def resume_plan(sid: str) -> dict:
     """Read the existing identity and check liveness without changing state."""
     from tools import clevel_gate, tmux_session
@@ -629,7 +648,7 @@ def resume_plan(sid: str) -> dict:
     if not _SID_RE.fullmatch(sid):
         raise Refused("--resume takes an 8-character lowercase hex session id")
     name = f"{roles.PH_ROLE}-{sid}"
-    records = [LOCKS_DIR / f"{name}.{suffix}" for suffix in ("project", "spawned_by")]
+    records = [_record(name, suffix) for suffix in ("project", "spawned_by")]
     values = []
     for path in records:
         try:
@@ -675,6 +694,7 @@ def resume(sid: str, dry_run: bool = False) -> dict:
     with _claim_lock(LOCKS_DIR):
         plan = resume_plan(sid)
         name = plan["tmux_session"]
+        _unpark(name)
         try:
             tmux_session.create(name, ROOT, plan.pop("command"))
         except Exception as e:  # noqa: BLE001
