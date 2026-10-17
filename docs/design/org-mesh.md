@@ -37,6 +37,18 @@ bash scripts/hub/org-python.sh -m tools.mesh_check --expect w5
 
 The KIT level (PR #397) checks that every host runs the same org kit.
 
+### Skill learning across hosts (CEO 2026-10-17)
+
+Skill notes (ADR 0026 field notes) reach GitHub only by PR; no host edits a
+skill on main.
+- **Mac and Contabo** open the PR themselves.
+- **winbox** cannot push to Agents-Core, so its PH puts the Skill-learning lines in
+  its report to its owner, and the owner files them by PR.
+- **CTO Main** merges these PRs and resolves git conflicts. When two hosts add
+  notes to the same place, both notes are kept.
+- **Content conflicts** (two notes that disagree) follow the ADR 0026 tiers. A
+  CONTESTED rule stays frozen until the CEO rules.
+
 ## 1. Measured state (2026-09-28)
 
 Live probes from the Mac session plus both task ledgers. "Last proof" is the
