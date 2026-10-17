@@ -48,7 +48,7 @@ def ask(words: str, who: str | None = None) -> str:
 @pytest.fixture
 def hub(tmp_path, monkeypatch):
     """The hub, as two recorders. `pending` is what the pending list returns."""
-    monkeypatch.setenv("RUN_INBOX_URL", "http://127.0.0.1:9")      # discard port: a leak fails
+    monkeypatch.setenv("RUN_INBOX_URL", "http://localhost:9")      # discard port: a leak fails
     monkeypatch.delenv("RUN_INBOX_TOKEN", raising=False)
     monkeypatch.setattr(hrc, "LOCK", tmp_path / "locks" / "hold_release_card.lock")
     st = SimpleNamespace(pending=[], listed=[], posted=[], list_error=None, post_error=None,
@@ -428,11 +428,11 @@ def test_the_script_without_a_token_says_hub_error_and_exits_3():
     # no RUN_INBOX_TOKEN, the home has no token file, and the loopback discard port is closed
     r = subprocess.run([sys.executable, "-E", "-s", "tools/hold_release_card.py"], cwd=ROOT,
                        env={"PATH": os.environ["PATH"], "HOME": "/nonexistent-home",
-                            "RUN_INBOX_URL": "http://127.0.0.1:9",
+                            "RUN_INBOX_URL": "http://localhost:9",
                             "SSH_ORIGINAL_COMMAND": ask("lift the hold")},
                        capture_output=True, text=True, timeout=60)
     assert r.returncode == 3 and r.stdout == ""
-    assert r.stderr.startswith("hub error") and "127.0.0.1" not in r.stderr
+    assert r.stderr.startswith("hub error") and "localhost" not in r.stderr
 
 
 # --- the doc and the repo ----------------------------------------------------------------
