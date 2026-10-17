@@ -1,13 +1,15 @@
-"""A Project Head on winbox, started over the org mesh (M13c, HostSpawn).
+"""A Project Head on winbox or the Mac, started over the org mesh (M13c, HostSpawn; ADR 0034).
 
 A Contabo C-level runs `python -m tools.spawn_ph mesh --host winbox --project P`;
 lib/mesh sends `spawn_ph <lane> <owner sid> <project>` to tools/node_dispatch on
 winbox, which runs tools.spawn_ph.spawn_from_mesh and starts the window through a
-one-shot interactive scheduled task.
+one-shot interactive scheduled task. On the Mac (`--host mac`) the same verb starts a
+detached tmux session instead; the last section below covers it.
 
 Nothing here touches a real host, tmux, wt.exe, PowerShell, the hub or the
-filesystem outside tmp_path: the scheduled task is `nd._run_powershell`, the audit
-row and the hub slots are mocks, and every state directory is redirected.
+filesystem outside tmp_path: the scheduled task is `nd._run_powershell`, tmux is
+`tools.tmux_session`'s create/capture, the audit row and the hub slots are mocks,
+and every state directory is redirected.
 """
 from __future__ import annotations
 
@@ -126,13 +128,12 @@ def test_the_mesh_waits_longer_than_the_scheduled_task_does():
 
 # --- the gates ---
 
-@pytest.mark.parametrize("os_name", ["linux", "darwin"])
-def test_other_systems_are_refused(box, monkeypatch, os_name):
+def test_linux_is_refused(box, monkeypatch):
     monkeypatch.setattr(nd, "_is_windows", lambda: False)
-    monkeypatch.setattr(nd, "_os_name", lambda: os_name)
+    monkeypatch.setattr(nd, "_os_name", lambda: "linux")
     out, code = run("cto", OWNER, "LuminaSkies")
     assert code == 2
-    assert out["error"] == "spawn_ph over the mesh is winbox-only; Linux/Mac spawn locally or by card"
+    assert out["error"] == "spawn_ph over the mesh runs on winbox and the Mac only; Linux spawns locally or by card"
     nd._claim.assert_not_called()
     box.powershell.assert_not_called()
     assert box.claim_files() == []
@@ -400,9 +401,10 @@ def test_the_mesh_command_has_no_flag_for_the_lane_or_the_owner(clevel, capsys):
     clevel.assert_not_called()
 
 
-def test_the_mesh_command_takes_winbox_only(clevel):
+@pytest.mark.parametrize("host", ["contabo", "nowhere"])
+def test_the_mesh_command_takes_winbox_and_the_mac_only(clevel, host):
     with pytest.raises(SystemExit):
-        spawn_ph.main(["mesh", "--host", "mac", "--project", "LuminaSkies"])
+        spawn_ph.main(["mesh", "--host", host, "--project", "LuminaSkies"])
     clevel.assert_not_called()
 
 
@@ -429,3 +431,145 @@ def test_the_mesh_command_reports_an_unanswered_host_and_a_refusal(clevel, capsy
     assert spawn_ph.main(["mesh", "--host", "winbox", "--project", "LuminaSkies"]) == 1
     (line,) = capsys.readouterr().out.splitlines()
     assert json.loads(line)["error"] == "the CEO is using this PC"
+
+
+# --- the Mac (ADR 0034): the same verb, a detached tmux session ---
+
+@pytest.fixture()
+def mac(box, monkeypatch):
+    """The Mac as the verb sees it: darwin, tmux faked, no CEO hold or session 0 in reach."""
+    from tools import tmux_session
+    box.tmux_create = Mock()
+    box.tmux_capture = Mock(return_value="")
+    monkeypatch.setattr(tmux_session, "create", box.tmux_create)
+    monkeypatch.setattr(tmux_session, "capture", box.tmux_capture)
+    monkeypatch.setattr(spawn_ph, "SPAWN_PROMPT_DELAY_S", 0)
+    monkeypatch.setattr(nd, "_self_host", lambda: "mac")
+    monkeypatch.setattr(nd, "_is_windows", lambda: False)
+    monkeypatch.setattr(nd, "_os_name", lambda: "darwin")
+    return box
+
+
+def mac_ok() -> dict:
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 0, out
+    return out["result"]
+
+
+def test_mesh_hosts_are_winbox_and_the_mac():
+    assert spawn_ph.MESH_HOSTS == ("winbox", "mac")
+
+
+def test_the_mac_starts_one_tmux_session(mac):
+    result = mac_ok()
+    sid = result["session_id"]
+    assert result == {"session_id": sid, "project": "LuminaSkies", "owner": f"cto-{OWNER}", "via": "tmux"}
+    mac.tmux_create.assert_called_once()
+    name, cwd, cmd = mac.tmux_create.call_args.args
+    assert (name, cwd) == (f"{PH}-{sid}", spawn_ph.ROOT)
+    # the command spawn-ph.sh runs on a Mac C-level's own host, byte for byte
+    prompt = spawn_ph.first_prompt(sid, "cto", "LuminaSkies", OWNER)
+    assert cmd == spawn_ph.launch_command(sid, "cto", "LuminaSkies", OWNER, prompt)
+    assert cmd.startswith("unset CTO_SESSION CTO_SESSION_ID CXO_ROLE; export ")
+    for pair in (f"CXO_SESSION_ID={sid}", "ORG_PH_ROLES=1", "ORG_PH_LANE=cto",
+                 "ORG_PH_PROJECT=LuminaSkies", f"ORG_PH_OWNER={OWNER}"):
+        assert pair in cmd
+    assert f"scripts/cxo-claude.sh --role {PH} --lane cto --project LuminaSkies --initial-prompt " in cmd
+    mac.powershell.assert_not_called()                  # no PowerShell on the Mac
+
+
+def test_the_mac_writes_the_same_claim_and_stub_brief_as_winbox(mac):
+    sid = mac_ok()["session_id"]
+    assert (mac.locks / f"{PH}-{sid}.spawned_by").read_text() == f"cxo:cto:{OWNER}"
+    assert (mac.locks / f"{PH}-{sid}.project").read_text() == "LuminaSkies"
+    assert sc._owner_of(Identity("cxo", PH, sid)) == Identity("cxo", "cto", OWNER)
+    assert (mac.briefs / f"{PH}-{sid}.md").read_text() == (
+        f"Your owner cto-{OWNER} sends your brief by message. Run /session-open once it arrives.\n")
+
+
+def test_a_second_concurrent_start_on_the_mac_is_refused_by_the_slot(mac):
+    nd._claim.return_value = None                       # another call holds the project's slot
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and "another start of project LuminaSkies" in out["error"]
+    mac.tmux_create.assert_not_called()
+    assert mac.claim_files() == []
+
+
+def test_a_second_start_on_the_mac_is_refused_by_the_claim(mac):
+    mac_ok()
+    key = nd._claim.call_args.args[0]
+    assert key == "ph:mac:luminaskies:start"
+    out, code = run("cto", OWNER, "luminaskies")
+    assert code == 2 and "already has a live Project Head" in out["error"]
+    assert mac.tmux_create.call_count == 1              # started once
+
+
+def test_the_mac_never_consults_the_ceo_hold_or_session_0(mac, monkeypatch):
+    """CEO_HOLD is winbox's use-PC button, session 0 is a Windows idea: neither can stop the Mac."""
+    mac.hold.write_text("{}")
+    monkeypatch.setattr(spawn_ph, "ceo_hold_refusal", Mock(return_value="the CEO is using this PC"))
+    monkeypatch.setattr(spawn_ph, "_windows_session_id", Mock(return_value=0))
+    mac_ok()
+    spawn_ph.ceo_hold_refusal.assert_not_called()
+    spawn_ph._windows_session_id.assert_not_called()
+
+
+def test_winbox_still_consults_the_ceo_hold(box):
+    """The same hold file the Mac test above ignores stops winbox."""
+    box.hold.write_text("{}")
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and "the CEO is using this PC" in out["error"]
+
+
+def test_the_mac_keeps_the_other_gates(mac, monkeypatch, tmp_path):
+    monkeypatch.delenv("ORG_PH_ROLES")
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and "Project Heads are off on this host" in out["error"]
+    monkeypatch.setenv("ORG_PH_ROLES", "1")
+    monkeypatch.setattr(spawn_ph.resource_gate, "check", lambda *a, **k: "RAM is low")
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and out["error"] == "RAM is low"
+    mac.tmux_create.assert_not_called()
+    assert mac.claim_files() == []
+
+
+def test_a_tmux_that_cannot_start_takes_the_claim_back(mac):
+    mac.tmux_create.side_effect = RuntimeError("tmux not found")
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 1 and "tmux spawn failed: tmux not found" in out["error"]
+    assert mac.claim_files() == []
+    mac.tmux_create.side_effect = None                  # the project is free again
+    mac_ok()
+
+
+def test_dismiss_mcp_screen_presses_escape_only_when_the_screen_is_up(monkeypatch):
+    from tools import tmux_session
+    monkeypatch.setattr(spawn_ph, "SPAWN_PROMPT_DELAY_S", 0)
+    run_ = Mock()
+    monkeypatch.setattr(spawn_ph.subprocess, "run", run_)
+    capture = Mock(return_value="3 new MCP servers found in .mcp.json")
+    monkeypatch.setattr(tmux_session, "capture", capture)
+    assert spawn_ph.dismiss_mcp_screen("project_head-11112222") is True
+    assert run_.call_args.args[0][-3:] == ["-t", "project_head-11112222", "Escape"]
+    run_.reset_mock()
+    capture.return_value = "Welcome back"
+    assert spawn_ph.dismiss_mcp_screen("project_head-11112222") is False
+    run_.assert_not_called()
+    capture.side_effect = OSError("no tmux")
+    assert spawn_ph.dismiss_mcp_screen("project_head-11112222") is None
+
+
+def test_the_mesh_command_sends_the_mac_the_same_three_arguments(clevel, capsys):
+    assert spawn_ph.main(["mesh", "--host", "mac", "--project", "LuminaSkies"]) == 0
+    clevel.assert_called_once_with("mac", "spawn_ph", "cto", OWNER, "LuminaSkies")
+    assert spawn_ph.main(["mesh", "--host", "mac", "--project", "LuminaSkies", "--dry-run"]) == 0
+    assert json.loads(capsys.readouterr().out.splitlines()[-1]) == {
+        "host": "mac", "verb": "spawn_ph", "args": ["cto", OWNER, "LuminaSkies"], "dry_run": True}
+
+
+def test_the_mac_is_dialled_through_its_mesh_ssh_with_the_verb_checked_here_too():
+    from lib import config
+    argv = mesh.build_argv("mac", "spawn_ph", ["cto", OWNER, "LuminaSkies"])
+    assert argv[-2:] == [config.host("mac")["mesh_ssh"], f"spawn_ph cto {OWNER} LuminaSkies"]
+    with pytest.raises(nd.Refusal):
+        mesh.build_argv("mac", "spawn_ph", ["cto", OWNER, "x;id"])

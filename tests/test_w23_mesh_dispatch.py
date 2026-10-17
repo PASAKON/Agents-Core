@@ -269,8 +269,11 @@ def test_a_host_with_no_mesh_ssh_is_unreachable_and_never_dialled(monkeypatch):
     monkeypatch.setenv("ORG_HOST", "contabo")
     config.self_host.cache_clear()
     _no_subprocess(monkeypatch)
+    real = config.host      # every real host has a mesh_ssh now: build one without
+    monkeypatch.setattr(config, "host",
+                        lambda name: {**real(name), "mesh_ssh": None} if name == "mac" else real(name))
     with pytest.raises(mesh.MeshUnreachable, match="no mesh_ssh"):
-        mesh.dispatch("mac", "pid_alive", TID)  # the Mac's sshd is closed by design
+        mesh.dispatch("mac", "pid_alive", TID)
 
 
 def test_an_unknown_host_is_a_config_error_not_unreachable(monkeypatch):

@@ -17,7 +17,7 @@ Exactly these eight. Anything else is refused. Argument patterns are `fullmatch`
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |
 | `start_clevel` | `<role> [--resume <8 hex>]` | starts a C-level session; role must be in `policies/agents.yaml` `c_level`; refused (exit 2) when 3 sessions of that role are already live on this host or another start of that role is still running or succeeded less than 60 s ago |
-| `spawn_ph` | `<lane> <8 hex owner session> <project>` | Windows only: starts a Project Head for that C-level through a one-shot interactive scheduled task (`tools.spawn_ph.spawn_from_mesh`; same gates as `spawn-ph`, CEO hold included; fixed brief stub); lane must be a C-level, project 1-40 chars of `[A-Za-z0-9_-]`; run it with `python -m tools.spawn_ph mesh --host winbox --project <Name>` |
+| `spawn_ph` | `<lane> <8 hex owner session> <project>` | Windows and the Mac, Linux refused: starts a Project Head for that C-level (`tools.spawn_ph.spawn_from_mesh`; same gates as `spawn-ph`; fixed brief stub). Windows: through a one-shot interactive scheduled task (`via: schtask`), CEO hold included. Mac (ADR 0034): a detached tmux session running `scripts/cxo-claude.sh --role project_head` (`via: tmux`), no CEO hold. Lane must be a C-level, project 1-40 chars of `[A-Za-z0-9_-]`; run it with `python -m tools.spawn_ph mesh --host winbox\|mac --project <Name>` |
 | `deliver_letter` | `<digits, max 12>` | writes hub letter N into this host's mailbox, wakes the pane, marks it delivered; a call that overlaps one still writing is refused (exit 2) |
 | `publish_branch` | `task-xxxxxxxx` | `git push origin <the task's own branch>` from its worktree, never force |
 
@@ -185,7 +185,8 @@ identity ssh has, whatever that machine's config says.
 
 With no config there is no alias to resolve. The destination is the host's
 `mesh_ssh` in `config/hosts.yaml`, `user@<tailnet address>`: contabo
-`root@100.118.171.23`, winbox `passg@100.124.196.11`, mac `null` until G2. It
+`root@100.118.171.23`, winbox `passg@100.124.196.11`, mac `gob@<its tailnet address>` (its sshd
+opened 2026-10-17, ADR 0034; its `ssh:` stays `null`). It
 must be the tailnet address: `from=` pins the dispatcher's tailnet address, and
 the admin alias `mooniex-vps` dials Contabo's public one. A host without
 `mesh_ssh`, or with a value that is not a plain `user@address`, is never dialled
