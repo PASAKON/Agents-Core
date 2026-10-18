@@ -87,12 +87,26 @@ this skill only points at them.
    `docs/reference/links.jsonl` (`tools/refs.py add`) in the same turn. A brief that passes a link on quotes the rule.
    Full rule: `CTO_Rules_Bedrock_References`. Check: `python3 tools/refs.py check` prints `ok`.
 
+11. **Add-ons never override vanilla** (CEO ruling 2026-10-18; Mojang add-on guideline: add-ons "should not change or
+   update vanilla elements", only add new things). Never ship:
+   - a client/server entity or a particle with a `minecraft:` identifier;
+   - a UI file that overrides a vanilla namespace (e.g. `ui/server_form.json`);
+   - an entry for a vanilla texture path, sound event, block, `biomes_client`, flipbook or terrain texture.
+   To change how something vanilla looks, build our own (`mooniex_<pack>:*`), spawn it by script next to vanilla,
+   leave vanilla as it is even where it still shows, and put ours behind a user setting flag (on/off). Script effects
+   on vanilla mobs are fine: spawning them, storm lift/damage, wind push, fog push. Plant sway is a vanilla flipbook
+   override, so it needs a written Marketplace OK first; real geometry sway needs a shader, is PC-only, cannot ship and
+   never appears in a trailer. Pre-ship audit: `grep -rn '"minecraft:' BP RP`, then read `ui/`, the vanilla paths
+   under `textures/`, `sounds.json` and the `sound_definitions` keys. Found in LuminaSkies on 2026-10-18: a
+   `minecraft:slime` client entity, `ui/server_form.json`, 7 vanilla water particle overrides.
+
 ## The check (60 seconds, before `delegate_task`)
 
 - Brief has items 1, 2 and 4.
 - `check_collisions` is empty.
 - The runner matches item 3, or the brief says why not.
 - The task id gets its `docs/briefs/` export in the same turn.
+- A brief that ships pack content quotes item 11 and its pre-ship audit.
 
 ## Good vs bad (real)
 
