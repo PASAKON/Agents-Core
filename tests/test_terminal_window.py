@@ -33,7 +33,7 @@ from lib import config  # noqa: E402
 
 SCRIPTS = ROOT / "scripts"
 COO_HOST = SCRIPTS / "lib" / "coo_host.py"
-MAC_ROOT_LINE = 'ROOT="/Users/gob/MoonieXHQ/Agents/Core"'
+MAC_ROOT_LINE = 'ROOT="${ORG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"'
 
 
 _HOSTS, _SELF_HOST = config.hosts, config.self_host  # the real cached functions, before any monkeypatch

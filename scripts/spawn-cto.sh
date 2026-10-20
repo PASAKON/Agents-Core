@@ -24,7 +24,7 @@
 # otherwise duplicate that chat's id into the new tab.
 set -euo pipefail
 
-ROOT="/Users/gob/MoonieXHQ/Agents/Core"
+ROOT="${ORG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 WITH_LOGS=0
 EXPLICIT_ID=""
