@@ -470,9 +470,43 @@ def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(q
     ("ACTO Main", "unknown", None),
     ("CTO (Kavin) — Main", "unknown", None),
     ("CTO Maine", "developer", None),
+    # P8c F6: the 11 spellings the second review found past the first regex, each on a developer row
+    ("CTO-Main", "developer", "CTO Main"),
+    ("CTO_Main", "developer", "CTO Main"),
+    ("CTOMain", "developer", "CTO Main"),
+    ("CTO.Main", "developer", "CTO Main"),
+    ("CTO·Main", "developer", "CTO Main"),
+    ("CTO—Main", "developer", "CTO Main"),
+    ("CTO/Main", "developer", "CTO Main"),
+    ("CTO #c34 Main", "developer", "CTO Main"),
+    ("CTO#c34f Main", "developer", "CTO Main"),
+    ("CTO#7cf528f0 Main", "developer", "CTO Main"),
+    ("C T O Main", "developer", "CTO Main"),
+    ("CMO-Main", "developer", "CMO Main"),
+    ("🌐 CMO #ef0 Main", "unknown", "CMO Main"),
+    ("CTO · Main", "unknown", "CTO Main"),
+    # ...and the same spellings on the real rows are not claims
+    ("CTO-Main", "cto", None),
+    ("CTO#7cf528f0 Main", "cto", None),
+    ("🌐 CMO (Ging) — CMO Main", "cmo", None),
+    ("MAC CTO #671f688f (CTO Main)", "cto", None),
+    ("🌐 CTO (Kavin) — CMO Main", "cto", "CMO Main"),                   # a cto is not the CMO
+    # near-misses stay unmarked: a longer word, a name with the words apart, lower-case "c to main"
+    ("CTO Mainframe", "developer", None),
+    ("PH#7cf (CTO) - Main Street", "project_head", None),
+    ("CTO (Kavin) — Main", "developer", None),
+    ("send c to main", "developer", None),
+    ("ACTO-Main", "developer", None),
 ])
 def test_reserved_claim(name, role, claim):
     assert ls.reserved_claim({"name": name, "role": role}) == claim
+
+
+@pytest.mark.parametrize("raw", ["CTO\u200bMain", "CTO\u2060Main", "CTO\u00adMain", "CTO\u2028Main"])
+def test_reserved_claim_sees_a_name_after_the_publisher_cleaned_it(raw):
+    """_clean turns format and separator characters into a space before a row is stored."""
+    cleaned = ls._clean(raw, ls.MAX_NAME_CHARS)
+    assert ls.reserved_claim({"name": cleaned, "role": "developer"}) == "CTO Main"
 
 
 def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers(quiet_rule):

@@ -121,8 +121,13 @@ STATUS_RANK = {"running": 0, "idle": 1, "unknown": 2, "stale": 3}
 # OrgMesh P8: any session can rename itself, so a reserved title may be shown only for a row whose
 # role is that C-level. The role is the one the launcher's tmux claims (or, on a host with no tmux,
 # the name's own, which the "[name only]" mark already flags). Anywhere in the name, as a whole
-# phrase, "CTO#c34 Main" included; a host emoji or a state glyph in front changes nothing.
-_RESERVED_RE = re.compile(r"(?<![A-Za-z0-9_])(CTO|CMO)(?:#[0-9a-f]{3})?\s+Main(?![A-Za-z0-9_])", re.I)
+# phrase; a host emoji or a state glyph in front changes nothing. Between the title and "Main" it
+# lets through nothing but spaces, an id ("#c34", "#7cf528f0") and one run of separators
+# (- _ . / \ · • — – : |), so "CTO-Main", "CTOMain", "CTO#c34 Main" are caught and "(CTO) - Main
+# Street" is not. "C T O Main" counts in capitals only: "send c to main" is not a claim. (P8c, F6)
+_RESERVED_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?P<title>(?i:CTO|CMO)|C\s*[TM]\s*O)\s*(?:#[0-9a-fA-F]{3,8})?"
+    r"[\s\-_./\\\u00b7\u2022\u2014\u2013:|]*(?i:Main)(?![A-Za-z])")
 
 _UPSERT_SESSION = (
     "INSERT INTO live_sessions (host, uuid, sid, role, name, address, status, pid,"
@@ -1132,8 +1137,9 @@ def reserved_claim(row: dict) -> str | None:
     matching C-level (cto / cmo); None otherwise. NFKC first, so full-width letters read the same."""
     name = unicodedata.normalize("NFKC", row.get("name") or "")
     for m in _RESERVED_RE.finditer(name):
-        if row.get("role") != m.group(1).lower():
-            return f"{m.group(1).upper()} Main"
+        title = re.sub(r"\s+", "", m.group("title")).upper()
+        if row.get("role") != title.lower():
+            return f"{title} Main"
     return None
 
 
