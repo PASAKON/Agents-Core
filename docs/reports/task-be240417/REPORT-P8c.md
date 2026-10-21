@@ -106,7 +106,7 @@ modelled (one namespace on these hosts).
 
 ## Not done / for the CTO
 
-- **Push**: done to `agent/developer-task-e56b12f2` only, per the task (see the end of this file for the head sha). Not merged; no new PR.
+- **Push**: done to `agent/developer-task-e56b12f2` only, per the task (`e42ab33f..728ccb54`, fast-forward, no force; the sha of the commit that carries this sentence is in the hand-off report). Not merged; no new PR.
 - `roles/project_head.md` is still not edited (workers may not); the revised lines are in `docs/plans/p8-role-text.md`.
 - The `bridge:` gap above is a product decision: ship P8c as is (a mesh PH takes orders by Run card), or fund the `bridge_id` column.
 - Windows: a winbox PH has no `bash scripts/hub/org-python.sh`, and Claude Code on Windows is unlikely to send `uds:` paths. Unchanged from the first PR; both fail closed (exit 2 or non-zero). Not measured: no winbox access in this task.
