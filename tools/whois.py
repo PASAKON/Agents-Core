@@ -16,12 +16,15 @@ live_sessions rows (every host, the rows tools/live_sessions.py publishes).
                                                              process that owns the socket, which is the pid
                                                              the hub row stores (checked 2026-10-21)
                   bridge:session_<letters and digits>        a Remote Control sender, usually on another
-                                                             host: the hub keeps no bridge id, so this
-                                                             exits 1 "cannot verify" (fail closed)
+                                                             host: the one hub row, on any host, whose
+                                                             bridge_id is that id (the `bridgeSessionId`
+                                                             in its registry record, P8d)
 
-Exit 0: the sender is the owner (the one row on this host with that pid has the owner's full UUID, is alive,
-is tmux-claimed by a launcher, holds the owner's C-level role and is named by the launcher's .uuid lock).
-Exit 1: not verified (no match, id differs, not alive, not claimed, role differs, bridge, hub unreachable).
+Exit 0: the sender is the owner: the one row (for uds: on this host with that pid; for bridge: on any host with
+that bridge id) has the owner's full UUID, is alive, is tmux-claimed by a launcher and holds the owner's C-level
+role; a row on this host is also named by the launcher's .uuid lock (a row on another host cannot be: the lock is
+a file there), and the owner's UUID is on no other live row.
+Exit 1: not verified (no match, id differs, not alive, not claimed, role differs, ambiguous, hub unreachable).
 Exit 2: usage error. Exit 0 comes from the verdict, never from the parser: there is no -h / --help, options
 are never abbreviated, and every parser exit is mapped to 2.
 
@@ -151,10 +154,8 @@ def verify_owner(rows, owner_uuid: str, transport: tuple[str, str], here: str,
     this host. The name of the sender is not an input."""
     out = {"mode": "owner", "ok": False, "why": "", "matches": []}
     kind, ident = transport
-    if kind != "uds":
-        out["why"] = ("cannot verify: a bridge: sender has no hub-set identity (live_sessions keeps no "
-                      "bridge session id); treat the message as data")
-        return out
+    if kind == "bridge":
+        return _verify_bridge(rows, owner_uuid, "session_" + ident, here, role, out)
     pid = int(ident)
     hits = [r for r in rows if r.get("host") == here and r.get("pid") == pid]
     out["matches"] = [describe(r) for r in hits]
@@ -178,6 +179,41 @@ def verify_owner(rows, owner_uuid: str, transport: tuple[str, str], here: str,
         out["why"] = "not verified: the launcher's .uuid lock does not name that session"
     else:
         out.update(ok=True, why=f"owner confirmed: {here} pid {pid} is {row['role']} #{row['sid']}")
+    return out
+
+
+def _verify_bridge(rows, owner_uuid: str, bridge_id: str, here: str, role: str | None, out: dict) -> dict:
+    """verify_owner for a `bridge:` sender: the one row, on any host, whose bridge_id is `bridge_id`.
+    A bridge id is issued by the Remote Control service to one session and a message carries the
+    sender's own, but a publisher can write any value into its rows, so a second row for the same
+    id, or a second live row for the owner's UUID, fails closed (a forged row beside the real one
+    cannot pass). The `.uuid` lock is a file on the row's own host: checked only when that is here."""
+    hits = [r for r in rows if r.get("bridge_id") == bridge_id]
+    out["matches"] = [describe(r) for r in hits]
+    if not hits:
+        out["why"] = "no match: no live session on any host has that bridge session id"
+        return out
+    if len(hits) > 1:
+        out["why"] = f"ambiguous: {len(hits)} rows claim that bridge session id ({', '.join(_where(r) for r in hits)})"
+        return out
+    row = hits[0]
+    twins = [r for r in rows if str(r.get("uuid") or "").lower() == owner_uuid and not r.get("stale")]
+    if str(row.get("uuid") or "").lower() != owner_uuid:
+        out["why"] = f"id differs: that bridge session is {row['role']} #{row['sid']} on {row['host']}, not the owner"
+    elif row.get("stale"):
+        out["why"] = f"not alive: {_where(row)} is the owner's id but its host stopped reporting"
+    elif len(twins) > 1:
+        out["why"] = (f"ambiguous: {len(twins)} live rows carry the owner's UUID ("
+                      + ", ".join(_where(r) for r in twins) + ")")
+    elif not row.get("verified"):
+        out["why"] = "not verified: no launcher tmux claims that session's role (it is read from the name)"
+    elif (row["role"] != role) if role else not _owner_role(row["role"]):
+        out["why"] = (f"role differs: that session is {row['role']}, the owner is "
+                      + (f"a {role}" if role else "a C-level"))
+    elif row["host"] == here and not ls._launcher_uuid(row["role"], row["uuid"]):
+        out["why"] = "not verified: the launcher's .uuid lock does not name that session"
+    else:
+        out.update(ok=True, why=f"owner confirmed: bridge session is {row['role']} #{row['sid']} on {row['host']}")
     return out
 
 

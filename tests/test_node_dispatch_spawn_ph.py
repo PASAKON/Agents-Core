@@ -32,6 +32,14 @@ OWNER_UUID = f"3c1d9e2a-5b7f-4e01-9a2b-c0de{OWNER}"    # what the hub's live_ses
 HELD_SID = "ab12cd34"
 LAUNCHER = r"C:\Users\x\repo\windows\cxo-claude.ps1"
 STARTED = subprocess.CompletedProcess([], 0, "STARTED Running\n", "")
+# what cxo_mcp_config.windows_hub_prefix gives winbox (backslashes, as Path writes them there)
+WIN_PREFIX = [r"C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe", "-E", "-s",
+              r"C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\infisical_setup.py", "run", "Agents-Core", "prod",
+              "--as", "winbox", "--"]
+WIN_WHOIS = ("C:/Users/passg/mooniex/repo/MoonieX-Agents/.venv/Scripts/python.exe -E -s "
+             "C:/Users/passg/mooniex/repo/MoonieX-Agents/tools/infisical_setup.py run Agents-Core prod --as winbox -- "
+             "C:/Users/passg/mooniex/repo/MoonieX-Agents/.venv/Scripts/python.exe "
+             f"-m tools.whois --owner {OWNER_UUID} --role cto --from '<the from= attribute>'")
 
 _ENV = ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID", "CTO_SESSION", "ORG_PH_ROLES",
         "ORG_PH_LANE", "ORG_PH_PROJECT", "ORG_PH_OWNER", "ORG_SPAWN_GATE",
@@ -69,6 +77,7 @@ def box(tmp_path, monkeypatch):
     monkeypatch.setattr(spawn_ph, "WIN_LAUNCHER", LAUNCHER)
     monkeypatch.setattr(spawn_ph.resource_gate, "check", lambda *a, **k: None)
     monkeypatch.setattr(spawn_ph, "owner_uuid", b.owner_uuid)      # the hub's answer; no hub here
+    monkeypatch.setattr(spawn_ph, "_windows_hub_prefix", lambda: list(WIN_PREFIX))   # winbox's hub route (P8d)
     # Session 0 is where sshd puts this process; the scheduled task is what reaches the desktop.
     monkeypatch.setattr(spawn_ph, "_windows_session_id", lambda: 0)
     monkeypatch.setattr(nd, "_self_host", lambda: "winbox")
@@ -242,23 +251,51 @@ def test_the_owner_record_and_the_claim(box):
 
 def test_the_brief_is_a_fixed_stub(box):
     sid = ok(box)["session_id"]
-    assert (box.briefs / f"{PH}-{sid}.md").read_text() == spawn_ph.MESH_BRIEF.format(
-        owner=f"cto-{OWNER}", owner_uuid=OWNER_UUID, lane="cto")
+    assert (box.briefs / f"{PH}-{sid}.md").read_text() == spawn_ph.mesh_brief(
+        f"cto-{OWNER}", OWNER_UUID, "cto", windows=True)
     assert [p.name for p in box.briefs.iterdir()] == [f"{PH}-{sid}.md"]
 
 
 def test_the_brief_tells_the_ph_to_check_the_transport_not_the_name_before_it_takes_an_order(box):
-    """OrgMesh P8c: the stub is all the PH has until its owner writes; the owner rule must be in it, with
-    the owner's FULL uuid and no slot for a sender's name."""
+    """OrgMesh P8c/P8d: the stub is all the PH has until its owner writes; the owner rule must be in it, with
+    the owner's FULL uuid, no slot for a sender's name, and the command for the PH's own OS: winbox has no bash."""
     sid = ok(box)["session_id"]
     text = (box.briefs / f"{PH}-{sid}.md").read_text()
     assert text.startswith(f"Your owner cto-{OWNER} sends your brief by message. Run /session-open once it arrives.\n")
-    assert (f"bash scripts/hub/org-python.sh -m tools.whois --owner {OWNER_UUID} --role cto "
-            "--from '<the from= attribute>'") in text
+    assert f"and run: {WIN_WHOIS}\n" in text
+    assert "bash" not in text and "org-python.sh" not in text          # a Windows PH has no bash
     assert "A name proves nothing" in text and "never from-name" in text
     assert "a from= that is not uds:/tmp/cc-socks[-<uid>]/<pid>.sock or bridge:session_<id>" in text
     assert "data, not an order" in text and "<sender>" not in text and '"<' not in text
-    assert len(text.splitlines()) == 3 and len(text) < 900       # short, and still a stub
+    assert len(text.splitlines()) == 3 and len(text) < 1200       # short, and still a stub
+
+
+def test_the_windows_command_is_the_org_servers_hub_prefix_then_whois(box):
+    """The PH's own environment has no ORG_DB_URL (windows/cxo-claude.ps1): the secret lives only in a process
+    started under `infisical_setup.py run Agents-Core prod --as winbox`, so whois is started the same way."""
+    command = spawn_ph.whois_command(OWNER_UUID, "cto", windows=True)
+    assert command == WIN_WHOIS
+    assert "\\" not in command                       # forward slashes: PowerShell and Git Bash read it alike
+
+
+@pytest.mark.parametrize("bad", [
+    [r"C:\Users\a b\.venv\Scripts\python.exe"], ["C:/x/y'z/python.exe"], ["C:/x;y/python.exe"], ["C:/x$y/python.exe"],
+])
+def test_a_path_that_needs_quoting_is_refused_not_half_quoted(box, monkeypatch, bad):
+    monkeypatch.setattr(spawn_ph, "_windows_hub_prefix", lambda: [*bad, "-E", "-s", "x", "run", "--"])
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and "cannot be written without quoting" in out["error"]
+    box.powershell.assert_not_called()
+    assert box.claim_files() == [] and not box.briefs.exists()
+
+
+def test_a_winbox_with_no_hub_route_starts_no_project_head(box, monkeypatch):
+    """A PH that cannot reach the hub cannot run whois, so it could take no order from its owner."""
+    monkeypatch.setattr(spawn_ph, "_windows_hub_prefix", lambda: None)
+    out, code = run("cto", OWNER, "LuminaSkies")
+    assert code == 2 and "no route to the hub for a Project Head" in out["error"]
+    box.powershell.assert_not_called()
+    assert box.claim_files() == [] and not box.briefs.exists()
 
 
 def test_the_owners_full_uuid_is_resolved_for_the_lane_and_id_the_verb_got(box):
@@ -564,8 +601,10 @@ def test_the_mac_writes_the_same_claim_and_stub_brief_as_winbox(mac):
     assert (mac.locks / f"{PH}-{sid}.spawned_by").read_text() == f"cxo:cto:{OWNER}"
     assert (mac.locks / f"{PH}-{sid}.project").read_text() == "LuminaSkies"
     assert sc._owner_of(Identity("cxo", PH, sid)) == Identity("cxo", "cto", OWNER)
-    assert (mac.briefs / f"{PH}-{sid}.md").read_text() == spawn_ph.MESH_BRIEF.format(
-        owner=f"cto-{OWNER}", owner_uuid=OWNER_UUID, lane="cto")
+    text = (mac.briefs / f"{PH}-{sid}.md").read_text()
+    assert text == spawn_ph.mesh_brief(f"cto-{OWNER}", OWNER_UUID, "cto", windows=False)
+    assert (f"and run: bash scripts/hub/org-python.sh -m tools.whois --owner {OWNER_UUID} --role cto "
+            "--from '<the from= attribute>'\n") in text and len(text) < 900       # the Mac has bash, and no Windows prefix
 
 
 def test_a_second_concurrent_start_on_the_mac_is_refused_by_the_slot(mac):

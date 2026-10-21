@@ -83,6 +83,14 @@ def test_a_missing_live_sessions_verified_column_is_not_current():
     assert db_mod._pg_schema_current(_Catalog(relations, columns)) is False
 
 
+def test_a_missing_live_sessions_bridge_id_column_is_not_current():
+    """OrgMesh P8d: a hub without live_sessions.bridge_id runs the DDL, which adds it."""
+    relations, columns = _complete_catalog()
+    assert ("live_sessions", "bridge_id") in columns
+    columns.discard(("live_sessions", "bridge_id"))
+    assert db_mod._pg_schema_current(_Catalog(relations, columns)) is False
+
+
 def test_a_missing_migration_column_is_not_current():
     relations, columns = _complete_catalog()
     columns.discard(("letters", "from_host"))
@@ -148,6 +156,41 @@ def test_on_postgres_a_missing_piece_runs_the_ddl_under_the_lock(monkeypatch):
     assert conn.sql[0].startswith("SELECT pg_advisory_xact_lock(")
     assert "SCRIPT" in conn.sql
     assert conn.sql[-1].startswith("UPDATE tasks")
+
+
+class _LiveSessionsHas(_PgRecorder):
+    """A hub whose live_sessions has exactly `cols`; every other table reads as empty."""
+
+    def __init__(self, cols):
+        super().__init__()
+        self.cols = cols
+
+    def execute(self, sql, params=()):
+        out = super().execute(sql, params)
+        if "PRAGMA table_info(live_sessions)" in sql:
+            return _Rows([{"name": c} for c in self.cols])
+        if "PRAGMA table_info" in sql:
+            return _Rows([])
+        return out
+
+
+def _live_alters(conn):
+    return [s for s in conn.sql if s.startswith("ALTER TABLE live_sessions")]
+
+
+def test_the_migration_adds_bridge_id_to_a_live_sessions_table_that_lacks_it():
+    """P8d: additive, nullable TEXT, and only when the column is missing (init runs on every start)."""
+    assert ("bridge_id", "TEXT") in db_mod._LIVE_SESSIONS_MIGRATION
+    old = _LiveSessionsHas({"host", "uuid", "verified"})
+    db_mod._create_and_migrate(old, is_pg=True)
+    assert _live_alters(old) == ["ALTER TABLE live_sessions ADD COLUMN bridge_id TEXT"]
+    current = _LiveSessionsHas({"host", "uuid", "verified", "bridge_id"})
+    db_mod._create_and_migrate(current, is_pg=True)
+    assert _live_alters(current) == []
+    fresh = _LiveSessionsHas(set())
+    db_mod._create_and_migrate(fresh, is_pg=True)
+    assert _live_alters(fresh) == ["ALTER TABLE live_sessions ADD COLUMN verified BOOLEAN",
+                                   "ALTER TABLE live_sessions ADD COLUMN bridge_id TEXT"]
 
 
 def test_a_connection_that_is_not_postgres_keeps_the_plain_path(monkeypatch):

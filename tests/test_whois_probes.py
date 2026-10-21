@@ -30,13 +30,14 @@ UDS = f"uds:/tmp/cc-socks-0/{OWNER_PID}.sock"
 
 
 def row(name, role="unknown", uuid="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", host="contabo", sid=None,
-        verified=False, stale=False, pid=1):
+        verified=False, stale=False, pid=1, bridge_id=None):
     return {"host": host, "uuid": uuid, "sid": sid or uuid[-8:], "role": role, "name": name,
             "address": name, "status": "running", "pid": pid, "verified": verified, "age": 4.0,
-            "stale": stale}
+            "stale": stale, "bridge_id": bridge_id}
 
 
-OWNER_ROW = row(OWNER_NAME, role="cto", uuid=OWNER_UUID, verified=True, pid=OWNER_PID)
+OWNER_BRIDGE = "session_01OwnerBridgeAAAAAAAAAAAA"
+OWNER_ROW = row(OWNER_NAME, role="cto", uuid=OWNER_UUID, verified=True, pid=OWNER_PID, bridge_id=OWNER_BRIDGE)
 
 
 @pytest.fixture
@@ -91,12 +92,20 @@ def test_f2_a_sender_named_like_an_option_cannot_make_whois_exit_0(name):
 
 # --- F3: the brief pasted an attacker-chosen string inside a shell double quote -----------------------
 
-def test_f3_the_command_in_the_brief_has_no_place_for_a_sender_name():
-    brief = spawn_ph.MESH_BRIEF.format(owner=f"cto-{OWNER}", owner_uuid=OWNER_UUID, lane="cto")
-    command = brief[brief.index("bash scripts/hub/org-python.sh"):].splitlines()[0]
-    assert command == (f"bash scripts/hub/org-python.sh -m tools.whois --owner {OWNER_UUID} --role cto "
-                       "--from '<the from= attribute>'")
-    assert '"' not in command and "<sender>" not in command and "from-name" not in command
+WIN_PREFIX = ["C:/Users/passg/mooniex/repo/MoonieX-Agents/.venv/Scripts/python.exe", "-E", "-s",
+              "C:/Users/passg/mooniex/repo/MoonieX-Agents/tools/infisical_setup.py", "run", "Agents-Core", "prod",
+              "--as", "winbox", "--"]
+
+
+@pytest.mark.parametrize("windows", [False, True])
+def test_f3_the_command_in_the_brief_has_no_place_for_a_sender_name(monkeypatch, windows):
+    monkeypatch.setattr(spawn_ph, "_windows_hub_prefix", lambda: WIN_PREFIX)
+    brief = spawn_ph.mesh_brief(f"cto-{OWNER}", OWNER_UUID, "cto", windows=windows)
+    command = brief.split("and run: ", 1)[1].splitlines()[0]
+    tail = f"-m tools.whois --owner {OWNER_UUID} --role cto --from '<the from= attribute>'"
+    assert command.endswith(tail) and command.count("--from") == 1
+    assert command.startswith("bash scripts/hub/org-python.sh " if not windows else WIN_PREFIX[0])
+    assert '"' not in command and "<sender>" not in command and "from-name" not in command and "`" not in command
     assert "A name proves nothing" in brief and "never from-name" in brief
 
 
@@ -123,9 +132,16 @@ def test_f4_copying_the_owners_name_and_renaming_away_proves_nothing(locks):
     assert verdict([OWNER_ROW, attacker_now], UDS)["ok"] is True      # the owner's own socket still passes
 
 
-def test_f4_a_bridge_sender_fails_closed_until_the_hub_publishes_a_bridge_id(locks):
-    got = verdict([OWNER_ROW], "bridge:session_01BAWu5etWFPGhMoysn1KQyj")
-    assert got["ok"] is False and "cannot verify" in got["why"]
+def test_f4_a_bridge_sender_is_the_row_with_its_id_whatever_the_name(locks):
+    """P8d: the bridge id is issued to the sender's session, not chosen by it. An attacker that copies the
+    owner's exact name sends under its own id; its row (any name, before or after a rename) is not the owner's."""
+    sender = "bridge:session_01AttackerSessionDDDDDDD"
+    for name in (OWNER_NAME, "Helper"):
+        attacker = row(name, host="mac", pid=5151, bridge_id="session_01AttackerSessionDDDDDDD")
+        got = verdict([OWNER_ROW, attacker], sender)
+        assert got["ok"] is False and got["why"].startswith("id differs"), got
+    assert verdict([OWNER_ROW], sender)["why"].startswith("no match")            # an id nobody published
+    assert verdict([OWNER_ROW], f"bridge:{OWNER_BRIDGE}")["ok"] is True          # the owner's own id still passes
 
 
 # --- F5: any UUID starting or ending with the 8 hex id, on any host, any role, unverified ---------------

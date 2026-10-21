@@ -625,17 +625,18 @@ class _Rows:
 
 class FakeHub:
     """Answers the reader's two SELECTs and records every statement except the
-    live_sessions.verified column probe, which it answers from `has_verified`."""
+    live_sessions column probe, which it answers from `has_verified` and `has_bridge`."""
 
-    def __init__(self, sessions=(), hosts=(), has_verified=False):
+    def __init__(self, sessions=(), hosts=(), has_verified=False, has_bridge=False):
         self.sessions, self.hosts, self.sql, self.params = list(sessions), list(hosts), [], []
-        self.has_verified = has_verified
+        self.has_verified, self.has_bridge = has_verified, has_bridge
         self.committed = 0
         self.closed = False
 
     def execute(self, sql, params=()):
         if "information_schema.columns" in sql:
-            return _Rows([(1,)] if self.has_verified else [])
+            return _Rows([(c,) for c, have in (("verified", self.has_verified), ("bridge_id", self.has_bridge))
+                          if have])
         self.sql.append(" ".join(sql.split()))
         self.params.append(tuple(params))
         if "FROM live_sessions" in sql:
@@ -1650,6 +1651,90 @@ def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
                      [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}])
     assert "name only" in ls.render(reader, now=NOW)
     assert "NULL AS verified" in [q for q in reader.sql if "FROM live_sessions" in q][0]
+
+
+BRIDGE_A = "session_01BAWu5etWFPGhMoysn1KQyj"
+
+
+def test_a_registry_record_carries_its_bridge_session_id(tmp_path):
+    """OrgMesh P8d: `bridgeSessionId` is what a message from this session carries as `from=bridge:<id>`."""
+    _write(tmp_path, os.getpid(), bridgeSessionId=BRIDGE_A)
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] == BRIDGE_A
+
+
+def test_a_registry_record_without_a_bridge_session_id_has_none(tmp_path):
+    _write(tmp_path, os.getpid())
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] is None
+
+
+@pytest.mark.parametrize("bad", [
+    "", "session_", "01BAWu5etWFPGhMoysn1KQyj", "x", "session-abc", "session_ab cd", "session_ab\nx", "session_ab;id", "session_é",
+    "Session_abc", " session_abc", "session_abc ", "session_" + "a" * 101, "bridge:session_abc",
+    123, True, None, ["session_abc"], {"id": "session_abc"},
+])
+def test_a_bridge_session_id_of_any_other_shape_is_dropped(tmp_path, bad):
+    """It lands in a column whois compares: anything but session_<letters+digits> is no id at all."""
+    _write(tmp_path, os.getpid(), bridgeSessionId=bad)
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] is None
+
+
+def test_the_publisher_writes_the_bridge_id_once_the_column_exists(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1", bridgeSessionId=BRIDGE_A)
+    hub = FakeHub(has_verified=True, has_bridge=True)
+    ls.publish_once(hub, "contabo", [tmp_path], set())
+    [(sql, params)] = [(q, p) for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    assert "bridge_id = EXCLUDED.bridge_id" in sql and "verified = EXCLUDED.verified" in sql
+    assert sql.count("?") == len(params) == 12 and params[-2:] == (True, BRIDGE_A)
+    only = FakeHub(has_bridge=True)                          # a hub that has bridge_id but not verified
+    ls.publish_once(only, "contabo", [tmp_path], set())
+    [(sql, params)] = [(q, p) for q, p in zip(only.sql, only.params) if q.startswith("INSERT INTO live_sessions")]
+    assert "verified" not in sql and sql.count("?") == len(params) == 11 and params[-1] == BRIDGE_A
+    old = FakeHub()                                           # a hub that has not run init() since P8d
+    ls.publish_once(old, "contabo", [tmp_path], set())
+    assert not any("bridge_id" in q for q in old.sql)
+
+
+def test_a_session_with_no_remote_control_publishes_a_null_bridge_id(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1")
+    hub = FakeHub(has_verified=True, has_bridge=True)
+    ls.publish_once(hub, "contabo", [tmp_path], set())
+    [params] = [p for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    assert params[-1] is None
+
+
+def test_the_reader_carries_the_bridge_id_and_never_selects_a_column_it_cannot_read():
+    """org_coo's column GRANT hides bridge_id from information_schema, so a probe that finds nothing
+    must make the reader select NULL for it (as for `verified`, M8 #8): never a permission error."""
+    host = [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}]
+    with_col = FakeHub([dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)], host,
+                       has_verified=True, has_bridge=True)
+    [row] = ls._snapshot_from_hub(with_col, ls.DEFAULT_TTL_S)["rows"]
+    assert row["bridge_id"] == BRIDGE_A
+    sql = [q for q in with_col.sql if "FROM live_sessions" in q][0]
+    assert " verified, bridge_id, EXTRACT" in sql
+    without = FakeHub([_row("contabo", "cto", "CTO (Kavin)")], host, has_verified=True)
+    [row] = ls._snapshot_from_hub(without, ls.DEFAULT_TTL_S)["rows"]
+    assert row["bridge_id"] is None
+    assert " verified, NULL AS bridge_id, EXTRACT" in [q for q in without.sql if "FROM live_sessions" in q][0]
+
+
+def test_the_bridge_id_is_in_no_list_and_no_json(tmp_path):
+    rows = [dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)]
+    snap = _snap(rows, {"contabo": _fresh(4.0)})
+    assert BRIDGE_A not in ls.format_snapshot(snap, now=NOW) and BRIDGE_A not in ls._to_json(snap)
+
+
+def test_the_powershell_pull_reads_the_same_bridge_key_as_a_local_file():
+    """winbox's records are read by PS_PULL_SCRIPT, which lists the keys it forwards: `bridgeSessionId` must
+    be one, as a string (a missing key becomes "" and reads as no id)."""
+    assert "bridgeSessionId=[string]$j.bridgeSessionId" in ls.PS_PULL_SCRIPT
+    entry = {"pid": 999999999, "sessionId": "uuid-w1", "name": "WINDOWS CTO #33b0a9d5", "status": "idle",
+             "nameSince": None, "formerNames": [], "bridgeSessionId": BRIDGE_A}
+    assert ls._row_from_data(entry, check_alive=False)["bridge_id"] == BRIDGE_A
+    assert ls._row_from_data({**entry, "bridgeSessionId": ""}, check_alive=False)["bridge_id"] is None
 
 
 def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():

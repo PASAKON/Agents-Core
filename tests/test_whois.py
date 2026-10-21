@@ -21,16 +21,19 @@ OWNER_UUID = f"3c1d9e2a-5b7f-4e01-9a2b-c0de{OWNER}"
 OWNER_NAME = "🌐 CTO (Kavin) — CTO Main"
 OWNER_PID = 4242
 UDS = f"uds:/tmp/cc-socks-0/{OWNER_PID}.sock"
+OWNER_BRIDGE = "session_01OwnerBridgeAAAAAAAAAAAA"        # the registry's bridgeSessionId, as the publisher stores it
+BRIDGE = f"bridge:{OWNER_BRIDGE}"
 
 
 def row(name=OWNER_NAME, role="cto", sid=OWNER, host="contabo", uuid=None, verified=True, stale=False,
-        pid=OWNER_PID):
+        pid=OWNER_PID, bridge_id=None):
     return {"host": host, "uuid": uuid or f"11111111-2222-3333-4444-5555{sid}", "sid": sid, "role": role,
             "name": name, "address": name, "status": "stale" if stale else "running", "pid": pid,
-            "verified": verified, "age": 4.0, "stale": stale}
+            "verified": verified, "bridge_id": bridge_id, "age": 4.0, "stale": stale}
 
 
 def owner_row(**kw):
+    kw.setdefault("bridge_id", OWNER_BRIDGE)
     return row(uuid=OWNER_UUID, **kw)
 
 
@@ -180,11 +183,90 @@ def test_the_launchers_uuid_lock_must_name_the_session(locks):
     assert verdict(ROWS)["ok"] is False                                   # no lock at all: fail closed
 
 
-def test_a_bridge_sender_cannot_be_verified_because_the_hub_keeps_no_bridge_id(locks):
+# --- the owner verdict for a bridge: sender (P8d): the row whose bridge_id it is, on any host -------------
+
+def test_the_owner_is_the_one_row_with_the_senders_bridge_id_on_another_host(locks):
+    """A mesh PH's owner is on another host: the PH is on winbox, the owner's row was published by contabo."""
+    got = verdict(ROWS, from_=BRIDGE, here="winbox")
+    assert got["ok"] is True, got
+    assert got["why"] == "owner confirmed: bridge session is cto #671f688f on contabo"
+    [m] = got["matches"]
+    assert (m["host"], m["uuid"]) == ("contabo", OWNER_UUID)
+    assert OWNER_BRIDGE not in whois.format_text(got)            # the id is never printed
+
+
+def test_a_bridge_owner_on_this_host_also_passes_the_launchers_lock(locks):
+    assert verdict(ROWS, from_=BRIDGE, here="contabo")["ok"] is True
+    (locks / f"cto-{OWNER}.uuid").write_text("99999999-9999-4999-8999-999999999999\n")
+    got = verdict(ROWS, from_=BRIDGE, here="contabo")
+    assert got["ok"] is False and got["why"] == "not verified: the launcher's .uuid lock does not name that session"
+    (locks / f"cto-{OWNER}.uuid").unlink()
+    assert verdict(ROWS, from_=BRIDGE, here="contabo")["ok"] is False        # no lock at all: fail closed
+
+
+def test_the_lock_is_a_file_on_the_rows_own_host_so_another_host_is_not_asked_for_it(locks):
+    (locks / f"cto-{OWNER}.uuid").unlink()                  # winbox has no such file for a contabo session
+    assert verdict(ROWS, from_=BRIDGE, here="winbox")["ok"] is True
+
+
+def test_no_row_has_that_bridge_id(locks):
     for sender in ("bridge:session_01BAWu5etWFPGhMoysn1KQyj", f"bridge:session_{OWNER}"):
-        got = verdict(ROWS, from_=sender)
-        assert got["ok"] is False and got["why"].startswith("cannot verify: a bridge: sender"), got
+        got = verdict(ROWS, from_=sender, here="winbox")
+        assert got["ok"] is False and got["why"] == "no match: no live session on any host has that bridge session id"
         assert got["matches"] == []
+    old_publisher = [owner_row(bridge_id=None)]              # a host whose publisher predates bridge_id
+    assert verdict(old_publisher, from_=BRIDGE)["ok"] is False
+
+
+def test_two_rows_with_one_bridge_id_are_ambiguous(locks):
+    twin = row("x", role="unknown", sid="0badc0de", host="mac", uuid="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+               verified=False, bridge_id=OWNER_BRIDGE)
+    got = verdict([owner_row(), twin], from_=BRIDGE, here="winbox")
+    assert got["ok"] is False
+    assert got["why"] == "ambiguous: 2 rows claim that bridge session id (contabo #671f688f, mac #0badc0de)"
+    stale_twin = {**twin, "stale": True, "status": "stale"}
+    assert verdict([owner_row(), stale_twin], from_=BRIDGE, here="winbox")["ok"] is False     # a stale copy counts too
+
+
+def test_a_bridge_id_on_another_session_is_not_the_owner(locks):
+    """The sender is a real session with its own bridge id: its row says who it is."""
+    other = row("💻 CMO (Ging)", role="cmo", sid="ef04792e", host="mac", bridge_id="session_01OtherSessionBBBBBBBBB")
+    got = verdict([owner_row(), other], from_="bridge:session_01OtherSessionBBBBBBBBB", here="winbox")
+    assert got["ok"] is False and got["why"] == "id differs: that bridge session is cmo #ef04792e on mac, not the owner"
+
+
+def test_a_dead_bridge_owner_is_not_the_owner(locks):
+    got = verdict([owner_row(stale=True)], from_=BRIDGE, here="winbox")
+    assert got["ok"] is False and got["why"].startswith("not alive")
+
+
+def test_a_bridge_row_no_launcher_tmux_claims_is_not_the_owner(locks):
+    got = verdict([owner_row(verified=False)], from_=BRIDGE, here="winbox")
+    assert got["ok"] is False and got["why"].startswith("not verified: no launcher tmux claims")
+
+
+def test_a_bridge_row_must_hold_the_owners_role(locks):
+    assert verdict([owner_row(role="cmo")], from_=BRIDGE, here="winbox")["why"] == \
+        "role differs: that session is cmo, the owner is a cto"
+    assert verdict([owner_row(role="developer")], from_=BRIDGE, here="winbox", role=None)["why"] == \
+        "role differs: that session is developer, the owner is a C-level"
+    assert verdict([owner_row(role="project_head")], from_=BRIDGE, here="winbox")["ok"] is False
+
+
+def test_a_forged_row_beside_the_real_owner_cannot_pass(locks):
+    """Whoever can write the hub, or another host's session registry, can publish a row that copies the
+    owner's full UUID, claims the tmux role and carries the forger's own (real) bridge id. The owner's own
+    row is still there, so the UUID is on two live rows and nothing is confirmed."""
+    forged = row("Helper", role="cto", host="mac", uuid=OWNER_UUID, verified=True, pid=6000,
+                 bridge_id="session_01ForgerSessionCCCCCCCCC")
+    got = verdict([owner_row(), forged], from_="bridge:session_01ForgerSessionCCCCCCCCC", here="winbox")
+    assert got["ok"] is False
+    assert got["why"] == "ambiguous: 2 live rows carry the owner's UUID (contabo #671f688f, mac #671f688f)"
+    # the same forged row passes once the real owner's row is gone (that is the residual risk, in the report)
+    assert verdict([forged], from_="bridge:session_01ForgerSessionCCCCCCCCC", here="winbox")["ok"] is True
+    # and a stale copy of the owner's row (a host that went quiet) does not make the live one ambiguous
+    assert verdict([owner_row(), {**owner_row(host="mac"), "stale": True, "bridge_id": None}],
+                   from_=BRIDGE, here="winbox")["ok"] is True
 
 
 def test_the_title_is_never_in_a_verdict(locks):
@@ -259,9 +341,28 @@ def test_exit_0_only_for_the_owner(hub, capsys):
                  ["--owner", OWNER_UUID, "--from", "uds:/tmp/cc-socks-0/31337.sock"],           # no such pid
                  ["--owner", OWNER_UUID, "--role", "cmo", "--from", UDS],                        # wrong role
                  ["--owner", "99999999-9999-4999-8999-999999999999", "--from", UDS],             # other owner
-                 ["--owner", OWNER_UUID, "--from", "bridge:session_01BAWu5etWFPGhMoysn1KQyj"]):  # bridge
+                 ["--owner", OWNER_UUID, "--from", "bridge:session_01BAWu5etWFPGhMoysn1KQyj"]):  # unknown bridge
         assert whois.main(args) == 1, args
         assert "owner: NO — " in capsys.readouterr().out
+
+
+def test_exit_0_for_the_owner_over_a_bridge(hub, capsys):
+    hub(ROWS, here="winbox")
+    assert whois.main(["--owner", OWNER_UUID, "--role", "cto", "--from", BRIDGE]) == 0
+    assert capsys.readouterr().out.splitlines()[-1] == \
+        "owner: YES — owner confirmed: bridge session is cto #671f688f on contabo"
+    assert whois.main(["--owner", OWNER_UUID, "--role", "cmo", "--from", BRIDGE]) == 1
+    assert "role differs" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("sender", ["bridge:session_", "bridge:session_x;id", "bridge:session_$(id)", "bridge:session_x'y",
+                                    "bridge:session_x y", "bridge:session_é", "bridge:session_" + OWNER_BRIDGE,
+                                    "bridge:session_" + "a" * 101, "bridge:session_x\n"])
+def test_a_hostile_bridge_string_exits_2(hub, capsys, sender):
+    hub(ROWS)
+    assert whois.main(["--owner", OWNER_UUID, "--from", sender]) == 2
+    out, err = capsys.readouterr()
+    assert out == "" and err.startswith("whois: usage error: ")
 
 
 def test_exit_1_when_the_hub_cannot_be_read_and_nothing_secret_is_printed(hub, capsys):

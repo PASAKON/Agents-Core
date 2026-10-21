@@ -129,26 +129,30 @@ _RESERVED_RE = re.compile(
     r"(?<![A-Za-z0-9])(?P<title>(?i:CTO|CMO)|C\s*[TM]\s*O)\s*(?:#[0-9a-fA-F]{3,8})?"
     r"[\s\-_./\\\u00b7\u2022\u2014\u2013:|]*(?i:Main)(?![A-Za-z])")
 
-_UPSERT_SESSION = (
-    "INSERT INTO live_sessions (host, uuid, sid, role, name, address, status, pid,"
-    " former_name, renamed_at, seen_at)"
-    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())"
-    " ON CONFLICT (host, uuid) DO UPDATE SET sid = EXCLUDED.sid, role = EXCLUDED.role,"
-    " name = EXCLUDED.name, address = EXCLUDED.address, status = EXCLUDED.status,"
-    " pid = EXCLUDED.pid, former_name = EXCLUDED.former_name,"
-    " renamed_at = EXCLUDED.renamed_at, seen_at = now()")
-# The same with live_sessions.verified, once lib.db.init() has added the column
-# (M8). Until then publishers and readers run without it: a row reads unverified.
-_UPSERT_SESSION_V = (
-    _UPSERT_SESSION.replace(" renamed_at, seen_at)", " renamed_at, seen_at, verified)")
-    .replace("?, now())", "?, now(), ?)")
-    + ", verified = EXCLUDED.verified")
+# The columns every hub has, then the ones lib.db.init() adds later (verified: M8, bridge_id: P8d).
+# Until a hub has run init() publishers and readers run without the later ones: a row reads
+# unverified and has no bridge id. A column the connecting role may not read is absent too.
+_SESSION_COLS = ("host", "uuid", "sid", "role", "name", "address", "status", "pid",
+                 "former_name", "renamed_at")
+_OPTIONAL_COLS = ("verified", "bridge_id")
 
 
-def _has_verified(conn) -> bool:
-    return bool(conn.execute(
-        "SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()"
-        " AND table_name = 'live_sessions' AND column_name = 'verified'").fetchall())
+def _upsert_session(extra=()) -> str:
+    """The upsert of one live_sessions row, with the optional columns in `extra`."""
+    marks = ", ".join(["?"] * len(_SESSION_COLS) + ["now()"] + ["?"] * len(extra))
+    sets = ", ".join([f"{c} = EXCLUDED.{c}" for c in _SESSION_COLS[2:]] + ["seen_at = now()"]
+                     + [f"{c} = EXCLUDED.{c}" for c in extra])
+    return (f"INSERT INTO live_sessions ({', '.join(_SESSION_COLS + ('seen_at',) + tuple(extra))})"
+            f" VALUES ({marks}) ON CONFLICT (host, uuid) DO UPDATE SET {sets}")
+
+
+def _live_columns(conn) -> set[str]:
+    """The optional live_sessions columns this hub has and this role can read."""
+    return {r[0] for r in conn.execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema()"
+        " AND table_name = 'live_sessions' AND column_name IN ('verified', 'bridge_id')").fetchall()}
+
+
 _UPSERT_HOST = (
     "INSERT INTO live_hosts (host, published_at, publisher, n_sessions, error)"
     " VALUES (?, now(), ?, ?, NULL)"
@@ -460,6 +464,16 @@ def _proc_start(raw) -> int | None:
     return None
 
 
+_BRIDGE_ID_RE = re.compile(r"session_[A-Za-z0-9]{1,100}")
+
+
+def _bridge_id(raw) -> str | None:
+    """The record's Remote Control id ("session_<letters+digits>", what a message from this
+    session carries as `from=bridge:<id>`), or None for anything else. Strict: it ends up in a
+    column that tools/whois compares, and it is printed nowhere."""
+    return raw if isinstance(raw, str) and _BRIDGE_ID_RE.fullmatch(raw) else None
+
+
 def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
     """The row for one session record (a file's JSON, or an entry the winbox
     pull returns, whose liveness the far side already checked), or None."""
@@ -485,6 +499,7 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
         "status": map_status(data.get("status")), "pid": pid,
         "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
         "renamed_at": _ms_to_dt(data.get("nameSince")),
+        "bridge_id": _bridge_id(data.get("bridgeSessionId")),
         "_updated": data.get("updatedAt") if isinstance(data.get("updatedAt"), (int, float)) else 0,
     }
 
@@ -596,14 +611,13 @@ def publish_rows(conn, host: str, rows, prev_uuids, publisher: str | None = None
     host's rows older than a day. Returns the uuids now published."""
     rows = demote_untmuxed(rows, host)
     now_uuids = {r["uuid"] for r in rows}
-    with_v = _has_verified(conn)
+    extra = tuple(c for c in _OPTIONAL_COLS if c in _live_columns(conn))
+    sql = _upsert_session(extra)
     for r in rows:
         args = (host, r["uuid"], r["sid"], r["role"], r["name"], r["address"],
                 r["status"], r["pid"], r["former_name"], r["renamed_at"])
-        if with_v:
-            conn.execute(_UPSERT_SESSION_V, args + (bool(r.get("verified")),))
-        else:
-            conn.execute(_UPSERT_SESSION, args)
+        conn.execute(sql, args + tuple(bool(r.get("verified")) if c == "verified" else r.get("bridge_id")
+                                       for c in extra))
     gone = sorted(set(prev_uuids) - now_uuids)
     if gone:
         conn.execute("DELETE FROM live_sessions WHERE host = ? AND uuid = ANY(?)",
@@ -632,7 +646,7 @@ if(Test-Path $d){foreach($f in Get-ChildItem $d -Filter '*.json' -File){try{
 $j=Get-Content -Raw -Encoding UTF8 -LiteralPath $f.FullName|ConvertFrom-Json
 $p=Get-Process -Id ([int]$j.pid) -ErrorAction Stop
 $t=[DateTimeOffset]::new($p.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()
-if([math]::Abs($t-[int64]$j.startedAt) -le 10000){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_})}}
+if([math]::Abs($t-[int64]$j.startedAt) -le 10000){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_});bridgeSessionId=[string]$j.bridgeSessionId}}
 }catch{}}}
 ConvertTo-Json -InputObject @($o) -Compress -Depth 4"""
 
@@ -1086,10 +1100,11 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         hosts[r["host"]] = {"age": float(r["age"]), "published_at": r["published_at"],
                             "error": r["error"]}
     rows = []
-    verified = "verified" if _has_verified(conn) else "NULL AS verified"
+    have = _live_columns(conn)
+    optional = "".join(f"{c if c in have else 'NULL AS ' + c}, " for c in _OPTIONAL_COLS)
     for r in conn.execute(
-            "SELECT host, uuid, sid, role, name, address, status, pid, " + verified + ","
-            " EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
+            "SELECT host, uuid, sid, role, name, address, status, pid, " + optional +
+            "EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
             " ORDER BY host, name").fetchall():
         age = float(r["age"])
         info = hosts.get(r["host"])
@@ -1099,7 +1114,8 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         rows.append({"host": r["host"], "uuid": r["uuid"], "sid": r["sid"],
                      "role": r["role"], "name": r["name"], "address": r["address"],
                      "status": "stale" if host_stale else r["status"], "pid": r["pid"],
-                     "verified": bool(r.get("verified")), "age": age, "stale": host_stale})
+                     "verified": bool(r.get("verified")), "bridge_id": r.get("bridge_id"),
+                     "age": age, "stale": host_stale})
     return {"rows": rows, "hosts": hosts, "local": False}
 
 
