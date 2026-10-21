@@ -108,13 +108,21 @@ _BAD_CHARS = ("Cc", "Cf", "Zl", "Zp")   # controls, bidi/format, line and paragr
 _O_SAFE = (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
            | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_BINARY", 0))
 
-FOOTER = ('send: SendMessage(to=<text after the status, without a trailing [name only]>, verbatim). '
-          '"N agents are named X" → re-send with the [ref] the error marks active.')
+FOOTER = ('send: SendMessage(to=<text after the status, without a trailing [name only] or ⚠ mark>, '
+          'verbatim). "N agents are named X" → re-send with the [ref] the error marks active.')
 STALE_NOTE = ('stale = its host stopped reporting (header); the session may still be live — '
               'send, and trust the send\'s answer over this list.')
 NAME_ONLY_NOTE = ('[name only] = no launcher tmux claims the role; the role is read from '
                   'the name, which any session can set.')
+CLAIM_NOTE = ('⚠ claims <title> = the name carries a reserved title (CTO Main, CMO Main) but the row\'s '
+              'role is not that C-level: it is not the CTO / CMO; check a sender with tools.whois.')
 STATUS_RANK = {"running": 0, "idle": 1, "unknown": 2, "stale": 3}
+
+# OrgMesh P8: any session can rename itself, so a reserved title may be shown only for a row whose
+# role is that C-level. The role is the one the launcher's tmux claims (or, on a host with no tmux,
+# the name's own, which the "[name only]" mark already flags). Anywhere in the name, as a whole
+# phrase, "CTO#c34 Main" included; a host emoji or a state glyph in front changes nothing.
+_RESERVED_RE = re.compile(r"(?<![A-Za-z0-9_])(CTO|CMO)(?:#[0-9a-f]{3})?\s+Main(?![A-Za-z0-9_])", re.I)
 
 _UPSERT_SESSION = (
     "INSERT INTO live_sessions (host, uuid, sid, role, name, address, status, pid,"
@@ -1119,8 +1127,21 @@ def _fmt_since(dt, today=None) -> str:
     return dt.strftime("%H:%M" if today == dt.date() else "%m-%d %H:%M")
 
 
+def reserved_claim(row: dict) -> str | None:
+    """"CTO Main" / "CMO Main" when the row's name carries that title and its role is not the
+    matching C-level (cto / cmo); None otherwise. NFKC first, so full-width letters read the same."""
+    name = unicodedata.normalize("NFKC", row.get("name") or "")
+    for m in _RESERVED_RE.finditer(name):
+        if row.get("role") != m.group(1).lower():
+            return f"{m.group(1).upper()} Main"
+    return None
+
+
 def _line(row: dict) -> str:
     mark = "" if row.get("verified") else f"  {NAME_ONLY}"
+    claim = reserved_claim(row)
+    if claim:
+        mark += f"  ⚠ claims {claim}"
     return f"{row['status']:<7}  {row['address']}{mark}"
 
 
@@ -1200,6 +1221,8 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
     notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
     if any(not r.get("verified") for r in shown):
         notes.append(NAME_ONLY_NOTE)
+    if any(reserved_claim(r) for r in shown):
+        notes.append(CLAIM_NOTE)
     return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER]
                      + duplicate_notes(shown) + off_rule_notes(shown) + notes)
 
@@ -1238,7 +1261,7 @@ def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> s
                   | ({"error": i["error"]} if i.get("error") else {})
                   for h, i in snap["hosts"].items()},
         "sessions": [{k: r[k] for k in ("host", "sid", "role", "status", "address")}
-                     | {"verified": bool(r.get("verified"))}
+                     | {"verified": bool(r.get("verified")), "claims": reserved_claim(r)}
                      | {"age_s": int(r["age"]), "stale": bool(r.get("stale"))} for r in rows],
     }, ensure_ascii=False)
 

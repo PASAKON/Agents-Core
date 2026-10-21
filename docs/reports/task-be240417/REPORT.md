@@ -1,13 +1,11 @@
 # task-be240417 — OrgMesh P8: check a sender across hosts
 
-Status: **review, code not on this branch.** The self-repo guard (ADR 0020) refused every write under `tools/`
-(task declared no `touches`; widening a live task is refused). So the code is written and tested in a scratch copy
-of this branch's tree, and shipped here as **one verified patch**: `docs/reports/task-be240417/p8.patch`
-(514 lines, the exact intended diff). A new task with full touches applies it and opens the PR.
-
-```
-git apply docs/reports/task-be240417/p8.patch          # from the repo root; `git apply --check` passes on this branch's HEAD
-```
+Status: **applied by task-e56b12f2 (this PR); the patch file has been removed from the tree.** The self-repo guard
+(ADR 0020) refused every write under `tools/` in task-be240417 (no declared `touches`; widening a live task is refused),
+so that task wrote the code and tested it in a scratch copy of the tree and shipped it as one verified patch,
+`docs/reports/task-be240417/p8.patch` (514 lines). task-e56b12f2 applied it with `git apply` onto origin/main
+(clean, all six files inside its touches), deleted the patch file, and re-ran the tests: 373 passed (below).
+The text that follows is task-be240417's own report, unchanged.
 
 I did **not** put the tests on the branch without their code: they would be red. They are in the patch.
 I did **not** push or open a PR: the shared rules say a worker never pushes, the brief and the PH's letter say

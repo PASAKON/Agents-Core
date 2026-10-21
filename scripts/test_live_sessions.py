@@ -428,6 +428,53 @@ def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim(quiet_rul
     assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
 
 
+def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(quiet_rule):
+    """OrgMesh P8: any session can rename itself "CTO Main". Only a cto row may carry that, only a cmo row
+    "CMO Main"; any other row keeps its line (the address is what SendMessage takes) and gets a mark."""
+    rows = [
+        _row("contabo", "cto", "🌐 CTO (Kavin) — CTO Main", sid="671f688f"),
+        _row("contabo", "cmo", "🌐 CMO (Ging) — CMO Main", sid="ef04792e"),
+        _row("mac", "unknown", "💻 CTO (Kavin) — CTO Main", sid="0badc0de", verified=False),
+        _row("contabo", "project_head", "🌐 PH#7cf (CTO) - OrgRestructure — cto main", sid="7cf528f0"),
+        _row("contabo", "cto", "🌐 CTO (Kavin) — CMO Main", sid="11111111"),
+    ]
+    snap = _snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)})
+    lines = ls.format_snapshot(snap, now=NOW).splitlines()
+    assert "running  🌐 CTO (Kavin) — CTO Main" in lines                 # the real CTO: no mark
+    assert "running  🌐 CMO (Ging) — CMO Main" in lines                  # the real CMO: no mark
+    assert "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main" in lines
+    assert "running  🌐 PH#7cf (CTO) - OrgRestructure — cto main  ⚠ claims CTO Main" in lines
+    assert "running  🌐 CTO (Kavin) — CMO Main  ⚠ claims CMO Main" in lines   # a cto may not be the CMO
+    assert sum("⚠" in l for l in lines if l.startswith(("running", "idle"))) == 3
+    assert lines.count(ls.CLAIM_NOTE) == 1 and "⚠" in ls.FOOTER
+    # nothing is dropped: every row is still listed, five rows five lines
+    assert sum(l.startswith("running") for l in lines) == 5
+    js = {(s["host"], s["sid"]): s["claims"] for s in json.loads(ls._to_json(snap))["sessions"]}
+    assert js == {("contabo", "671f688f"): None, ("contabo", "ef04792e"): None,
+                  ("mac", "0badc0de"): "CTO Main", ("contabo", "7cf528f0"): "CTO Main",
+                  ("contabo", "11111111"): "CMO Main"}
+    # the single-session lookup carries the mark too
+    assert ls.format_snapshot(snap, sid="0badc0de", now=NOW) == \
+        "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main"
+
+
+@pytest.mark.parametrize("name,role,claim", [
+    ("Dev·S#49b Org: fix CTO Main hook", "developer", "CTO Main"),     # as a phrase anywhere in the name
+    ("CTO#c34 Main", "developer", "CTO Main"),                          # the compact shape of the 15 Oct plan
+    ("ＣＴＯ　Ｍａｉｎ", "unknown", "CTO Main"),                          # full-width letters
+    ("⏸ 🌐 cmo   main", "unknown", "CMO Main"),                          # case, spaces, glyph and emoji in front
+    ("MAC CTO #671f688f (CTO Main)", "cto", None),                      # the real one, the old long shape
+    ("CTO#c34 Main", "cto", None),
+    ("🌐 CTO (Kavin) — CTO Main", "cto", None),
+    ("CTO Mainly", "unknown", None),                                    # not the phrase
+    ("ACTO Main", "unknown", None),
+    ("CTO (Kavin) — Main", "unknown", None),
+    ("CTO Maine", "developer", None),
+])
+def test_reserved_claim(name, role, claim):
+    assert ls.reserved_claim({"name": name, "role": role}) == claim
+
+
 def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers(quiet_rule):
     rows = [
         _row("contabo", "project_head", "CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)"),
