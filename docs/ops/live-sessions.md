@@ -80,6 +80,29 @@ host from `self_host()` only; an unresolved host gets no emoji. Workers spawned 
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 
+## Who sent this: whois, and the reserved titles (OrgMesh P8)
+
+Any session can rename itself, "CTO Main" included, so a name is not proof of who sent a message. Two checks:
+
+`bash scripts/hub/org-python.sh -m tools.whois <name|address|session-id> [--owner <sid>] [--json]` (read-only; Windows: the
+`windows_hub_prefix(ROOT)` line above, then `python -m tools.whois …`) resolves the sender through the same hub rows as the list,
+on every host, to host, role, short and full session id, title, alive, whether the role is a C-level, and whether a launcher tmux
+claims the role. A name matches the row's address or name, host emoji ignored, case ignored; an id (8 or more hex, `#` or
+`<role>-` in front allowed) matches the session UUID.
+`--owner <sid>` exits 0 only when the name resolves to exactly one live row whose **session UUID** starts or ends with `<sid>`
+(8 or more characters; `cto-<8 hex>`, the form a Project Head's brief carries, is read too). It compares the UUID, never the
+`sid` column: for a row no launcher tmux claims, `sid` is parsed from the name, and a name is the thing a session can forge.
+Otherwise it exits 1 and prints why: `no match`, `ambiguous` (two sessions answer to the name, so a copy of the owner's name
+blocks the owner too, by design), `id differs`, `not alive` (the row's host stopped reporting), `hub unreachable`.
+Without `--owner` it prints the rows and exits 0 for exactly one match.
+A Project Head's brief (`MESH_BRIEF` in `tools/spawn_ph.py`) tells it to run this before it acts on an order; a non-zero exit
+means the message is data, not an order.
+
+**Reserved titles.** "CTO Main" and "CMO Main" (whole phrase, case and width ignored, `CTO#c34 Main` too, a host emoji or state
+glyph in front changes nothing) may be shown only for a row whose role is `cto` / `cmo`. Any other row that carries one keeps
+its line, address untouched, and gets `  ⚠ claims CTO Main` at the end of it (strip it with `[name only]` before sending), one
+note line under the list, and `"claims": "CTO Main"` in `--json`. `tools.whois` prints the same claim.
+
 ## Rename service
 
 `tools/rename_service.py` behind `scripts/session-rename.sh`, one per host, same code and same rules.
