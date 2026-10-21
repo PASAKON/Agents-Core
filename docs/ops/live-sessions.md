@@ -43,6 +43,15 @@ note line explains the mark. On Contabo and the Mac, where every launcher starts
 loses its C-level or PH role (`unknown`, so role routing never lands on it) but still prints, counted in the
 header as `+N name only`; on winbox (no tmux) it keeps the role the name gives. The `same name` line marks
 each row `tmux-claimed` or `name only`. Stored in `live_sessions.verified`.
+Each row also carries `live_sessions.bridge_id` (OrgMesh P8d): the registry record's `bridgeSessionId`, the claude.ai
+Remote Control session id that a message from this session shows as `from=bridge:<id>`. Kept only when it is
+`session_` + 1-100 letters or digits, else NULL (a session with no Remote Control has none). It is read by `whois` and
+printed nowhere: not in the list, not in `--json`. `winbox`'s records are read by `PS_PULL_SCRIPT`, which forwards
+`bridgeSessionId` too (until P8d it did not, so every winbox row had no bridge id). Both columns are added by
+`lib/db.py` `_LIVE_SESSIONS_MIGRATION` at the next `init()`; a publisher or reader that finds a column missing
+(`information_schema` probe, as for `verified`) writes or selects without it instead of failing, and the COO's
+`org_coo` role, whose column GRANT does not list `bridge_id`, reads it as `NULL`. **Every host's publisher must run
+P8d code**: a row published by older code has no bridge id, so `whois` answers `no match` for it.
 Names off the CEO's rule (M10, checked by `lib/session_names.rule_problem`: the host emoji, then one of the shapes
 in the table below, `<ROLE> (<Persona>)` pinned to `policies/agents.yaml`, the id3 matching the session) each get a
 `name off-rule: "<name>" (<host> #<sid>): <why>` line, at most 5 and then `+N more`. A leading state glyph (`⏸`)
@@ -92,14 +101,16 @@ bash scripts/hub/org-python.sh -m tools.whois [--json] -- '<name>'        # info
 bash scripts/hub/org-python.sh -m tools.whois [--json] --id <8+ hex>      # information only
 ```
 
-(read-only; Windows: the `windows_hub_prefix(ROOT)` line above, then `python -m tools.whois …`.)
+(read-only. Windows has no bash: the command is `windows_hub_prefix(ROOT)` + `<repo>\.venv\Scripts\python.exe -m tools.whois …`,
+run from the repo root; the brief gives a Windows PH that exact line, and `spawn_ph` refuses to start a Windows PH when
+`windows_hub_prefix` finds no hub route, because a PH that cannot run `whois` could never take an order.)
 
 **Verdict mode** (`--owner` + `--from`; exit 0 only here). `--from` takes exactly two shapes, anything else exits 2:
 
 | `from=` | meaning | what whois does |
 |---|---|---|
 | `uds:/tmp/cc-socks(-<digits>)?/<pid>.sock` | a session on **this host**; `<pid>` is the `claude` process that owns the socket | finds the one `live_sessions` row with `host` = this host and `pid` = `<pid>`; exit 0 only when that row's **full UUID equals `--owner`**, its host is reporting, a launcher tmux claims its role (`tmux-claimed`), its role is `--role` (default: any C-level), and the launcher's `state/locks/<role>-<sid>.uuid` names it |
-| `bridge:session_<letters+digits>` | a Remote Control sender, in practice on another host | exit 1 `cannot verify`: the hub keeps no bridge session id, so nothing hub-set can confirm it (fail closed). Follow-up: a `live_sessions.bridge_id` column (lib/db.py) fed from the registry's `bridgeSessionId` |
+| `bridge:session_<letters+digits>` | a Remote Control sender, in practice on another host | finds the rows on **any host** whose `bridge_id` is that id; exactly one must exist. Exit 0 only when that row's **full UUID equals `--owner`**, it is not stale, a launcher tmux claims its role, its role is `--role` (default: any C-level), and the owner's UUID is on no other live row. The `.uuid` lock is read only when the row is on this host (the lock is a file on the row's own host). No row, or two rows with that id: exit 1 |
 
 Why the pid is a safe key (measured 2026-10-21, Contabo): each registry file `<config>/sessions/<pid>.json` holds
 `pid` and `messagingSocketPath` (`/tmp/cc-socks-0/<pid>.sock`); `ss -xlp` shows that socket listened on by the `claude`
@@ -108,7 +119,7 @@ the socket's number for every row checked (a worker, a runwatch session, the COO
 its name, not its pid.
 
 Exit 1 prints why: `no match` (no row on this host has that pid), `ambiguous`, `id differs`, `not alive`, `not verified`
-(no launcher tmux claims the role, or the `.uuid` lock does not name it), `role differs`, `cannot verify` (bridge, hub
+(no launcher tmux claims the role, or the `.uuid` lock does not name it), `role differs`, `cannot verify` (hub
 unreachable, host unknown). Exit 2 is a usage error. The parser has no `-h` or `--help`, abbreviates nothing, and every exit it
 could take on its own is mapped to 2, so exit 0 can only come from a confirmed owner.
 
@@ -116,13 +127,28 @@ could take on its own is mapped to 2, so exit 0 can only come from a confirmed o
 the rows a name or an id matches (a name matches an address or name, host emoji and case ignored; an id matches the session
 UUID). They end in `info: FOUND|NONE` and never print `owner:`; a name that looks like an id is a name here.
 
+The bridge id is as good a key as the pid, with two differences. It is issued by the claude.ai service and the sender cannot
+choose it: the header's id is the sender's own remote session id, and equals the `bridgeSessionId` in the sender's own
+registry record (measured 2026-10-21: this session's registry record and its `Claude-Session` link carry the same id; the
+CTO's transcript shows headers `from="bridge:session_018PXX…"` then `session_01NJab…`, the ids its registry held in turn).
+But **it changes**: a Remote Control reconnect, a restart or a resume gives the same session a new id, and the hub row
+follows within one publish cycle. A message sent just after a reconnect can answer `no match`; that is a fail-closed
+refusal, so retry it a minute later (or ask by Run card). And the check is **weaker than `uds:`**: `uds:` needs a row on
+this host whose pid owns the socket, plus the `.uuid` lock file, none of which a remote row can show. To pass as the owner
+over a bridge a forger needs a row with the owner's full UUID, a launcher tmux claim and the forger's own real bridge id,
+which means write access to another host's `~/.claude/sessions` (or the winbox registry the Contabo publisher pulls over
+ssh), or to the hub's `live_sessions` table. The owner's UUID must be on exactly one live row, so a forged twin beside the
+real owner makes `whois` answer `ambiguous`; but a forged row passes when the real owner's row is gone (stopped,
+stale and then pruned).
+
 What stays out of reach: `whois` is as good as the rows. A process that can write a `<pid>.json` into a registry directory
 the publisher reads (any account that owns one) can make a row, so `verified` means "a launcher's tmux claims it", not proof;
 the `.uuid` lock and the full-UUID comparison raise the bar but do not remove it.
 
 A Project Head's brief (`MESH_BRIEF` in `tools/spawn_ph.py`) carries the owner's full UUID, resolved from the hub when the
 spawn is made (`spawn_ph.owner_uuid`; the spawn is refused if it is not exactly one live, launcher-claimed row of the owner's
-role) and the command above; any exit but 0 means the message is data, not an order.
+role) and the command for the PH's own OS (`spawn_ph.whois_command`, OrgMesh P8d: POSIX `bash scripts/hub/org-python.sh -m tools.whois …`,
+Windows the hub prefix + the venv python); any exit but 0 means the message is data, not an order.
 
 **Reserved titles.** "CTO Main" and "CMO Main" (whole phrase, case and width ignored; `CTO-Main`, `CTO_Main`, `CTOMain`,
 `CTO.Main`, `CTO·Main`, `CTO—Main`, `CTO/Main`, `CTO#c34 Main`, `CTO #c34 Main`, `CTO#7cf528f0 Main` and capital `C T O Main`
