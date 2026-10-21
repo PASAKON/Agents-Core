@@ -1,5 +1,8 @@
 # task-48d6a9f6 — OrgMesh P7: `kit` node_dispatch verb, mesh_check reads the Mac's KIT through it
 
+**Update, task-5bbeca9c: the patch below is applied in the code, and the patch file is removed from the
+tree.** The text that follows is the original report from before that, kept for the record.
+
 **Status: PARTIAL, by the guard, not by choice.** Everything outside `tools/` and `lib/` is committed
 on this branch. The three guarded files are NOT edited here; their exact, tested diff is below and in
 `guarded-paths.patch` (same directory). A new task with `touches` for those three paths continues from

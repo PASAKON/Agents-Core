@@ -609,6 +609,15 @@ def test_mac_kit_unreachable_is_a_fail_with_the_reason(peers):
     assert combined["L0"]["mac"] == {} and combined["L2"]["mac"] == {}  # nothing else filled in
 
 
+@pytest.mark.parametrize("error", [ValueError("bad host"), RuntimeError("self_host: no source agrees")])
+def test_mac_kit_dispatch_errors_are_a_fail_not_a_crash(peers, error):
+    peers.raises = error
+    combined, (md, any_fail, _, n_fail) = peers.run()
+    cell = combined["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and str(error) in cell["reason"]
+    assert any_fail is True and n_fail == 1
+
+
 def test_mac_kit_refused_reply_is_a_fail_with_the_reason(peers):
     peers.reply = {"ok": False, "verb": "kit", "error": "unknown verb 'kit'. Known: probe"}
     combined, (md, any_fail, _, n_fail) = peers.run()

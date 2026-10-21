@@ -474,6 +474,20 @@ def verb_probe() -> dict:
     return facts
 
 
+def verb_kit() -> dict:
+    """This host's KIT facts (OrgMesh P7), for a peer that has no admin `ssh`
+    alias: the Mac reports its kit through here instead of a remote shell.
+
+    Read-only. tools.mesh_check.kit_facts is called with no `fetch`, so the
+    git facts describe the last fetched origin/main, and with no path
+    overrides: the verb takes no arguments, so the caller cannot point it at
+    a directory. Nothing is written beyond the audit row every verb leaves.
+    """
+    from tools import mesh_check  # lazy: a large module no other verb needs
+    host = mesh_check._running_host_guess(mesh_check.ROOT) or _self_host()
+    return mesh_check.kit_facts(host=host)
+
+
 # ---------------------------------------------------------------------------
 # workers
 # ---------------------------------------------------------------------------
@@ -1490,6 +1504,7 @@ def verb_deliver_letter(letter_id: str) -> dict:
 
 HANDLERS = {
     "probe": verb_probe,
+    "kit": verb_kit,
     "pid_alive": verb_pid_alive,
     "spawn_worker": verb_spawn_worker,
     "kill_worker": verb_kill_worker,
@@ -1503,6 +1518,7 @@ HANDLERS = {
 # Exact argument patterns, in order. start_clevel has its own parser above.
 _ARGSPEC = {
     "probe": (),
+    "kit": (),
     "pid_alive": (TASK_ID_RE,),
     "spawn_worker": (TASK_ID_RE,),
     "kill_worker": (TASK_ID_RE,),
