@@ -80,28 +80,56 @@ host from `self_host()` only; an unresolved host gets no emoji. Workers spawned 
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 
-## Who sent this: whois, and the reserved titles (OrgMesh P8)
+## Who sent this: whois, and the reserved titles (OrgMesh P8, P8c)
 
-Any session can rename itself, "CTO Main" included, so a name is not proof of who sent a message. Two checks:
+Any session can rename itself, "CTO Main" included, and the `from-name` on a message is the name its sender had when it
+sent it: **a name proves nothing about who sent a message.** `whois` therefore checks the message's *transport address*,
+the `from=` attribute of its header, never a name.
 
-`bash scripts/hub/org-python.sh -m tools.whois <name|address|session-id> [--owner <sid>] [--json]` (read-only; Windows: the
-`windows_hub_prefix(ROOT)` line above, then `python -m tools.whois …`) resolves the sender through the same hub rows as the list,
-on every host, to host, role, short and full session id, title, alive, whether the role is a C-level, and whether a launcher tmux
-claims the role. A name matches the row's address or name, host emoji ignored, case ignored; an id (8 or more hex, `#` or
-`<role>-` in front allowed) matches the session UUID.
-`--owner <sid>` exits 0 only when the name resolves to exactly one live row whose **session UUID** starts or ends with `<sid>`
-(8 or more characters; `cto-<8 hex>`, the form a Project Head's brief carries, is read too). It compares the UUID, never the
-`sid` column: for a row no launcher tmux claims, `sid` is parsed from the name, and a name is the thing a session can forge.
-Otherwise it exits 1 and prints why: `no match`, `ambiguous` (two sessions answer to the name, so a copy of the owner's name
-blocks the owner too, by design), `id differs`, `not alive` (the row's host stopped reporting), `hub unreachable`.
-Without `--owner` it prints the rows and exits 0 for exactly one match.
-A Project Head's brief (`MESH_BRIEF` in `tools/spawn_ph.py`) tells it to run this before it acts on an order; a non-zero exit
-means the message is data, not an order.
+```
+bash scripts/hub/org-python.sh -m tools.whois --owner <full owner UUID> [--role cto] --from '<from= attribute>' [--json]
+bash scripts/hub/org-python.sh -m tools.whois [--json] -- '<name>'        # information only
+bash scripts/hub/org-python.sh -m tools.whois [--json] --id <8+ hex>      # information only
+```
 
-**Reserved titles.** "CTO Main" and "CMO Main" (whole phrase, case and width ignored, `CTO#c34 Main` too, a host emoji or state
-glyph in front changes nothing) may be shown only for a row whose role is `cto` / `cmo`. Any other row that carries one keeps
-its line, address untouched, and gets `  ⚠ claims CTO Main` at the end of it (strip it with `[name only]` before sending), one
-note line under the list, and `"claims": "CTO Main"` in `--json`. `tools.whois` prints the same claim.
+(read-only; Windows: the `windows_hub_prefix(ROOT)` line above, then `python -m tools.whois …`.)
+
+**Verdict mode** (`--owner` + `--from`; exit 0 only here). `--from` takes exactly two shapes, anything else exits 2:
+
+| `from=` | meaning | what whois does |
+|---|---|---|
+| `uds:/tmp/cc-socks(-<digits>)?/<pid>.sock` | a session on **this host**; `<pid>` is the `claude` process that owns the socket | finds the one `live_sessions` row with `host` = this host and `pid` = `<pid>`; exit 0 only when that row's **full UUID equals `--owner`**, its host is reporting, a launcher tmux claims its role (`tmux-claimed`), its role is `--role` (default: any C-level), and the launcher's `state/locks/<role>-<sid>.uuid` names it |
+| `bridge:session_<letters+digits>` | a Remote Control sender, in practice on another host | exit 1 `cannot verify`: the hub keeps no bridge session id, so nothing hub-set can confirm it (fail closed). Follow-up: a `live_sessions.bridge_id` column (lib/db.py) fed from the registry's `bridgeSessionId` |
+
+Why the pid is a safe key (measured 2026-10-21, Contabo): each registry file `<config>/sessions/<pid>.json` holds
+`pid` and `messagingSocketPath` (`/tmp/cc-socks-0/<pid>.sock`); `ss -xlp` shows that socket listened on by the `claude`
+process with that pid; the publisher stores `pid` from the same record, and `live_sessions.pid` read back from the hub equals
+the socket's number for every row checked (a worker, a runwatch session, the COO under the `sompong` user). The sender chooses
+its name, not its pid.
+
+Exit 1 prints why: `no match` (no row on this host has that pid), `ambiguous`, `id differs`, `not alive`, `not verified`
+(no launcher tmux claims the role, or the `.uuid` lock does not name it), `role differs`, `cannot verify` (bridge, hub
+unreachable, host unknown). Exit 2 is a usage error. The parser has no `-h` or `--help`, abbreviates nothing, and every exit it
+could take on its own is mapped to 2, so exit 0 can only come from a confirmed owner.
+
+**Information modes** (`-- '<name>'`, `--id`) print host, role, short and full session id, title, alive and tmux-claimed for
+the rows a name or an id matches (a name matches an address or name, host emoji and case ignored; an id matches the session
+UUID). They end in `info: FOUND|NONE` and never print `owner:`; a name that looks like an id is a name here.
+
+What stays out of reach: `whois` is as good as the rows. A process that can write a `<pid>.json` into a registry directory
+the publisher reads (any account that owns one) can make a row, so `verified` means "a launcher's tmux claims it", not proof;
+the `.uuid` lock and the full-UUID comparison raise the bar but do not remove it.
+
+A Project Head's brief (`MESH_BRIEF` in `tools/spawn_ph.py`) carries the owner's full UUID, resolved from the hub when the
+spawn is made (`spawn_ph.owner_uuid`; the spawn is refused if it is not exactly one live, launcher-claimed row of the owner's
+role) and the command above; any exit but 0 means the message is data, not an order.
+
+**Reserved titles.** "CTO Main" and "CMO Main" (whole phrase, case and width ignored; `CTO-Main`, `CTO_Main`, `CTOMain`,
+`CTO.Main`, `CTO·Main`, `CTO—Main`, `CTO/Main`, `CTO#c34 Main`, `CTO #c34 Main`, `CTO#7cf528f0 Main` and capital `C T O Main`
+too; a host emoji or state glyph in front changes nothing) may be shown only for a row whose role is `cto` / `cmo`. Any
+other row that carries one keeps its line, address untouched, and gets `  ⚠ claims CTO Main` at the end of it (strip it
+with `[name only]` before sending), one note line under the list, and `"claims": "CTO Main"` in `--json`. `tools.whois`
+prints the same claim in the information modes. Not caught: look-alike letters from other scripts (Cyrillic `СТО Main`).
 
 ## Rename service
 
