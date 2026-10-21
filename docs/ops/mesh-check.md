@@ -58,6 +58,8 @@ No fetch occurs unless `--kit-fetch` explicitly requests one on the host
 running the command; peer collection never fetches. Missing facts are `n/a`;
 an existing directory without `.git` is `not-git` and fails.
 
+A peer with no `ssh` alias but a `mesh_ssh` (the Mac, ADR 0034) reports KIT through the read-only `kit` node_dispatch verb (`lib.mesh.dispatch(host, "kit")`); only its KIT cell and facts row come from it, and an unreachable host or an `ok:false` reply is `FAIL(<reason>)`.
+
 Paths use `hosts.yaml` host `kit_paths: {core, rules, wikis, memory}` overrides,
 then the `machine-contract.yaml` machine HQ's `Agents/{Rules,Wikis,Memory}`
 layout. Without configured paths, rules/wikis use `WIKI_ROOT_ORG` and

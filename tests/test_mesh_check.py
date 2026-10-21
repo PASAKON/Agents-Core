@@ -34,8 +34,11 @@ import tools.mesh_check as m  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def isolate_kit(monkeypatch):
-    """Legacy probes mock subprocess as SSH; KIT has its own fixture suite."""
+    """Legacy probes mock subprocess as SSH; KIT has its own fixture suite.
+    build_matrix would also dial the Mac's `kit` verb (a peer with a mesh_ssh
+    and no ssh alias): none of these tests may reach ssh."""
     monkeypatch.setattr(m, "kit_facts", lambda *args, **kwargs: {})
+    monkeypatch.setattr(m, "_collect_peer_kit", lambda host: m.check_kit(None))
 
 
 # ---------------------------------------------------------------------------
