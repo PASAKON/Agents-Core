@@ -13,6 +13,7 @@ Exactly these eight. Anything else is refused. Argument patterns are `fullmatch`
 | verb | args | does |
 |---|---|---|
 | `probe` | none | reports host, os, free GB, running workers, git version, `provides_measured` and `probe_errors` (below); writes the probe fields of this host's `hosts` row |
+| `kit` | none | read-only: this host's KIT facts (`tools.mesh_check.kit_facts`, no fetch, no path overrides), so `mesh_check` can read the Mac, which has no admin `ssh` alias |
 | `pid_alive` | `task-xxxxxxxx` | is the pid recorded on this host's task alive (`alive` true/false) |
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |

@@ -487,3 +487,153 @@ def test_session_checks_use_overridden_core(session_kit, tmp_path, monkeypatch):
     monkeypatch.setattr(m, "_kit_run", lambda *a, **kw: None)
     facts = m.kit_facts(tmp_path, home=tmp_path, path_overrides={"core": str(core), "rules": str(rules)})
     assert all(facts[key] for key in m.KIT_SESSION_FACTS)
+
+
+# ---------------------------------------------------------------------------
+# OrgMesh P7: a peer with a mesh_ssh and no admin `ssh` alias (the Mac) reports
+# its KIT through the read-only `kit` node_dispatch verb. No ssh, no real host.
+# ---------------------------------------------------------------------------
+
+_PEER_CFGS = {
+    "contabo": {"os": "linux", "ssh": "vps", "mesh_ssh": "root@contabo.example.test", "agents_root": "/c"},
+    "winbox": {"os": "windows", "ssh": "wb", "mesh_ssh": "user@winbox.example.test", "agents_root": "C:/w"},
+    "mac": {"os": "darwin", "ssh": None, "mesh_ssh": "user@mac.example.test", "agents_root": "/m"},
+}
+
+
+class _Peers:
+    """build_matrix run as contabo over three hosts. `collected` is every alias
+    `_collect_peer_local` was asked for, `dispatched` every (host, verb, args)
+    that reached lib.mesh.dispatch; `reply` / `raises` is what that call gives."""
+
+    def __init__(self, monkeypatch, checkout, cfgs):
+        from lib import mesh
+        self.mesh, self.facts = mesh, green(checkout)
+        self.collected, self.dispatched = [], []
+        self.reply = {"ok": True, "verb": "kit", "result": copy.deepcopy(self.facts)}
+        self.raises = None
+
+        async def l2(root):
+            return True, None
+
+        def local(alias, cfg, script_path):
+            self.collected.append(alias)
+            return {"kit": copy.deepcopy(self.facts)}
+
+        def dispatch(host, verb, *args, **kwargs):
+            self.dispatched.append((host, verb, args))
+            if self.raises is not None:
+                raise self.raises
+            return self.reply
+
+        monkeypatch.setattr(m, "HAVE_CONFIG", True)
+        monkeypatch.setattr(m, "HOSTS", list(cfgs))
+        monkeypatch.setattr(m.config, "host", lambda name: cfgs[name])
+        monkeypatch.setattr(m, "_running_host_guess", lambda root: "contabo")
+        monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
+        monkeypatch.setattr(m, "check_l1", lambda target: (True, None))
+        monkeypatch.setattr(m, "check_l2", l2)
+        monkeypatch.setattr(m, "check_l8", lambda *a: m._green())
+        monkeypatch.setattr(m, "check_invariant", lambda: m._green())
+        monkeypatch.setattr(m, "kit_facts", lambda **kwargs: copy.deepcopy(self.facts))
+        monkeypatch.setattr(m, "_collect_peer_local", local)
+        monkeypatch.setattr(mesh, "dispatch", dispatch)
+
+    def run(self, expect="w5"):
+        import types
+        args = types.SimpleNamespace(expect=expect, live=False, no_merge=False)
+        combined, _ = asyncio.run(m.build_matrix(args))
+        return combined, m.render(combined, expect)
+
+
+@pytest.fixture
+def peers(monkeypatch, checkout):
+    return _Peers(monkeypatch, checkout, copy.deepcopy(_PEER_CFGS))
+
+
+def _kit_row(md, host):
+    section = md.split("## KIT facts")[1]
+    return [ln for ln in section.splitlines() if ln.startswith(f"| {host} |")][0]
+
+
+def test_mac_kit_is_filled_from_the_kit_verb(peers):
+    combined, (md, any_fail, n_ok, n_fail) = peers.run()
+    assert peers.dispatched == [("mac", "kit", ())]  # the bare verb, no argument
+    cell = combined["KIT"]["mac"]["mac"]
+    assert cell["ok"] is True and cell["facts"] == peers.facts
+    assert "| ok |" in _kit_row(md, "mac")
+    assert any_fail is False and n_fail == 0 and n_ok >= 3  # contabo, winbox, mac KIT cells
+    # every other level for the Mac stays as today: nothing collected, nothing dialled
+    assert combined["L0"]["mac"] == {} and combined["L2"]["mac"] == {}
+    assert combined["L1"]["mac"] == {}
+
+
+def test_winbox_and_contabo_keep_todays_path(peers):
+    combined, _ = peers.run()
+    assert peers.collected == ["wb"]  # contabo is this host; winbox goes the alias route
+    assert [d[0] for d in peers.dispatched] == ["mac"]  # the verb is never sent to them
+    assert combined["KIT"]["winbox"]["winbox"]["ok"] is True
+    assert combined["KIT"]["contabo"]["contabo"]["ok"] is True
+
+
+def test_a_host_with_an_ssh_alias_never_uses_the_verb(monkeypatch, checkout):
+    cfgs = copy.deepcopy(_PEER_CFGS)
+    cfgs["mac"]["ssh"] = "mac-admin"  # same host, now with an admin alias
+    p = _Peers(monkeypatch, checkout, cfgs)
+    combined, _ = p.run()
+    assert p.dispatched == []
+    assert p.collected == ["wb", "mac-admin"]
+    assert combined["KIT"]["mac"]["mac"]["ok"] is True
+
+
+def test_a_peer_with_neither_alias_nor_mesh_ssh_is_not_dialled(monkeypatch, checkout):
+    cfgs = copy.deepcopy(_PEER_CFGS)
+    cfgs["mac"]["mesh_ssh"] = None
+    p = _Peers(monkeypatch, checkout, cfgs)
+    combined, _ = p.run()
+    assert p.dispatched == []
+    assert combined["KIT"]["mac"]["mac"] == m.check_kit(None)
+
+
+def test_mac_kit_unreachable_is_a_fail_with_the_reason(peers):
+    peers.raises = peers.mesh.MeshUnreachable("kit on mac: ssh failed: refused|\nno route")
+    combined, (md, any_fail, n_ok, n_fail) = peers.run()
+    cell = combined["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and "kind" not in cell
+    assert "ssh failed: refused" in cell["reason"] and "no route" in cell["reason"]
+    assert "|" not in cell["reason"] and "\n" not in cell["reason"]  # one table cell
+    row = _kit_row(md, "mac")
+    assert "ssh failed: refused" in row and row.count("|") == _kit_row(md, "contabo").count("|")
+    assert "FAIL(kit on mac: ssh failed: refused" in md  # the KIT matrix cell
+    assert any_fail is True and n_fail == 1
+    assert combined["L0"]["mac"] == {} and combined["L2"]["mac"] == {}  # nothing else filled in
+
+
+@pytest.mark.parametrize("error", [ValueError("bad host"), RuntimeError("self_host: no source agrees")])
+def test_mac_kit_dispatch_errors_are_a_fail_not_a_crash(peers, error):
+    peers.raises = error
+    combined, (md, any_fail, _, n_fail) = peers.run()
+    cell = combined["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and str(error) in cell["reason"]
+    assert any_fail is True and n_fail == 1
+
+
+def test_mac_kit_refused_reply_is_a_fail_with_the_reason(peers):
+    peers.reply = {"ok": False, "verb": "kit", "error": "unknown verb 'kit'. Known: probe"}
+    combined, (md, any_fail, _, n_fail) = peers.run()
+    cell = combined["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and "unknown verb 'kit'" in cell["reason"]
+    assert "FAIL(" in md and any_fail is True and n_fail == 1
+
+
+@pytest.mark.parametrize("result", [None, "n/a", ["core"], 7])
+def test_mac_kit_reply_without_facts_is_a_fail(peers, result):
+    peers.reply = {"ok": True, "verb": "kit", "result": result}
+    cell = peers.run()[0]["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and "no facts" in cell["reason"]
+
+
+def test_mac_kit_facts_are_judged_like_any_other_hosts(peers):
+    peers.reply["result"]["role"] = False
+    cell = peers.run()[0]["KIT"]["mac"]["mac"]
+    assert cell["ok"] is False and cell["reason"] == "role"

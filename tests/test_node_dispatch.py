@@ -266,6 +266,67 @@ def test_probe_takes_no_arguments(rec):
 
 
 # ---------------------------------------------------------------------------
+# kit (OrgMesh P7): the Mac reports its KIT facts here, it has no admin ssh alias
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def mesh_check_mod():
+    from tools import mesh_check
+    return mesh_check
+
+
+def test_kit_returns_kit_facts_for_this_host_without_fetch_or_overrides(
+        monkeypatch, mesh_check_mod):
+    facts = {"core": {"status": "ok"}, "skills_repo": 130, "role": True}
+    calls = []
+    monkeypatch.setattr(mesh_check_mod, "_running_host_guess", lambda root: "mac")
+    monkeypatch.setattr(mesh_check_mod, "kit_facts", lambda **kw: calls.append(kw) or facts)
+
+    out = nd.dispatch("kit", [])
+
+    assert out == {"ok": True, "verb": "kit", "result": facts}
+    # exactly the host: no `fetch` (read-only), no `path_overrides` (no caller-chosen dir)
+    assert calls == [{"host": "mac"}]
+
+
+def test_kit_host_falls_back_to_self_host_when_mesh_check_cannot_guess(
+        monkeypatch, mesh_check_mod):
+    calls = []
+    monkeypatch.setattr(mesh_check_mod, "_running_host_guess", lambda root: None)
+    monkeypatch.setattr(mesh_check_mod, "kit_facts", lambda **kw: calls.append(kw) or {})
+    assert nd.dispatch("kit", [])["ok"] is True
+    assert calls == [{"host": "mac"}]  # _isolated pins config.self_host() to "mac"
+
+
+@pytest.mark.parametrize("args", [["x"], ["--fetch"], ["fetch"], ["core=/tmp"], ["a", "b"]])
+def test_kit_takes_no_arguments(monkeypatch, mesh_check_mod, args):
+    def forbidden(**kw):
+        pytest.fail("kit ran with an argument")
+
+    monkeypatch.setattr(mesh_check_mod, "kit_facts", forbidden)
+    out = nd.dispatch("kit", args)
+    assert out["ok"] is False and "takes 0 argument" in out["error"]
+    raw = nd.run_command(shlex.join(["kit", *args]))
+    assert (raw[0]["ok"], raw[1]) == (False, 2)  # refused, nothing ran
+
+
+def test_kit_for_real_runs_no_fetch_and_names_no_path(monkeypatch, mesh_check_mod):
+    """kit_facts unstubbed, every child it starts recorded and answered 'failed':
+    none of them is a `git fetch`, and the reply holds no filesystem path."""
+    argvs = []
+    monkeypatch.setattr(mesh_check_mod, "_kit_run",
+                        lambda argv, **kw: argvs.append(list(argv)))
+    monkeypatch.setattr(mesh_check_mod, "_running_host_guess", lambda root: "mac")
+
+    out = nd.dispatch("kit", [])
+
+    assert out["ok"] is True, out
+    assert {"core", "rules", "wikis", "memory", "skills_repo", "hooks"} <= set(out["result"])
+    assert argvs and not any("fetch" in argv for argv in argvs)
+    assert str(ROOT) not in json.dumps(out)
+
+
+# ---------------------------------------------------------------------------
 # pid_alive
 # ---------------------------------------------------------------------------
 

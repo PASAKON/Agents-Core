@@ -27,7 +27,7 @@
 # from inside an existing C-level chat would otherwise duplicate the id.
 set -euo pipefail
 
-ROOT="/Users/gob/MoonieXHQ/Agents/Core"
+ROOT="${ORG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 ROLE=""
 WITH_LOGS=0

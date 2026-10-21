@@ -1890,6 +1890,32 @@ def _collect_peer_local(alias: str, cfg: dict, script_path: Path) -> dict | None
     return _try_json(_ssh_run(alias, piped_cmd, timeout=30, stdin_path=script_path))
 
 
+def _kit_fail(reason: str) -> dict:
+    # One markdown table cell: remote stderr can carry newlines and pipes.
+    return {"ok": False, "reason": " ".join(reason.split()).replace("|", "/")[:300], "facts": {}}
+
+
+def _collect_peer_kit(host: str) -> dict:
+    """KIT cell for a peer that has a `mesh_ssh` but no admin `ssh` alias (the
+    Mac, ADR 0034): its facts come from the read-only `kit` node_dispatch verb.
+    A host that does not answer, or answers ok:false, is a red cell with the
+    reason. Only KIT is collected this way; every other level for the host
+    stays as it is."""
+    mesh = _mesh()
+    try:
+        reply = mesh.dispatch(host, "kit")
+    except (mesh.MeshUnreachable, ValueError, RuntimeError) as e:
+        # RuntimeError: dispatch asks config.self_host() first, which raises
+        # when this host cannot name itself; one red cell, not a dead matrix.
+        return _kit_fail(str(e))
+    if reply.get("ok") is not True:
+        return _kit_fail(f"kit refused: {str(reply.get('error'))[:200]}")
+    facts = reply.get("result")
+    if not isinstance(facts, dict):
+        return _kit_fail("kit reply carried no facts")
+    return check_kit(facts)
+
+
 # ---------------------------------------------------------------------------
 # Default mode: own cells + collect peers + render + write state
 # ---------------------------------------------------------------------------
@@ -1920,7 +1946,11 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
             cfg = config.host(h)
             alias = cfg.get("ssh")
             if not alias:
-                continue  # unreachable from here (e.g. mac when we are not mac)
+                # No admin alias (the Mac): only its KIT is read, through the
+                # `kit` verb. Its other levels stay as they are.
+                if cfg.get("mesh_ssh"):
+                    combined["KIT"][h][h] = _collect_peer_kit(h)
+                continue
             peer = _collect_peer_local(alias, cfg, script_path)
             if not peer:
                 continue

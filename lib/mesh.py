@@ -1,7 +1,7 @@
 """Org Mesh dispatch client (W2.3): one call to run a node_dispatch verb on a host.
 
 docs/design/org-mesh.md, W2. The server half is tools/node_dispatch.py: an
-enumerated verb list (`probe`, `pid_alive`, `spawn_worker`, `kill_worker`,
+enumerated verb list (`probe`, `kit`, `pid_alive`, `spawn_worker`, `kill_worker`,
 `start_clevel`, `deliver_letter`, `publish_branch`) that a caller can only NAME
 a hub row for, never send a shell to. This module is the client half:
 
@@ -69,6 +69,7 @@ LETTER_WRITE_MARGIN_S = 15
 # numbers sit just above the ones node_dispatch and delegate already use
 # (spawn script 120 s + prompt delay; git push 120 s; launcher 300 s).
 VERB_TIMEOUT_S = {
+    "kit": 30,              # read-only git facts on the far side, no fetch (OrgMesh P7)
     "spawn_worker": 300,
     "start_clevel": 180,
     "spawn_ph": 120,        # ssh dial + the scheduled task's wait to reach Running (90 s cap)

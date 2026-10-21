@@ -150,6 +150,7 @@ _HEX8 = "[0-9a-f]{8}"
 # from node_dispatch: if the server's patterns loosen, this copy disagrees.
 _GRAMMAR = {
     "probe": (),
+    "kit": (),
     "pid_alive": (rf"task-{_HEX8}",),
     "spawn_worker": (rf"task-{_HEX8}",),
     "kill_worker": (rf"task-{_HEX8}",),
@@ -217,7 +218,7 @@ def _valid_command(rng: random.Random) -> str:
     hex8 = "".join(rng.choice("0123456789abcdef") for _ in range(8))
     roles = config_mod.live_c_level_roles()
     return rng.choice([
-        "probe",
+        "probe", "kit",
         f"pid_alive task-{hex8}", f"spawn_worker task-{hex8}", f"kill_worker task-{hex8}",
         f"publish_branch task-{hex8}", f"deliver_letter {rng.randint(0, 10 ** 12 - 1)}",
         f"start_clevel {rng.choice(roles)}",
@@ -340,8 +341,8 @@ def test_fuzz_real_handlers_refuse_unknown_rows_before_any_backend(wire):
     for i in range(1500):
         raw = _hostile_command(rng, i)
         expect = _oracle(raw)
-        if expect is None or expect[0] in ("probe", "start_clevel"):
-            continue  # probe and start_clevel act without a row; covered above
+        if expect is None or expect[0] in ("probe", "kit", "start_clevel"):
+            continue  # probe, kit and start_clevel act without a row; covered above
         out, code = nd.run_command(raw)
         ran += 1
         assert (code, out["ok"]) == (2, False), (raw, out)
