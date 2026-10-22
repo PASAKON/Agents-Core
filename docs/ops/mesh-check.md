@@ -54,8 +54,8 @@ matrix shows verdict, skill counts, home drift and MCP names.
 `kit` JSON contains `core`, `rules`, `wikis`, `memory`: each has `head`,
 `origin_main`, `behind` (commits), `merge_base_age_hours` and `status`.
 These describe the **last fetched** origin/main, not a live remote comparison.
-No fetch occurs unless `--kit-fetch` explicitly requests one on the host
-running the command; peer collection never fetches. Missing facts are `n/a`;
+The matrix always fetches core on the checking host once; peer collection
+never fetches. `--local --kit-fetch` explicitly fetches collected kit repos. Missing facts are `n/a`;
 an existing directory without `.git` is `not-git` and fails.
 
 A peer with no `ssh` alias but a `mesh_ssh` (the Mac, ADR 0034) reports KIT through the read-only `kit` node_dispatch verb (`lib.mesh.dispatch(host, "kit")`); only its KIT cell and facts row come from it, and an unreachable host or an `ok:false` reply is `FAIL(<reason>)`.
@@ -69,8 +69,16 @@ The collecting host passes its target host's kit paths to both deployed and
 piped collectors. Core defaults to ROOT; its selected path controls checkout
 checks and the fallback memory slug, even when the remote cwd is elsewhere.
 
-Green requires rules/wikis/memory HEAD equal origin/main, core zero commits
-behind or a merge base at most 24 hours old, checkout skill
+Core is judged against the checking host's freshly fetched `origin/main`, using
+`git rev-list --count <host-head>..origin/main` locally. Missing heads fail as
+`core:n/a`, heads absent as commits locally fail as `core:unknown-head`, and a
+failed fetch fails closed. A host behind main fails as `core:behind N` when the
+oldest missing commit by committer time is older than 24 hours; missing only
+fresh commits is allowed because hosts pull at session start. Remote behind
+and merge-base age remain display facts and cannot establish a pass.
+
+Green requires rules/wikis/memory HEAD equal origin/main, core satisfying the
+rule above, checkout skill
 count at least 120 (`.claude/skills/*/SKILL.md`), `roles/project_head.md`,
 the platform PH launcher, and a successful hook interpreter `--version`.
 It also requires both `.claude/skills/session-{open,close}/SKILL.md` files,
