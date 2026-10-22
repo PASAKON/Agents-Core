@@ -361,8 +361,14 @@ _LETTERS_MIGRATION = [
 
 # live_sessions.verified (M8, 2026-10-14): true when the session's tmux name, not
 # its display name, gave the role. Postgres only, like the table.
+# live_sessions.bridge_id (OrgMesh P8d): the registry's `bridgeSessionId`
+# ("session_<letters+digits>", the Remote Control id a message from this session
+# carries as `from=bridge:<id>`); tools/whois reads it to tell which row a
+# cross-host sender is. NULL for a session with no Remote Control, and on a hub
+# that has not run init() yet (publishers and readers probe the column).
 _LIVE_SESSIONS_MIGRATION = [
     ("verified", "BOOLEAN"),
+    ("bridge_id", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only

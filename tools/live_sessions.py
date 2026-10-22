@@ -108,34 +108,51 @@ _BAD_CHARS = ("Cc", "Cf", "Zl", "Zp")   # controls, bidi/format, line and paragr
 _O_SAFE = (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
            | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_BINARY", 0))
 
-FOOTER = ('send: SendMessage(to=<text after the status, without a trailing [name only]>, verbatim). '
-          '"N agents are named X" → re-send with the [ref] the error marks active.')
+FOOTER = ('send: SendMessage(to=<text after the status, without a trailing [name only] or ⚠ mark>, '
+          'verbatim). "N agents are named X" → re-send with the [ref] the error marks active.')
 STALE_NOTE = ('stale = its host stopped reporting (header); the session may still be live — '
               'send, and trust the send\'s answer over this list.')
 NAME_ONLY_NOTE = ('[name only] = no launcher tmux claims the role; the role is read from '
                   'the name, which any session can set.')
+CLAIM_NOTE = ('⚠ claims <title> = the name carries a reserved title (CTO Main, CMO Main) but the row\'s '
+              'role is not that C-level: it is not the CTO / CMO; check a sender with tools.whois.')
 STATUS_RANK = {"running": 0, "idle": 1, "unknown": 2, "stale": 3}
 
-_UPSERT_SESSION = (
-    "INSERT INTO live_sessions (host, uuid, sid, role, name, address, status, pid,"
-    " former_name, renamed_at, seen_at)"
-    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())"
-    " ON CONFLICT (host, uuid) DO UPDATE SET sid = EXCLUDED.sid, role = EXCLUDED.role,"
-    " name = EXCLUDED.name, address = EXCLUDED.address, status = EXCLUDED.status,"
-    " pid = EXCLUDED.pid, former_name = EXCLUDED.former_name,"
-    " renamed_at = EXCLUDED.renamed_at, seen_at = now()")
-# The same with live_sessions.verified, once lib.db.init() has added the column
-# (M8). Until then publishers and readers run without it: a row reads unverified.
-_UPSERT_SESSION_V = (
-    _UPSERT_SESSION.replace(" renamed_at, seen_at)", " renamed_at, seen_at, verified)")
-    .replace("?, now())", "?, now(), ?)")
-    + ", verified = EXCLUDED.verified")
+# OrgMesh P8: any session can rename itself, so a reserved title may be shown only for a row whose
+# role is that C-level. The role is the one the launcher's tmux claims (or, on a host with no tmux,
+# the name's own, which the "[name only]" mark already flags). Anywhere in the name, as a whole
+# phrase; a host emoji or a state glyph in front changes nothing. Between the title and "Main" it
+# lets through nothing but spaces, an id ("#c34", "#7cf528f0") and one run of separators
+# (- _ . / \ · • — – : |), so "CTO-Main", "CTOMain", "CTO#c34 Main" are caught and "(CTO) - Main
+# Street" is not. "C T O Main" counts in capitals only: "send c to main" is not a claim. (P8c, F6)
+_RESERVED_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?P<title>(?i:CTO|CMO)|C\s*[TM]\s*O)\s*(?:#[0-9a-fA-F]{3,8})?"
+    r"[\s\-_./\\\u00b7\u2022\u2014\u2013:|]*(?i:Main)(?![A-Za-z])")
+
+# The columns every hub has, then the ones lib.db.init() adds later (verified: M8, bridge_id: P8d).
+# Until a hub has run init() publishers and readers run without the later ones: a row reads
+# unverified and has no bridge id. A column the connecting role may not read is absent too.
+_SESSION_COLS = ("host", "uuid", "sid", "role", "name", "address", "status", "pid",
+                 "former_name", "renamed_at")
+_OPTIONAL_COLS = ("verified", "bridge_id")
 
 
-def _has_verified(conn) -> bool:
-    return bool(conn.execute(
-        "SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()"
-        " AND table_name = 'live_sessions' AND column_name = 'verified'").fetchall())
+def _upsert_session(extra=()) -> str:
+    """The upsert of one live_sessions row, with the optional columns in `extra`."""
+    marks = ", ".join(["?"] * len(_SESSION_COLS) + ["now()"] + ["?"] * len(extra))
+    sets = ", ".join([f"{c} = EXCLUDED.{c}" for c in _SESSION_COLS[2:]] + ["seen_at = now()"]
+                     + [f"{c} = EXCLUDED.{c}" for c in extra])
+    return (f"INSERT INTO live_sessions ({', '.join(_SESSION_COLS + ('seen_at',) + tuple(extra))})"
+            f" VALUES ({marks}) ON CONFLICT (host, uuid) DO UPDATE SET {sets}")
+
+
+def _live_columns(conn) -> set[str]:
+    """The optional live_sessions columns this hub has and this role can read."""
+    return {r[0] for r in conn.execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema()"
+        " AND table_name = 'live_sessions' AND column_name IN ('verified', 'bridge_id')").fetchall()}
+
+
 _UPSERT_HOST = (
     "INSERT INTO live_hosts (host, published_at, publisher, n_sessions, error)"
     " VALUES (?, now(), ?, ?, NULL)"
@@ -447,6 +464,16 @@ def _proc_start(raw) -> int | None:
     return None
 
 
+_BRIDGE_ID_RE = re.compile(r"session_[A-Za-z0-9]{1,100}")
+
+
+def _bridge_id(raw) -> str | None:
+    """The record's Remote Control id ("session_<letters+digits>", what a message from this
+    session carries as `from=bridge:<id>`), or None for anything else. Strict: it ends up in a
+    column that tools/whois compares, and it is printed nowhere."""
+    return raw if isinstance(raw, str) and _BRIDGE_ID_RE.fullmatch(raw) else None
+
+
 def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
     """The row for one session record (a file's JSON, or an entry the winbox
     pull returns, whose liveness the far side already checked), or None."""
@@ -472,6 +499,7 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
         "status": map_status(data.get("status")), "pid": pid,
         "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
         "renamed_at": _ms_to_dt(data.get("nameSince")),
+        "bridge_id": _bridge_id(data.get("bridgeSessionId")),
         "_updated": data.get("updatedAt") if isinstance(data.get("updatedAt"), (int, float)) else 0,
     }
 
@@ -583,14 +611,13 @@ def publish_rows(conn, host: str, rows, prev_uuids, publisher: str | None = None
     host's rows older than a day. Returns the uuids now published."""
     rows = demote_untmuxed(rows, host)
     now_uuids = {r["uuid"] for r in rows}
-    with_v = _has_verified(conn)
+    extra = tuple(c for c in _OPTIONAL_COLS if c in _live_columns(conn))
+    sql = _upsert_session(extra)
     for r in rows:
         args = (host, r["uuid"], r["sid"], r["role"], r["name"], r["address"],
                 r["status"], r["pid"], r["former_name"], r["renamed_at"])
-        if with_v:
-            conn.execute(_UPSERT_SESSION_V, args + (bool(r.get("verified")),))
-        else:
-            conn.execute(_UPSERT_SESSION, args)
+        conn.execute(sql, args + tuple(bool(r.get("verified")) if c == "verified" else r.get("bridge_id")
+                                       for c in extra))
     gone = sorted(set(prev_uuids) - now_uuids)
     if gone:
         conn.execute("DELETE FROM live_sessions WHERE host = ? AND uuid = ANY(?)",
@@ -619,7 +646,7 @@ if(Test-Path $d){foreach($f in Get-ChildItem $d -Filter '*.json' -File){try{
 $j=Get-Content -Raw -Encoding UTF8 -LiteralPath $f.FullName|ConvertFrom-Json
 $p=Get-Process -Id ([int]$j.pid) -ErrorAction Stop
 $t=[DateTimeOffset]::new($p.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()
-if([math]::Abs($t-[int64]$j.startedAt) -le 10000){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_})}}
+if([math]::Abs($t-[int64]$j.startedAt) -le 10000){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_});bridgeSessionId=[string]$j.bridgeSessionId}}
 }catch{}}}
 ConvertTo-Json -InputObject @($o) -Compress -Depth 4"""
 
@@ -1073,10 +1100,11 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         hosts[r["host"]] = {"age": float(r["age"]), "published_at": r["published_at"],
                             "error": r["error"]}
     rows = []
-    verified = "verified" if _has_verified(conn) else "NULL AS verified"
+    have = _live_columns(conn)
+    optional = "".join(f"{c if c in have else 'NULL AS ' + c}, " for c in _OPTIONAL_COLS)
     for r in conn.execute(
-            "SELECT host, uuid, sid, role, name, address, status, pid, " + verified + ","
-            " EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
+            "SELECT host, uuid, sid, role, name, address, status, pid, " + optional +
+            "EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
             " ORDER BY host, name").fetchall():
         age = float(r["age"])
         info = hosts.get(r["host"])
@@ -1086,7 +1114,8 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         rows.append({"host": r["host"], "uuid": r["uuid"], "sid": r["sid"],
                      "role": r["role"], "name": r["name"], "address": r["address"],
                      "status": "stale" if host_stale else r["status"], "pid": r["pid"],
-                     "verified": bool(r.get("verified")), "age": age, "stale": host_stale})
+                     "verified": bool(r.get("verified")), "bridge_id": r.get("bridge_id"),
+                     "age": age, "stale": host_stale})
     return {"rows": rows, "hosts": hosts, "local": False}
 
 
@@ -1119,8 +1148,22 @@ def _fmt_since(dt, today=None) -> str:
     return dt.strftime("%H:%M" if today == dt.date() else "%m-%d %H:%M")
 
 
+def reserved_claim(row: dict) -> str | None:
+    """"CTO Main" / "CMO Main" when the row's name carries that title and its role is not the
+    matching C-level (cto / cmo); None otherwise. NFKC first, so full-width letters read the same."""
+    name = unicodedata.normalize("NFKC", row.get("name") or "")
+    for m in _RESERVED_RE.finditer(name):
+        title = re.sub(r"\s+", "", m.group("title")).upper()
+        if row.get("role") != title.lower():
+            return f"{title} Main"
+    return None
+
+
 def _line(row: dict) -> str:
     mark = "" if row.get("verified") else f"  {NAME_ONLY}"
+    claim = reserved_claim(row)
+    if claim:
+        mark += f"  ⚠ claims {claim}"
     return f"{row['status']:<7}  {row['address']}{mark}"
 
 
@@ -1200,6 +1243,8 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
     notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
     if any(not r.get("verified") for r in shown):
         notes.append(NAME_ONLY_NOTE)
+    if any(reserved_claim(r) for r in shown):
+        notes.append(CLAIM_NOTE)
     return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER]
                      + duplicate_notes(shown) + off_rule_notes(shown) + notes)
 
@@ -1238,7 +1283,7 @@ def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> s
                   | ({"error": i["error"]} if i.get("error") else {})
                   for h, i in snap["hosts"].items()},
         "sessions": [{k: r[k] for k in ("host", "sid", "role", "status", "address")}
-                     | {"verified": bool(r.get("verified"))}
+                     | {"verified": bool(r.get("verified")), "claims": reserved_claim(r)}
                      | {"age_s": int(r["age"]), "stale": bool(r.get("stale"))} for r in rows],
     }, ensure_ascii=False)
 

@@ -428,6 +428,87 @@ def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim(quiet_rul
     assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
 
 
+def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(quiet_rule):
+    """OrgMesh P8: any session can rename itself "CTO Main". Only a cto row may carry that, only a cmo row
+    "CMO Main"; any other row keeps its line (the address is what SendMessage takes) and gets a mark."""
+    rows = [
+        _row("contabo", "cto", "🌐 CTO (Kavin) — CTO Main", sid="671f688f"),
+        _row("contabo", "cmo", "🌐 CMO (Ging) — CMO Main", sid="ef04792e"),
+        _row("mac", "unknown", "💻 CTO (Kavin) — CTO Main", sid="0badc0de", verified=False),
+        _row("contabo", "project_head", "🌐 PH#7cf (CTO) - OrgRestructure — cto main", sid="7cf528f0"),
+        _row("contabo", "cto", "🌐 CTO (Kavin) — CMO Main", sid="11111111"),
+    ]
+    snap = _snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)})
+    lines = ls.format_snapshot(snap, now=NOW).splitlines()
+    assert "running  🌐 CTO (Kavin) — CTO Main" in lines                 # the real CTO: no mark
+    assert "running  🌐 CMO (Ging) — CMO Main" in lines                  # the real CMO: no mark
+    assert "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main" in lines
+    assert "running  🌐 PH#7cf (CTO) - OrgRestructure — cto main  ⚠ claims CTO Main" in lines
+    assert "running  🌐 CTO (Kavin) — CMO Main  ⚠ claims CMO Main" in lines   # a cto may not be the CMO
+    assert sum("⚠" in l for l in lines if l.startswith(("running", "idle"))) == 3
+    assert lines.count(ls.CLAIM_NOTE) == 1 and "⚠" in ls.FOOTER
+    # nothing is dropped: every row is still listed, five rows five lines
+    assert sum(l.startswith("running") for l in lines) == 5
+    js = {(s["host"], s["sid"]): s["claims"] for s in json.loads(ls._to_json(snap))["sessions"]}
+    assert js == {("contabo", "671f688f"): None, ("contabo", "ef04792e"): None,
+                  ("mac", "0badc0de"): "CTO Main", ("contabo", "7cf528f0"): "CTO Main",
+                  ("contabo", "11111111"): "CMO Main"}
+    # the single-session lookup carries the mark too
+    assert ls.format_snapshot(snap, sid="0badc0de", now=NOW) == \
+        "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main"
+
+
+@pytest.mark.parametrize("name,role,claim", [
+    ("Dev·S#49b Org: fix CTO Main hook", "developer", "CTO Main"),     # as a phrase anywhere in the name
+    ("CTO#c34 Main", "developer", "CTO Main"),                          # the compact shape of the 15 Oct plan
+    ("ＣＴＯ　Ｍａｉｎ", "unknown", "CTO Main"),                          # full-width letters
+    ("⏸ 🌐 cmo   main", "unknown", "CMO Main"),                          # case, spaces, glyph and emoji in front
+    ("MAC CTO #671f688f (CTO Main)", "cto", None),                      # the real one, the old long shape
+    ("CTO#c34 Main", "cto", None),
+    ("🌐 CTO (Kavin) — CTO Main", "cto", None),
+    ("CTO Mainly", "unknown", None),                                    # not the phrase
+    ("ACTO Main", "unknown", None),
+    ("CTO (Kavin) — Main", "unknown", None),
+    ("CTO Maine", "developer", None),
+    # P8c F6: the 11 spellings the second review found past the first regex, each on a developer row
+    ("CTO-Main", "developer", "CTO Main"),
+    ("CTO_Main", "developer", "CTO Main"),
+    ("CTOMain", "developer", "CTO Main"),
+    ("CTO.Main", "developer", "CTO Main"),
+    ("CTO·Main", "developer", "CTO Main"),
+    ("CTO—Main", "developer", "CTO Main"),
+    ("CTO/Main", "developer", "CTO Main"),
+    ("CTO #c34 Main", "developer", "CTO Main"),
+    ("CTO#c34f Main", "developer", "CTO Main"),
+    ("CTO#7cf528f0 Main", "developer", "CTO Main"),
+    ("C T O Main", "developer", "CTO Main"),
+    ("CMO-Main", "developer", "CMO Main"),
+    ("🌐 CMO #ef0 Main", "unknown", "CMO Main"),
+    ("CTO · Main", "unknown", "CTO Main"),
+    # ...and the same spellings on the real rows are not claims
+    ("CTO-Main", "cto", None),
+    ("CTO#7cf528f0 Main", "cto", None),
+    ("🌐 CMO (Ging) — CMO Main", "cmo", None),
+    ("MAC CTO #671f688f (CTO Main)", "cto", None),
+    ("🌐 CTO (Kavin) — CMO Main", "cto", "CMO Main"),                   # a cto is not the CMO
+    # near-misses stay unmarked: a longer word, a name with the words apart, lower-case "c to main"
+    ("CTO Mainframe", "developer", None),
+    ("PH#7cf (CTO) - Main Street", "project_head", None),
+    ("CTO (Kavin) — Main", "developer", None),
+    ("send c to main", "developer", None),
+    ("ACTO-Main", "developer", None),
+])
+def test_reserved_claim(name, role, claim):
+    assert ls.reserved_claim({"name": name, "role": role}) == claim
+
+
+@pytest.mark.parametrize("raw", ["CTO\u200bMain", "CTO\u2060Main", "CTO\u00adMain", "CTO\u2028Main"])
+def test_reserved_claim_sees_a_name_after_the_publisher_cleaned_it(raw):
+    """_clean turns format and separator characters into a space before a row is stored."""
+    cleaned = ls._clean(raw, ls.MAX_NAME_CHARS)
+    assert ls.reserved_claim({"name": cleaned, "role": "developer"}) == "CTO Main"
+
+
 def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers(quiet_rule):
     rows = [
         _row("contabo", "project_head", "CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)"),
@@ -544,17 +625,18 @@ class _Rows:
 
 class FakeHub:
     """Answers the reader's two SELECTs and records every statement except the
-    live_sessions.verified column probe, which it answers from `has_verified`."""
+    live_sessions column probe, which it answers from `has_verified` and `has_bridge`."""
 
-    def __init__(self, sessions=(), hosts=(), has_verified=False):
+    def __init__(self, sessions=(), hosts=(), has_verified=False, has_bridge=False):
         self.sessions, self.hosts, self.sql, self.params = list(sessions), list(hosts), [], []
-        self.has_verified = has_verified
+        self.has_verified, self.has_bridge = has_verified, has_bridge
         self.committed = 0
         self.closed = False
 
     def execute(self, sql, params=()):
         if "information_schema.columns" in sql:
-            return _Rows([(1,)] if self.has_verified else [])
+            return _Rows([(c,) for c, have in (("verified", self.has_verified), ("bridge_id", self.has_bridge))
+                          if have])
         self.sql.append(" ".join(sql.split()))
         self.params.append(tuple(params))
         if "FROM live_sessions" in sql:
@@ -1569,6 +1651,90 @@ def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
                      [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}])
     assert "name only" in ls.render(reader, now=NOW)
     assert "NULL AS verified" in [q for q in reader.sql if "FROM live_sessions" in q][0]
+
+
+BRIDGE_A = "session_01BAWu5etWFPGhMoysn1KQyj"
+
+
+def test_a_registry_record_carries_its_bridge_session_id(tmp_path):
+    """OrgMesh P8d: `bridgeSessionId` is what a message from this session carries as `from=bridge:<id>`."""
+    _write(tmp_path, os.getpid(), bridgeSessionId=BRIDGE_A)
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] == BRIDGE_A
+
+
+def test_a_registry_record_without_a_bridge_session_id_has_none(tmp_path):
+    _write(tmp_path, os.getpid())
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] is None
+
+
+@pytest.mark.parametrize("bad", [
+    "", "session_", "01BAWu5etWFPGhMoysn1KQyj", "x", "session-abc", "session_ab cd", "session_ab\nx", "session_ab;id", "session_é",
+    "Session_abc", " session_abc", "session_abc ", "session_" + "a" * 101, "bridge:session_abc",
+    123, True, None, ["session_abc"], {"id": "session_abc"},
+])
+def test_a_bridge_session_id_of_any_other_shape_is_dropped(tmp_path, bad):
+    """It lands in a column whois compares: anything but session_<letters+digits> is no id at all."""
+    _write(tmp_path, os.getpid(), bridgeSessionId=bad)
+    [row] = ls.read_registry([tmp_path])
+    assert row["bridge_id"] is None
+
+
+def test_the_publisher_writes_the_bridge_id_once_the_column_exists(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1", bridgeSessionId=BRIDGE_A)
+    hub = FakeHub(has_verified=True, has_bridge=True)
+    ls.publish_once(hub, "contabo", [tmp_path], set())
+    [(sql, params)] = [(q, p) for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    assert "bridge_id = EXCLUDED.bridge_id" in sql and "verified = EXCLUDED.verified" in sql
+    assert sql.count("?") == len(params) == 12 and params[-2:] == (True, BRIDGE_A)
+    only = FakeHub(has_bridge=True)                          # a hub that has bridge_id but not verified
+    ls.publish_once(only, "contabo", [tmp_path], set())
+    [(sql, params)] = [(q, p) for q, p in zip(only.sql, only.params) if q.startswith("INSERT INTO live_sessions")]
+    assert "verified" not in sql and sql.count("?") == len(params) == 11 and params[-1] == BRIDGE_A
+    old = FakeHub()                                           # a hub that has not run init() since P8d
+    ls.publish_once(old, "contabo", [tmp_path], set())
+    assert not any("bridge_id" in q for q in old.sql)
+
+
+def test_a_session_with_no_remote_control_publishes_a_null_bridge_id(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1")
+    hub = FakeHub(has_verified=True, has_bridge=True)
+    ls.publish_once(hub, "contabo", [tmp_path], set())
+    [params] = [p for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    assert params[-1] is None
+
+
+def test_the_reader_carries_the_bridge_id_and_never_selects_a_column_it_cannot_read():
+    """org_coo's column GRANT hides bridge_id from information_schema, so a probe that finds nothing
+    must make the reader select NULL for it (as for `verified`, M8 #8): never a permission error."""
+    host = [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}]
+    with_col = FakeHub([dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)], host,
+                       has_verified=True, has_bridge=True)
+    [row] = ls._snapshot_from_hub(with_col, ls.DEFAULT_TTL_S)["rows"]
+    assert row["bridge_id"] == BRIDGE_A
+    sql = [q for q in with_col.sql if "FROM live_sessions" in q][0]
+    assert " verified, bridge_id, EXTRACT" in sql
+    without = FakeHub([_row("contabo", "cto", "CTO (Kavin)")], host, has_verified=True)
+    [row] = ls._snapshot_from_hub(without, ls.DEFAULT_TTL_S)["rows"]
+    assert row["bridge_id"] is None
+    assert " verified, NULL AS bridge_id, EXTRACT" in [q for q in without.sql if "FROM live_sessions" in q][0]
+
+
+def test_the_bridge_id_is_in_no_list_and_no_json(tmp_path):
+    rows = [dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)]
+    snap = _snap(rows, {"contabo": _fresh(4.0)})
+    assert BRIDGE_A not in ls.format_snapshot(snap, now=NOW) and BRIDGE_A not in ls._to_json(snap)
+
+
+def test_the_powershell_pull_reads_the_same_bridge_key_as_a_local_file():
+    """winbox's records are read by PS_PULL_SCRIPT, which lists the keys it forwards: `bridgeSessionId` must
+    be one, as a string (a missing key becomes "" and reads as no id)."""
+    assert "bridgeSessionId=[string]$j.bridgeSessionId" in ls.PS_PULL_SCRIPT
+    entry = {"pid": 999999999, "sessionId": "uuid-w1", "name": "WINDOWS CTO #33b0a9d5", "status": "idle",
+             "nameSince": None, "formerNames": [], "bridgeSessionId": BRIDGE_A}
+    assert ls._row_from_data(entry, check_alive=False)["bridge_id"] == BRIDGE_A
+    assert ls._row_from_data({**entry, "bridgeSessionId": ""}, check_alive=False)["bridge_id"] is None
 
 
 def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():
