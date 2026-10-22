@@ -50,6 +50,7 @@ class Quota:
     # stays at 0 whatever config bonuses say: a bonus the provider has not applied is not quota.
     limit_hit: bool = False
     limit_until: str | None = None
+    weekly_raw: float | None = None
 
 
 def load_plans(path: Path | str | None = None) -> dict:
@@ -408,6 +409,8 @@ def apply_bonuses(quota: Quota, bonuses: list[dict], now: datetime | str | None 
     While active the provider is treated as weekly_remaining = 1.0, with a note in source.
     A limit stop the provider reported (limit_active) wins over every bonus.
     """
+    if quota.weekly_raw is None:
+        quota.weekly_raw = quota.weekly_remaining
     if limit_active(quota, now):
         quota.source = f"{quota.source} (limit hit until {quota.limit_until or 'unknown'}; bonus ignored)".strip()
         return quota
@@ -443,7 +446,7 @@ def apply_bonuses(quota: Quota, bonuses: list[dict], now: datetime | str | None 
             if quota.source:
                 quota.source = f"{quota.source} (bonus: {note})"
             else:
-                quota.source = f"bonus: {note}"
+                quota.source = f"(bonus: {note})"
             break
 
     return quota
@@ -615,6 +618,7 @@ def record_snapshot(quotas: dict[str, Quota], path: Path | str, now: datetime | 
                 "ts": ts,
                 "provider": provider,
                 "weekly_remaining": q.weekly_remaining,
+                "weekly_raw": q.weekly_raw,
                 "daily_remaining": q.daily_remaining,
                 "weekly_resets_at": q.weekly_resets_at,
                 "daily_resets_at": q.daily_resets_at,
@@ -756,6 +760,11 @@ def main() -> None:
         record_snapshot(quotas, DEFAULT_HISTORY, now=now_dt)
         ts = now_dt.isoformat(timespec="seconds")
         print(f"snapshot: {snap_path} {len(quotas)} buckets {ts}")
+        try:
+            from tools import usage_budget
+            usage_budget.write(history=DEFAULT_HISTORY, now=now_dt)
+        except Exception as exc:
+            print(f"usage-budget skipped: {exc}", file=sys.stderr)
         try:
             from tools import cost_learn
             table = cost_learn.learn()

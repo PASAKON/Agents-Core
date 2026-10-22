@@ -296,3 +296,24 @@ as different answers.
 `docs/ops/antigravity-cli-test.md` (the `agy` OAuth block in full),
 `windows/spawn-worker.ps1` (the interactive-scheduled-task launcher),
 IRON-RULES §42/§53 (repeated GUI work is a script, not a model).
+## Daily usage budgets
+
+Run `python tools/usage_budget.py today` (or `today --json`) to see daily targets,
+usage, elapsed-day pace, and remaining headroom for AGY, ChatGPT, Claude, and
+AGY-Claude. Days use fixed UTC+07:00. Targets divide the day's starting raw weekly
+balance across Thai calendar days through the reset date, inclusive. Usage sums
+positive drops, ignoring rises at resets. Missing, erroneous, or older-than-30-minute
+observations show `unknown`; historical bonus overrides cannot be reconstructed
+until raw weekly readings have been recorded.
+
+`python tools/usage_budget.py write` atomically refreshes `state/usage-budget/usage-budget.json`.
+The existing quota snapshot job also refreshes it. Both commands accept `--history`
+and `--now` for reproducible inspection.
+
+Opt into `router.order: budget` to preserve CEO candidate order within two groups:
+under/unknown daily budget first, over-target second, among the outside runners only — Claude stays
+behind every usable outside runner, over target or not (CEO 22 Oct item 4, IRON §59 rule 8); exhausted candidates remain
+last. This is a soft preference, including when all buckets are over. Routing uses
+a budget snapshot no older than 30 minutes from the same Thai day, otherwise it
+computes from history, and falls back safely if unavailable. The configured order
+remains `ceo` pending review.

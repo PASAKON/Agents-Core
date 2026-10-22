@@ -22,6 +22,7 @@ from lib.router import header as _description_header
 from tools import forecast, limits as limits_mod, quota
 from tools.delegate import _host_runners
 from tools.quota import Quota, bucket_for, fetch_all_quotas, load_plans
+from tools import usage_budget
 
 
 @dataclass
@@ -97,7 +98,7 @@ def _make_reason(
     d_pct = item.daily * 100 if item.daily is not None else None
     item_b_str = f" {item.bucket}" if item.bucket else ""
 
-    if order == "ceo":
+    if order in ("ceo", "budget"):
         return f"CEO order #{item.idx + 1}, weekly {w_pct:.1f}%{item_b_str}"
 
     if len(all_active) <= 1:
@@ -167,6 +168,7 @@ def rank(
     skill: dict[tuple[str, str], float | None],
     host: str | None = None,
     cfg: dict | None = None,
+    budget: dict | None = None,
 ) -> list[Choice]:
     """Rank candidate runners for `role` on `host` based on quotas and skill."""
     if cfg is None:
@@ -279,7 +281,7 @@ def rank(
         # Still tied -> keep the CEO's order from roles
         return -1 if a.idx < b.idx else 1
 
-    if order == "ceo":
+    if order in ("ceo", "budget"):
         active_items.sort(key=lambda x: x.idx)
     else:
         active_items.sort(key=functools.cmp_to_key(compare_active))
@@ -292,10 +294,23 @@ def rank(
     # Notice: active -> unknown -> exhausted puts exhausted at the end, while unknown goes after active.
     # In both single-failure cases (unknown alone or exhausted alone), the problematic candidate is last.
     ranked_items = active_items + unknown_items + exhausted_items
+    budget_by_bucket = {r.get("bucket", k): r for k, r in (budget or {}).items() if isinstance(r, dict)}
+    if order == "budget" and budget:
+        usable = active_items + unknown_items
+        # Claude stays behind every usable outside bucket, over target or not (CEO item 4, IRON §59 rule 8);
+        # the over-target demotion only reorders the outside runners among themselves.
+        usable.sort(key=lambda item: (item.runner == "claude",
+                                      budget_by_bucket.get(item.bucket, {}).get("state") == "over"))
+        ranked_items = usable + exhausted_items
 
     choices: list[Choice] = []
     for rank_idx, item in enumerate(ranked_items):
         reason = _make_reason(item, rank_idx, active_items, tie_threshold, tie_points, order)
+        row = budget_by_bucket.get(item.bucket, {})
+        if order == "budget" and row.get("state") == "over":
+            reason += ", over today's target"
+            if isinstance(row.get("used"), (int, float)) and isinstance(row.get("target"), (int, float)):
+                reason += f" (used {row['used']:.0%} / {row['target']:.0%})"
         choices.append(
             Choice(
                 candidate=item.candidate,
@@ -435,7 +450,8 @@ def plan(
         small = (cfg.get("small_first") or {}).get(role_cls)
         if size == "S" and small in (roles.get(role_cls) or []):
             rank_cfg = {**cfg, "roles": {**roles, role_cls: [small] + [c for c in roles[role_cls] if c != small]}}
-        choices = rank(role_cls, quotas, skill, host=host, cfg=rank_cfg)
+        budget = usage_budget.load_rows(now=now) if cfg.get("router", {}).get("order") == "budget" else None
+        choices = rank(role_cls, quotas, skill, host=host, cfg=rank_cfg, budget=budget)
         plans: list[Plan] = []
         for c in choices:
             bucket = c.bucket
@@ -507,7 +523,7 @@ def plan(
             unknown_claude = [p for p in unknown_plans if _is_claude(p, cfg)]
             will_hit_outside = [p for p in will_hit_plans if not _is_claude(p, cfg)]
             will_hit_claude = [p for p in will_hit_plans if _is_claude(p, cfg)]
-            return (
+            ordered = (
                 ok_outside
                 + unknown_outside
                 + will_hit_outside
@@ -516,6 +532,15 @@ def plan(
                 + will_hit_claude
                 + cannot_plans
             )
+            if cfg.get("router", {}).get("order") == "budget" and budget:
+                # Keep hard eligibility checks and Claude last; over-target only reorders outside runners.
+                rows = {r.get("bucket", k): r for k, r in budget.items()}
+                ordered.sort(key=lambda p: (
+                    p.verdict == "cannot" or "exhausted" in p.choice.reason,
+                    _is_claude(p, cfg),
+                    rows.get(p.choice.bucket, {}).get("state") == "over",
+                ))
+            return ordered
 
         return ok_plans + unknown_plans + will_hit_plans + cannot_plans
     except Exception:
@@ -683,7 +708,8 @@ def main() -> None:
     quotas = fetch_all_quotas(cfg)
     skill = load_skill_scores()
 
-    choices = rank(args.role, quotas, skill, args.host, cfg)
+    budget = usage_budget.load_rows() if cfg.get("router", {}).get("order") == "budget" else None
+    choices = rank(args.role, quotas, skill, args.host, cfg, budget=budget)
     if not choices:
         print(f"No available candidates for role {args.role!r} on host {args.host!r}")
         return
