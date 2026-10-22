@@ -86,3 +86,19 @@ def test_write_cache_and_thai_midnight(tmp_path):
     snapshot.write_text(json.dumps(old))
     midnight = datetime.fromisoformat("2026-10-22T00:01:00+07:00")
     assert budget.load_rows(snapshot, history, midnight)["chatgpt"]["state"] == "unknown"
+
+
+def test_error_row_today_is_skipped_not_unknown():
+    from datetime import datetime, timezone
+    from tools import usage_budget as ub
+    now = datetime(2026, 10, 22, 5, 0, tzinfo=timezone.utc)
+    rs = "2026-10-24T00:00:00Z"
+    hist = [
+        {"ts": "2026-10-21T16:50:00+00:00", "provider": "claude", "weekly_remaining": 0.9, "weekly_resets_at": rs},
+        {"ts": "2026-10-22T03:00:00+00:00", "provider": "claude", "weekly_remaining": None, "error": "ssh timeout", "weekly_resets_at": rs},
+        {"ts": "2026-10-22T04:50:00+00:00", "provider": "claude", "weekly_remaining": 0.8, "weekly_resets_at": rs},
+    ]
+    row = ub.calculate(hist, now)["rows"]["claude"]
+    assert row["state"] == "under"
+    assert abs(row["used"] - 0.1) < 1e-9
+    assert abs(row["target"] - 0.3) < 1e-9

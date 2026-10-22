@@ -11,7 +11,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 HISTORY = ROOT / "state/reports/quota-history.jsonl"
-SNAPSHOT = ROOT / "state/usage-budget.json"
+# Its own directory: the widget endpoint container mounts only this dir, read-only.
+SNAPSHOT = ROOT / "state/usage-budget/usage-budget.json"
 THAI = timezone(timedelta(hours=7))
 BUCKETS = {"agy": "agy-gemini", "chatgpt": "codex", "claude": "claude", "agy-claude": "agy-claude"}
 
@@ -78,6 +79,8 @@ def calculate(history, now):
     for label, bucket in BUCKETS.items():
         records = sorted((r for r in history if r.get("provider") == bucket and timestamp(r["ts"]) <= now),
                          key=lambda r: timestamp(r["ts"]))
+        # A failed read is a gap, not a fact: skip it, and let staleness decide unknown.
+        records = [r for r in records if not r.get("error") and weekly(r) is not None]
         before = [r for r in records if timestamp(r["ts"]) <= start]
         today = [r for r in records if timestamp(r["ts"]) > start]
         records = before[-1:] + today
@@ -91,7 +94,7 @@ def calculate(history, now):
         target = initial / days if initial is not None and days else None
         values = [weekly(r) for r in records]
         used = sum(max(0.0, a - b) for a, b in zip(values, values[1:]) if a is not None and b is not None)
-        unknown = (not records or target is None or any(r.get("error") or weekly(r) is None for r in records)
+        unknown = (not records or target is None
                    or (now - timestamp(latest["ts"])).total_seconds() > 1800)
         result["rows"][label] = {
             "bucket": bucket, "start_remaining": initial, "days_left": days, "target": target,
@@ -110,9 +113,9 @@ def today(history=HISTORY, now=None):
     return calculate(read_history(history, now), now)
 
 
-def write(path=SNAPSHOT, history=HISTORY, now=None):
+def write(path=None, history=HISTORY, now=None):
     data = today(history, now)
-    path = Path(path)
+    path = Path(path) if path is not None else SNAPSHOT
     path.parent.mkdir(parents=True, exist_ok=True)
     name = None
     try:
@@ -127,12 +130,12 @@ def write(path=SNAPSHOT, history=HISTORY, now=None):
     return data
 
 
-def load_rows(path=SNAPSHOT, history=HISTORY, now=None):
+def load_rows(path=None, history=HISTORY, now=None):
     """Routing is fail-open; cached budgets must also belong to today's Thai day."""
     try:
         now = timestamp(now) if now is not None else datetime.now(timezone.utc)
         try:
-            data = json.loads(Path(path).read_text())
+            data = json.loads(Path(path if path is not None else SNAPSHOT).read_text())
             age = (now - timestamp(data["ts"])).total_seconds()
             if 0 <= age <= 1800 and data["day"] == now.astimezone(THAI).date().isoformat():
                 rows = data["rows"]

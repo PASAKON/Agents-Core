@@ -762,7 +762,7 @@ def main() -> None:
         print(f"snapshot: {snap_path} {len(quotas)} buckets {ts}")
         try:
             from tools import usage_budget
-            usage_budget.write(path=Path(snap_path).parent / "usage-budget.json", history=DEFAULT_HISTORY, now=now_dt)
+            usage_budget.write(history=DEFAULT_HISTORY, now=now_dt)
         except Exception as exc:
             print(f"usage-budget skipped: {exc}", file=sys.stderr)
         try:

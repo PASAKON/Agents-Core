@@ -306,7 +306,7 @@ positive drops, ignoring rises at resets. Missing, erroneous, or older-than-30-m
 observations show `unknown`; historical bonus overrides cannot be reconstructed
 until raw weekly readings have been recorded.
 
-`python tools/usage_budget.py write` atomically refreshes `state/usage-budget.json`.
+`python tools/usage_budget.py write` atomically refreshes `state/usage-budget/usage-budget.json`.
 The existing quota snapshot job also refreshes it. Both commands accept `--history`
 and `--now` for reproducible inspection.
 
