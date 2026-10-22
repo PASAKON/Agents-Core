@@ -259,13 +259,16 @@ def _why_not_enter(screen: str, typed: str) -> str | None:
 
 
 def _look(tmux: str, session: str, typed: str | None, held: str) -> None:
-    """Capture the pane (`capture-pane -p`, on the same target the keys go to)
+    """Capture the pane (`capture-pane -p -e`, on the same target the keys go to)
     and raise WakeHeld(held.format(why=...)) unless the next key may go: before
     the typing (`typed` None) `_why_not_type`, before an Enter `_why_not_enter`.
+    `-e` keeps the attributes: without them Claude Code's dim ghost suggestion
+    reads as a draft, and an idle pane that shows one is never woken (Contabo,
+    22 Oct 2026: two Project Heads, one with its workers waiting in review).
     Fails closed: a capture that exits non-zero or times out is a reason too."""
     try:
         r = subprocess.run(
-            [tmux, "capture-pane", "-p", "-t", session],
+            [tmux, "capture-pane", "-p", "-e", "-t", session],
             capture_output=True, text=True, timeout=_WAKE_CAPTURE_TIMEOUT_S,
         )
         if r.returncode != 0:

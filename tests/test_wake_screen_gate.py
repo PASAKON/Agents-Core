@@ -31,7 +31,7 @@ from tools import rename_service as rs  # noqa: E402
 from tools import send_to_cxo as sc  # noqa: E402
 from tools import tmux_session  # noqa: E402
 
-from test_rename_service import BUSY, DRAFT, DRAFT_BELOW, EMPTY, FRESH, PERMISSION, RULE  # noqa: E402
+from test_rename_service import BUSY, DRAFT, DRAFT_BELOW, EMPTY, FRESH, GHOST, PERMISSION, RULE  # noqa: E402
 
 SESSION = "cfo-sess1234"
 MARKER = "[New message from CTO]"
@@ -82,7 +82,10 @@ class FakePane:
             if self.capture_exc is not None:
                 raise self.capture_exc
             ok = self.capture_rc == 0
-            return subprocess.CompletedProcess(argv, self.capture_rc, self.screen() if ok else "",
+            screen = self.screen() if ok else ""
+            if "-e" not in argv:   # a plain capture has no attributes: a ghost reads as typed text
+                screen = pane_screen.strip_ansi(screen)
+            return subprocess.CompletedProcess(argv, self.capture_rc, screen,
                                                "" if ok else "can't find pane")
         if argv[1] == "send-keys":
             if "-l" in argv:
@@ -151,6 +154,15 @@ def test_an_empty_box_idle_fresh_or_busy_is_woken_as_before(pane, screen):
     assert p.submitted == [MARKER]
     assert [c[1] for c in p.calls] == ["capture-pane", "send-keys", "capture-pane", "send-keys",
                                        "capture-pane", "send-keys"]
+
+
+def test_a_ghost_suggestion_is_an_empty_box_and_is_woken(pane):
+    """Claude Code's dim suggestion after the ❯ is no draft, and only a capture with
+    `-e` shows that it is dim (22 Oct 2026: two Project Heads never woke on one)."""
+    p = pane(GHOST)
+    at._wake_tmux_send(SESSION, MARKER)
+    assert p.submitted == [MARKER]
+    assert all("-e" in c for c in p.calls if c[1] == "capture-pane")
 
 
 def test_the_settle_delays_are_unchanged(pane, monkeypatch):

@@ -487,7 +487,8 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
     calls it directly (not through `sc.send()`'s wrapper), so the
     `subprocess`/`time` patches target that module, not `sc`.
 
-    Since 2026-10-14 it reads the pane (`capture-pane -p`) before the typing
+    Since 2026-10-14 it reads the pane (`capture-pane -p -e`, so a dim ghost
+    suggestion is no draft) before the typing
     and before each Enter, and sends no key over a choice prompt or a draft
     (tests/test_wake_screen_gate.py). Here the pane shows an empty input box."""
     calls = []
@@ -505,7 +506,7 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
 
     agent_transport._wake_tmux_send("cfo-sess1234", ".")
 
-    look = ["tmux", "capture-pane", "-p", "-t", "cfo-sess1234"]
+    look = ["tmux", "capture-pane", "-p", "-e", "-t", "cfo-sess1234"]
     assert calls == [
         look,
         ["tmux", "send-keys", "-t", "cfo-sess1234", "-l", "."],
