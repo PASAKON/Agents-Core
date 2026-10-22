@@ -278,6 +278,10 @@ projects:
   - key: mooniex-scriptable
     name: Mooniex Scriptable (iOS widgets)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/Scriptable
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Scriptable
+      # Cloned 2026-10-22 for UsageBudget P2 (CTO Main go): the contabo-usage backend deploys from here.
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Scriptable
     remote: https://github.com/PASAKON/mooniex-scriptable.git
     default_branch: main
     stack: [scriptable, javascript, python]
