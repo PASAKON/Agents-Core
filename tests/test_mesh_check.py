@@ -38,7 +38,8 @@ def isolate_kit(monkeypatch):
     build_matrix would also dial the Mac's `kit` verb (a peer with a mesh_ssh
     and no ssh alias): none of these tests may reach ssh."""
     monkeypatch.setattr(m, "kit_facts", lambda *args, **kwargs: {})
-    monkeypatch.setattr(m, "_collect_peer_kit", lambda host: m.check_kit(None))
+    monkeypatch.setattr(m, "kit_git", lambda *args, **kwargs: {})
+    monkeypatch.setattr(m, "_collect_peer_kit", lambda host, **kwargs: m.check_kit(None))
 
 
 # ---------------------------------------------------------------------------
