@@ -31,6 +31,7 @@ Plan + record: `docs/ops/contabo-hq-migration-plan-2026-09-23.md`.
 | MoonieX-LineAutomation | `/opt/MoonieXHQ/Projects/MoonieX/LineAutomation` | `/root/projects/mooniex-line-automation` |
 | LinePoster (no repo) | `/opt/MoonieXHQ/Projects/MoonieX/LinePoster` | `/root/projects/mooniex-line-poster` |
 | LungNote-MCP | `/opt/MoonieXHQ/Projects/LungNote/Mcp` | `/opt/lungnote-mcp` |
+| MoonieX-Scriptable (cloned 2026-10-22) | `/opt/MoonieXHQ/Projects/MoonieX/Scriptable` | — |
 | claude-usage-monitor (tool, stays outside) | `/opt/claude-usage-monitor` | — |
 
 Compose projects keep their old names (`COMPOSE_PROJECT_NAME` pinned in each `.env`), so
@@ -40,7 +41,7 @@ Compose projects keep their old names (`COMPOSE_PROJECT_NAME` pinned in each `.e
 clones them onto the box: `mooniex-webapp`,
 `mooniex-remotion`, `mooniex-wa-system`, `mooniex-company`, `mooniex-nohuman`,
 `mooniex-website-templete`, `mooniex-hyperframes`, `mooniex-claudesign`,
-`mooniex-controller-system`, `mooniex-scriptable` (the iOS-side source).
+`mooniex-controller-system`.
 
 **PARKED 2026-08-03** — pushed to GitHub and archived (read-only); the local
 folders carry a `PARKED-` prefix. Do not start work in these without CEO
