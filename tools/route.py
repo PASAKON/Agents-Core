@@ -297,7 +297,10 @@ def rank(
     budget_by_bucket = {r.get("bucket", k): r for k, r in (budget or {}).items() if isinstance(r, dict)}
     if order == "budget" and budget:
         usable = active_items + unknown_items
-        usable.sort(key=lambda item: budget_by_bucket.get(item.bucket, {}).get("state") == "over")
+        # Claude stays behind every usable outside bucket, over target or not (CEO item 4, IRON §59 rule 8);
+        # the over-target demotion only reorders the outside runners among themselves.
+        usable.sort(key=lambda item: (item.runner == "claude",
+                                      budget_by_bucket.get(item.bucket, {}).get("state") == "over"))
         ranked_items = usable + exhausted_items
 
     choices: list[Choice] = []
@@ -530,10 +533,11 @@ def plan(
                 + cannot_plans
             )
             if cfg.get("router", {}).get("order") == "budget" and budget:
-                # Keep hard eligibility checks, but allow under-target Claude ahead of over-target AGY.
+                # Keep hard eligibility checks and Claude last; over-target only reorders outside runners.
                 rows = {r.get("bucket", k): r for k, r in budget.items()}
                 ordered.sort(key=lambda p: (
                     p.verdict == "cannot" or "exhausted" in p.choice.reason,
+                    _is_claude(p, cfg),
                     rows.get(p.choice.bucket, {}).get("state") == "over",
                 ))
             return ordered

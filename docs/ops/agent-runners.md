@@ -311,7 +311,8 @@ The existing quota snapshot job also refreshes it. Both commands accept `--histo
 and `--now` for reproducible inspection.
 
 Opt into `router.order: budget` to preserve CEO candidate order within two groups:
-under/unknown daily budget first, over-target second; exhausted candidates remain
+under/unknown daily budget first, over-target second, among the outside runners only — Claude stays
+behind every usable outside runner, over target or not (CEO 22 Oct item 4, IRON §59 rule 8); exhausted candidates remain
 last. This is a soft preference, including when all buckets are over. Routing uses
 a budget snapshot no older than 30 minutes from the same Thai day, otherwise it
 computes from history, and falls back safely if unavailable. The configured order

@@ -80,7 +80,8 @@ router:
   # CEO 16 Oct (CTO Main chat): "ใช้ Argon ให้หมดก่อน หลังจากนั้นก็ ChatGPT และสุดท้ายคือ Claude". The roles lists
   # are tried in order; the router moves on only when a candidate's quota is spent (exhausted, or the job would
   # take it under its reserve). "fullest" = the old rule: most weekly quota left first, list order on ties.
-  # "budget" keeps CEO order but moves buckets over today's usage target behind under/unknown buckets.
+  # "budget" keeps CEO order but moves outside buckets over today's usage target behind the under/unknown ones;
+  # Claude stays last whatever its budget (CEO 22 Oct: "Claude ใช้ทีหลังสุด").
   order: budget         # CEO 22 Oct (UsageBudget "1-5 ใช่เลย"): CEO order, but a bucket over today's target goes behind the rest
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
   min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown

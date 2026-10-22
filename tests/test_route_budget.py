@@ -23,7 +23,8 @@ def rows(states):
 
 
 @pytest.mark.parametrize("states,expected", [
-    (("over", "under", "unknown"), ["codex", "claude", "agy"]),
+    (("over", "under", "unknown"), ["codex", "agy", "claude"]),
+    (("over", "under", "under"), ["codex", "agy", "claude"]),
     (("over", "over", "over"), ["agy", "codex", "claude"]),
 ])
 def test_budget_order(cfg, states, expected):
@@ -45,7 +46,7 @@ def test_exhausted_stays_last(cfg):
     qs = quotas()
     qs["codex"].weekly_remaining = 0
     choices = route.rank("analysis", qs, {}, cfg=cfg, budget=rows(("over", "under", "unknown")))
-    assert [c.runner for c in choices] == ["claude", "agy", "codex"]
+    assert [c.runner for c in choices] == ["agy", "claude", "codex"]
 
 
 def test_plan_and_pick_use_budget_despite_pressure(cfg, monkeypatch):
@@ -53,5 +54,9 @@ def test_plan_and_pick_use_budget_despite_pressure(cfg, monkeypatch):
     monkeypatch.setattr(route.usage_budget, "load_rows", lambda **kw: rows(("over", "over", "under")))
     limits = {b: {"reserve_pct": 0, "min_5h_pct": 0} for b in quotas()}
     kwargs = dict(cfg=cfg, quotas=quotas(), skill={}, limits=limits, size="M")
-    assert route.plan("analysis", **kwargs)[0].choice.runner == "claude"
-    assert route.pick_runner("analysis", "test", **kwargs).runner == "claude"
+    # AGY and Codex over target, Claude under: still an outside runner, never Claude (CEO item 4).
+    assert route.plan("analysis", **kwargs)[0].choice.runner == "agy"
+    assert route.pick_runner("analysis", "test", **kwargs).runner == "agy"
+    monkeypatch.setattr(route.usage_budget, "load_rows", lambda **kw: rows(("over", "under", "under")))
+    assert route.plan("analysis", **kwargs)[0].choice.runner == "codex"
+    assert route.plan("analysis", **kwargs)[-1].choice.runner == "claude"
