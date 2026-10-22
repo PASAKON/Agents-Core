@@ -218,6 +218,8 @@ def test_cli_snapshot_flag(
     assert captured.out.startswith(expected_prefix)
     assert snap_file.is_file()
     assert history_file.is_file()
+    budget_data = json.loads((tmp_path / "usage-budget.json").read_text())
+    assert budget_data["rows"]["chatgpt"]["now_remaining"] == four_buckets["codex"].weekly_remaining
 
     snap_data = json.loads(snap_file.read_text(encoding="utf-8"))
     assert set(snap_data["buckets"].keys()) == set(four_buckets.keys())
