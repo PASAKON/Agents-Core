@@ -332,10 +332,20 @@ def resume(args):
                 failed = True
                 continue
             command = launcher(row, args.host)
-            if identity(row) in existing or (not args.dry_run and tmux_session.has_session(pane(row))):
+            if identity(row) in existing or tmux_session.has_session(pane(row)):
                 print(f"already_live: {row['name']}")
                 continue
             if isinstance(command, str):
+                role, sid = identity(row)
+                unit = f'org-{role}-{sid}.scope'
+                active = subprocess.run(['systemctl', 'is-active', '--quiet', unit],
+                                        capture_output=True, timeout=30)
+                if active.returncode == 0:
+                    try:
+                        run(['systemctl', 'stop', unit], args.dry_run)
+                    except (OSError, subprocess.SubprocessError) as exc:
+                        raise RuntimeError(f'could not stop leftover scope: {unit}: {exc}') from exc
+                    print(f'stopped leftover scope: {unit}')
                 print(shlex.join(['tmux', 'new-session', '-d', '-s', pane(row),
                                   '-c', str(ROOT), command]))
                 if not args.dry_run:
@@ -433,8 +443,9 @@ def report(args):
     entries = json.loads(manifest_file(args.host).read_text())
     existing = live(args.host)
     # A pane that exists on this host counts; the registry alone lags by minutes.
-    missing = [r['name'] for r in entries
+    missing_rows = [r for r in entries
                if identity(r) not in existing and not tmux_session.has_session(pane(r))]
+    missing = [r['name'] for r in missing_rows]
     result = dict(back=len(entries) - len(missing), total=len(entries), missing=missing)
     if args.json:
         print(json.dumps(result, ensure_ascii=False))
@@ -446,6 +457,20 @@ def report(args):
         owners = [r for r in entries if r['role'] in roles.c_level_roles()]
         requester = (['--role', owners[0]['role'], '--session', pane(owners[0])]
                      if owners else [])  # Empty manifests use the configured service requester.
+        missing_owners = [r for r in missing_rows
+                          if r['role'] in roles.c_level_roles() and r['role'] != 'coo']
+        if missing_owners:
+            suffix = f" ไม่กลับมา (กลับมา {result['back']}/{result['total']}) กด Run เพื่อเปิดใหม่"
+            name = ' '.join(str(missing_owners[0]['name']).split())
+            why = 'Restart: ' + name[:max(0, 90 - len('Restart: ') - len(suffix))] + suffix
+            command = shlex.join(['bash', 'scripts/hub/org-python.sh', 'tools/restart_run.py',
+                                  '--host', args.host, 'resume'])
+            run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'create',
+                 '--host', args.host, *requester, '--command', command,
+                 '--cwd', '/opt/MoonieXHQ/Agents/Core', '--risk', 'amber',
+                 '--why', why, '--expected', f"กลับมา {result['total']}/{result['total']}"],
+                args.dry_run)
+            return 1
         question = f"Restart Contabo: กลับมา {result['back']}/{result['total']}"
         details = ['ยังไม่กลับมา: ' + str(name).replace('\n', ' ')[:70] for name in missing[:3]]
         if len(missing) > 3:
