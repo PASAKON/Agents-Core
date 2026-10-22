@@ -4,7 +4,7 @@
 
 Wake CXO and PH sessions only for a real event; keep worker supervision.
 Run every check in a script with zero model turns; unchanged state stays silent.
-Multiply clock-check intervals by 2 while any provider is over today's target, or 4 while all are over.
+Multiply clock-check intervals by 2 while any provider is over today's target, or 4 while AGY, ChatGPT and Claude all are.
 Never stop those checks under budget pressure. A real event always wakes at once.
 Record event IDs or state transitions so the same event does not wake twice.
 
@@ -47,13 +47,12 @@ live follow-up. Pane-dialog watch creates a CEO question, not a direct model wak
 
 ## Budget contract and audit limits
 
-P1 supplies `tools/usage_budget.py` and `state/usage-budget.json`. Read provider rows
-`agy`, `chatgpt`, `claude`, `agy-claude`, each with `state: under | over | unknown`.
+P1 supplies `tools/usage_budget.py` and `state/usage-budget/usage-budget.json`
+(`{"ts", "day", "rows": {agy, chatgpt, claude, agy-claude}}`, each row with
+`state: under | over | unknown`). `lib/wake_backoff.backoff_factor` reads it.
 Missing data or data older than 30 minutes means factor 1 (fail open). Unknown is
-not over; one over plus unknown means 2, and only four over rows mean 4.
-The helper proposes `updated_at` as ISO UTC or Unix seconds and rows under
-`providers` (flat rows also accepted). P1's exact schema is not present in this
-checkout; confirm this interface before wiring. Invalid/future timestamps fail open.
+not over. Any bar provider over means 2; all three (agy, chatgpt, claude) over means 4.
+Invalid or future timestamps fail open.
 
 `python tools/wake_audit.py [--json]` reads timers and service commands, plus skill
 Markdown. It flags known direct clock wakers and scheduling primitive candidates.
@@ -67,7 +66,7 @@ classification. Exit 1 means flags; exit 2 means incomplete discovery without fl
 **IRON-RULES:** Automatic CXO/PH wakes require a new answered card, worker
 done/failed/stuck event, approaching deadline, or CEO letter. A zero-model script
 checks first. An unchanged check must not spend a model turn. Retain supervision.
-Slow clock checks by 2 when any provider is over target and by 4 when all are over.
+Slow clock checks by 2 when any provider is over target and by 4 when all three are over.
 Never stop them. Events wake immediately. Missing/stale budget data means no slowdown.
 
 **PH/CXO roles:** Use durable event producers and silent script checks to supervise
