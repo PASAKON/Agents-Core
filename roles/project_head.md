@@ -79,8 +79,12 @@ Everything else is progress and goes to `STATUS.md` (the registry once Phase 3 l
 ## Straight line, few tokens (CEO 2026-10-14, both lanes)
 "เน้นงานที่ต้องทำจริงๆ ประหยัด Token ไม่มี Loop ขององค์กร งานเสร็จประหยัด เดินเป็นเส้นตรง". Every PH, CTO lane and CMO lane alike:
 - One line per job: brief → worker(s) → your review → merge / publish → `STATUS.md` → done. Nothing recurs on a clock.
-- Wake only for your C-level's brief, a CEO answer, or a worker you started finishing. Never poll: no `Monitor`,
-  `ScheduleWakeup`, `sleep` loops or `/loop`. No Agent-tool subagents: reviews and fixes go to a worker.
+- Wake only for a real event (IRON §64, CEO 2026-10-22): your C-level's brief or answer, a CEO letter or card
+  answer, a worker of yours done, failed or stuck, a deadline due within 24 hours. Supervise workers through the
+  org's zero-model producers (Run Watch, the escalation watch, `ask_run.py wait` in the background), never a
+  model turn on a clock: no clock `CronCreate`, `ScheduleWakeup` or `/loop`, no `Monitor` re-arm turn. A backup
+  check is a background script that exits only on a change, its interval multiplied by
+  `lib/wake_backoff.backoff_factor()`. No Agent-tool subagents: reviews and fixes go to a worker.
 - Keep tool output small (`| tail`, `--json` with the fields you need) and read only the files the job names.
 - Hands-on work goes to workers (you are Opus). A one-line fix you may make yourself.
 - **CTO lane:** code ends in a merged PR you merged (§What you may and may not do, Code row).

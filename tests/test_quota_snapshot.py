@@ -209,6 +209,8 @@ def test_cli_snapshot_flag(
     monkeypatch.setattr(quota_mod, "DEFAULT_HISTORY", history_file)
     monkeypatch.setattr(quota_mod, "load_plans", lambda path=None: {})
     monkeypatch.setattr(quota_mod, "fetch_all_quotas", lambda cfg, now=None: four_buckets)
+    from tools import usage_budget
+    monkeypatch.setattr(usage_budget, "SNAPSHOT", tmp_path / "usage-budget" / "usage-budget.json")
     monkeypatch.setattr(sys, "argv", ["quota.py", "--snapshot"])
 
     quota_mod.main()
@@ -218,6 +220,8 @@ def test_cli_snapshot_flag(
     assert captured.out.startswith(expected_prefix)
     assert snap_file.is_file()
     assert history_file.is_file()
+    budget_data = json.loads((tmp_path / "usage-budget" / "usage-budget.json").read_text())
+    assert budget_data["rows"]["chatgpt"]["now_remaining"] == four_buckets["codex"].weekly_remaining
 
     snap_data = json.loads(snap_file.read_text(encoding="utf-8"))
     assert set(snap_data["buckets"].keys()) == set(four_buckets.keys())

@@ -478,19 +478,46 @@ def kit_facts(root: Path = ROOT, *, fetch=False, home: Path | None = None,
     return facts
 
 
-def check_kit(raw) -> dict:
+def _kit_core_failure(repo, core_ready):
+    head = repo.get("head")
+    if not head or head == "n/a":
+        return "core:n/a"
+    if not isinstance(head, str) or not re.fullmatch(r"[0-9a-f]{40,64}", head):
+        return "core:unknown-head"
+
+    def git(*args):
+        result = _kit_run(["git", "-C", str(ROOT), *args])
+        return result.stdout.strip() if result is not None and result.returncode == 0 else None
+
+    if git("cat-file", "-t", head) != "commit":
+        return "core:unknown-head"
+    if not core_ready:
+        return "core:n/a"
+    missing = f"{head}..origin/main"
+    behind = git("rev-list", "--count", missing)
+    if behind is None or not behind.isdigit():
+        return "core:n/a"
+    if int(behind):
+        stamps = git("log", "--format=%ct", missing)
+        if not stamps or not all(s.isdigit() for s in stamps.splitlines()):
+            return "core:n/a"
+        if time.time() - min(map(int, stamps.splitlines())) > 24 * 3600:
+            return f"core:behind {behind}"
+    return None
+
+
+def check_kit(raw, *, core_ready=True) -> dict:
     facts = raw if isinstance(raw, dict) else {}
     failed = []
     for name in ("core", "rules", "wikis", "memory"):
         repo = facts.get(name)
         repo = repo if isinstance(repo, dict) else {}
-        if repo.get("status") != "ok":
+        if name == "core":
+            failure = _kit_core_failure(repo, core_ready)
+            if failure:
+                failed.append(failure)
+        elif repo.get("status") != "ok":
             failed.append(f"{name}:{'not-git' if repo.get('status') == 'not-git' else 'n/a'}")
-        elif name == "core":
-            behind, age = repo.get("behind"), repo.get("merge_base_age_hours")
-            if not (type(behind) is int and behind >= 0 and
-                    (behind == 0 or (type(age) in (int, float) and 0 <= age <= 24))):
-                failed.append("core:>24h/n/a")
         elif not (isinstance(repo.get("head"), str) and
                   re.fullmatch(r"[0-9a-f]{40,64}", repo["head"]) and
                   repo["head"] == repo.get("origin_main")):
@@ -1895,7 +1922,7 @@ def _kit_fail(reason: str) -> dict:
     return {"ok": False, "reason": " ".join(reason.split()).replace("|", "/")[:300], "facts": {}}
 
 
-def _collect_peer_kit(host: str) -> dict:
+def _collect_peer_kit(host: str, *, core_ready=True) -> dict:
     """KIT cell for a peer that has a `mesh_ssh` but no admin `ssh` alias (the
     Mac, ADR 0034): its facts come from the read-only `kit` node_dispatch verb.
     A host that does not answer, or answers ok:false, is a red cell with the
@@ -1913,7 +1940,7 @@ def _collect_peer_kit(host: str) -> dict:
     facts = reply.get("result")
     if not isinstance(facts, dict):
         return _kit_fail("kit reply carried no facts")
-    return check_kit(facts)
+    return check_kit(facts, core_ready=core_ready)
 
 
 # ---------------------------------------------------------------------------
@@ -1924,11 +1951,12 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
     combined: dict = {lvl: ({"all": {}} if lvl in SINGLE_LEVELS else {h: {} for h in HOSTS})
                       for lvl in LEVELS}
     running_host = _running_host_guess(ROOT)
+    core_ready = kit_git(ROOT, fetch=True).get("fetch") == "ok"
     for h in HOSTS:
         combined["KIT"][h][h] = check_kit(None)
     if running_host:
         combined["KIT"][running_host][running_host] = check_kit(
-            kit_facts(fetch=getattr(args, "kit_fetch", False), host=running_host))
+            kit_facts(host=running_host), core_ready=core_ready)
 
     if running_host and HAVE_CONFIG:
         combined["L0"][running_host][running_host] = _to_cell(check_l0(ROOT))
@@ -1949,12 +1977,12 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
                 # No admin alias (the Mac): only its KIT is read, through the
                 # `kit` verb. Its other levels stay as they are.
                 if cfg.get("mesh_ssh"):
-                    combined["KIT"][h][h] = _collect_peer_kit(h)
+                    combined["KIT"][h][h] = _collect_peer_kit(h, core_ready=core_ready)
                 continue
             peer = _collect_peer_local(alias, cfg, script_path)
             if not peer:
                 continue
-            combined["KIT"][h][h] = check_kit(peer.get("kit"))
+            combined["KIT"][h][h] = check_kit(peer.get("kit"), core_ready=core_ready)
             l0 = _norm_cell(peer.get("l0"))
             if l0:
                 combined["L0"][h][h] = l0

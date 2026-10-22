@@ -1,7 +1,7 @@
 """Tests for quota snapshot history recorder (tools/quota.py --record).
 
 Covers:
-- two providers -> returns 2, file has 2 lines, each line parses as JSON with exactly 8 fields
+- each bucket produces one JSON line including the raw weekly balance
 - now=datetime(2026, 9, 29, 10, 0, 0, tzinfo=timezone.utc) -> ts == "2026-09-29T10:00:00+00:00"
 - a naive datetime(2026, 9, 29, 10, 0, 0) gives the same ts
 - a Quota with error="boom" and fractions None -> line has "weekly_remaining": null and "error": "boom"
@@ -29,6 +29,7 @@ EXPECTED_FIELDS = {
     "ts",
     "provider",
     "weekly_remaining",
+    "weekly_raw",
     "daily_remaining",
     "weekly_resets_at",
     "daily_resets_at",

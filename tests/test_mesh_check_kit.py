@@ -18,11 +18,14 @@ def git(path, *args):
 
 
 @pytest.fixture
-def checkout(tmp_path):
+def checkout(tmp_path, monkeypatch):
     git(tmp_path, "init", "-q")
     git(tmp_path, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.test",
         "commit", "--allow-empty", "-qm", "fixture")
     git(tmp_path, "update-ref", "refs/remotes/origin/main", "HEAD")
+    git(tmp_path, "remote", "add", "origin", str(tmp_path))
+    git(tmp_path, "branch", "-M", "main")
+    monkeypatch.setattr(m, "ROOT", tmp_path)
     return tmp_path
 
 
@@ -85,12 +88,38 @@ def test_repo_red(checkout, name, failure):
     assert not cell["ok"] and name in cell["reason"]
 
 
-@pytest.mark.parametrize("behind,age,ok", [(0, 1000, True), (1, 24, True),
-                                          (1, 24.01, False), (1, "n/a", False)])
-def test_core_age(checkout, behind, age, ok):
+@pytest.mark.parametrize("count,age,ok", [(0, 145.17, True), (66, 145.17, False),
+                                        (3, 1, True), (1, 24, True), (1, 24.01, False)])
+def test_core_age(checkout, monkeypatch, count, age, ok):
     facts = green(checkout)
-    facts["core"].update(behind=behind, merge_base_age_hours=age)
+    facts["core"].update(behind=0, merge_base_age_hours=145.17)
+    now = 1800000000
+    monkeypatch.setattr(m.time, "time", lambda: now)
+    for i in range(count):
+        # The oldest missing commit need not be the last in traversal order.
+        stamp = now - int(age * 3600) if i == count - 1 else now - 60
+        monkeypatch.setenv("GIT_COMMITTER_DATE", f"{stamp} +0000")
+        git(checkout, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.test",
+            "commit", "--allow-empty", "-qm", f"missing {i}")
+    git(checkout, "update-ref", "refs/remotes/origin/main", "HEAD")
     assert m.check_kit(facts)["ok"] is ok
+    if not ok:
+        assert m.check_kit(facts)["reason"] == f"core:behind {count}"
+    assert facts["core"]["behind"] == 0
+
+
+@pytest.mark.parametrize("head,reason", [("f" * 40, "unknown-head"),
+                                        (None, "n/a"), ("n/a", "n/a")])
+def test_core_missing_or_unknown(checkout, head, reason):
+    facts = green(checkout)
+    facts["core"]["head"] = head
+    cell = m.check_kit(facts)
+    assert not cell["ok"] and cell["reason"] == f"core:{reason}"
+
+
+def test_core_failed_fetch(checkout):
+    cell = m.check_kit(green(checkout), core_ready=False)
+    assert not cell["ok"] and cell["reason"] == "core:n/a"
 
 
 @pytest.mark.parametrize("key,value", [("skills_repo", 119), ("skills_repo", "n/a"),
@@ -237,6 +266,7 @@ def test_wave_and_render(checkout, monkeypatch):
 
 
 def test_default_does_not_write_ledger_or_snapshots(monkeypatch):
+    monkeypatch.setattr(m, "kit_git", lambda *a, **k: {})
     monkeypatch.setattr(m, "HAVE_CONFIG", True)
     monkeypatch.setattr(m, "HOSTS", ["contabo"])
     monkeypatch.setattr(m, "_running_host_guess", lambda root: "contabo")
@@ -549,6 +579,28 @@ class _Peers:
 @pytest.fixture
 def peers(monkeypatch, checkout):
     return _Peers(monkeypatch, checkout, copy.deepcopy(_PEER_CFGS))
+
+
+@pytest.mark.parametrize("fetch_ok", [True, False])
+def test_matrix_fetches_once_and_checks_every_transport(peers, monkeypatch, fetch_ok):
+    original = m._kit_run
+    fetches = []
+
+    def run(argv, **kwargs):
+        if "fetch" in argv:
+            fetches.append(argv)
+            if not fetch_ok:
+                return subprocess.CompletedProcess(argv, 1, "", "")
+        return original(argv, **kwargs)
+
+    monkeypatch.setattr(m, "_kit_run", run)
+    combined, _ = peers.run()
+    assert len(fetches) == 1
+    for host in _PEER_CFGS:
+        cell = combined["KIT"][host][host]
+        assert cell["ok"] is fetch_ok
+        if not fetch_ok:
+            assert cell["reason"] == "core:n/a"
 
 
 def _kit_row(md, host):
