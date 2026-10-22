@@ -40,8 +40,10 @@ Conflict: blocker letter → read the 2 diffs → small: branch + PR + merge
 ## Token rules (CEO 2026-10-14)
 
 - The session stays open and auto-compacts (CEO's choice). Idle costs nothing; turns × context cost everything,
-  so wake only for a CEO message, a `blocker` letter, or a task you delegated finishing. Never poll: no `Monitor`,
-  `ScheduleWakeup`, `sleep` loops or `/loop`.
+  so wake only for a real event (IRON §64): a CEO message or card answer, a `blocker` letter, a task you delegated
+  finishing, failing or stuck. A check runs as a zero-model script and stays silent while nothing changed: no
+  clock `CronCreate`, `ScheduleWakeup` or `/loop`, no `Monitor` re-arm turn. The hourly PH patrol (CEO 2026-10-16)
+  is such a check: `state/patrol/patrol_gate.sh` wakes you only when its flags change.
 - Keep tool output small: `| tail`, `head`, `--json` with only the fields you need; long logs go to a file, read the lines you need.
 - Read only the files the job names (`grep -n`, line ranges). Open a memory sub-index only when the job matches it.
 - No Agent-tool subagents, no artifact unless asked, a browser loop → `browser_operator` (IRON §42).
