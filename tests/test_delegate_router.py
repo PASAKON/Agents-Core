@@ -63,7 +63,7 @@ def test_choice_persists_runner_and_reason(task, pick_runner, monkeypatch):
 
     assert delegate._route_runner(task, "developer", "test-host") == "agy"
 
-    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY)
+    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY, tier="normal")
     after = db_mod.get_task(task["id"])
     assert after["runner"] == "agy"
     assert after["runner_model"] == "claude-sonnet-4-6"
@@ -106,7 +106,7 @@ def test_disabled_router(task, pick_runner, monkeypatch, value):
 def test_no_choice_leaves_row_unchanged(task, pick_runner):
     assert delegate._route_runner(task, "developer", "test-host") is None
 
-    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY)
+    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY, tier="normal")
     assert db_mod.get_task(task["id"]) == task
 
 
@@ -117,7 +117,7 @@ def test_router_error_leaves_row_unchanged(task, pick_runner, monkeypatch):
 
     assert delegate._route_runner(task, "developer", "test-host") is None
 
-    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY)
+    pick_runner.assert_called_once_with("developer", "test-host", touches=ANY, brief=ANY, tier="normal")
     assert db_mod.get_task(task["id"]) == task
     warning.assert_called_once_with(
         "router skipped task=task-router: quota unavailable")

@@ -130,6 +130,24 @@ def write(path=None, history=HISTORY, now=None):
     return data
 
 
+def load_gate_rows(path=None, now=None):
+    """Only a fresh snapshot can close the tier gate; never reconstruct stale data."""
+    try:
+        now = timestamp(now) if now is not None else datetime.now(timezone.utc)
+        data = json.loads(Path(path if path is not None else SNAPSHOT).read_text())
+        age = (now - timestamp(data["ts"])).total_seconds()
+        if not 0 <= age <= 1800 or data["day"] != now.astimezone(THAI).date().isoformat():
+            return None
+        rows = data["rows"]
+        if not isinstance(rows, dict) or not rows or any(
+                not isinstance(r, dict) or r.get("state") not in ("under", "over")
+                for r in rows.values()):
+            return None
+        return {r.get("bucket", key): r for key, r in rows.items()}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+
+
 def load_rows(path=None, history=HISTORY, now=None):
     """Routing is fail-open; cached budgets must also belong to today's Thai day."""
     try:
