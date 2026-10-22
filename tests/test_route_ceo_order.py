@@ -83,7 +83,7 @@ def test_fullest_keeps_the_old_rule(cfg):
 
 def test_live_plans_yaml_runs_argon_codex_claude():
     cfg = load_plans()
-    assert cfg["router"]["order"] == "ceo"
+    assert cfg["router"]["order"] == "budget"  # CEO order + daily target (UsageBudget, 22 Oct)
     for cls in ("tests_edit", "analysis", "doc_text"):
         cands = cfg["roles"][cls]
         assert cands[0] == ARGON, cls
