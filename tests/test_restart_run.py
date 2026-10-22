@@ -18,7 +18,7 @@ REPO = Path(__file__).resolve().parents[1]
 def isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(rr, 'STATE', tmp_path / 'restart')
     monkeypatch.setattr(rr, 'ROOT', tmp_path)
-    monkeypatch.setattr(rr.subprocess, 'run', Mock())
+    monkeypatch.setattr(rr.subprocess, 'run', Mock(return_value=subprocess.CompletedProcess([], 3)))
     monkeypatch.setattr(rr.tmux_session, 'has_session', Mock(return_value=False))
     monkeypatch.setattr(rr.tmux_session, 'create', Mock())
     monkeypatch.setattr(rr.tmux_session, 'capture', Mock(return_value='❯\n────────'))
@@ -60,7 +60,9 @@ def entry(mode='full', role='cto', sid='1234abcd'):
 
 
 def commands():
-    return [call.args[0] for call in rr.subprocess.run.call_args_list]
+    # Read-only scope probes are not launcher/typing actions.
+    return [call.args[0] for call in rr.subprocess.run.call_args_list
+            if call.args[0][:2] != ['systemctl', 'is-active']]
 
 
 @pytest.mark.parametrize('text,expected', [
@@ -378,9 +380,9 @@ def test_direct_script_help():
 
 @pytest.mark.parametrize('missing', [False, True])
 def test_report_notification(tmp_path, missing):
-    manifest([entry()])
+    manifest([entry(role='project_head')])
     if not missing:
-        rr.live_sessions.read_registry.return_value = [dict(role='cto', sid='1234abcd')]
+        rr.live_sessions.read_registry.return_value = [dict(role='project_head', sid='1234abcd')]
     a = args(tmp_path, notify=True)
     assert rr.report(a) == int(missing)
     command = commands()[0]
