@@ -53,10 +53,18 @@ def consent_url(client_id, state, verifier, nonce):
 
 
 def code_from_redirect(pasted, state):
-    url = urllib.parse.urlsplit(pasted.strip())
+    text = pasted.strip()
+    # Phones copy the address bar differently: Chrome upgrades http to https, some browsers drop the
+    # scheme (RUN-20261023-1511-ac62 refused a real paste). The host and port must still be ours, and
+    # the state check below is what binds the code to this run.
+    if "://" not in text:
+        text = "http://" + text
+    url = urllib.parse.urlsplit(text)
     query = urllib.parse.parse_qs(url.query)
-    if (url.scheme, url.netloc, url.path) != ("http", "localhost:8765", "/"):
-        raise Refused("unexpected redirect")
+    if url.scheme not in ("http", "https") or url.netloc not in ("localhost:8765", "127.0.0.1:8765") \
+            or url.path not in ("/", ""):
+        raise Refused(f"unexpected redirect: want localhost:8765/?code=…, got host {url.netloc[:40]!r}, "
+                      f"{len(pasted.strip())} chars pasted")
     if "error" in query or query.get("state") != [state] or len(query.get("code", [])) != 1:
         raise Refused("consent failed or state differs")
     return query["code"][0]

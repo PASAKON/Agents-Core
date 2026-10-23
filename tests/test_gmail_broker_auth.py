@@ -31,7 +31,13 @@ def test_consent_pkce_state_and_exact_scopes():
     assert auth.code_from_redirect("http://localhost:8765/?code=fake&state=state", "state") == "fake"
 
 
-@pytest.mark.parametrize("url", ["http://localhost:8765/?code=fake&state=bad", "http://evil.test/?code=fake&state=state", "http://localhost:8765/?error=secret&state=state", "http://localhost:8765/?code=a&code=b&state=state"])
+@pytest.mark.parametrize("url", ["https://localhost:8765/?code=fake&state=state", "localhost:8765/?code=fake&state=state",
+                                 "  http://127.0.0.1:8765/?state=state&code=fake&scope=email \n", "http://localhost:8765?code=fake&state=state"])
+def test_phone_pastes(url):
+    assert auth.code_from_redirect(url, "state") == "fake"
+
+
+@pytest.mark.parametrize("url", ["http://localhost:8765/?code=fake&state=bad", "http://evil.test/?code=fake&state=state", "https://localhost:9999/?code=fake&state=state", "ftp://localhost:8765/?code=fake&state=state", "http://localhost:8765/?error=secret&state=state", "http://localhost:8765/?code=a&code=b&state=state"])
 def test_bad_redirect(url):
     with pytest.raises(ValueError): auth.code_from_redirect(url, "state")
 
