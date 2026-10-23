@@ -20,7 +20,10 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
 SETUP = ROOT / "tools/infisical_setup.py"
-PROJECT = "Agents-Core"
+# MoonieX-SomPong, not Agents-Core: contabo is a member (write) there and only Viewer on Agents-Core (CEO step
+# pending all day, 23 Oct). Services on this project read the root path only, so /gmail-broker stays out of
+# their environment.
+PROJECT = "MoonieX-SomPong"
 SECRET_PATH = "/gmail-broker"
 TOKEN_NAME = "GOOGLE_GMAIL_REFRESH_TOKEN_RW"
 ACCOUNT = "pass.gob1@gmail.com"

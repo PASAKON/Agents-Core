@@ -64,7 +64,7 @@ connection or `audit_error`: a write may already have reached Google.
    directories or `tools/` / `runners/` files belong to another uid. On Contabo the
    checkout arrived from the Mac as uid 501, so the install card first runs
    `chown root:root` on the checkout directory, `tools/`, `runners/` and those files.
-2. Infisical project `Agents-Core`, environment `prod`, folder `/gmail-broker` holds:
+2. Infisical project `MoonieX-SomPong`, environment `prod`, folder `/gmail-broker` holds:
    - `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`, a copy of the existing
      OAuth client (Google Cloud project moonez-project) from `MoonieX-Console/prod`,
      the one `scripts/gmail-notify-auth.py` uses.
@@ -72,15 +72,15 @@ connection or `audit_error`: a write may already have reached Google.
      both over stdin and prints no value. Rotate both copies together.
    - `GOOGLE_GMAIL_REFRESH_TOKEN_RW`, written by the consent step below.
    PLAN §3b puts runtime credentials in the service project, not Org-Infra. The
-   dedicated folder keeps them from every other `run Agents-Core prod` consumer; it
+   dedicated folder keeps them from every other `run MoonieX-SomPong prod` consumer; it
    is not an authorization wall, since project readers can still read it.
-3. Writing needs an Infisical identity with write on `Agents-Core` (`--writer`,
+3. Writing needs an Infisical identity with write on `MoonieX-SomPong` (`--writer`,
    default `contabo`). The `setup` identity retired and `contabo` is Viewer on every
    project (measured 2026-10-23), so the CEO grants a writer first. Reading always
    uses `--as contabo`.
 4. Prepare a Run card with `--expects-input`, timeout 1800 seconds, running
    `python3 scripts/gmail-broker-auth.py consent --writer <identity>` from that
-   checkout. Its outer process uses `infisical_setup.py run Agents-Core prod --as
+   checkout. Its outer process uses `infisical_setup.py run MoonieX-SomPong prod --as
    contabo --path /gmail-broker -- ...`.
 5. The CEO opens the printed consent link on the phone, approves, and pastes the
    entire localhost redirect address into the Run card. Localhost failing to load
