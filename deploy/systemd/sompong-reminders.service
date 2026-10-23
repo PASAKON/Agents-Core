@@ -1,0 +1,32 @@
+[Unit]
+Description=Durable SomPong LungNote reminder wakes
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=@ROOT@
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStartPre=+/usr/bin/install -d -m 0700 -o sompong-reminders -g sompong-reminders /var/lib/sompong-reminders
+ExecStartPre=+/usr/bin/chown -R --no-dereference sompong-reminders:sompong-reminders /var/lib/sompong-reminders
+ExecStart=/usr/bin/python3 @ROOT@/tools/infisical_setup.py run LungNote-MCP prod --as contabo -- /usr/bin/python3 @ROOT@/tools/infisical_setup.py run MoonieX-SomPong prod --as contabo -- /usr/bin/setpriv --reuid=sompong-reminders --regid=sompong-reminders --clear-groups --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs /usr/bin/python3 @ROOT@/tools/sompong_reminders.py serve
+Restart=always
+RestartSec=5
+StateDirectory=sompong-reminders
+StateDirectoryMode=0700
+UMask=0077
+LimitCORE=0
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/sompong-reminders
+
+[Install]
+WantedBy=multi-user.target
