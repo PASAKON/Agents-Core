@@ -1,0 +1,5 @@
+Add isolated Gmail broker for mailbox review and draft preparation
+
+Constrain Gmail HTTP operations, withhold security mail, validate consent,
+and provide a privilege-dropping Infisical-backed service installer.
+Cover broker and auth boundaries with synthetic offline tests.
