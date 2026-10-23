@@ -457,6 +457,27 @@ StoryBoard      Doc · last edited 12-08-2026
 --- END ---
 ```
 
+## YT: คลิปจีน — staging first, then the project folder (CEO 2026-10-23)
+
+His words: *"เอา Folder ไว้พักงานก่อนหลังจากนั้นค่อยให้ไปจัดเรียงใน Folder Project สำหรับตัดต่ออีกทีนึง"*, and on the
+rules below: *"OK ตามนั้นได้เลย"*. Chinese AI clips for YouTube, **not 18+**, rendered on Colab from Contabo by the
+CMO (`CMO_Procedure_Colab_DirectRender`). Ids are in the map (`CXO_Knowledge_GDrive_FolderMap`).
+
+1. **Every take goes to staging, without asking.** `ALL DRAFT/YT: คลิปจีน/00 พักงาน (Colab)/<YYYY-MM-DD>_<take>/`
+   gets every clip of the take and its `timings.json`, failed and test takes included. Use
+   `python3 scripts/gdrive-bridge/colab_stage.py <take dir> --clear`: it checks each md5 by id (rule 12) and
+   deletes only the local clips that matched (Contabo's disk is small).
+2. **Sort by moving, never by copying.** For the edit, the CMO moves the clips it uses into
+   `YT: คลิปจีน/EP<nn> <ชื่อเรื่อง>/All Scene/` (a move keeps the file id, so no duplicate exists anywhere). The
+   finished cut goes to that EP's `Final Draft/`. A take left in staging is not lost; it is just not sorted yet.
+3. **The CMO creates `EP<nn> <ชื่อเรื่อง>/` and its `All Scene/`, `Final Draft/` and `logs.txt` without asking**
+   (CEO 2026-10-23, an exception to rule 3 for this channel only). Any other new folder still needs the ask.
+4. **Nothing here is deleted.** Failed takes stay, superseded clips take the next `_vN` (rule 11), and
+   `logs.txt` (the 9-field contract of the YT: ILAG branch) says which clip is current and what was wrong
+   with a failed one.
+5. The channel name `YT: คลิปจีน` is a placeholder. When the CEO names the channel, rename the folder (the id
+   stays) and fix the map's tree and table in the same turn (rule 6).
+
 ## Film work, «บัญชี», and recording a new folder or rule
 
 ### Film work: what stays on disk, what goes to Drive, what is simply deleted (CEO 2026-09-23)
