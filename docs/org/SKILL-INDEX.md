@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-62 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 12 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+63 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -61,6 +61,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_Blender_Previz` | CMO | cmo, cto | Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead… |
 | `CMO_Procedure_CharacterSheet` | CMO | cmo, worker | Generate a neutral, reusable AI character reference sheet (white-background emotion grid + one full-body panel) for any film/video project… |
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
+| `CMO_Procedure_Colab_DirectRender` | CMO | cmo, cto | Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac: write one take spec (JSON: scenes, refs… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
 | `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
