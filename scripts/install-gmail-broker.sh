@@ -31,8 +31,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+# No User=/Group= on purpose: with User= set, NoNewPrivileges=true leaves root unable to setresuid, so setpriv fails (measured 2026-10-23). Root is the default.
 WorkingDirectory=$ROOT
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=GMAIL_BROKER_ALLOWED_UIDS=$CALLER_UID
