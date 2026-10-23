@@ -57,7 +57,9 @@ def code_from_redirect(pasted, state):
     # Phones copy the address bar differently: Chrome upgrades http to https, some browsers drop the
     # scheme (RUN-20261023-1511-ac62 refused a real paste). The host and port must still be ours, and
     # the state check below is what binds the code to this run.
-    if "://" not in text:
+    # Only a leading scheme counts: Safari pastes `localhost:8765/?…&scope=https://www.googleapis…`, with
+    # an unencoded "://" in the query (RUN-20261023-1537-b5e9).
+    if not re.match(r"(?i)https?://", text):
         text = "http://" + text
     url = urllib.parse.urlsplit(text)
     query = urllib.parse.parse_qs(url.query)
