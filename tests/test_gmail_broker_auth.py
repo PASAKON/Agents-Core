@@ -32,7 +32,8 @@ def test_consent_pkce_state_and_exact_scopes():
 
 
 @pytest.mark.parametrize("url", ["https://localhost:8765/?code=fake&state=state", "localhost:8765/?code=fake&state=state",
-                                 "  http://127.0.0.1:8765/?state=state&code=fake&scope=email \n", "http://localhost:8765?code=fake&state=state"])
+                                 "  http://127.0.0.1:8765/?state=state&code=fake&scope=email \n", "http://localhost:8765?code=fake&state=state",
+                                 "localhost:8765/?state=state&code=fake&scope=email%20openid%20https://www.googleapis.com/auth/gmail.modify&authuser=0&prompt=consent"])
 def test_phone_pastes(url):
     assert auth.code_from_redirect(url, "state") == "fake"
 
