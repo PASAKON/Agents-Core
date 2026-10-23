@@ -69,7 +69,7 @@ def test_pipe_only_storage(monkeypatch):
     monkeypatch.setattr(auth.subprocess, "run", run)
     auth.store_token(tokens())
     argv, kwargs = calls[0]
-    assert argv[2:7] == ["put", "Agents-Core", "prod", auth.TOKEN_NAME, "--stdin"]
+    assert argv[2:7] == ["put", "MoonieX-SomPong", "prod", auth.TOKEN_NAME, "--stdin"]
     assert "fake-refresh-secret" not in " ".join(argv)
     assert kwargs["input"] == "fake-refresh-secret\n" and kwargs["capture_output"]
     assert argv[argv.index("--as") + 1] == "contabo"
