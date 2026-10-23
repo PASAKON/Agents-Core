@@ -88,7 +88,7 @@ root identity, supplementary groups and capabilities before running the tool.
 No dotenv file is loaded and no credentials are written to disk.
 
 `ProtectSystem=strict`, `ProtectHome`, `NoNewPrivileges`, and a private tmp
-directory restrict the process. `StateDirectory` retains the ledger, and
+directory restrict the process. `ExecStartPre` creates and owns the ledger directory (no `StateDirectory=`: it would be re-owned to root before `ExecStart`), and
 startup restores its ownership after systemd's root bootstrap ownership
 handling. `Restart=always` recovers crashes. Monitor repeated
 `status=pass-failed`, `status=patch-retry`, or unsuccessful HTTP statuses.
