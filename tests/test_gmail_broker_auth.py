@@ -72,6 +72,48 @@ def test_pipe_only_storage(monkeypatch):
     assert argv[2:7] == ["put", "Agents-Core", "prod", auth.TOKEN_NAME, "--stdin"]
     assert "fake-refresh-secret" not in " ".join(argv)
     assert kwargs["input"] == "fake-refresh-secret\n" and kwargs["capture_output"]
+    assert argv[argv.index("--as") + 1] == "contabo"
+
+
+def test_put_child_gets_no_injected_secret_and_failure_is_redacted(monkeypatch):
+    monkeypatch.setenv("GOOGLE_OAUTH_CLIENT_SECRET", "fake-client-secret")
+    monkeypatch.setenv("OTHER_PROJECT_API_KEY", "fake-other")
+    calls = []
+    def run(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return SimpleNamespace(returncode=1, stderr="Infisical API error: echo fake-refresh-secret -> HTTP 403\n")
+    monkeypatch.setattr(auth.subprocess, "run", run)
+    with pytest.raises(auth.Refused) as exc:
+        auth.store_token(tokens(), "gmail-writer")
+    argv, kwargs = calls[0]
+    assert argv[argv.index("--as") + 1] == "gmail-writer"
+    assert "GOOGLE_OAUTH_CLIENT_SECRET" not in kwargs["env"] and "OTHER_PROJECT_API_KEY" not in kwargs["env"]
+    assert "fake-refresh-secret" not in str(exc.value) and "HTTP 403" in str(exc.value)
+
+
+def test_copy_client_pipes_both_values_with_metadata(monkeypatch, capsys):
+    monkeypatch.setenv("GOOGLE_OAUTH_CLIENT_ID", "fake-client")
+    monkeypatch.setenv("GOOGLE_OAUTH_CLIENT_SECRET", "fake-client-secret")
+    calls = []
+    monkeypatch.setattr(auth.subprocess, "run", lambda argv, **kw: calls.append((argv, kw)) or SimpleNamespace(returncode=0))
+    auth.main(["copy-client", "--writer", "gmail-writer", "--inner"])
+    assert [argv[5] for argv, _ in calls] == list(auth.CLIENT_NAMES)
+    assert [kw["input"] for _, kw in calls] == ["fake-client\n", "fake-client-secret\n"]
+    for argv, _ in calls:
+        assert argv[argv.index("--path") + 1] == "/gmail-broker" and argv[argv.index("--as") + 1] == "gmail-writer"
+        assert "fake-client-secret" not in " ".join(argv) and "--comment" in argv
+        metas = {argv[i + 1].split("=", 1)[0] for i, a in enumerate(argv) if a == "--meta"}
+        assert {"provider_name", "console_url", "scope", "expires", "owner"} <= metas
+    assert "fake-client-secret" not in capsys.readouterr().out
+
+
+def test_copy_client_refuses_a_missing_value_and_a_bad_writer(monkeypatch):
+    monkeypatch.delenv("GOOGLE_OAUTH_CLIENT_ID", raising=False)
+    monkeypatch.setattr(auth.subprocess, "run", lambda *a, **k: pytest.fail("nothing may be written"))
+    with pytest.raises(SystemExit):
+        auth.main(["copy-client", "--inner"])
+    with pytest.raises(SystemExit):
+        auth.main(["consent", "--writer", "Bad Name;rm", "--inner"])
 
 
 def test_exchange_mocked_http(monkeypatch):
@@ -102,7 +144,7 @@ def test_full_consent_stores_only_valid_grant(monkeypatch, capsys, valid):
     token = tokens() if valid else tokens(email="wrong@example.test")
     monkeypatch.setattr(auth, "exchange", lambda *args: token)
     stored = []
-    monkeypatch.setattr(auth, "store_token", stored.append)
+    monkeypatch.setattr(auth, "store_token", lambda token, writer="contabo": stored.append(token))
     if valid:
         auth.main(["--inner"])
         assert stored == [token]

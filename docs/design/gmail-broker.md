@@ -60,25 +60,29 @@ connection or `audit_error`: a write may already have reached Google.
 
 ## Credential provisioning and consent
 
-1. Use a trusted root-owned checkout. Provision Infisical project `Agents-Core`,
-   environment `prod`, folder `/gmail-broker`. Place the existing OAuth client's
-   `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` there through the
-   approved secret-entry workflow. It is the same client used by the existing
-   notification auth helper; do not create another client or copy its credentials
-   into this repository. No auth helper automatically reads legacy env files.
-2. The new credential is `GOOGLE_GMAIL_CONTABO_REFRESH_TOKEN_RW` in that folder.
-   PLAN §3b puts runtime credentials in the service project, not Org-Infra; the
-   name identifies provider, job, host, credential kind and access. The dedicated
-   folder prevents unrelated `run Agents-Core prod` consumers from receiving it.
-   This is an explicit runtime namespace addition to the plan's root convention.
-   Infisical project readers can still read it: folders are not authorization walls.
-3. Prepare a Run card with `--expects-input`, timeout 1800 seconds, invoking
-   `python3 scripts/gmail-broker-auth.py` from that trusted checkout. Its outer
-   process uses `infisical_setup.py run Agents-Core prod --as contabo --path
-   /gmail-broker -- ...`. Root needs the Contabo identity to read; storage uses the
-   existing `put` writer identity (default `setup`), which must be provisioned and
-   authorized. The read-only Contabo identity cannot perform the write.
-4. The CEO opens the printed consent link on the phone, approves, and pastes the
+1. Use a trusted root-owned checkout. The installer refuses a checkout whose
+   directories or `tools/` / `runners/` files belong to another uid. On Contabo the
+   checkout arrived from the Mac as uid 501, so the install card first runs
+   `chown root:root` on the checkout directory, `tools/`, `runners/` and those files.
+2. Infisical project `Agents-Core`, environment `prod`, folder `/gmail-broker` holds:
+   - `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`, a copy of the existing
+     OAuth client (Google Cloud project moonez-project) from `MoonieX-Console/prod`,
+     the one `scripts/gmail-notify-auth.py` uses.
+     `python3 scripts/gmail-broker-auth.py copy-client --writer <identity>` copies
+     both over stdin and prints no value. Rotate both copies together.
+   - `GOOGLE_GMAIL_REFRESH_TOKEN_RW`, written by the consent step below.
+   PLAN §3b puts runtime credentials in the service project, not Org-Infra. The
+   dedicated folder keeps them from every other `run Agents-Core prod` consumer; it
+   is not an authorization wall, since project readers can still read it.
+3. Writing needs an Infisical identity with write on `Agents-Core` (`--writer`,
+   default `contabo`). The `setup` identity retired and `contabo` is Viewer on every
+   project (measured 2026-10-23), so the CEO grants a writer first. Reading always
+   uses `--as contabo`.
+4. Prepare a Run card with `--expects-input`, timeout 1800 seconds, running
+   `python3 scripts/gmail-broker-auth.py consent --writer <identity>` from that
+   checkout. Its outer process uses `infisical_setup.py run Agents-Core prod --as
+   contabo --path /gmail-broker -- ...`.
+5. The CEO opens the printed consent link on the phone, approves, and pastes the
    entire localhost redirect address into the Run card. Localhost failing to load
    on the phone is expected. State, PKCE and nonce bind the exchange; only the
    task-mandated account is accepted. No account override exists. Scope must be
@@ -87,8 +91,8 @@ connection or `audit_error`: a write may already have reached Google.
    extra permissions, unverified/wrong identity, or missing refresh token fail closed.
    The ID token comes directly from Google's TLS token endpoint, and issuer,
    audience, expiry, nonce and verified email are checked.
-5. The helper pipes the refresh token to `infisical_setup.py put ... --stdin --path
-   /gmail-broker`; no token appears in argv, output, or files. It prints the Testing
+6. The helper pipes the refresh token to `infisical_setup.py put ... --stdin --path
+   /gmail-broker --as <writer>`; no token appears in argv, output, or files. It prints the Testing
    warning: a consent screen in Testing status expires the token after 7 days.
    Adjust consent publishing through the normal Google approval process and repeat
    consent when needed. No test mail is created. Existing broader grants may need

@@ -28,7 +28,7 @@ from dataclasses import dataclass
 MAX_REQUEST = 16 * 1024 * 1024
 MAX_ATTACHMENT = 15 * 1024 * 1024
 MAX_DRAFT_ATTACHMENTS = 10 * 1024 * 1024
-TOKEN_NAME = "GOOGLE_GMAIL_CONTABO_REFRESH_TOKEN_RW"
+TOKEN_NAME = "GOOGLE_GMAIL_REFRESH_TOKEN_RW"
 SECURITY_PATTERNS = re.compile(
     r"verification\s*code|\botp\b|รหัส\s*OTP|รหัสยืนยัน|รหัสผ่าน|"
     r"reset\s+(?:your\s+)?password|password\s*reset|รีเซ็ตรหัสผ่าน|"
