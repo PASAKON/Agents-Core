@@ -38,7 +38,7 @@ Environment=GMAIL_BROKER_ALLOWED_UIDS=$CALLER_UID
 Environment=GMAIL_BROKER_SOCKET_PATH=/run/mailbroker/gmail.sock
 Environment=GMAIL_BROKER_LOG_DIR=/var/log/mailbroker
 ExecStartPre=+/usr/bin/install -d -m 0750 -o mailbroker -g mailbroker /run/mailbroker
-ExecStart=/usr/bin/python3 $ROOT/tools/infisical_setup.py run Agents-Core prod --as contabo --path /gmail-broker -- /usr/bin/setpriv --reuid=mailbroker --regid=mailbroker --clear-groups --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs /usr/bin/python3 $ROOT/runners/gmail_broker.py
+ExecStart=/usr/bin/python3 $ROOT/tools/infisical_setup.py run MoonieX-SomPong prod --as contabo --path /gmail-broker -- /usr/bin/setpriv --reuid=mailbroker --regid=mailbroker --clear-groups --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs /usr/bin/python3 $ROOT/runners/gmail_broker.py
 Restart=on-failure
 RestartSec=5
 UMask=0077

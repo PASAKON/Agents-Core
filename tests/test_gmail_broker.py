@@ -376,7 +376,7 @@ def test_installer_dry_run_unit_and_root_refusal():
     text = result.stdout
     assert "ExecStartPre=+/usr/bin/install -d" in text and "ReadWritePaths=-/run/mailbroker" in text
     assert "--reuid=mailbroker --regid=mailbroker --clear-groups" in text
-    assert "run Agents-Core prod --as contabo --path /gmail-broker" in text
+    assert "run MoonieX-SomPong prod --as contabo --path /gmail-broker" in text
     assert "EnvironmentFile=" not in text and "GMAIL_BROKER_ALLOWED_UIDS=0\n" not in text
     refused = subprocess.run(["bash", str(script), "install", "--dry-run", "--caller-user", "root"], capture_output=True, text=True)
     assert refused.returncode != 0
