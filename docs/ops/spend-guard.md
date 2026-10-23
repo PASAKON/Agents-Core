@@ -13,6 +13,14 @@ Phases 2–3 and the consumer table are in `docs/plans/spend-guard-2026-10-14.md
 | fal.ai | `GET rest.alpha.fal.ai/billing/user_balance` gives the prepaid balance as a bare number. The documented `api.fal.ai/v1/account/billing?expand=credits` is the fallback: from Contabo's IP `api.fal.ai` answers a Vercel challenge (403, HTML) even with no key (task-b1b251f0) | `FAL_BILLING_API_KEY_RO`, preset BILLING (read-only) |
 | Google Cloud | nothing yet. No billing account exists (the CEO's call). Plan §5 | — |
 
+The legacy fal `user_balance` response is trusted only when positive. The CMO's 23 Oct 2026 report found
+all 913 snapshots since 14 Oct reporting `ok: true` and balance `0.0`, while the CEO's dashboard at
+21:35 TH on 23 Oct showed $8.97 in credits, $1.47 spent, and 56 requests over the last 7 days.
+Zero (or a negative balance) therefore requires the documented billing endpoint to confirm the balance;
+any numeric balance from that endpoint is used. If it also fails, the reading is unknown, with both
+sources named in the error. The CEO receives a blind/cannot-read alert, never a fabricated $0 balance;
+that failed reading does not update spend or trigger a spend-stop action.
+
 A key is always named by its **name** on the provider page and the first 8 characters of its hash. OpenRouter's
 `label` field is a piece of the key, so it is never logged, stored or mailed.
 

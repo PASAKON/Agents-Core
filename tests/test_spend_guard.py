@@ -490,7 +490,7 @@ def test_fal_http_error_and_a_missing_key_are_blind(store):
     code, summary = check(store, fake, hub, CFO_AT, env=env)
     assert code == sg.EXIT_BLIND
     assert "no OPENROUTER_API_KEY_ADMIN" in summary["providers"]["openrouter"]["blind"]
-    assert summary["providers"]["fal"]["blind"] == ("user_balance HTTP 503; "
+    assert summary["providers"]["fal"]["blind"] == ("fal balance unknown: user_balance HTTP 503; "
                                                     "billing HTTP 503: service unavailable")
     assert {"openrouter/blind", "fal/blind"} <= set(summary["mail"])
 
@@ -631,9 +631,10 @@ def test_the_units():
 
 
 def test_fal_reads_the_legacy_balance_and_never_touches_the_challenged_host():
-    fake = Providers()
+    fake = Providers(fal=5.0)
     fake.down.add("fal-challenge")
     got = sg.read_fal(FAL_KEY, fake)
+    assert got["ok"] is True
     assert got["balance"] == fake.fal
     assert not [c for c in fake.calls if "api.fal.ai" in c[1]]
 
@@ -650,8 +651,67 @@ def test_fal_challenged_and_legacy_down_is_blind_with_both_reasons():
     fake.down |= {"fal-rest", "fal-challenge"}
     with pytest.raises(sg.ProviderError) as e:
         sg.read_fal(FAL_KEY, fake)
-    assert str(e.value) == "user_balance HTTP 503; billing HTTP 403"
+    assert str(e.value) == "fal balance unknown: user_balance HTTP 503; billing HTTP 403"
     assert FAL_KEY not in str(e.value)
+
+
+@pytest.mark.parametrize("legacy", [0, -1])
+@pytest.mark.parametrize("balance", [8.97, 0])
+def test_fal_nonpositive_legacy_uses_documented_balance(legacy, balance):
+    calls = []
+
+    def http(method, url, headers, body):
+        calls.append(url)
+        if url == f"{sg.FAL_REST}/billing/user_balance":
+            return 200, legacy
+        assert url == f"{sg.FAL}/account/billing?expand=credits"
+        return 200, {"credits": {"current_balance": balance}}
+
+    got = sg.read_fal(FAL_KEY, http)
+    assert got["ok"] is True and got["balance"] == balance
+    assert len(calls) == 2
+
+
+@pytest.mark.parametrize("legacy", [0, -1])
+def test_fal_untrusted_balance_and_challenge_are_failed_readings(legacy):
+    fake = Providers(fal=legacy)
+    fake.down.add("fal-challenge")
+    got = sg.read_all(ENV, config(), fake)["fal"]
+    assert got == {"ok": False, "error": (
+        f"fal balance unknown: user_balance answered {legacy} (not trusted); billing HTTP 403")}
+
+
+@pytest.mark.parametrize("credits", [None, {}, "invalid"])
+def test_fal_missing_documented_balance_names_both_sources(credits):
+    def http(method, url, headers, body):
+        if "rest.alpha.fal.ai" in url:
+            return 200, 0
+        return 200, {"credits": credits}
+
+    got = sg.read_all({"FAL_BILLING_API_KEY_RO": FAL_KEY}, config(), http)["fal"]
+    assert got["ok"] is False
+    assert got["error"] == ("fal balance unknown: user_balance answered 0 (not trusted); "
+                            "billing: no credits.current_balance in the answer")
+
+
+def test_fal_unknown_is_reported_to_ceo_without_balance_or_pause(store):
+    fake, hub = Providers(credits=100, usage=0, keys={}, fal=0), Hub()
+    fake.down.add("fal-challenge")
+    cfg = config(pause={"mode": "armed"})
+    code, summary = check(store, fake, hub, CFO_AT, cfg=cfg)
+    assert code == sg.EXIT_BLIND
+    assert summary["mail"] == ["fal/blind"]
+    assert "balance" not in summary["providers"]["fal"]
+    assert "unknown" in hub.mails[0]["title"]
+    assert "$0" not in json.dumps(hub.mails, ensure_ascii=False)
+    assert fake.writes() == [] and hub.cards == []
+    assert store.snapshots()[-1]["fal"]["ok"] is False
+    assert "spend_cum" not in store.snapshots()[-1]["fal"]
+    assert "fal" not in store.load_state()["cycles"]
+    assert "blind" in sg.status(store, cfg, CFO_AT)["last"]["fal"]
+    sg.test_alert(env=ENV, cfg=cfg, store=store, http=fake, post=hub.post, now=CFO_AT)
+    assert "อ่านไม่ได้" in hub.mails[-1]["title"]
+    assert "$0" not in json.dumps(hub.mails[-1], ensure_ascii=False)
 
 
 def test_shipped_config_never_auto_pauses_the_shared_moonie_x_key():
