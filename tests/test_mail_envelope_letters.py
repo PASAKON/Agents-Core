@@ -1167,10 +1167,8 @@ def test_node_dispatch_fyi_and_report_from_another_host_never_wake_a_c_level_box
     assert far_side == [] and len(_raw(inbox / "cto-s1")) == 2, "delivered, not woken"
     out = nd._write_clevel_letter({"to_session": "s1", "body": "ask · urgent · which branch?",
                                    "from_role": "cmo", "from_session": "c1"}, "cto")
-    # as before: a far-side letter is stored message/normal, so flag on it waits for the batch
-    assert out["woke"] is (not flag) and len(far_side) == (0 if flag else 1)
-    if flag:
-        assert "ORG_WAKE_DEBOUNCE_S" in out["why"], "held by the debounce, not by the fyi/report rule"
+    # The far side files an ask or blocker as urgent (mailbox.URGENT_KINDS).
+    assert out["woke"] is True and len(far_side) == 1
 
 
 def test_node_dispatch_passes_the_kind_to_wake_due(far_side, inbox, on, sweeper, monkeypatch):
