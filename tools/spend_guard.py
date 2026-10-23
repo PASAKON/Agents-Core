@@ -287,19 +287,22 @@ def read_fal(key: str, http: Http) -> dict:
     try:
         status, got = http("GET", f"{FAL_REST}/billing/user_balance", auth, None)
         bal = _num(got) if status == 200 else None
-        if bal is not None:
+        if bal is not None and bal > 0:
             return {"ok": True, "balance": bal, "currency": "USD", "account": ""}
-        first = f"user_balance HTTP {status}" if status != 200 else "user_balance: not a number"
+        if bal is not None:
+            first = f"user_balance answered {bal:g} (not trusted)"
+        else:
+            first = f"user_balance HTTP {status}" if status != 200 else "user_balance: not a number"
     except ProviderError as e:
         first = f"user_balance {e}"
     try:
         got = _get_json(http, f"{FAL}/account/billing?expand=credits", auth, "billing")
+        credits = got.get("credits")
+        bal = _num(credits.get("current_balance")) if isinstance(credits, dict) else None
+        if bal is None:
+            raise ProviderError("billing: no credits.current_balance in the answer")
     except ProviderError as e:
-        raise ProviderError(f"{first}; {e}") from None
-    credits = got.get("credits") or {}
-    bal = _num(credits.get("current_balance"))
-    if bal is None:
-        raise ProviderError("billing: no credits.current_balance in the answer")
+        raise ProviderError(f"fal balance unknown: {first}; {e}") from None
     return {"ok": True, "balance": bal, "currency": credits.get("currency") or "USD",
             "account": got.get("username") or ""}
 
