@@ -836,6 +836,13 @@ def send(role: str, message: str, sender: str | None = None, *,
     label = _sender_label(sender_identity, sender)
     _log_hop(sender_identity, role, sid)
     from_role, from_sid = _mailbox_identity(sender_identity)
+    effective_kind = mailbox.letter_kind(kind, message)
+    quiet_note = (
+        f"\nnote: a {effective_kind} letter never wakes {display_for(role)}; "
+        "it waits for the CEO's next prompt. If it must be acted on now, "
+        "send it again as kind blocker (body starting `blocker · `)."
+        if mailbox.quiet_for(role, effective_kind) else ""
+    )
     if remote is not None:
         host = remote[0]
         lid = db.create_letter(host, role, message, to_session=sid,
@@ -844,7 +851,7 @@ def send(role: str, message: str, sender: str | None = None, *,
         target = f"{display_for(role)} #{sid}"
         # the letters row has no subject column: the far side stands the
         # body's first 80 characters in (node_dispatch._write_clevel_letter)
-        note = _subject_note(None, message) + _remote_kind_note(kind, prio)
+        note = _subject_note(None, message) + _remote_kind_note(kind, prio) + quiet_note
         if dispatch_letter(lid) == "delivered":
             return f"delivered to {target} on {host}: [{label}] : {message}" + note
         # Not an error: the row stays pending and the watchdog retries it.
@@ -857,7 +864,7 @@ def send(role: str, message: str, sender: str | None = None, *,
     wake_for_letter(role, sid, label, mailbox.letter_prio(kind, prio),
                     mailbox.letter_kind(kind, message))
     return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
-            + _subject_note(subject, message))
+            + _subject_note(subject, message) + quiet_note)
 
 
 # Org restructure P2: a C-level briefs a Project Head as role
