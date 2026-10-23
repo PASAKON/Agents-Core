@@ -141,27 +141,36 @@ def mcp_send(arguments: dict, env: dict | None = None) -> dict:
 def due_todos(now: datetime, env: dict | None = None, fetch=None) -> list[dict]:
     """His open LungNote to-dos with due_at in [now, now + 24 h], soonest first. The PostgREST creds come
     from the environment (Infisical LungNote-MCP/prod through `infisical_setup.py run`), never a file."""
+    return lungnote_request([
+        ("done", "eq.false"),
+        ("due_at", f"gte.{now.isoformat()}"), ("due_at", f"lte.{(now + timedelta(hours=24)).isoformat()}"),
+        ("select", "id,text,due_at,due_text"), ("order", "due_at.asc"), ("limit", str(FEED_MAX)),
+    ], env, fetch)
+
+
+def lungnote_request(query: list[tuple[str, str]], env: dict | None = None, fetch=None,
+                     *, body: dict | None = None):
+    """Shared PostgREST transport; credentials are supplied only through the environment."""
     env = os.environ if env is None else env
     url, key, uid = (env.get(n, "") for n in LUNGNOTE_ENV)
     if not (url and key and uid):
         raise HubError(f"{' / '.join(LUNGNOTE_ENV)} not in the environment: run under "
                        "infisical_setup.py run LungNote-MCP prod")
-    query = urllib.parse.urlencode([
-        ("user_id", f"eq.{uid}"), ("done", "eq.false"),
-        ("due_at", f"gte.{now.isoformat()}"), ("due_at", f"lte.{(now + timedelta(hours=24)).isoformat()}"),
-        ("select", "id,text,due_at,due_text"), ("order", "due_at.asc"), ("limit", str(FEED_MAX)),
-    ])
+    query = urllib.parse.urlencode([("user_id", f"eq.{uid}"), *query])
     req = urllib.request.Request(f"{url.rstrip('/')}/rest/v1/lungnote_todos?{query}",
-                                 headers={"apikey": key, "Authorization": f"Bearer {key}"})
+                                 data=None if body is None else json.dumps(body).encode(),
+                                 method="GET" if body is None else "PATCH",
+                                 headers={"apikey": key, "Authorization": f"Bearer {key}",
+                                          "Content-Type": "application/json", "Prefer": "return=representation"})
     if fetch is not None:
         return fetch(req)
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
-            return json.load(resp)
+            return json.loads(resp.read() or b"[]")
     except urllib.error.HTTPError as e:
         raise HubError(f"LungNote refused: HTTP {e.code}") from None
     except (urllib.error.URLError, OSError) as e:
-        raise HubError(f"LungNote unreachable: {getattr(e, 'reason', e)}") from None
+        raise HubError("LungNote unreachable") from None
 
 
 def _thai_when(due_at: str) -> str:
