@@ -1307,7 +1307,7 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     body = letter["body"]
     subject, warning = mailbox.resolve_subject(letter.get("subject"), body)
     ceo = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
-    prio = "urgent" if ceo else "normal"
+    prio = "urgent" if ceo or kind in mailbox.URGENT_KINDS else "normal"
     path = mailbox.send(role, sid, body, from_role, from_sid, subject=subject,
                         kind="message", prio=prio)
     if not path.is_file():
