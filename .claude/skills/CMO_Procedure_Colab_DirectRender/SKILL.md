@@ -84,3 +84,13 @@ The live test was card RUN-20261023-0944-96fe:
 - **Cost:** the whole card cost 0.73 CU (1070.56 → 1069.83).
 
 ## Field notes
+
+- 2026-10-25 [MISSING] §Spec — Use studio mode (`studio:true`, `h3_model:studio_bf16`, quality 1080p, G4 → H100, 5 s scenes, ≤5 refs, 1-based `index`, `chain.from` = the previous scene's index). `"workflow":"r2v"` gives the soft 1-pass draft · evidence: ep01-a1-pilot vs ep01-a1s-hallA2 · status: pending
+- 2026-10-25 [MISSING] §Preflight — NudeNet must be installed in the runner venv. Without it `scan_failed` deletes a clip that was already paid for. Test with `scan_frames.py --clip <old clip>` first · evidence: ep01-s04-studio · status: pending
+- 2026-10-25 [MISSING] §Cost — A 5 s scene on G4 costs ~0.44 CU and takes ~3 min wall, plus ~0.8 CU / ~5 min setup per take. Measured: hallB 29 scenes 12.86 CU, flash 33 scenes 14.06 CU · evidence: take_*/progress.json · status: pending
+- 2026-10-25 [MISSING] §Scan — NudeNet scores fully-clothed robed crowds and red lantern rooms 0.26–0.74, so ~40–50% of scenes are quarantined. Since PR #33 the take continues; every quarantined clip is checked by eye at review · evidence: arc1_quarantine_sheet2.jpg · status: pending
+- 2026-10-25 [WRONG] §Prompt — A builder that attaches only the refs a prompt cites as `<Picture N>` drops the hero when the prompt says "the boy". H3 then invents a child, and the location plate is lost, giving a grey studio background. Always attach the hero + location plate, write "young man", and add "adult young man of 18, never a child" · evidence: ep01 QC sheet, re-shoot take ep01-a1s-fix1 (19 scenes) · status: pending
+- 2026-10-25 [WRONG] §Prompt — The negation tail "no red cheeks, no red ears" still let red cheeks through on emotional close-ups (S09a, S62). Use "no flushed or pink face; pale neutral skin" and check close-ups by eye · evidence: qc1_sheet, ep01-a1s-fix1 · status: pending
+- 2026-10-25 [MISSING] §Chain — A continuation clip includes its 22 overlap frames (SSIM 0.993 against the tail of the previous clip). Trim `start_frame=22` and 0.9167 s of audio in the edit · evidence: cut/full.py · status: pending
+- 2026-10-25 [MISSING] §Retry — "Session '…' not found" can come back at upload with 0 CU spent. Retry on it the same as on "failed vm" · evidence: take_hallB, take_flash run.log · status: pending
+- 2026-10-25 [MISSING] §Plates — ChatGPT on winbox:9224 behind a Cloudflare page shows up as attach timeouts and then `signed_out`. Probe the tab title first. Also, run_take refuses refs that are symlinks pointing outside `uploads_dir` · evidence: rq-efc75fe6, arc23 dry-run · status: pending
