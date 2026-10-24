@@ -1,0 +1,1 @@
+- [2026-10-24 Donghua narration formula](2026-10-24-donghua-narration-formula.md) — [M] cached-caption long-form samples and top-nine metadata audit; [U] provisional original-story formula, audiovisual and third-channel validation incomplete; blocked Wiki delivery · refresh_after: 2026-10-31
