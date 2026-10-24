@@ -1,5 +1,6 @@
 """No real tmux, launchers, sleeps, or hub access."""
 import argparse
+from datetime import timedelta
 import json
 import os
 from pathlib import Path
@@ -245,6 +246,42 @@ def test_dry_run(tmp_path):
     rr.tmux_session.capture.assert_not_called()
 
 
+@pytest.mark.parametrize('marker_present', [False, True])
+@pytest.mark.parametrize('hours,dry', [(7, False), (1, False), (7, True)])
+def test_prep_pending_manifest_age(tmp_path, monkeypatch, capsys, marker_present, hours, dry):
+    current = rr.now()
+    monkeypatch.setattr(rr, 'now', lambda: current)
+    timestamp = current - timedelta(hours=hours)
+    path = manifest([entry()])
+    marker = rr.STATE / 'pending-contabo.json'
+    if marker_present:
+        marker.write_text(json.dumps(dict(manifest=str(path), timestamp=timestamp.isoformat())))
+    else:
+        marker.unlink()
+        os.utime(path, (timestamp.timestamp(), timestamp.timestamp()))
+    before = {p.name: p.read_bytes() for p in rr.STATE.iterdir()}
+    a = args(tmp_path)
+    a.dry_run = dry
+    if hours < rr.STALE_HOURS:
+        with pytest.raises(ValueError, match='pending resume manifest exists'):
+            rr.prep(a)
+        assert path.read_bytes() == before[path.name]
+        assert marker.exists() == marker_present
+        assert not list(rr.STATE.glob('*stale-*'))
+    else:
+        assert rr.prep(a) == 0
+        if dry:
+            assert {p.name: p.read_bytes() for p in rr.STATE.iterdir()} == before
+            assert 'would retire stale manifest:' in capsys.readouterr().out
+        else:
+            stale, = rr.STATE.glob('*stale-*')
+            assert stale.read_bytes() == before[path.name]
+            assert json.loads(path.read_text()) == []
+            assert json.loads(marker.read_text())['timestamp'] == current.isoformat()
+            assert f'retired stale manifest: {stale} (from {timestamp.isoformat()})' in capsys.readouterr().out
+    assert not commands()
+
+
 def test_fresh_plan(tmp_path):
     a = args(tmp_path)
     a.plan = None
@@ -427,13 +464,15 @@ def test_relay_open_reads_console_cli(monkeypatch):
     assert rr.relay_open() is None
 
 
-def _shell(tmp_path, *argv, fail=''):
+def _shell(tmp_path, *argv, fail='', prep_marker=False):
     """Run a copy of org-restart.sh with HOME unset and a logging org-python.sh."""
     scripts = tmp_path / 'scripts'
     (scripts / 'hub').mkdir(parents=True)
     (scripts / 'org-restart.sh').write_text((REPO / 'scripts/org-restart.sh').read_text())
     (scripts / 'hub/org-python.sh').write_text(
         'echo "$HOME|$*" >> "$CALL_LOG"\n'
+        + ('case " $* " in *" prep "*) touch state/restart/pending-contabo.json;; esac\n'
+           if prep_marker else '') +
         'case " $* " in *" $FAIL "*) exit 4;; esac\n')
     bindir = tmp_path / 'bin'
     bindir.mkdir()
@@ -465,10 +504,22 @@ def test_restart_shell_sessions_only_resumes_without_reboot(tmp_path):
 
 
 def test_restart_shell_sessions_only_rolls_back_when_prep_fails(tmp_path):
-    result, calls = _shell(tmp_path, '--sessions-only', fail='prep')
+    result, calls = _shell(tmp_path, '--sessions-only', fail='prep', prep_marker=True)
     assert result.returncode == 4
     assert calls[-1].endswith('--host contabo resume')
     assert not any('--notify' in c or c.startswith('systemd-run') for c in calls)
+
+
+@pytest.mark.parametrize('preexisting', [False, True])
+def test_restart_shell_failed_prep_does_not_resume_old_manifest(tmp_path, preexisting):
+    if preexisting:
+        marker = tmp_path / 'state/restart/pending-contabo.json'
+        marker.parent.mkdir(parents=True)
+        marker.write_text('{}')
+    result, calls = _shell(tmp_path, '--sessions-only', fail='prep')
+    assert result.returncode == 4
+    assert len(calls) == 1
+    assert ('fallback resume skipped: marker predates this run' in result.stdout) == preexisting
 
 
 def test_resume_unit_sets_home():

@@ -27,6 +27,9 @@ mkdir -p state/restart
 exec 9>state/restart/operation.lock
 flock -n 9 || { echo 'Another restart/clean operation is active'; exit 1; }
 P=(bash scripts/hub/org-python.sh tools/restart_run.py --host "$host")
+marker="state/restart/pending-$host.json"
+marker_existed=false
+[[ ! -e "$marker" ]] || marker_existed=true
 if "${P[@]}" prep --wait-max 600 "${dry[@]}"; then
   if (( ${#dry[@]} )); then
     echo "dry run: would $([[ $mode == reboot ]] && echo 'reboot in 90 s' || echo 'resume + report --notify')"
@@ -41,7 +44,13 @@ if "${P[@]}" prep --wait-max 600 "${dry[@]}"; then
 else
   status=$?
   echo "Restart refused: prep exited $status; review the safety-gate output above."
-  # Bring back whatever prep already closed; resume is a no-op without its marker.
-  if [[ $mode == sessions && ${#dry[@]} -eq 0 ]]; then "${P[@]}" resume || true; fi
+  # Bring back only sessions covered by this prep's recovery marker.
+  if [[ $mode == sessions && ${#dry[@]} -eq 0 ]]; then
+    if [[ $marker_existed == true ]]; then
+      echo 'fallback resume skipped: marker predates this run'
+    elif [[ -e "$marker" ]]; then
+      "${P[@]}" resume || true
+    fi
+  fi
   exit "$status"
 fi

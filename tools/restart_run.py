@@ -23,6 +23,7 @@ from tools import live_sessions, restart_plan, session_status, tmux_session
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state/restart"
+STALE_HOURS = 6
 MESSAGE = "ระบบ restart เสร็จแล้ว ทำงานต่อจากเดิม"
 SGR = re.compile(r"\x1b\[([0-9;]*)m")
 
@@ -251,8 +252,22 @@ def prep(args):
                                  mode='lazy' if action == 'resume_lazy' else 'full'))
     # Persist recovery intent before the first destructive operation.
     manifest_path = STATE / f'{args.host}-resume.json'
-    if manifest_path.exists() or (STATE / f'pending-{args.host}.json').exists():
-        raise ValueError('pending resume manifest exists; resume/report it before another prep')
+    marker = STATE / f'pending-{args.host}.json'
+    if manifest_path.exists() or marker.exists():
+        timestamp = (datetime.fromisoformat(json.loads(marker.read_text())['timestamp'])
+                     if marker.exists() else
+                     datetime.fromtimestamp(manifest_path.stat().st_mtime, timezone.utc))
+        if (now() - timestamp).total_seconds() <= STALE_HOURS * 3600:
+            raise ValueError('pending resume manifest exists; resume/report it before another prep')
+        stale_path = manifest_path.with_name(f'{args.host}-resume.stale-{stamp()}.json')
+        if args.dry_run:
+            print(f'would retire stale manifest: {manifest_path} -> {stale_path} '
+                  f'(from {timestamp.isoformat()}); unlink {marker}')
+        else:
+            if manifest_path.exists():
+                manifest_path.rename(stale_path)
+            marker.unlink(missing_ok=True)
+            print(f'retired stale manifest: {stale_path} (from {timestamp.isoformat()})')
     write_json(manifest_path, manifest, args.dry_run)
     write_json(STATE / f'pending-{args.host}.json',
                dict(manifest=str(manifest_path.resolve()), timestamp=now().isoformat()), args.dry_run)
