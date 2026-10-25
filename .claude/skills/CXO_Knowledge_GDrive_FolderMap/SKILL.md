@@ -154,8 +154,9 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                          until the CEO names the channel (rename keeps the id). Rules: CXO_Rules_GDrive_Filing §YT: คลิปจีน.
 │   │   ├── 00 พักงาน (Colab)/     staging: every take lands here first as `<YYYY-MM-DD>_<take>/` (NN.mp4 + timings.json),
 │   │   │                          md5 by id (scripts/gdrive-bridge/colab_stage.py); emptied only by MOVING clips out
-│   │   └── EP<nn> <ชื่อเรื่อง>/   one per story, the CMO creates it without asking (CEO 2026-10-23): All Scene/,
-│   │                              Final Draft/, logs.txt
+│   │   ├── EP<nn> <ชื่อเรื่อง>/   one per story, the CMO creates it without asking (CEO 2026-10-23): All Scene/,
+│   │   │                          Final Draft/, logs.txt
+│   │   └── EP01 ลูกคิดประเมินฟ้า/  created 2026-10-25 by CMO ef04792e: All Scene/, Final Draft/ (arc cuts TH+EN), logs.txt
 │   ├── YT: TRADER UNCUT/          NEW 2026-08-05. New YouTube+TikTok channel
 │   │   ├── EP1 | .../             (Jadoodoo/KOSPI crash) → Final Draft/,
 │   │   │                          Audio/, Rawcut/, Thumbnail/, Script (doc)
@@ -501,6 +502,7 @@ Google Drive (root) — pass.gob1@gmail.com
 | `ALL DRAFT/TRADE TO THE MOON` | `11YGzdDAtKyJVSS9VkKyX9on8_AmQ6A18` | Confirmed 2026-08-05 — same pattern as `BLACK LIQUIDITY`: one sub-folder per clip (TTTM-titled), production-stage sub-folders inside each. |
 | `ALL DRAFT/YT: คลิปจีน` | `1fnB7jNkOWf-nJj9VrELEC-4iL8sR1C5c` | Created 2026-10-23 (CEO "OK ตามนั้นได้เลย"). Chinese AI clips for YouTube, not 18+, rendered on Colab by the CMO. Placeholder name until the CEO names the channel. Rules: CXO_Rules_GDrive_Filing §YT: คลิปจีน. |
 | `YT: คลิปจีน/00 พักงาน (Colab)` | `1An6wwRjpawETXztPUerdsMJ6aWMtYEzW` | Created 2026-10-23. Staging: every Colab take lands here first, one `<YYYY-MM-DD>_<take>/` folder each; clips leave only by a Drive move into an EP folder. |
+| `YT: คลิปจีน/EP01 ลูกคิดประเมินฟ้า` | `1JsNrQ_MW22wX1GRwc9NyfZ6N9n_b8MJZ` | Created 2026-10-25 by the CMO (channel rule 3). The Heaven-Appraising Abacus EP1. `All Scene` `1t5mf1PzTAOjs9Ase4QRb-tiWAnQm9ieL`, `Final Draft` `1wFiHe0nBpqQ7V7HgXKUTAOOebkYeD--P`, `logs.txt` `14pmoqOZySh7Bz6lJmSh5kkZWEYsNQkv5`. |
 | `ALL DRAFT/YT: ILAG` | `1Pczc2QfRilB2DoGUVl7ZPPSwy-cbF6KN` | Defined 2026-08-12. YouTube channel of **AI-generated short films**, ILAG Studio brand. "ILAG" is not an acronym. Does NOT use the per-clip production-stage layout of the other channels — see the "YT: ILAG" section above for its own layout, `S<n>` scene naming, and the mandatory per-project `logs.txt`. |
 | `YT: ILAG/Do Not Disturb (Higgsfield Global Film Festival 2026)` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Renamed 2026-09-24 from `Do Not Disturb` (CEO: add the competition name; id unchanged, RENAME line in its logs.txt). Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Element/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
 | `Do Not Disturb/All Scene` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Renamed from the misspelled `All Sence` on 2026-08-12 (CEO approved). |
