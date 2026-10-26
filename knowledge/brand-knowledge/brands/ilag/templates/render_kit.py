@@ -6,7 +6,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-K = Path(sys.argv[1])
+K = Path(sys.argv[1]).resolve()
 FONTS = K / "fonts"
 for src, dst in (("Cinzel[wght].ttf", "Cinzel-VF.ttf"), ("Anuphan[wght].ttf", "Anuphan-VF.ttf")):
     if (FONTS / src).exists() and not (FONTS / dst).exists():
@@ -66,21 +66,24 @@ head = html.split("<body>")[0]
                                + f'<body><div style="position:absolute;inset:0">{emblem("solo")}</div>'
                                '<script>document.fonts.ready.then(()=>{document.body.dataset.ready="1"})</script></body></html>')
 
-NAMES = sys.argv[2].split(",") if len(sys.argv) > 2 else [
+ALL = [
     "wm", "skip", "rewcard", "flash", "ftag", "now", "place", "name", "title", "ng", "ngs", "ngt", "rew", "take2",
     "bltag", "blooper", "end", "sub", "safe", "fonts", "emblem"]
+NAMES = sys.argv[2].split(",") if len(sys.argv) > 2 else ALL
+if unknown := [n for n in NAMES if n not in ALL]:
+    sys.exit(f"unknown element: {','.join(unknown)} (known: {','.join(ALL)})")
 out = K / "overlays"
 out.mkdir(exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch()
     pg = b.new_page(viewport={"width": 1080, "height": 1920})
     for name in NAMES:
-        pg.goto(f"file://{K}/kit.html?el={name}")
+        pg.goto((K / "kit.html").as_uri() + f"?el={name}")
         pg.wait_for_function('document.body.dataset.ready === "1"')
         pg.wait_for_timeout(120)
         pg.screenshot(path=str(out / f"{name}.png"), omit_background=True)
     pg2 = b.new_page(viewport={"width": 1024, "height": 1024})
-    pg2.goto(f"file://{K}/emblem.html")
+    pg2.goto((K / "emblem.html").as_uri())
     pg2.wait_for_function('document.body.dataset.ready === "1"')
     pg2.wait_for_timeout(120)
     pg2.screenshot(path=str(K / "out" / "ilag-emblem-1024.png"), omit_background=True)

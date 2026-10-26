@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
-K = Path(sys.argv[1])
+K = Path(sys.argv[1]).resolve()
 F, O, T = K / "frames", K / "overlays", K / "tiles"
 T.mkdir(exist_ok=True)
 
