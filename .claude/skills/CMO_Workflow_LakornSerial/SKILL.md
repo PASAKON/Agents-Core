@@ -38,7 +38,7 @@ The kit and its rules (watermark, time cards, NG stamp limits) are in `knowledge
 The table below is the 2026-10-01 pattern. Its hook length, EP length and one-EP-a-day cadence are superseded; the
 rest of it (write and ship EP by EP, each EP self-contained) still holds.
 
-## The pattern (CEO 2026-10-01, film 5 «ขายชื่อ») [SUPERSEDED 2026-10-26 for hook, EP length and cadence]
+## The pattern (CEO 2026-10-01, film 5 "ขายชื่อ") [SUPERSEDED 2026-10-26 for hook, EP length and cadence]
 
 > "อยากให้ ทำทีละ EP มากกว่า และเขียนทีละตอนมีผล สรุปเป็นของตัวเอง เริ่มต้น 3 วิต้องน่าตื่นเต้น น่าติดตาม
 > Hook ที่ดี … ต่อจากนั้นดำเนินเรื่องตามปกติ และจบท้ายด้วยการชวนติดตาม -> จบท้ายด้วย EP.2 ติดตามได้ที่เพจ ....
@@ -83,7 +83,7 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
 7. **Post** an EP once it is cut and the CEO has watched it, at 20:00 by default. The end card and the caption name
    the real day of the next EP ("พรุ่งนี้" only when the next EP is already cut). `tools/fb_reel_post.py` drives the
    Reels composer and has only carried EPs of about 3 min: dry-run a 10–20 min file before the first long post.
-   Dry-run first, then publish once; never repost, never edit. [SUPERSEDED 2026-10-26] one EP per day. Caption = 2-line hook + question + "«ชื่อเรื่อง» EP.N | ละครสั้นคุณธรรม" +
+   Dry-run first, then publish once; never repost, never edit. [SUPERSEDED 2026-10-26] one EP per day. Caption = 2-line hook + question + `"ชื่อเรื่อง" EP.N | ละครสั้นคุณธรรม` +
    "EP.N+1 <วัน> 20:00 น." + help line (real hotline only) + "(ละครสร้างด้วย AI)" + hashtags.
    First comment = a question to the viewer + one "รู้ไว้ใช่ว่า" fact + next-EP time.
 8. **Drive:** the EP folder (CXO_Rules_GDrive_Filing): final, cover, end card, clips, logs.txt, md5.
