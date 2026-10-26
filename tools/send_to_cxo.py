@@ -588,6 +588,7 @@ def spawn(role: str, message: str, sender: str | None = None, *,
     `send()`); a new tab takes the message as its first prompt, with no letter.
     """
     check_kind_prio(kind, prio)
+    role = resolve_target_role(role)
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
@@ -812,6 +813,7 @@ def send(role: str, message: str, sender: str | None = None, *,
     guard refuses the hop (see `authorize()`); a refusal writes nothing.
     """
     check_kind_prio(kind, prio)
+    role = resolve_target_role(role)
     ph_target = PH_TARGET_RE.fullmatch((role or "").strip().lower())
     if ph_target:
         return _send_to_ph(ph_target.group(1), message, sender, subject=subject,
@@ -870,6 +872,15 @@ def send(role: str, message: str, sender: str | None = None, *,
 # Org restructure P2: a C-level briefs a Project Head as role
 # "project_head-<id>" (the name bash scripts/live-sessions.sh prints it under).
 PH_TARGET_RE = re.compile(rf"{PH_ROLE}-([0-9a-f]{{8}})")
+
+
+def resolve_target_role(target: str) -> str:
+    """Accept either display-name generation, checking role plus configured persona."""
+    from lib import config, session_names
+    identity = session_names.clevel_identity(target)
+    if identity and config.persona_for(identity[0]).casefold() == identity[1]:
+        return identity[0]
+    return target
 
 
 def _sender_label(identity: Identity, sender: str | None) -> str:

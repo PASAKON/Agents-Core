@@ -2,7 +2,7 @@
 # Rename THIS C-level session's Claude display name (the one the mobile app /
 # Remote Control list shows). The name is tools/rename_service.py's, built from
 # lib/session_names with the host emoji first (CEO 2026-10-14): a C-level
-# "<ROLE> (<Name>) — <topic>" ("🌐 CTO (Kavin) — CTO Main"), no machine and no #id; a
+# "<ROLE> (<person emoji>: <Name>) — <topic>", no machine and no #id; a
 # Project Head "PH#<id3> (<LANE>) - <Project> — <topic>". Both keep the persona and the
 # lane (CEO 2026-10-15, who renamed two live sessions that way by hand); the compact
 # "<Short>·<M>#<id3> <Head>: <job>" is for workers only. The old form
@@ -17,7 +17,7 @@
 # Name changes propagate to claude.ai + the mobile app (Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
-#   → requested: /rename 🌐 CTO (Kavin) — หัวข้อของ session
+#   → requested: /rename <host emoji> CTO (<person emoji>: Kavin) — หัวข้อของ session
 #         bash scripts/session-rename.sh --force "<topic>"   # request again even if unchanged
 #         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #

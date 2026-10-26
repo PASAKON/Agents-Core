@@ -2,14 +2,16 @@
 one place that writes and reads them. Stdlib only, so tools/live_sessions.py (imported by a
 hook under the system python3) can use it; lib.config re-exports the writers.
 
-  C-level  "<ROLE> (<Name>)[ — <topic>]"                "CTO (Kavin) — CTO Main", bare "CFO"
+  C-level  "<ROLE> (<person emoji>: <Name>)[ — <topic>]", bare "CFO" without a persona
   PH       "PH#<id3> (<LANE>) - <Project>[ + <Project>…][ — <topic>]"   "PH#7cf (CTO) - OrgRestructure"
   worker   "<Short>·<M>#<id3> <Head>: <job>"            "Dev·S#49b Org: sparse worktrees"   (M = O/S/H)
   Watch    "Watch#<id3> Runs: <N><light>"               "Watch#a1b Runs: 2🟢"
 
-A session that already has a name keeps it, every part (CEO 2026-10-15, who renamed two live
+A C-level gains its configured person emoji, preserving its topic (CEO 2026-10-26).
+For C-levels this supersedes the 15 Oct keep-every-part / host-only sweep rule.
+Other sessions that already have a name keep it, every part (CEO 2026-10-15, who renamed two live
 sessions by hand to "🌐 CTO (Kavin) — CTO Main" and "🌐 PH#7cf (CTO) - OrgRestructure": the persona
-and the PH's lane stay). The rename service's sweep only ever adds the host emoji to it. The compact
+and the PH's lane stay). Outside C-levels the sweep only adds the host emoji. The compact
 shape of the 15 Oct plan (state/handoff/2026-10-15/plan-names-watch-macoff.md §N: the phone app cuts
 a name from the END, so what says who it is comes first, in NAME_BODY_MAX characters) is for the
 kinds that had no older name: Watch, and workers, whose old shape was "<Short>#<id3> - <Head>: <job>".
@@ -76,13 +78,13 @@ WORKER_NAME_RE = re.compile(
     r"#(?P<id3>[0-9a-f]{3})(?: (?P<rest>.*))?$")
 # C-level: "CTO (Kavin) — topic" / "CFO" (no id, no topic group), or compact "CTO#c34 Main" / "COO SomPong".
 _C_LEVEL_BODY_RE = re.compile(
-    r"^(?P<role>C[A-Z]O)(?:(?: \((?P<persona>[A-Za-z]{2,32})\))?(?P<otopic> — .*)?"
+    r"^(?P<role>C[A-Z]O)(?:(?: \((?:(?P<person_emoji>[^\w\s():]+): )?(?P<persona>[A-Za-z]{2,32})\))?(?P<otopic> — .*)?"
     r"|(?:#(?P<id3>[0-9a-f]{3}))? (?P<topic>(?!\()\S.*))$")
 # the first long form: "MAC CTO #671f688f (topic)", "CONTABO COO (SomPong) #a7eb4963" (same shape as
 # tools/live_sessions._NAME_RE, plus the "( )" topic after the id)
 _MACHINE_LONG_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+(?P<role>[A-Za-z][A-Za-z ]*?)"
-    r"(?:\s+\([A-Za-z]{2,32}\))?\s+#(?P<id>[0-9a-f]{6,12})\b(?:\s*\((?P<topic>.*)\))?")
+    r"(?:\s+\((?:(?P<person_emoji>[^\w\s():]+): )?[A-Za-z]{2,32}\))?\s+#(?P<id>[0-9a-f]{6,12})\b(?:\s*\((?P<topic>.*)\))?")
 _WATCH_RE = re.compile(r"^Watch#(?P<id3>[0-9a-f]{3}) \S")
 _NO_ID_ROLES = ("COO",)    # SomPong has no org sid
 _DOT = "·"           # the "·" between a worker's short word and its model letter
@@ -143,9 +145,29 @@ def head_short(project: str | None) -> str:
 
 
 def clevel_name(role: str, persona: str = "", host: str | None = None) -> str:
-    """"<emoji> <ROLE> (<Name>)", the bare "<emoji> <ROLE>" without a persona. session-rename.sh
+    """"<host emoji> <ROLE> (<person emoji>: <Name>)", bare ROLE without a persona. session-rename.sh
     appends " — <topic>" later. Never cut: it is the one name a C-level has."""
-    return host_prefix(host) + role.upper() + (f" ({persona})" if persona else "")
+    from lib.config import persona_emoji_for
+    emoji = persona_emoji_for(role.lower()) if persona else ""
+    label = f"{emoji}: {persona}" if emoji else persona
+    return host_prefix(host) + role.upper() + (f" ({label})" if persona else "")
+
+
+def clevel_identity(name: str) -> tuple[str, str] | None:
+    """Role and persona independent of display emoji and topic; not authentication."""
+    m = re.fullmatch(_C_LEVEL_BODY_RE.pattern, split_name(name)[2], re.IGNORECASE)
+    if m and m.group("persona") and m.group("role").upper() != "CEO":
+        return m.group("role").lower(), m.group("persona").casefold()
+    return None
+
+
+def upgrade_clevel(name: str, host: str) -> str:
+    """Upgrade only a persona-form C-level, preserving state and topic verbatim."""
+    lead, _, body = split_name(name)
+    m = _C_LEVEL_BODY_RE.fullmatch(body)
+    if m and m.group("persona"):
+        return lead + clevel_name(m.group("role"), m.group("persona"), host) + (m.group("otopic") or "")
+    return lead + with_host(host, body)
 
 
 def ph_session_name(sid: str, lane: str, projects, host: str | None = None) -> str:
@@ -222,8 +244,9 @@ def parse_short(name: str) -> tuple[str, str] | None:
 def rule_problem(name: str, role: str, sid: str, host: str | None,
                  persona: str | None = None, windows: bool = False) -> str | None:
     """Why `name` is off the rule for a session of `role`/`sid` on `host`, or None.
-    Roles with no rule ("unknown", "ceo") are never off it. A C-level or PH name in the old,
-    the compact or the ruling shape passes, whatever its length (an existing name is never
+    Roles with no rule ("unknown", "ceo") are never off it. Readers accept old C-level
+    names, but the sweep upgrades their person emoji (CEO 26 Oct). PH names pass
+    in the old, compact or ruling shape, whatever their length (an existing name is never
     cut); the host emoji, the role, the id and, when the caller knows it (`persona`, from
     policies/agents.yaml), a C-level's "(<Name>)" must be right. A worker name in the compact
     shape is cut to NAME_BODY_MAX; its old shape is not. `windows` is True on a Windows host,
@@ -264,6 +287,13 @@ def rule_problem(name: str, role: str, sid: str, host: str | None,
     if cm.group("topic") is None:                       # old shape: "CTO (Kavin)[ — topic]"
         if persona and cm.group("persona") != persona:
             return f'not "{role.upper()} ({persona})"'
+        if cm.group("persona"):
+            try:
+                from lib.config import persona_emoji_for
+            except ImportError:  # import-light reader on a system Python without PyYAML
+                return None
+            if (cm.group("person_emoji") or "") != persona_emoji_for(role):
+                return "wrong person emoji"
     elif bool(cm.group("id3")) == no_id:                # compact: "CTO#c34 Main" / the COO's "COO SomPong"
         return f'not "{role.upper()}{"" if no_id else "#<id3>"} <topic>"'
     elif sid and cm.group("id3") and cm.group("id3") != sid[:3]:

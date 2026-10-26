@@ -219,10 +219,10 @@ def test_contabo_lists_both_unix_users():
     ("CONTABO Script Writer #d002e35e (…)", "script_writer", "d002e35e"),
     ("CONTABO COO #a7eb4963", "coo", "a7eb4963"),
     # CEO 2026-10-14: "<HOST> <ROLE> (<Name>) #<id>" for C-levels; the PH shape unchanged
-    ("CONTABO COO (SomPong) #a7eb4963", "coo", "a7eb4963"),
-    ("CONTABO CTO (Kavin) #c34459eb (คุม org)", "cto", "c34459eb"),
-    ("MAC CMO (Ging) #ef04792e", "cmo", "ef04792e"),
-    ("⏸ CONTABO CTO (Kavin) #c34459eb", "cto", "c34459eb"),
+    ("CONTABO COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong) #a7eb4963", "coo", "a7eb4963"),
+    ("CONTABO CTO (\U0001F468\u200d\U0001F4BB: Kavin) #c34459eb (คุม org)", "cto", "c34459eb"),
+    ("MAC CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging) #ef04792e", "cmo", "ef04792e"),
+    ("⏸ CONTABO CTO (\U0001F468\u200d\U0001F4BB: Kavin) #c34459eb", "cto", "c34459eb"),
     ("CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)", "project_head", "7cf528f0"),
     ("CONTABO CFO #12345678", "cfo", "12345678"),
 ])
@@ -233,9 +233,9 @@ def test_role_and_sid_come_from_the_name(name, role, sid):
 @pytest.mark.parametrize("name", [
     "scratchpad-c2", "SomPong", "", "CONTABO CTO", "CONTABO CTO #zzz", "CONTABO CTO #abc",
     "CONTABO CTO #e106b78bxx", "CONTABO CTO #0123456789abcdef", "LINUX CTO #e106b78b",
-    "CONTABO CTO (Kavin)", "CONTABO CTO (Kavin 2) #c34459eb",
+    "CONTABO CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "CONTABO CTO (Kavin 2) #c34459eb",
     # short-form look-alikes (CEO 2026-10-14 names): never a C-level
-    "CEO", "CEO (Gob)", "CTO (Kavin 2)", "CTO Kavin", "CTOX", "cto (Kavin)", "CTO (Kavin) extra",
+    "CEO", "CEO (Gob)", "CTO (Kavin 2)", "CTO Kavin", "CTOX", "cto (\U0001F468\u200d\U0001F4BB: Kavin)", "CTO (\U0001F468\u200d\U0001F4BB: Kavin) extra",
 ])
 def test_a_name_that_does_not_match_is_unknown_with_the_uuid_tail(name):
     assert ls.parse_name(name, UUID_A) == ("unknown", "1ce1e106b78b"[-8:])
@@ -244,8 +244,8 @@ def test_a_name_that_does_not_match_is_unknown_with_the_uuid_tail(name):
 # CEO 2026-10-14: "<ROLE> (<Name>)" with no machine and no #id; the id is the
 # session UUID's tail, which the launchers make the short id.
 @pytest.mark.parametrize("name,role", [
-    ("CTO (Kavin)", "cto"), ("COO (SomPong)", "coo"), ("CMO (Ging)", "cmo"), ("CFO", "cfo"),
-    ("CTO (Kavin) — คุม org", "cto"), ("⏸ CTO (Kavin) — LAST BELL", "cto"),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto"), ("COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", "coo"), ("CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)", "cmo"), ("CFO", "cfo"),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — คุม org", "cto"), ("⏸ CTO (\U0001F468\u200d\U0001F4BB: Kavin) — LAST BELL", "cto"),
 ])
 def test_a_short_c_level_name_gives_the_role_and_the_uuid_tail(name, role):
     assert ls.parse_name(name, UUID_A) == (role, "e106b78b")
@@ -253,23 +253,23 @@ def test_a_short_c_level_name_gives_the_role_and_the_uuid_tail(name, role):
 
 @pytest.mark.parametrize("tmux,uuid,name,expect", [
     # the launcher's tmux name wins, whatever the display name says
-    ("cto-e106b78b:@276.%276", UUID_A, "CTO (Kavin)", ("cto", "e106b78b", True)),
+    ("cto-e106b78b:@276.%276", UUID_A, "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("cto", "e106b78b", True)),
     ("cto-e106b78b:@276.%276", UUID_A, "anything the CEO typed", ("cto", "e106b78b", True)),
     ("project_head-e106b78b:@1.%1", UUID_A, "CONTABO Project Head (CTO) #e106b78b (X)",
      ("project_head", "e106b78b", True)),
     # a sid the session UUID does not end in is not trusted, and neither is the name then
     ("cto-aaaaaaaa:@1.%1", UUID_A, "renamed", ("unknown", "e106b78b", False)),
-    ("cto-aaaaaaaa:@1.%1", UUID_A, "CTO (Kavin)", ("unknown", "e106b78b", False)),
+    ("cto-aaaaaaaa:@1.%1", UUID_A, "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("unknown", "e106b78b", False)),
     # a worker's tmux says nothing about its role; a fake "ceo" tmux is not a C-level
     ("wd-e106b78b:@282.%282", UUID_A, "CONTABO Security Engineer #e106b78b (x)",
      ("security_engineer", "e106b78b", True)),
     ("ceo-e106b78b:@1.%1", UUID_A, "x", ("unknown", "e106b78b", False)),
     # no tmux (winbox, a bare terminal): the name decides, unverified
-    (None, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
-    (7, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
+    (None, UUID_A, "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("cto", "e106b78b", False)),
+    (7, UUID_A, "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("cto", "e106b78b", False)),
     # SomPong's launcher tmux is "sompong" (tied to its sid by the uuid file below)
-    ("sompong:@3.%3", UUID_A, "COO (SomPong)", ("coo", "e106b78b", True)),
-    ("sompong:@3.%3", UUID_A, "CTO (Kavin)", ("coo", "e106b78b", True)),
+    ("sompong:@3.%3", UUID_A, "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", ("coo", "e106b78b", True)),
+    ("sompong:@3.%3", UUID_A, "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("coo", "e106b78b", True)),
 ])
 def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect, tmp_path, monkeypatch):
     monkeypatch.setattr(ls, "LOCKS_DIR", tmp_path)
@@ -284,17 +284,17 @@ def test_the_sompong_tmux_claims_coo_only_for_its_launchers_uuid(content, tmp_pa
     monkeypatch.setattr(ls, "LOCKS_DIR", tmp_path)
     if content is not None:
         (tmp_path / "coo-e106b78b.uuid").write_text(content)
-    role, _, verified = ls._ids_from_record({"tmux": "sompong:@3.%3"}, "COO (SomPong)", UUID_A)
+    role, _, verified = ls._ids_from_record({"tmux": "sompong:@3.%3"}, "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", UUID_A)
     assert role == "unknown" and not verified
 
 
 # M8 (CTO Main security pass): a session in another tmux never takes a C-level or
 # PH role from a name it chose itself.
 @pytest.mark.parametrize("tmux,name", [
-    ("wd-afe57b21:@282.%282", "CTO (Kavin)"),
+    ("wd-afe57b21:@282.%282", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"),
     ("wd-afe57b21:@282.%282", "PH#7cf (CTO) - OrgRestructure"),
     ("mooniex-task-37ff8810:@1.%1", "CONTABO CTO #e106b78b"),
-    ("scratch:@9.%9", "COO (SomPong)"),
+    ("scratch:@9.%9", "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)"),
 ])
 def test_a_renamed_worker_is_not_listed_as_a_c_level_or_ph(tmux, name):
     role, sid, verified = ls._ids_from_record({"tmux": tmux}, name, UUID_A)
@@ -317,9 +317,9 @@ def test_ph_and_worker_short_names(tmux, uuid, name, expect):
 
 
 def test_a_short_named_c_level_is_listed_with_its_launcher_id(tmp_path):
-    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@276.%276")
+    _write(tmp_path, os.getpid(), name="CTO (\U0001F468\u200d\U0001F4BB: Kavin)", tmux="cto-e106b78b:@276.%276")
     [row] = ls.read_registry([tmp_path])
-    assert (row["role"], row["sid"], row["address"]) == ("cto", "e106b78b", "CTO (Kavin)")
+    assert (row["role"], row["sid"], row["address"]) == ("cto", "e106b78b", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)")
 
 
 @pytest.mark.parametrize("role,expect", [
@@ -350,10 +350,10 @@ def test_the_coo_is_addressed_as_sompong_and_nobody_else_is_aliased(tmp_path):
 
 
 def test_a_short_named_coo_is_addressed_by_its_name(tmp_path):
-    # from the CEO's 14 Oct ruling SomPong's Remote Control name is "COO (SomPong)"
-    _write(tmp_path, os.getpid(), name="COO (SomPong)", tmux="coo-e106b78b:@9.%9")
+    # from the CEO's 14 Oct ruling SomPong's Remote Control name is "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)"
+    _write(tmp_path, os.getpid(), name="COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", tmux="coo-e106b78b:@9.%9")
     [row] = ls.read_registry([tmp_path])
-    assert (row["role"], row["address"]) == ("coo", "COO (SomPong)")
+    assert (row["role"], row["address"]) == ("coo", "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)")
 
 
 # ---------------------------------------------------------------------------
@@ -406,15 +406,15 @@ def test_the_exact_format_and_order(quiet_rule):
 
 def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim(quiet_rule):
     rows = [
-        _row("contabo", "cto", "CTO (Kavin)", sid="c34459eb"),
-        _row("mac", "cto", "CTO (Kavin)", "idle", sid="f39cb080"),
-        _row("contabo", "cmo", "CMO (Ging)", sid="ef04792e"),
+        _row("contabo", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="c34459eb"),
+        _row("mac", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "idle", sid="f39cb080"),
+        _row("contabo", "cmo", "CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)", sid="ef04792e"),
     ]
     snap = _snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)})
     lines = ls.format_snapshot(snap, now=NOW).splitlines()
-    assert lines[1:4] == ["running  CMO (Ging)", "running  CTO (Kavin)", "idle     CTO (Kavin)"]
+    assert lines[1:4] == ["running  CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)", "running  CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "idle     CTO (\U0001F468\u200d\U0001F4BB: Kavin)"]
     assert lines[4] == ls.FOOTER
-    assert lines[5].startswith('same name on 2 rows: "CTO (Kavin)" '
+    assert lines[5].startswith('same name on 2 rows: "CTO (\U0001F468\u200d\U0001F4BB: Kavin)" '
                                '(contabo #c34459eb tmux-claimed, mac #f39cb080 tmux-claimed)')
     assert "[ref]" in lines[5] and len(lines) == 6
     # M8: the note says which row a launcher tmux confirms; name-only rows get a line
@@ -422,7 +422,7 @@ def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim(quiet_rul
     lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
                                now=NOW).splitlines()
     assert "(contabo #c34459eb tmux-claimed, mac #f39cb080 name only)" in lines[5]
-    assert lines[3] == "idle     CTO (Kavin)  [name only]"     # M10 #6: on the row line
+    assert lines[3] == "idle     CTO (\U0001F468\u200d\U0001F4BB: Kavin)  [name only]"     # M10 #6: on the row line
     assert lines[6] == ls.NAME_ONLY_NOTE
     one = _snap(rows[:1] + rows[2:], {"contabo": _fresh(4.0)})
     assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
@@ -432,19 +432,19 @@ def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(q
     """OrgMesh P8: any session can rename itself "CTO Main". Only a cto row may carry that, only a cmo row
     "CMO Main"; any other row keeps its line (the address is what SendMessage takes) and gets a mark."""
     rows = [
-        _row("contabo", "cto", "🌐 CTO (Kavin) — CTO Main", sid="671f688f"),
-        _row("contabo", "cmo", "🌐 CMO (Ging) — CMO Main", sid="ef04792e"),
-        _row("mac", "unknown", "💻 CTO (Kavin) — CTO Main", sid="0badc0de", verified=False),
+        _row("contabo", "cto", "🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", sid="671f688f"),
+        _row("contabo", "cmo", "🌐 CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging) — CMO Main", sid="ef04792e"),
+        _row("mac", "unknown", "💻 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", sid="0badc0de", verified=False),
         _row("contabo", "project_head", "🌐 PH#7cf (CTO) - OrgRestructure — cto main", sid="7cf528f0"),
-        _row("contabo", "cto", "🌐 CTO (Kavin) — CMO Main", sid="11111111"),
+        _row("contabo", "cto", "🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CMO Main", sid="11111111"),
     ]
     snap = _snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)})
     lines = ls.format_snapshot(snap, now=NOW).splitlines()
-    assert "running  🌐 CTO (Kavin) — CTO Main" in lines                 # the real CTO: no mark
-    assert "running  🌐 CMO (Ging) — CMO Main" in lines                  # the real CMO: no mark
-    assert "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main" in lines
+    assert "running  🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main" in lines                 # the real CTO: no mark
+    assert "running  🌐 CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging) — CMO Main" in lines                  # the real CMO: no mark
+    assert "running  💻 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main  [name only]  ⚠ claims CTO Main" in lines
     assert "running  🌐 PH#7cf (CTO) - OrgRestructure — cto main  ⚠ claims CTO Main" in lines
-    assert "running  🌐 CTO (Kavin) — CMO Main  ⚠ claims CMO Main" in lines   # a cto may not be the CMO
+    assert "running  🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CMO Main  ⚠ claims CMO Main" in lines   # a cto may not be the CMO
     assert sum("⚠" in l for l in lines if l.startswith(("running", "idle"))) == 3
     assert lines.count(ls.CLAIM_NOTE) == 1 and "⚠" in ls.FOOTER
     # nothing is dropped: every row is still listed, five rows five lines
@@ -455,7 +455,7 @@ def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(q
                   ("contabo", "11111111"): "CMO Main"}
     # the single-session lookup carries the mark too
     assert ls.format_snapshot(snap, sid="0badc0de", now=NOW) == \
-        "running  💻 CTO (Kavin) — CTO Main  [name only]  ⚠ claims CTO Main"
+        "running  💻 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main  [name only]  ⚠ claims CTO Main"
 
 
 @pytest.mark.parametrize("name,role,claim", [
@@ -465,10 +465,10 @@ def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(q
     ("⏸ 🌐 cmo   main", "unknown", "CMO Main"),                          # case, spaces, glyph and emoji in front
     ("MAC CTO #671f688f (CTO Main)", "cto", None),                      # the real one, the old long shape
     ("CTO#c34 Main", "cto", None),
-    ("🌐 CTO (Kavin) — CTO Main", "cto", None),
+    ("🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", "cto", None),
     ("CTO Mainly", "unknown", None),                                    # not the phrase
     ("ACTO Main", "unknown", None),
-    ("CTO (Kavin) — Main", "unknown", None),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — Main", "unknown", None),
     ("CTO Maine", "developer", None),
     # P8c F6: the 11 spellings the second review found past the first regex, each on a developer row
     ("CTO-Main", "developer", "CTO Main"),
@@ -488,13 +488,13 @@ def test_a_reserved_title_on_a_row_that_is_not_that_c_level_is_marked_and_kept(q
     # ...and the same spellings on the real rows are not claims
     ("CTO-Main", "cto", None),
     ("CTO#7cf528f0 Main", "cto", None),
-    ("🌐 CMO (Ging) — CMO Main", "cmo", None),
+    ("🌐 CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging) — CMO Main", "cmo", None),
     ("MAC CTO #671f688f (CTO Main)", "cto", None),
-    ("🌐 CTO (Kavin) — CMO Main", "cto", "CMO Main"),                   # a cto is not the CMO
+    ("🌐 CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CMO Main", "cto", "CMO Main"),                   # a cto is not the CMO
     # near-misses stay unmarked: a longer word, a name with the words apart, lower-case "c to main"
     ("CTO Mainframe", "developer", None),
     ("PH#7cf (CTO) - Main Street", "project_head", None),
-    ("CTO (Kavin) — Main", "developer", None),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — Main", "developer", None),
     ("send c to main", "developer", None),
     ("ACTO-Main", "developer", None),
 ])
@@ -1658,7 +1658,7 @@ def test_deeply_nested_json_is_skipped_not_a_crash(tmp_path, registry):
 
 
 def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
-    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1")
+    _write(tmp_path, os.getpid(), name="CTO (\U0001F468\u200d\U0001F4BB: Kavin)", tmux="cto-e106b78b:@1.%1")
     hub = FakeHub(has_verified=True)
     ls.publish_once(hub, "contabo", [tmp_path], set())
     [(sql, params)] = [(q, p) for q, p in zip(hub.sql, hub.params)
@@ -1667,7 +1667,7 @@ def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
     old = FakeHub(has_verified=False)    # a hub that has not run init() since M8
     ls.publish_once(old, "contabo", [tmp_path], set())
     assert not any("verified" in q for q in old.sql)
-    reader = FakeHub([dict(_row("contabo", "cto", "CTO (Kavin)"), verified=None)],
+    reader = FakeHub([dict(_row("contabo", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"), verified=None)],
                      [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}])
     assert "name only" in ls.render(reader, now=NOW)
     assert "NULL AS verified" in [q for q in reader.sql if "FROM live_sessions" in q][0]
@@ -1702,7 +1702,7 @@ def test_a_bridge_session_id_of_any_other_shape_is_dropped(tmp_path, bad):
 
 
 def test_the_publisher_writes_the_bridge_id_once_the_column_exists(tmp_path):
-    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1", bridgeSessionId=BRIDGE_A)
+    _write(tmp_path, os.getpid(), name="CTO (\U0001F468\u200d\U0001F4BB: Kavin)", tmux="cto-e106b78b:@1.%1", bridgeSessionId=BRIDGE_A)
     hub = FakeHub(has_verified=True, has_bridge=True)
     ls.publish_once(hub, "contabo", [tmp_path], set())
     [(sql, params)] = [(q, p) for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
@@ -1718,7 +1718,7 @@ def test_the_publisher_writes_the_bridge_id_once_the_column_exists(tmp_path):
 
 
 def test_a_session_with_no_remote_control_publishes_a_null_bridge_id(tmp_path):
-    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1")
+    _write(tmp_path, os.getpid(), name="CTO (\U0001F468\u200d\U0001F4BB: Kavin)", tmux="cto-e106b78b:@1.%1")
     hub = FakeHub(has_verified=True, has_bridge=True)
     ls.publish_once(hub, "contabo", [tmp_path], set())
     [params] = [p for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
@@ -1729,20 +1729,20 @@ def test_the_reader_carries_the_bridge_id_and_never_selects_a_column_it_cannot_r
     """org_coo's column GRANT hides bridge_id from information_schema, so a probe that finds nothing
     must make the reader select NULL for it (as for `verified`, M8 #8): never a permission error."""
     host = [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}]
-    with_col = FakeHub([dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)], host,
+    with_col = FakeHub([dict(_row("contabo", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"), bridge_id=BRIDGE_A)], host,
                        has_verified=True, has_bridge=True)
     [row] = ls._snapshot_from_hub(with_col, ls.DEFAULT_TTL_S)["rows"]
     assert row["bridge_id"] == BRIDGE_A
     sql = [q for q in with_col.sql if "FROM live_sessions" in q][0]
     assert " verified, bridge_id, EXTRACT" in sql
-    without = FakeHub([_row("contabo", "cto", "CTO (Kavin)")], host, has_verified=True)
+    without = FakeHub([_row("contabo", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)")], host, has_verified=True)
     [row] = ls._snapshot_from_hub(without, ls.DEFAULT_TTL_S)["rows"]
     assert row["bridge_id"] is None
     assert " verified, NULL AS bridge_id, EXTRACT" in [q for q in without.sql if "FROM live_sessions" in q][0]
 
 
 def test_the_bridge_id_is_in_no_list_and_no_json(tmp_path):
-    rows = [dict(_row("contabo", "cto", "CTO (Kavin)"), bridge_id=BRIDGE_A)]
+    rows = [dict(_row("contabo", "cto", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"), bridge_id=BRIDGE_A)]
     snap = _snap(rows, {"contabo": _fresh(4.0)})
     assert BRIDGE_A not in ls.format_snapshot(snap, now=NOW) and BRIDGE_A not in ls._to_json(snap)
 
@@ -1771,27 +1771,27 @@ def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():
 # M9 (CEO 2026-10-14): a host emoji leads every name; parsing ignores it, the list
 # prints it as-is (the "send: … verbatim" footer stays true).
 @pytest.mark.parametrize("name,expect", [
-    ("\U0001F310 CTO (Kavin)", ("cto", "e106b78b")),
+    ("\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("cto", "e106b78b")),
     ("\U0001F5A5\uFE0F PH#e10 (CTO) - X", ("project_head", "e106b78b")),
     ("\U0001F5A5 PH#e10 (CTO) - X", ("project_head", "e106b78b")),
     ("\U0001F4BB CONTABO CTO #e106b78b (x)", ("cto", "e106b78b")),
-    ("\u23f8 \U0001F310 CTO (Kavin) \u2014 t", ("cto", "e106b78b")),
+    ("\u23f8 \U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin) \u2014 t", ("cto", "e106b78b")),
 ])
 def test_a_host_emoji_never_changes_what_a_name_parses_to(name, expect):
     assert ls.parse_name(name, UUID_A) == expect
 
 
 def test_names_with_emoji_print_verbatim_and_two_hosts_no_longer_collide():
-    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("mac", "cto", "\U0001F4BB CTO (Kavin)", "idle", sid="f39cb080")]
+    rows = [_row("contabo", "cto", "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="c34459eb"),
+            _row("mac", "cto", "\U0001F4BB CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "idle", sid="f39cb080")]
     lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
                                now=NOW).splitlines()
-    assert "running  \U0001F310 CTO (Kavin)" in lines and "idle     \U0001F4BB CTO (Kavin)" in lines
+    assert "running  \U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)" in lines and "idle     \U0001F4BB CTO (\U0001F468\u200d\U0001F4BB: Kavin)" in lines
     assert lines[-1] == ls.FOOTER     # different names now: no "same name" line
-    same = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="00000001")]
+    same = [_row("contabo", "cto", "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="c34459eb"),
+            _row("contabo", "cto", "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="00000001")]
     note = ls.duplicate_notes(same)[0]
-    assert note.startswith('same name on 2 rows: "\U0001F310 CTO (Kavin)"')
+    assert note.startswith('same name on 2 rows: "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)"')
 
 
 # --- M10: names enforced ----------------------------------------------------------
@@ -1799,17 +1799,17 @@ def test_names_with_emoji_print_verbatim_and_two_hosts_no_longer_collide():
 def test_every_off_rule_name_gets_a_line_and_rule_names_none(monkeypatch):
     monkeypatch.setattr(ls, "_rule_context",
                         lambda role, host: ({"cto": "Kavin", "coo": "SomPong"}.get(role), host == "winbox"))
-    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("contabo", "coo", "COO (SomPong)", sid="fde4c4ca"),
+    rows = [_row("contabo", "cto", "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="c34459eb"),
+            _row("contabo", "coo", "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", sid="fde4c4ca"),
             _row("mac", "cto", "MAC CTO #f39cb080 (Lumina)", sid="f39cb080"),
             _row("contabo", "project_head", "\U0001F310 PH#7cf (CTO) - OrgRestructure", sid="7cf528f0"),
             _row("contabo", "project_head", "\U0001F310 PH#abc (CMO) - MimiPage", sid="36c49776"),
-            _row("winbox", "cto", "\U0001F5A5️ CTO (Ging)", sid="00000001")]
+            _row("winbox", "cto", "\U0001F5A5️ CTO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)", sid="00000001")]
     assert ls.off_rule_notes(rows) == [
-        'name off-rule: "COO (SomPong)" (contabo #fde4c4ca): no host emoji',
+        'name off-rule: "COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)" (contabo #fde4c4ca): no host emoji',
         'name off-rule: "MAC CTO #f39cb080 (Lumina)" (mac #f39cb080): no host emoji',
         'name off-rule: "\U0001F310 PH#abc (CMO) - MimiPage" (contabo #36c49776): PH#abc is not this session (#36c)',
-        'name off-rule: "\U0001F5A5️ CTO (Ging)" (winbox #00000001): not "CTO (Kavin)"',
+        'name off-rule: "\U0001F5A5️ CTO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)" (winbox #00000001): not "CTO (Kavin)"',
     ]
     text = ls.format_snapshot(_snap(rows, {h: _fresh(4.0) for h in ("contabo", "mac", "winbox")}), now=NOW)
     assert text.count("name off-rule: ") == 4
@@ -1825,19 +1825,19 @@ def test_off_rule_lines_are_capped_so_the_list_stays_short(monkeypatch):
 @pytest.mark.parametrize("host,role", [("contabo", "unknown"), ("mac", "unknown"),
                                        ("winbox", "cto"), ("nowhere", "cto")])
 def test_no_launcher_tmux_drops_the_role_only_where_launchers_use_tmux(host, role):
-    rows = [{"role": "cto", "name": "CTO (Kavin)", "address": "CTO (Kavin)", "verified": False},
+    rows = [{"role": "cto", "name": "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "address": "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "verified": False},
             {"role": "cto", "name": "x", "address": "x", "verified": True}]
     out = ls.demote_untmuxed(rows, host)
     assert out[0]["role"] == role and out[1]["role"] == "cto"
 
 
 def test_a_claimed_role_with_no_tmux_still_prints_marked_and_in_json(quiet_rule):
-    r = _row("contabo", "unknown", "CTO (Kavin)", sid="e106b78b", verified=False)
+    r = _row("contabo", "unknown", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)", sid="e106b78b", verified=False)
     r["uuid"] = UUID_A
     snap = _snap([r], {"contabo": _fresh(4.0)})
     lines = ls.format_snapshot(snap, now=NOW).splitlines()
     assert "contabo 0 (+1 name only, 4s)" in lines[0]
-    assert lines[1] == "running  CTO (Kavin)  [name only]"
+    assert lines[1] == "running  CTO (\U0001F468\u200d\U0001F4BB: Kavin)  [name only]"
     assert json.loads(ls._to_json(snap))["sessions"][0]["role"] == "unknown"
     plain = _row("contabo", "unknown", "scratch shell", sid="e106b78b", verified=False)
     assert "scratch" not in ls.format_snapshot(_snap([plain], {"contabo": _fresh(4.0)}), now=NOW)
