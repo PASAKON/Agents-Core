@@ -138,7 +138,10 @@ spends money or touches a secret goes on a command card (`ask_run`, Face ID). Ru
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 
 - Every secret lives in Infisical (org `MoonieX`, one project per repo, envs `dev`/`prod`; org-wide
-  credentials in `Org-Infra`, whose values only the CEO enters). Do not create or extend a `.env`.
+  credentials in `Org-Infra`). Do not create or extend a `.env`. Since 2026-10-26 (CEO, Q-20261026-0814-e94a)
+  a C-level creates or deletes a provider key itself through `CTO_Procedure_KeyFetch`, Org-Infra included, and
+  every project's keys move into Org-Infra with clear scopes once the scope design lands; until then the tools
+  refuse Org-Infra, and nobody routes around that.
   A service reads its secrets through `infisical run` with its machine identity
   (`/etc/infisical/<host>.env`, root-only) — never read, copy or echo that file.
 - A secret value never appears in chat, a screenshot, a log, a commit or a Run Inbox card. One that
