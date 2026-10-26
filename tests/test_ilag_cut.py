@@ -13,6 +13,7 @@ import importlib.util
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -27,7 +28,7 @@ needs_ffmpeg = pytest.mark.skipif(not HAS_FFMPEG, reason="ffmpeg/ffprobe not on 
 
 
 def have_browser():
-    if not (importlib.util.find_spec("playwright") and importlib.util.find_spec("PIL")):
+    if not all(importlib.util.find_spec(m) for m in ("playwright", "PIL", "numpy")):    # numpy: cut_logo.py
         return False
     try:
         from playwright.sync_api import sync_playwright
@@ -38,7 +39,7 @@ def have_browser():
         return False
 
 
-needs_cards = pytest.mark.skipif(not (HAS_FFMPEG and have_browser()), reason="Playwright/chromium/PIL/ffmpeg missing")
+needs_cards = pytest.mark.skipif(not (HAS_FFMPEG and have_browser()), reason="Playwright/chromium/PIL/numpy/ffmpeg missing")
 
 
 def ff(*args):
@@ -82,8 +83,13 @@ def kitchen_sink_edl():
                                         "texts": {"fct": "ย้อนกลับไปเมื่อสามปีก่อน", "fsub": "ความทรงจำของแม่ศรี"}}]},
         {"id": "c3", "kind": "clip", "src": "footage/silent.mp4", "in": 0.0, "dur": 0.6, "grade": "desat", "blur": 8},
         {"id": "s1", "kind": "still", "src": "footage/still.png", "dur": 0.7,
-         "cards": [{"el": "place", "at": 0.0, "dur": 0.6, "texts": {"pl1": "ตลาด", "pl2": "06:30 น."}},
+         "cards": [{"el": "place", "at": 0.0, "dur": 0.6, "texts": {"pl1": "ตลาด", "pl2": "เช้าวันจันทร์ 06:30 น."}},
                    {"el": "now", "at": 0.0, "dur": 0.6}]},
+        {"id": "s2", "kind": "clip", "src": "footage/a.mp4", "in": 0.0, "dur": 0.8,
+         "cards": [{"el": "namegood", "at": 0.0, "dur": 0.6,
+                    "texts": {"nm1": "แม่ศรี", "nm2": "แม่ค้าผักดอง", "nm3": "ใจดีจนโดนยืมชื่อ"}},
+                   {"el": "fact", "at": 0.1, "dur": 0.6, "texts": {"body": "ค้ำประกันให้ใคร\nเจ้าหนี้ทวงจากคนค้ำได้"}},
+                   {"el": "lesson", "at": 0.1, "dur": 0.6, "texts": {"body": "ชื่อเสียงสร้างมาทั้งชีวิต"}}]},
         {"id": "t", "kind": "title", "src": "footage/a.mp4", "dur": 1.0,
          "texts": {"season": "ตลาดนี้มีกรรม", "ep": "EP.1", "title": "ตบผิดคน", "tagline": "ทำชั่วแล้ว AI ก็ช่วยไม่ได้"}},
         {"id": "z", "kind": "end", "src": "footage/still.png", "dur": 1.0,
@@ -182,6 +188,17 @@ def mutate(fn):
 FAULTS = [
     ("em dash", lambda e: e["segments"][0]["subs"][0].update(text="หนึ่ง — สอง"), "em or en dash"),
     ("en dash", lambda e: e["segments"][0]["cards"][0]["texts"].update(nm2="ก–ข"), "em or en dash"),
+    ("guillemet in a card", lambda e: e["segments"][0]["cards"][0]["texts"].update(nm1="\u00abเสี่ยบอย\u00bb"),
+     "guillemet"),
+    ("guillemet in a sub", lambda e: e["segments"][0]["subs"][0].update(text="เรื่อง \u00abขายชื่อ\u00bb"), "guillemet"),
+    ("guillemet in a note", lambda e: e["segments"][0].update(note="ฉาก \u00abตลาด\u00bb"), "guillemet"),
+    ("line break in a name", lambda e: e["segments"][0]["cards"][0]["texts"].update(nm2="นักต้มตุ๋น\nประจำตลาด"),
+     "must be one line"),
+    ("line break in a sub", lambda e: e["segments"][0]["subs"][0].update(text="หนึ่ง\nสอง"), "must be one line"),
+    ("three lines in a fact", lambda e: e["segments"][0]["cards"].append(
+        {"el": "fact", "at": 0.1, "dur": 0.6, "texts": {"body": "ก\nข\nค"}}), "at most 2 lines"),
+    ("empty second line", lambda e: e["segments"][0]["cards"].append(
+        {"el": "lesson", "at": 0.1, "dur": 0.6, "texts": {"body": "ก\n "}}), "at most 2 lines"),
     ("three NG", lambda e: e["segments"].extend(
         {**copy.deepcopy(e["segments"][1]), "id": f"ng{i}"} for i in range(2)), "at most 2 NG"),
     ("no watermark", lambda e: e["segments"][0].update(wm=False), "no watermark"),
@@ -218,6 +235,27 @@ def test_plan_lists_every_error_at_once(tmp_path, capsys):
     code, _, err = plan(tmp_path, e, capsys)
     assert code == 1
     assert err.count("ERROR") == 3 and "3 error(s)" in err
+
+
+def test_fact_and_lesson_take_one_line_break_and_namegood_is_a_card(tmp_path, capsys):
+    e = base_edl()
+    e["segments"][0]["cards"] += [
+        {"el": "namegood", "at": 0.0, "dur": 0.6, "texts": {"nm1": "แม่ศรี", "nm2": "แม่ค้า", "nm3": "ใจดี"}},
+        {"el": "fact", "at": 0.1, "dur": 0.6, "texts": {"body": "บรรทัดหนึ่ง\nบรรทัดสอง"}},
+        {"el": "lesson", "at": 0.1, "dur": 0.6, "texts": {"body": "ข้อคิด"}}]
+    code, _, err = plan(tmp_path, e, capsys)
+    assert code == 0, err
+    assert "no lesson card" not in err and "no fact card" not in err
+
+
+def test_missing_pillars_warn_but_do_not_fail(tmp_path, capsys):
+    code, _, err = plan(tmp_path, base_edl(), capsys)
+    assert code == 0
+    assert "no lesson card" in err and "no fact card" in err and "four pillars" in err
+    e = base_edl()
+    e["segments"][0]["cards"].append({"el": "lesson", "at": 0.1, "dur": 0.6, "texts": {"body": "ข้อคิด"}})
+    _, _, err = plan(tmp_path, e, capsys)
+    assert "no lesson card" not in err and "no fact card" in err
 
 
 def test_hook_outside_12_to_15_s_warns(tmp_path, capsys):
@@ -292,7 +330,7 @@ def test_every_kind_encodes_with_one_format(tmp_path, media, capsys):
                 got["video"]["width"]) == ("yuv420p", "1:1", "24/1", 1080), f.name
         assert (got["audio"]["sample_rate"], got["audio"]["channels"]) == ("48000", 2), f.name
     dur = float(probe(work / "out/sink.mp4", "format=duration")["format"]["duration"])
-    assert abs(dur - (0.8 + 1.0 + 0.6 + 0.7 + 1.0 + 1.0 + 0.8 + 0.6)) < 0.4, dur    # c1 c2+hold c3 s1 t z h h2
+    assert abs(dur - (0.8 + 1.0 + 0.6 + 0.7 + 0.8 + 1.0 + 1.0 + 0.8 + 0.6)) < 0.45, dur    # c1 c2+hold c3 s1 s2 t z h h2
 
 
 @needs_ffmpeg
@@ -416,6 +454,7 @@ def test_cards_are_cached_and_a_kit_change_redraws(drawn, tmp_path, media, capsy
     assert "0 rendered" in capsys.readouterr().out
     kit2 = tmp_path / "kit2"
     shutil.copytree(KIT, kit2)
+    shutil.copy(work / "kit/logo.png", kit2 / "logo.png")         # a work-folder kit has logo.png, not images/
     (kit2 / "kit.tpl.html").write_text((kit2 / "kit.tpl.html").read_text(encoding="utf-8") + "\n<!-- v2 -->\n",
                                        encoding="utf-8")
     assert ilag_cut.main(["cards", str(p), "--root", str(media), "--kit", str(kit2), "--out", str(work)]) == 0
@@ -431,12 +470,58 @@ def test_cards_then_encode_end_to_end(drawn, media, tmp_path, capsys):
     assert "encoded 6" in cap.out and (work / "out/ep.mp4").stat().st_size > 10_000
 
 
+def run_kit_overlays(work, names):
+    """The kit's own render (render_kit.py, as REBUILD step 1 runs it) of some elements, from the staged copy."""
+    subprocess.run([sys.executable, "-I", str(work / "kit/render_kit.py"), str(work / "kit"), ",".join(names)],
+                   check=True, capture_output=True)
+    return work / "kit/overlays"
+
+
+SAMPLES = {      # the kit's own sample lines (kit.tpl.html), with the kit's <br> written as \n
+    "title": {"season": "ตลาดนี้มีกรรม", "ep": "EP.1", "title": "ตบผิดคน", "tagline": "ทำชั่วแล้ว AI ก็ช่วยไม่ได้"},
+    "name": {"nm1": "เสี่ยบอย", "nm2": "นักต้มตุ๋นประจำตลาด", "nm3": "ฉายา: ชื่อใครก็ซวยคนนั้น"},
+    "namegood": {"nm1": "แม่ศรี", "nm2": "แม่ค้าผักดองเจ้าเก่าของตลาด", "nm3": "ใจดีจนโดนยืมชื่อ"},
+    "fact": {"body": "ค้ำประกันให้ใคร ถ้าคนกู้ไม่จ่าย\nเจ้าหนี้ทวงเงินจากคนค้ำได้"},
+    "lesson": {"body": "ชื่อเสียงสร้างมาทั้งชีวิต\nพังได้ด้วยลายเซ็นเดียว"},
+    "place": {"pl1": "ตลาดซอยมะขาม", "pl2": "เช้าวันจันทร์ 06:30 น."},
+    "end": {"e2": "EP.2", "e3": "ใครประกันตัวเสี่ยบอยออกมา?", "e4": "พรุ่งนี้ 20:00 น."},
+}
+
+
+def changed_pixels(a, b):
+    from PIL import Image, ImageChops
+    d = ImageChops.difference(Image.open(a).convert("RGBA"), Image.open(b).convert("RGBA")).convert("L")
+    return sum(d.point(lambda v: 255 if v > 24 else 0).histogram()[255:])
+
+
+TOLERANCE = 0.001 * 1080 * 1920    # Chromium is not bit-exact between runs (a 223 px wobble was seen on `title`)
+
+
 @needs_cards
-def test_title_wraps_the_episode_title_in_the_tiles_guillemets(drawn):
-    from PIL import ImageChops, Image
+@pytest.mark.parametrize("el", sorted(SAMPLES))
+def test_the_kits_own_text_comes_out_as_the_kits_own_overlay(el, drawn):
+    """Setting the kit's sample text through ilag_cut (with \\n for the kit's <br>) must give back the tile the CEO is
+    reviewing."""
     _, _, work = drawn
-    plain = {"season": "ก", "ep": "EP.1", "title": "ตบผิดคน", "tagline": "ค"}
-    quoted = {**plain, "title": "«ตบผิดคน»"}
-    ilag_cut.render_card_set(KIT, work, [("title", plain), ("title", quoted)])
-    a, b = (Image.open(ilag_cut.card_path(work, "title", t)).convert("RGBA") for t in (plain, quoted))
-    assert ImageChops.difference(a, b).getbbox() is None
+    ilag_cut.render_card_set(KIT, work, [(el, SAMPLES[el])])
+    changed = changed_pixels(ilag_cut.card_path(work, el, SAMPLES[el]), run_kit_overlays(work, [el]) / f"{el}.png")
+    assert changed < TOLERANCE, f"{el}: {changed} px differ from the kit's own overlay"
+
+
+@needs_cards
+def test_the_line_break_matters(drawn):
+    """Probe: the fact's words with a space where the kit has its <br> do NOT match the kit's tile, so the match above
+    is not a coincidence of wrapping.  (The lesson plate wraps by width at the same place, so it cannot tell.)"""
+    _, _, work = drawn
+    spaced = {"body": SAMPLES["fact"]["body"].replace("\n", " ")}
+    ilag_cut.render_card_set(KIT, work, [("fact", spaced)])
+    assert changed_pixels(ilag_cut.card_path(work, "fact", spaced), run_kit_overlays(work, ["fact"]) / "fact.png") > TOLERANCE
+
+
+@needs_cards
+def test_cards_refuses_a_kit_with_no_logo(drawn, tmp_path, media, capsys):
+    _, p, _ = drawn
+    bare = tmp_path / "bare"
+    shutil.copytree(KIT, bare)                       # no images/ beside it and no logo.png inside
+    code = ilag_cut.main(["cards", str(p), "--root", str(media), "--kit", str(bare), "--out", str(tmp_path / "w")])
+    assert code == 1 and "no logo for the kit" in capsys.readouterr().err

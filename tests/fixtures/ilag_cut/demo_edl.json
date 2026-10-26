@@ -1,10 +1,10 @@
 {
-  "note": "Reproduces templates/build_demo.py (the 44 s kit demo cut from the EP1 footage). Sources are relative to --root: footage/ep5-ep1.mp4, sfx/*.wav.",
+  "note": "Reproduces templates/build_demo.py (the 44 s kit v2 demo cut from the EP1 footage). Sources are relative to --root: footage/ep5-ep1.mp4, sfx/*.wav.",
   "fps": 24,
   "size": [1080, 1920],
   "sfx": "sfx",
   "kit": "templates",
-  "output": "ilag-kit-demo-v1.mp4",
+  "output": "ilag-kit-demo-v2.mp4",
   "loudnorm": -16,
   "segments": [
     {"id": "a", "kind": "clip", "src": "footage/ep5-ep1.mp4", "in": 132.0, "dur": 4.5,
@@ -17,7 +17,7 @@
      "texts": {"season": "ตลาดนี้มีกรรม", "ep": "EP.1", "title": "ตบผิดคน", "tagline": "ทำชั่วแล้ว AI ก็ช่วยไม่ได้"}},
     {"id": "d", "kind": "clip", "src": "footage/ep5-ep1.mp4", "in": 0.0, "dur": 6.0,
      "cards": [{"el": "rewcard", "at": 0.15, "dur": 2.3, "texts": {"tct": "ย้อนกลับไปเมื่อเช้านี้"}},
-               {"el": "place", "at": 2.7, "dur": 3.2, "texts": {"pl1": "ตลาดซอยมะขาม", "pl2": "06:30 น. · เช้าวันจันทร์"}}],
+               {"el": "place", "at": 2.7, "dur": 3.2, "texts": {"pl1": "ตลาดซอยมะขาม", "pl2": "เช้าวันจันทร์ 06:30 น."}}],
      "sfx": [{"name": "whoosh", "at": 0.0, "gain": 0.6}]},
     {"id": "e1", "kind": "clip", "src": "footage/ep5-ep1.mp4", "in": 30.0, "dur": 5.0, "grade": "flash",
      "cards": [{"el": "flash", "at": 0.2, "dur": 2.6, "texts": {"fct": "ย้อนกลับไปเมื่อสามปีก่อน", "fsub": "ความทรงจำของแม่ศรี"}}],

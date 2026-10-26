@@ -17,19 +17,22 @@ EDL (JSON).  Paths are relative to --root (default: the EDL's folder).  Times ar
   top level   fps (24)  size [1080,1920]  sfx "sfx" (folder of <name>.wav)  kit "templates" (default for `cards --kit`)
               output "ilag-ep.mp4"  loudnorm -16 (LUFS)  segments [...]  note
   every segment   id (unique, A-Za-z0-9_-)  kind  note  cards  subs  sfx          (ng: cards/subs/sfx sit inside take/take2)
-    cards [{el: skip|rewcard|flash|now|place|name, at, dur, texts{...}}]   0.25 s alpha fade in and out, inside the segment
-        texts: skip/rewcard/now tct | flash fct, fsub | place pl1, pl2 | name nm1, nm2, nm3
+    cards [{el: skip|rewcard|flash|now|place|name|namegood|fact|lesson, at, dur, texts{...}}]
+        0.25 s alpha fade in and out, inside the segment
+        texts: skip/rewcard/now tct | flash fct, fsub | place pl1, pl2 | name, namegood nm1, nm2, nm3 | fact, lesson body
+        (fact and lesson body may hold one "\n": it becomes the kit's <br>; no other text may span lines)
     subs  [{at, dur, text}]            segment-local time, no overlaps
     sfx   [{name, at, gain}]           <sfx>/<name>.wav
   kind clip   src in dur  [speed reverse grade(none|flash|desat) blur freeze_last gain wm blooper]
        still  src dur     [grade blur wm blooper]
        ng     take{src,in,dur}  freeze_at  tape  take2{src?,in,dur}  [rewind_in wm]
               expands to: the bad take, freeze + NG stamp + tape, rewind, take 2 with the "เทค 2" sticker
-       title  src [in dur blur gain]  texts{season, ep, title, tagline}      (over a blurred clip or still)
+       title  src [in dur blur gain]  texts{season, ep, title, tagline}      (over a blurred clip or still; the title
+                                                                              takes no quote marks)
        end    src [in dur blur gain]  texts{e2, e3, e4 [, e1, e5]}
-       blooper_header  src [freeze_at dur]                                   (tile 14, on a frozen frame)
-  A clip/still with "blooper": true gets the "bltag" corner tag and no watermark.  grade "flash" adds the sepia grade
-  and the "อดีต" clock tag.  Story segments (clip, still, ng) carry the watermark; title, end, blooper_header and
+       blooper_header  src [freeze_at dur]                                   (on a frozen frame)
+  A clip/still with "blooper": true gets the "bltag" corner tag and no watermark.  grade "flash" adds the black and
+  white flashback grade (kit v2) and the "อดีต" clock tag.  Story segments (clip, still, ng) carry the watermark; title, end, blooper_header and
   blooper segments never do.
 """
 from __future__ import annotations
@@ -53,9 +56,10 @@ NG_SHAKE = {4: (14, -8), 5: (-9, 6), 6: (5, -3)}
 REWIND_SPEED = 1.85
 TAKE2_STICKER = 1.5
 SIZE = [1080, 1920]
-ENC_SALT = "ilag_cut-1"         # bump when the filter graphs change: invalidates every cached segment
+ENC_SALT = "ilag_cut-2"         # bump when the filter graphs change: invalidates every cached segment
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 DASHES = "—–"
+GUILLEMETS = "\u00ab\u00bb"
 PATH_KEYS = {"src", "kit", "sfx", "output", "id"}      # strings the dash rule does not read
 
 # kit element -> {EDL text key: CSS selector inside #<el>}; the selector names the node whose text we set
@@ -64,17 +68,20 @@ ELEMENTS = {
     "skip": {"tct": ".tct"}, "rewcard": {"tct": ".tct"}, "now": {"tct": ".tct"},
     "flash": {"fct": ".fct", "fsub": ".fsub"},
     "place": {"pl1": ".pl1", "pl2": ".pl2"},
-    "name": {"nm1": ".nm1", "nm2": ".nm2", "nm3": ".nm3"},
+    "name": {"nm1": ".nm1", "nm2": ".nm2", "nm3": ".nm3"}, "namegood": {"nm1": ".nm1", "nm2": ".nm2", "nm3": ".nm3"},
+    "fact": {"body": ".body"}, "lesson": {"body": ".ls-plate"},
     "title": {"season": ".ts-series span", "ep": ".ts-pill .pill", "title": ".ts-ep span", "tagline": ".ts-tag"},
     "ng": {"tape": ".tape span"}, "ngt": {"tape": ".tape span"},
     "end": {"e1": ".e1 span", "e2": ".e2 span", "e3": ".e3 span", "e4": ".e4", "e5": ".e5"},
     "sub": {"sub": ".sub span"},
 }
-CARD_EL = ("skip", "rewcard", "flash", "now", "place", "name")
+CARD_EL = ("skip", "rewcard", "flash", "now", "place", "name", "namegood", "fact", "lesson")
+MULTILINE = {("fact", "body"), ("lesson", "body")}    # texts where the kit itself has a <br>; at most 2 lines
 REQUIRED = {"skip": ("tct",), "rewcard": ("tct",), "flash": ("fct", "fsub"), "place": ("pl1", "pl2"),
-            "name": ("nm1", "nm2", "nm3"), "title": ("season", "ep", "title", "tagline"), "end": ("e2", "e3", "e4")}
+            "name": ("nm1", "nm2", "nm3"), "namegood": ("nm1", "nm2", "nm3"), "fact": ("body",), "lesson": ("body",),
+            "title": ("season", "ep", "title", "tagline"), "end": ("e2", "e3", "e4")}
 GRADES = {
-    "flash": "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131,vignette=PI/4,noise=alls=9:allf=t",
+    "flash": "hue=s=0,eq=contrast=1.12,vignette=PI/4,noise=alls=9:allf=t",
     "desat": "hue=s=0.3,eq=brightness=-0.05",
     "rewind": "eq=saturation=0.75,noise=alls=14:allf=t",
 }
@@ -162,8 +169,10 @@ class V:
                 self.err(where, f"unknown text '{k}' for {el} (known: {', '.join(known) or 'none'})")
             elif not isinstance(v, str) or not v.strip():
                 self.err(where, f"text '{k}' must be a non-empty string")
-            elif "\n" in v:
-                self.err(where, f"text '{k}' must be one line")
+            elif "\n" in v and (el, k) not in MULTILINE:
+                self.err(where, f"text '{k}' must be one line (only fact and lesson 'body' take a line break)")
+            elif "\n" in v and (v.count("\n") > 1 or not all(x.strip() for x in v.split("\n"))):
+                self.err(where, f"text '{k}' of {el}: at most 2 lines, none empty (the plate holds two)")
         for k in (required if required is not None else REQUIRED.get(el, ())):
             if k not in t:
                 self.err(where, f"{el} needs text '{k}'")
@@ -217,6 +226,9 @@ def overlays_field(v, obj, where, length):
             elif key == "subs":
                 v.keys(c, {"at", "dur", "text"}, w)
                 at, dur, text = v.num(c, "at", w, lo=0), v.num(c, "dur", w, gt=0), v.string(c, "text", w)
+                if text and "\n" in text:
+                    v.err(w, "a subtitle line must be one line (cut it into two subs)")
+                    text = None
                 if None not in (at, dur, text):
                     out.append({"at": at, "dur": dur, "text": text})
             else:
@@ -435,6 +447,9 @@ def check(edl):
     for path, text in iter_text(edl):
         if any(d in text for d in DASHES):
             v.err(path, f"text has an em or en dash (IRON-RULES 39): {text[:40]!r}")
+        if any(g in text for g in GUILLEMETS):
+            v.err(path, f"text has a guillemet, no \u00ab \u00bb in Thai text (CEO 2026-10-26; use \"...\" or none): "
+                        f"{text[:40]!r}")
     ids, out_segs = {}, []
     for i, seg in enumerate(segs):
         ps = expand_segment(v, seg, i, fps)
@@ -475,6 +490,11 @@ def check(edl):
             v.warnings.append("no title segment: the hook length is not checked")
         if "end" not in kinds:
             v.warnings.append("no end card")
+        used = {c["el"] for _, ps in out_segs for p in ps for c in p["cards"]}
+        for el, pillar in (("lesson", "the takeaway"), ("fact", "the checked fact")):
+            if el not in used:
+                v.warnings.append(f"no {el} card: BRAND.md hard rule 7, every EP carries all four pillars "
+                                  f"(morality, takeaway, knowledge, humour); {pillar} is missing")
         if not 600 <= total <= 1200:
             v.warnings.append(f"EP is {total:.1f} s; the channel format is 10-20 min")
     return v.errors, v.warnings, out_segs
@@ -551,25 +571,52 @@ def cmd_plan(a):
 
 
 # ------------------------------------------------------------------ cards (Playwright + PIL)
+def logo_source(kit):
+    """(path, how): the kit folder's own logo.png (REBUILD step 0), else the Page's logo jpg next to the templates
+    folder, which cut_logo.py turns into logo.png.  The logo is never redrawn."""
+    kit = Path(kit)
+    if (kit / "logo.png").exists():
+        return kit / "logo.png", "png"
+    jpg = kit.parent / "images" / "ilag-page-logo-1080.jpg"
+    if jpg.exists() and (kit / "cut_logo.py").exists():
+        return jpg, "jpg"
+    raise Fail(f"no logo for the kit: put logo.png in {kit} or keep images/ilag-page-logo-1080.jpg beside the templates "
+               f"folder (REBUILD.md step 0 makes logo.png with cut_logo.py)")
+
+
 def kit_fingerprint(kit):
+    kit = Path(kit)
     h = hashlib.sha256()
-    for name in ("kit.tpl.html", "emblem.svg", "render_kit.py"):
+    for name in ("kit.tpl.html", "render_kit.py"):
         h.update((kit / name).read_bytes())
+    src, how = logo_source(kit)
+    h.update(src.read_bytes())
+    if how == "jpg":
+        h.update((kit / "cut_logo.py").read_bytes())
     for f in sorted((kit / "fonts").glob("*.ttf")):
         h.update(f"{f.name}:{f.stat().st_size}".encode())
     return h.hexdigest()
 
 
 def stage_kit(kit, work):
-    """Copy the kit's template files into WORK/kit (kit.html needs fonts/ beside it) and build kit.html there."""
+    """Copy the kit's template files into WORK/kit (kit.html needs fonts/ and logo.png beside it), build kit.html there."""
     kit, stage = Path(kit), Path(work) / "kit"
-    for need in ("kit.tpl.html", "emblem.svg", "render_kit.py", "fonts"):
+    for need in ("kit.tpl.html", "render_kit.py", "fonts"):
         if not (kit / need).exists():
             raise Fail(f"{kit} is not the ILAG templates folder: no {need}")
+    src, how = logo_source(kit)
     stage.mkdir(parents=True, exist_ok=True)
-    for f in ("kit.tpl.html", "emblem.svg", "render_kit.py"):
+    for f in ("kit.tpl.html", "render_kit.py"):
         shutil.copy2(kit / f, stage / f)
     shutil.copytree(kit / "fonts", stage / "fonts", dirs_exist_ok=True)
+    if how == "png":
+        shutil.copy2(src, stage / "logo.png")
+    else:
+        done = subprocess.run([sys.executable, "-I", str(kit / "cut_logo.py"), str(src), str(stage / "logo.png")],
+                              capture_output=True, text=True)
+        if done.returncode:
+            raise Fail(f"cut_logo.py failed (it needs numpy and PIL: use the Agents-Core venv python):\n"
+                       f"{(done.stderr or done.stdout).strip()[-400:]}")
     import importlib.util
     spec = importlib.util.spec_from_file_location("ilag_render_kit", stage / "render_kit.py")
     mod = importlib.util.module_from_spec(spec)
@@ -599,7 +646,7 @@ SET_TEXT_JS = """async ({el, items, authored}) => {
   for (const [sel, txt] of items) {
     const n = root.querySelector(sel);
     if (!n) throw new Error('kit has no ' + sel + ' in #' + el);
-    n.textContent = txt;
+    n.replaceChildren(...txt.split('\\n').flatMap((line, i) => i ? [document.createElement('br'), line] : [line]));
   }
   void root.offsetHeight;
   await document.fonts.ready;
@@ -632,8 +679,6 @@ def render_card_set(kit, work, wanted, force=False):
             for el, tx in todo:
                 items = []
                 for k, text in tx.items():
-                    if el == "title" and k == "title" and not text.startswith("«"):
-                        text = f"«{text}»"
                     items.append([ELEMENTS[el][k], text])
                 pg.goto((stage / "kit.html").as_uri() + f"?el={el}")
                 pg.wait_for_function('document.body.dataset.ready === "1"')
