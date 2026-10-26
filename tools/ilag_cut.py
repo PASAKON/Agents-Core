@@ -592,6 +592,28 @@ def edl_root(a):
     return Path(a.root or Path(a.edl).resolve().parent).resolve()
 
 
+def refuse_escaping_links(work):
+    """Every symlink under WORK must resolve inside WORK.  A linked cards/, seg/, out/ or kit/ folder (or one linked
+    file in them) would carry our writes, and the delete of a stale NG frame set, to wherever it points."""
+    work = Path(work).resolve()
+    bad = []
+    for dirpath, dirs, files in os.walk(work):          # followlinks is off: a linked folder is listed, not entered
+        for name in dirs + files:
+            link = Path(dirpath) / name
+            if not link.is_symlink():
+                continue
+            try:
+                target = link.resolve()
+            except (OSError, RuntimeError):             # a link loop
+                bad.append(f"{link} -> (does not resolve)")
+                continue
+            if target != work and work not in target.parents:
+                bad.append(f"{link} -> {target}")
+    if bad:
+        raise Fail(f"{len(bad)} symlink(s) in the work folder {work} point outside it; refused (remove them or give "
+                   f"--out a real folder): " + "; ".join(bad[:5]) + (" ..." if len(bad) > 5 else ""))
+
+
 def logo_source(kit):
     """(path, how): the kit folder's own logo.png (REBUILD step 0), else the Page's logo jpg next to the templates
     folder, which cut_logo.py turns into logo.png.  The logo is never redrawn."""
@@ -677,11 +699,12 @@ SET_TEXT_JS = """async ({el, items, authored}) => {
 
 def render_card_set(kit, work, wanted, force=False):
     """Render [(el, texts)] to WORK/cards/<el>-<hash>.png.  Returns (rendered, reused)."""
+    work = Path(work).resolve()                         # as_uri() below needs an absolute path
+    refuse_escaping_links(work)
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         raise Fail("cards needs Playwright + PIL: run with /opt/MoonieXHQ/Agents/Core/.venv/bin/python")
-    work = Path(work).resolve()                         # as_uri() below needs an absolute path
     (work / "cards").mkdir(parents=True, exist_ok=True)
     fp = kit_fingerprint(Path(kit))
     sidecar = work / "cards" / ".kit-sha"
@@ -995,6 +1018,7 @@ def cmd_encode(a):
             print(f"ERROR {e}", file=sys.stderr)
         return 1
     root, work = edl_root(a), Path(a.out).resolve()
+    refuse_escaping_links(work)
     probes = {}
     errs = preflight(edl, segs, root, work, probes)
     if errs:
