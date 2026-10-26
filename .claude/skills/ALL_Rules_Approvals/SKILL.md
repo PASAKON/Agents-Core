@@ -31,11 +31,15 @@ moment of spending; this file is the org rule they all point to.
 2. **HARD — Secrets go to the CEO.** Creating, moving, printing, rotating or pasting a credential, token,
    password or key, or putting one into a file, a chat or a worker, waits for him (Infisical is the target
    home). **Why hard:** safety — a leaked secret cannot be un-leaked.
-   Exception (CEO 2026-10-26, Q-20261026-0814-e94a, choice "ทุก project รวม Org-Infra"): a C-level creates or
-   deletes a provider API key itself, with no card per key, in every project including Org-Infra, but only
-   through `CTO_Procedure_KeyFetch`. A worker drives the provider page in a Browser Home and pipes the key
-   straight into Infisical. No model sees the value, and each create or delete gets one ledger line. Moving,
-   printing or pasting a value, and any change to who may read a secret, still wait for him.
+   Exception (CEO 2026-10-26, Q-20261026-0814-e94a): a C-level creates or deletes a provider API key itself,
+   with no card per key, in the key's own repo project, but only through `CTO_Procedure_KeyFetch`. A worker
+   drives the provider page in a Browser Home and pipes the key straight into Infisical. No model sees the
+   value, and each create or delete gets one ledger line. Org-Infra stays his to enter. On the free plan the
+   project is the only wall, so nothing moves into Org-Infra (CEO 2026-10-26, Q-20261026-1118-4d3d: "ฟรี: แยก
+   project ต่อ repo เป็นกำแพง, keyfetch-writer แทนที่นั่ง setup (แนะนำ)"). Moving, printing or pasting a value, and
+   any change to who may read a secret, still wait for him.
+   `[SUPERSEDED 2026-10-26]` "in every project including Org-Infra" (e94a, choice "ทุก project รวม Org-Infra"):
+   the free plan cannot scope inside one project, and on 4d3d the CEO chose the free plan.
 3. **HARD — Permanent deletion of data waits for his word.** Drive files, disk contents and datasets are
    deleted only after he says so for that deletion, with the backup shown (`CXO_Rules_GDrive_Filing`,
    `ALL_Rules_DiskHygiene`). Moving to an archive or a trash that can be restored is not deletion.

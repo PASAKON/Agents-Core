@@ -1,5 +1,12 @@
 # Org-Infra scopes — proposal, 2026-10-26
 
+**Decided 2026-10-26 18:53 TH (CEO, Q-20261026-1118-4d3d, option 1 "ฟรี: แยก project ต่อ repo เป็นกำแพง,
+keyfetch-writer แทนที่นั่ง setup (แนะนำ)"):** stay on the free plan. No project moves into Org-Infra. Each repo's own
+project is the wall, and Org-Infra keeps only the org-wide credentials, which the CEO enters. Parked unless a paid
+plan is chosen later: §1, §2, §4, and §5 steps 1, 3, 4, 6 and 7. Going ahead: §3 `keyfetch-writer` in `setup`'s
+seat (§5 steps 2 and 5). Its project role is Developer, because the free plan has no create-only role, so its
+secret is minted short-lived and revoked after each run (`CTO_Procedure_KeyFetch` rules 3–4).
+
 ## 1. Layout
 
 Mandate: CEO card Q-20261026-0814-e94a (choice "ทุก project รวม Org-Infra"): every project belongs in Org-Infra with explicit scopes, and C-levels may create/delete provider keys through KeyFetch. Recorded in `.claude/skills/ALL_Rules_Approvals/SKILL.md` rule 2 and `CLAUDE.md` §Secrets; until this design lands the tools refuse Org-Infra.

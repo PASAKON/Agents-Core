@@ -132,9 +132,10 @@ def test_load_table_rejects_a_malformed_file(tmp_path, text):
 
 # --- the seeded map ------------------------------------------------------------------------------
 
-def test_the_seeded_map_has_the_five_projects_and_shared():
+def test_the_seeded_map_has_the_six_projects_and_shared():
     tbl = po.load_table()
-    assert set(po.projects(tbl)) == {"OrgRestructure", "SpendGuard", "CookieRun", "BlackLiquidity", "MimiPage"}
+    assert set(po.projects(tbl)) == {"OrgRestructure", "ProjectTrack", "SpendGuard", "CookieRun",
+                                     "BlackLiquidity", "MimiPage"}
     assert any(o == po.SHARED for _, o in tbl)
 
 
@@ -157,6 +158,9 @@ def test_no_glob_is_listed_twice_in_the_seeded_map():
     ("runners/watchdog.py", "shared"),
     ("scripts/cto-claude.sh", "shared"),
     ("tests/test_terminal_window.py", "OrgRestructure"),
+    ("tools/spawn_ph.py", "ProjectTrack"),
+    ("tests/test_portfolio_schema.py", "ProjectTrack"),
+    ("tools/budget_queue.py", "ProjectTrack"),
     ("lib/config.py", "shared"),
     ("roles/project_head.md", "shared"),
     (".claude/settings.json", "shared"),
