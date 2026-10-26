@@ -50,6 +50,20 @@ def test_bad_manifest(monkeypatch, tmp_path, source):
         tool.writer_projects()
 
 
-def test_bedrock_allowed_without_static_project_table():
-    assert "MoonieX-Bedrock" not in tool.PROJECTS
+def test_missing_manifest(monkeypatch, tmp_path):
+    monkeypatch.setattr(tool, "WRITER_MANIFEST", str(tmp_path / "absent.yaml"))
+    with pytest.raises(SystemExit, match="manifest missing"):
+        tool.writer_projects()
+
+
+def test_missing_credentials_names_the_identity(monkeypatch):
+    def no_cred(identity):
+        raise FileNotFoundError(2, "No such file", f"/creds/{identity}.env")
+    monkeypatch.setattr(tool, "Org", no_cred)
+    with pytest.raises(SystemExit, match="save keyfetch-writer"):
+        tool.main(["put", "Agents-Core", "prod", "TEST_API_KEY", "--stdin"])
+
+
+def test_bedrock_allowed_without_static_project_table(monkeypatch):
+    monkeypatch.setattr(tool, "PROJECTS", type(tool.PROJECTS)())
     tool.guard_writer_project("MoonieX-Bedrock")

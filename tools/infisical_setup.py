@@ -355,8 +355,11 @@ def cmd_save(name: str, from_stdin: bool = False, scope: str = "machine") -> Non
 
 def writer_projects() -> list[str]:
     """Fail closed; shared restricted YAML flow-list format, no YAML dependency."""
-    with open(WRITER_MANIFEST, encoding="utf-8") as fh:
-        source = "\n".join(line.split("#", 1)[0] for line in fh).strip()
+    try:
+        with open(WRITER_MANIFEST, encoding="utf-8") as fh:
+            source = "\n".join(line.split("#", 1)[0] for line in fh).strip()
+    except OSError:
+        sys.exit(f"keyfetch-writer manifest missing: {WRITER_MANIFEST}")
     match = re.fullmatch(r"projects:\s*\[([^\]]*)\]\s*", source)
     projects = [p.strip() for p in match[1].split(",")] if match else []
     if (not projects or any(not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", p)
@@ -1014,7 +1017,6 @@ def main(argv: list[str] | None = None) -> None:
         elif args.cmd == "status":
             cmd_status(Org())
         elif args.cmd == "retire-setup":
-            print("The CEO seat script keyfetch_writer_seat.mjs replaces retire-setup.")
             cmd_retire_setup(Org())
         elif args.cmd == "perms":
             if not NAME_RE.match(args.identity):
@@ -1038,7 +1040,7 @@ def main(argv: list[str] | None = None) -> None:
     except ApiError as exc:
         sys.exit(f"Infisical API error: {exc}")
     except FileNotFoundError as exc:
-        sys.exit(f"missing credentials: {exc.filename} (run `save {SETUP}` first)")
+        sys.exit(f"missing credentials: {exc.filename} (run `save {getattr(args, 'identity', SETUP)}` first)")
 
 
 if __name__ == "__main__":

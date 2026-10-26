@@ -407,14 +407,14 @@ class InfisicalSetupTest(unittest.TestCase):
         meta = ["--comment", "chatudo", "--meta", "provider_name=supabase", "--meta", "console_url=n/a",
                 "--meta", "scope=db", "--meta", "expires=2027-09-28", "--meta", "owner=CTO"]
         with mock.patch("sys.stdin", io.StringIO("SECRET-root-aaaa\n")):
-            self.run_cli("put", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin", *meta)
+            self.run_cli("put", "--as", "setup", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin", *meta)
         with mock.patch("sys.stdin", io.StringIO("SECRET-chatudo-bbbb\n")):
-            text = self.run_cli("put", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin",
+            text = self.run_cli("put", "--as", "setup", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin",
                                 "--path", "/chatudo", *meta)
         self.assertIn("created MoonieX-ClaudeFlow/prod/chatudo SUPABASE_URL · last4=bbbb", text)
         self.assertEqual(self._stored("SUPABASE_URL")["secretValue"], "SECRET-root-aaaa")
         self.assertEqual(self._stored("SUPABASE_URL", "/chatudo")["secretValue"], "SECRET-chatudo-bbbb")
-        self.assertIn("last4=bbbb", self.run_cli("last4", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL",
+        self.assertIn("last4=bbbb", self.run_cli("last4", "--as", "setup", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL",
                                                  "--path", "/chatudo"))
         Path(os.path.join(self.cred_dir, "contabo.env")).write_text(
             f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={SETUP_ID}\nINFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={SETUP_SECRET}\n")
@@ -454,7 +454,7 @@ class InfisicalSetupTest(unittest.TestCase):
         meta = ["--meta", "provider_name=none", "--meta", "console_url=none", "--meta", "scope=none",
                 "--meta", "expires=2027-01-01", "--meta", "owner=CTO"]
         with mock.patch("sys.stdin", io.StringIO("SECRET-value-one-abcd\n")):
-            text = self.run_cli("put", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
+            text = self.run_cli("put", "--as", "setup", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
                                 "--comment", "test purpose", *meta)
         self.assertIn("created Agents-Core/dev SMOKE_API_KEY · last4=abcd", text)
         rec = self._stored("SMOKE_API_KEY")
@@ -462,7 +462,7 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertTrue({"provider_name", "expires", "owner", "created", "status"}
                         <= {m["key"] for m in rec["secretMetadata"]})
         with mock.patch("sys.stdin", io.StringIO("SECRET-value-two-wxyz\n")):
-            text = self.run_cli("put", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
+            text = self.run_cli("put", "--as", "setup", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
                                 "--meta", "status=retiring")
         self.assertIn("updated Agents-Core/dev SMOKE_API_KEY · last4=wxyz", text)
         rec = self._stored("SMOKE_API_KEY")
@@ -470,7 +470,7 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertEqual(now["status"], "retiring")
         self.assertEqual(now["owner"], "CTO")                  # old metadata survives an update
         self.assertEqual(rec["secretComment"], "test purpose")  # so does the purpose
-        self.assertIn("last4=wxyz", self.run_cli("last4", "Agents-Core", "dev", "SMOKE_API_KEY"))
+        self.assertIn("last4=wxyz", self.run_cli("last4", "--as", "setup", "Agents-Core", "dev", "SMOKE_API_KEY"))
 
     def test_put_refuses_bad_names_org_infra_and_missing_metadata(self):
         self.save_setup()
@@ -484,7 +484,7 @@ class InfisicalSetupTest(unittest.TestCase):
         ]
         for argv, needle in cases:
             with mock.patch("sys.stdin", io.StringIO("SECRET-x\n")), self.assertRaises(SystemExit) as cm:
-                self.run_cli(*argv)
+                self.run_cli(*argv, "--as", "setup")
             self.assertIn(needle, str(cm.exception), argv[3])
         self.assertFalse(self.fake.store, "a refused put must write nothing")
 
@@ -496,11 +496,11 @@ class InfisicalSetupTest(unittest.TestCase):
                                   "VPS_QUEUE_DB=\"/var/lib/q.SECRET.db\"\n\nNOT_A_LINE\n")
         meta = ["--meta", "provider_name=internal", "--meta", "console_url=n/a", "--meta", "scope=queue",
                 "--meta", "expires=2027-09-28", "--meta", "owner=CTO"]
-        text = self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file,
+        text = self.run_cli("import-env", "--as", "setup", "MoonieX-LineAutomation", "prod", env_file,
                             "--comment", "pilot", *meta)
         self.assertIn("created MoonieX-LineAutomation/prod VPS_QUEUE_TOKEN · last4=1234", text)
         self.assertIn("skip    VPS_QUEUE_DB", text)                       # DB is not a §4b KIND
-        text = self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file,
+        text = self.run_cli("import-env", "--as", "setup", "MoonieX-LineAutomation", "prod", env_file,
                             "--legacy", "--comment", "pilot", *meta)
         self.assertIn("updated MoonieX-LineAutomation/prod VPS_QUEUE_TOKEN", text)
         self.assertIn("created MoonieX-LineAutomation/prod VPS_QUEUE_DB · last4=T.db", text)
@@ -509,14 +509,14 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertEqual({m["key"]: m["value"] for m in db["secretMetadata"]}["naming"], "legacy")
         self.assertNotIn("naming", {m["key"] for m in self._stored("VPS_QUEUE_TOKEN")["secretMetadata"]})
         with self.assertRaises(SystemExit) as cm:
-            self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file, "--only", "MISSING_TOKEN")
+            self.run_cli("import-env", "--as", "setup", "MoonieX-LineAutomation", "prod", env_file, "--only", "MISSING_TOKEN")
         self.assertIn("MISSING_TOKEN", str(cm.exception))
 
     def test_run_execs_the_command_with_secrets_in_its_environment_only(self):
         self.save_setup()
         self.run_cli("apply")
         with mock.patch("sys.stdin", io.StringIO("SECRET-run-9999\n")):
-            self.run_cli("put", "MoonieX-LineAutomation", "prod", "VPS_QUEUE_TOKEN", "--stdin",
+            self.run_cli("put", "--as", "setup", "MoonieX-LineAutomation", "prod", "VPS_QUEUE_TOKEN", "--stdin",
                          "--comment", "pilot", "--meta", "provider_name=internal", "--meta", "console_url=n/a",
                          "--meta", "scope=queue", "--meta", "expires=2027-09-28", "--meta", "owner=CTO")
         # the contabo identity reads with its own credential file

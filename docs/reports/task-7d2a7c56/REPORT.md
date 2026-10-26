@@ -91,3 +91,20 @@ API message text is untrusted. Diagnostics keep a small safe vocabulary and reda
 ## Skill learning
 
 - (none)
+
+## CTO review fix (26 Oct 2026)
+
+The brief changed every `--as` default to `keyfetch-writer` but left `scripts/test_infisical_setup.py` out of its
+test list. Five of its tests then failed (they save `setup` and call put / import-env / last4 without `--as`).
+
+- `scripts/test_infisical_setup.py`: those calls pass `--as setup`, so each test keeps its meaning.
+- `tools/infisical_setup.py`: the missing-credentials hint names the identity that was asked for; one
+  "superseded" line for retire-setup instead of two; a missing `config/keyfetch-writer.yaml` exits with
+  "keyfetch-writer manifest missing" instead of being reported as missing credentials.
+- `tests/test_infisical_writer.py`: new `test_missing_manifest` and `test_missing_credentials_names_the_identity`
+  (both fail on cb5f2d16's tool); the Bedrock test empties `PROJECTS` instead of asserting Bedrock is absent.
+
+Tests: `scripts/test_infisical_setup.py tests/test_infisical_writer.py tests/test_keyfetch_writer_seat.py
+tests/test_infisical_perms.py tests/test_infisical_mkdir.py tests/test_infisical_user_scope.py
+tests/test_infisical_get_secret_folder.py` → `78 passed in 17.02s`. On Contabo, `tests/test_keyfetch_capture.py`
+(node 20 has no global WebSocket) and `tests/test_w43_join_scripts.py` fail on base 61bdf1fd too.
