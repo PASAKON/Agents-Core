@@ -74,7 +74,8 @@ EDL fields (paths are relative to `--root`, default the EDL's folder; times in s
 - Every segment: `id` (unique, `A-Za-z0-9_-`), `kind`, `note`, `cards`, `subs`, `sfx`.
   - `cards`: `[{el, at, dur, texts}]`, `el` is `skip`, `rewcard`, `flash`, `now`, `place` or `name`. Fades 0.25 s in and
     out, `dur` at least 0.5, inside the segment. `texts`: `tct` (skip, rewcard, now), `fct` + `fsub` (flash),
-    `pl1` + `pl2` (place), `nm1` + `nm2` + `nm3` (name). Leave a text out and the kit's own sample line is used.
+    `pl1` + `pl2` (place), `nm1` + `nm2` + `nm3` (name). All of them are required, except `tct` on `now`
+    (kit default "ปัจจุบัน"). One line each.
   - `subs`: `[{at, dur, text}]`, one line each (kit element `sub`), no overlaps. `sfx`: `[{name, at, gain}]`.
 - `clip`: `src in dur`, optional `speed` (0.25-4), `reverse`, `grade` (`none`, `flash`, `desat`), `blur`,
   `freeze_last`, `gain`, `wm`, `blooper`. `grade: flash` adds the sepia grade and the "อดีต" tag.
