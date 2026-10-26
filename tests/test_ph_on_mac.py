@@ -153,7 +153,7 @@ def test_spawn_ph_dry_run_on_the_mac(mac, monkeypatch):
     monkeypatch.setenv("ORG_PH_ROLES", "1")
     monkeypatch.setenv("CXO_ROLE", "cto")
     monkeypatch.setenv("CTO_SESSION_ID", OWNER)
-    out = spawn_ph.spawn("LuminaSkies", "brief", dry_run=True)
+    out = spawn_ph.spawn("LuminaSkies", "brief", dry_run=True, kind="loop", cadence=24)
     assert out["owner"] == f"cto-{OWNER}"
     assert "--role project_head --lane cto --project LuminaSkies" in out["command"]
     assert list(mac.iterdir()) == []
@@ -194,7 +194,7 @@ def test_when_ps_cannot_read_argv_an_alive_pid_counts(mac, procs, monkeypatch, r
 
 NONCE = "0123456789abcdef"
 SHA = "d4ff2ae0" + "0" * 32
-ARGS = ["--project", "LuminaSkies", "--from-card", NONCE, "--sha", SHA, "--brief", "b"]
+ARGS = ["--project", "LuminaSkies", "--from-card", NONCE, "--sha", SHA, "--kind", "loop", "--cadence", "24", "--brief", "b"]
 
 
 def _card(**over):
@@ -229,7 +229,7 @@ def test_the_card_requester_is_the_owner(mac, hub, monkeypatch):
     cards.append(_card())
     assert spawn_ph.card_owner(ARGS) == ("cto", OWNER)
     assert seen["query"]["status"] == "running"
-    out = spawn_ph.spawn("LuminaSkies", "b", dry_run=True, card=ARGS)
+    out = spawn_ph.spawn("LuminaSkies", "b", dry_run=True, card=ARGS, kind="loop", cadence=24)
     assert out["owner"] == f"cto-{OWNER}"
     assert f"ORG_PH_OWNER={OWNER}" in out["command"]
 
@@ -308,7 +308,7 @@ def test_no_hub_is_refused(mac, monkeypatch):
 
 
 def test_card_command_shape():
-    cmd = spawn_ph.card_command("mac", "LuminaSkies", "brief text", SHA, nonce=NONCE)
+    cmd = spawn_ph.card_command("mac", "LuminaSkies", "brief text", SHA, nonce=NONCE, kind="loop", cadence=24)
     i = cmd.index("create")
     assert cmd[i:i + 3] == ["create", "--host", "mac"]
     assert f"Agents-Core@{SHA}:scripts/spawn-ph.sh" in cmd
@@ -317,22 +317,22 @@ def test_card_command_shape():
                 dict(brief="line one\nline two"), dict(brief="x" * (spawn_ph.CARD_BRIEF_MAX + 1))):
         kw = {"project": "LuminaSkies", "brief": "", "sha": SHA, **bad}
         with pytest.raises(spawn_ph.Refused):
-            spawn_ph.card_command("mac", kw["project"], kw["brief"], kw["sha"])
+            spawn_ph.card_command("mac", kw["project"], kw["brief"], kw["sha"], kind="loop", cadence=24)
 
 
 def test_raising_a_card_needs_a_c_level(mac, monkeypatch, capsys):
     monkeypatch.setenv("ORG_PH_ROLES", "1")
-    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA]) == 1
+    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA, "--kind", "loop", "--cadence", "24"]) == 1
     assert "only a C-level" in capsys.readouterr().err
     monkeypatch.setenv("CXO_ROLE", "cto")
     monkeypatch.setenv("CTO_SESSION_ID", OWNER)
-    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA]) == 0
+    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA, "--kind", "loop", "--cadence", "24"]) == 0
     assert f"Agents-Core@{SHA}:scripts/spawn-ph.sh" in capsys.readouterr().out
 
 
 def test_card_command_passes_ask_run_checks():
     import tools.ask_run as ask_run  # noqa: F401
-    cmd = spawn_ph.card_command("mac", "LuminaSkies", "Read README.md.", SHA, nonce=NONCE)
+    cmd = spawn_ph.card_command("mac", "LuminaSkies", "Read README.md.", SHA, nonce=NONCE, kind="loop", cadence=24)
     env = {"CXO_ROLE": "cto", "CTO_SESSION_ID": OWNER}
     r = subprocess.run([*cmd[:3], "--dry-run", *cmd[3:]], capture_output=True, text=True,
                        env={**__import__("os").environ, **env}, timeout=60)
@@ -433,7 +433,7 @@ def test_a_spawn_must_use_the_cards_project_and_brief(mac, hub):
     cards.append(_card())
     for project, brief in (("Other", "b"), ("LuminaSkies", "another brief")):
         with pytest.raises(spawn_ph.Refused, match="must be the card's"):
-            spawn_ph.spawn(project, brief, dry_run=True, card=ARGS)
+            spawn_ph.spawn(project, brief, dry_run=True, card=ARGS, kind="loop", cadence=24)
 
 # --- M13c: winbox ---
 
@@ -464,7 +464,7 @@ def test_first_prompt_is_the_same_on_every_host():
 
 
 def test_winbox_card_runs_the_powershell_twin(mac, hub, monkeypatch):
-    cmd = spawn_ph.card_command("winbox", "LuminaSkies", "b", SHA, nonce=NONCE)
+    cmd = spawn_ph.card_command("winbox", "LuminaSkies", "b", SHA, nonce=NONCE, kind="loop", cadence=24)
     assert f"Agents-Core@{SHA}:windows/spawn-ph.ps1" in cmd
     cards, _ = hub
     import lib.config

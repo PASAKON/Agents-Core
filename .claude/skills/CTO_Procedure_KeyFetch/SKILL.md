@@ -1,7 +1,7 @@
 ---
 name: CTO_Procedure_KeyFetch
 kind: procedure
-description: "PROCEDURE — A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. Trigger on /CTO_Procedure_KeyFetch and on \"worker ไปเอา KEY\", \"เอา key จาก provider\", \"สร้าง API key ใหม่\", \"fetch a new API key\", \"rotate a key\". Not for the login (relay-login) or Org-Infra (CEO only)."
+description: "PROCEDURE — A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. Trigger on /CTO_Procedure_KeyFetch and on \"worker ไปเอา KEY\", \"เอา key จาก provider\", \"สร้าง API key ใหม่\", \"fetch a new API key\", \"rotate a key\". Not for the login (relay-login). Org-Infra stays the CEO's to enter (Q-20261026-1118-4d3d)."
 owner: CTO
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
@@ -31,9 +31,9 @@ client secret with the ancestor script `scripts/infisical/capture_client_secret.
 - Invoke for a new key, a rotation or an extra scope on any provider with a web page. A C-level writes the
   brief; a `browser_operator` runs it (a `developer` when the provider mints keys by API and no browser is
   needed — then it is a plain script ending in `put`).
-- Not for the login itself (`relay-login` owns it), not for Org-Infra values (PLAN §3b: the CEO enters them;
-  both the script and `put` refuse that project), and not for a value someone pasted to you — that is already a
-  leak: tag it `leaked` in Infisical and rotate it (`ALL_Protocol_RunInbox` explains why a card refuses it).
+- Not for the login itself (`relay-login` owns it), and not for a value someone pasted to you — that is already
+  a leak: tag it `leaked` in Infisical and rotate it (`ALL_Protocol_RunInbox` explains why a card refuses it).
+  Org-Infra: rule 3.
 
 ## Steps (numbered; each with the stop condition)
 
@@ -78,10 +78,25 @@ Done also means: the task report holds no value, no length, no screenshot of the
 2. **HARD — the value enters Infisical only through `put --stdin`**: never an argument, a file a model reads, a
    Run Inbox card or chat. **Why hard:** argv sits in the process list and in the transcript; the worker sandbox
    classifier refuses credential-shaped commands anyway (measured 2026-09-18, GH #156).
-3. **HARD — Org-Infra keys are the CEO's to enter** (PLAN §3b rule 1); the script and `put` refuse the project.
-   **Why hard:** scope of authorisation — the CEO drew that line on 2026-09-25.
-4. The write identity is time-boxed: `setup` until it retires (2026-10-10); afterwards an identity minted for
-   the task with write on ONE project and deleted after (`--as <identity>`); machine identities stay read-only.
+3. **HARD — Org-Infra keys are the CEO's to enter; every other key lands in its own repo project** (CEO
+   2026-10-26, Q-20261026-1118-4d3d: "ฟรี: แยก project ต่อ repo เป็นกำแพง, keyfetch-writer แทนที่นั่ง setup (แนะนำ)").
+   Infisical's free plan has no folder or environment wall, so the project is the only wall and nothing moves
+   into Org-Infra. The script and `put` refuse Org-Infra; never route around the refusal. **Why hard:** scope of
+   authorisation — a writer on Org-Infra could read every org-wide credential in it.
+   History: PLAN §3b rule 1 (2026-09-25) made Org-Infra the CEO's; e94a (2026-10-26 morning) opened it to KeyFetch
+   once a scope design landed; 4d3d (18:53 TH the same day) chose the free plan, so the 09-25 rule stands again.
+   `[SUPERSEDED 2026-10-26]` "Org-Infra keys follow the same steps (… e94a …). Until the Org-Infra scope design
+   lands with its writer identity, the script and `put` still refuse the project: wait for it".
+4. **The write identity is `keyfetch-writer`** (CEO 2026-10-26, Q-20261026-1118-4d3d), in the seat `setup` held:
+   the free plan allows five identities, users included. It has no org role and belongs only to the repo projects
+   KeyFetch writes into, never to Org-Infra. The free plan has no create-only role, so its project role is
+   Developer, which can read those projects too. Keep its client secret short-lived: mint one through the CEO's
+   Infisical Browser Home right before the run, pipe it into `infisical_setup.py save --stdin`, and revoke it after
+   the last `put` verifies (`docs/ops/keyfetch/infisical-setup-identity.md`). The CEO creates the identity once,
+   on one card. Until it exists, a key waits. Machine identities stay read-only.
+   `[SUPERSEDED 2026-10-26]` "The write identity is time-boxed: `setup` until it retires (2026-10-10); afterwards
+   an identity minted for the task with write on ONE project and deleted after": the free plan has no spare seat
+   for an identity per task.
 5. Least privilege at the provider: minimal scope, an expiry (default one year), a spend cap when offered. The
    page name carries all three, so a human reading the provider's key list knows what each key is (PLAN §4d).
 6. The first run on a provider is the expensive one. Save the working flags as

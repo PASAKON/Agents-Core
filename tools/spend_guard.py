@@ -533,7 +533,7 @@ def evaluate(readings: dict, snaps: list[dict], state: dict, cfg: dict, now: dat
         # per OpenRouter key
         for hsh, k in sorted(r.get("keys", {}).items()):
             name = k["name"]
-            tag = f"«{name}» ({hsh[:8]})"
+            tag = f'"{name}" ({hsh[:8]})'
             limit, rem = k.get("limit"), k.get("limit_remaining")
             if limit and limit > 0 and rem is not None:
                 pct = (limit - rem) / limit * 100
@@ -563,7 +563,7 @@ def evaluate(readings: dict, snaps: list[dict], state: dict, cfg: dict, now: dat
             since = parse(rec.get("at"))
             plan.findings.append(Finding(
                 f"openrouter/key/{hsh}/paused", "paused", 1,
-                f"OpenRouter key «{rec.get('name') or hsh[:8]}» ({hsh[:8]}) ถูกพักไว้"
+                f"OpenRouter key \"{rec.get('name') or hsh[:8]}\" ({hsh[:8]}) ถูกพักไว้"
                 f"{' ตั้งแต่ ' + thai_time(since) if since else ''} รอ CEO ตัดสิน", prov, pause=hsh,
                 link=LINKS["openrouter-keys"]))
     return plan
@@ -764,7 +764,7 @@ def act_on_pauses(plan: Plan, readings: dict, state: dict, cfg: dict, env: dict,
                 raise ProviderError("the provider did not confirm disabled=true")
         except ProviderError as e:
             extra.append(Finding(f"openrouter/key/{hsh}/pause", "pause", 1,
-                                 f"พักคีย์ OpenRouter «{name}» ไม่สำเร็จ: {e}", "openrouter",
+                                 f'พักคีย์ OpenRouter "{name}" ไม่สำเร็จ: {e}', "openrouter",
                                  link=LINKS["openrouter-keys"]))
             continue
         rec = {"name": name, "at": iso(now), "reason": f.line, "kind": f.kind}

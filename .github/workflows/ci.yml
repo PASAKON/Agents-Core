@@ -46,8 +46,15 @@ jobs:
           pip install -r requirements.txt
       # tests/ is collected since 2026-09-23: flow_shoot tests probe clips with
       # ffmpeg/ffprobe (installed on the Mac, absent on ubuntu-latest).
+      # On 26 Oct the Azure apt mirror crawled: one package took 6 min, and three runs sat on this step for
+      # 27-85 min (#461, #445 twice). Skip the recommended GPU drivers (the tests only probe clips), retry a
+      # stalled download, and cap the step so a slow mirror fails in minutes instead of holding the queue.
       - name: Install ffmpeg
-        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+        timeout-minutes: 15
+        run: |
+          APT="-o Acquire::Retries=5 -o Acquire::http::Timeout=30"
+          sudo apt-get update -q $APT
+          sudo apt-get install -y -q --no-install-recommends $APT ffmpeg
       - name: Run pytest
         # Tests build throwaway git repos and commit into them; the runner has
         # no git identity ("Author identity unknown" in 5+ tests).

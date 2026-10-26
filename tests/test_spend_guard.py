@@ -399,7 +399,7 @@ def test_a_failed_pause_is_its_own_alert(store):
     fake.patch_status = 500
     hub = Hub()
     check(store, fake, hub, CFO_AT, cfg=config(pause={"mode": "armed"}, **MAPPED))
-    assert hub.mails[0]["title"].startswith("พักคีย์ OpenRouter «jev-secretary» ไม่สำเร็จ: PATCH key 3f9c2a7b HTTP 500")
+    assert hub.mails[0]["title"].startswith('พักคีย์ OpenRouter "jev-secretary" ไม่สำเร็จ: PATCH key 3f9c2a7b HTTP 500')
     assert hub.cards == [] and store.load_state()["paused"] == {}
 
 
@@ -728,7 +728,7 @@ def test_shipped_config_never_auto_pauses_the_shared_moonie_x_key():
 def _worst_findings() -> list[list[sg.Finding]]:
     long_name = "k" * 120
     kinds = ["pause", "cap100", "runway", "blind", "spike", "cap", "paused"]
-    one_each = [sg.Finding(f"x/{k}", k, 1, f"OpenRouter key «{long_name}» ({k}): " + "ใช้ไป 100% " * 12
+    one_each = [sg.Finding(f"x/{k}", k, 1, f'OpenRouter key "{long_name}" ({k}): ' + "ใช้ไป 100% " * 12
                            + " · พักคีย์แล้ว การ์ด RUN-20261014-0900-abcd", "openrouter",
                            link="https://terminal.mooniex.com/run#RUN-20261014-0900-abcd") for k in kinds]
     return [one_each[:1], one_each[:2], one_each[:3], one_each, one_each * 3,

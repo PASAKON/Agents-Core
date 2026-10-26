@@ -9,11 +9,13 @@ this layer only checks that the input is well formed and that the transition is 
 Postgres only, like the tables: with ORG_DB_URL unset every call raises PortfolioError
 (run through `bash scripts/hub/org-python.sh`).
 
-Three writes do not append an event, because `project_events.kind` has no value for them
+Some writes do not append an event, because `project_events.kind` has no value for them
 and a new kind is a schema change (P3-A): `lock_take` / `lock_release` (the lock row is
 its own record: holder, since, until), a `go_add` / `go_use` for a GO that names no
 project (`project_id` is NOT NULL on events), and `edit_project` (it returns the old and
 the new value of every field it changed, so the caller's output is the only trace).
+An unlinked order's take/close is recorded on the order itself; project events
+require an existing project. Linking it and subsequent linked writes append events.
 
 `monitor_rows` / `monitor_payload` are the P3-E v1 contract. The fixture
 docs/plans/fixtures/portfolio-monitor-v1.json and tests/test_portfolio.py pin the shape.
@@ -31,6 +33,7 @@ from typing import Callable
 from lib import db
 
 STAGES = ("idea", "brainstorm", "ready", "active", "review", "closed", "parked", "cancelled")
+TIERS = ("critical", "normal", "low")
 TERMINAL = ("closed", "cancelled")
 BLOCKERS = ("ceo", "clevel", "external", "resource")
 MONITOR_STAGES = ("active", "review", "parked")
@@ -147,9 +150,11 @@ def open_project(project_id: str, name: str, lane: str, *, actor: str, stage: st
                  host: str | None = None, repos: list[str] | None = None,
                  goal: str | None = None, done_criteria: str | None = None,
                  budget_usd: float | None = None, relay_accounts: list[str] | None = None,
-                 hq_row: str | None = None, now: datetime | None = None, conn=None) -> dict:
+                 hq_row: str | None = None, now: datetime | None = None, conn=None,
+                 kind="finite", due_at=None, due_set_by=None, cadence_h=None) -> dict:
     """Register a project. The brief's `open(id, name, lane, ...)`."""
     now, actor = _utc(now), _actor(actor)
+    _schedule(kind, due_at, due_set_by, cadence_h)
     if not ID_RE.fullmatch(project_id or ""):
         raise PortfolioError(f"bad project id {project_id!r} (lowercase letters, digits, '-')")
     name = _text(name, "name", limit=120)
@@ -174,6 +179,8 @@ def open_project(project_id: str, name: str, lane: str, *, actor: str, stage: st
              now if stage == "ready" else None)).fetchone()
         if got is None:
             raise PortfolioError(f"project {project_id} already exists")
+        c.execute("UPDATE projects SET kind = ?, due_at = ?, due_set_by = ?, cadence_h = ? WHERE id = ?",
+                  (kind, due_at, due_set_by, cadence_h, project_id))
         _event(c, project_id, "opened", actor, {"name": name, "lane": lane, "stage": stage}, now)
         return dict(_project(c, project_id))
 
@@ -201,6 +208,45 @@ def set_stage(project_id: str, stage: str, *, actor: str, reason: str | None = N
             body["reason"] = _text(reason, "reason")
         _event(c, project_id, "stage", actor, body, now)
         return dict(_project(c, project_id))
+
+
+def set_tier(project_id, tier, *, actor, why, go=None, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    if tier not in TIERS:
+        raise PortfolioError(f"unknown tier {tier!r}")
+    why = _text(why, "why")
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        c.execute("UPDATE projects SET tier = ? WHERE id = ?", (tier, project_id))
+        _event(c, project_id, "tier", actor,
+               {"from": row["tier"], "to": tier, "why": why, "go": go}, now)
+        return dict(_project(c, project_id))
+
+
+def tier_for(task) -> str:
+    """Header, PH owner, repository (highest tier), then normal; fail open on DB errors."""
+    try:
+        header = re.split(r"\r?\n\s*\r?\n", task.get("description") or "", maxsplit=1)[0]
+        for line in header.splitlines():
+            match = re.fullmatch(r"\s*tier:\s*(critical|normal|low)\s*", line)
+            if match:
+                return match[1]
+        with _tx() as c:
+            rows = [dict(r) for r in c.execute("SELECT tier, ph_session, repos FROM projects").fetchall()]
+        owner = _bare_session(task.get("owner_cto"))
+        owned = [r["tier"] for r in rows if owner and _bare_session(r["ph_session"]) == owner]
+        if owned:
+            return min((t for t in owned if t in TIERS), key=TIERS.index, default="normal")
+        matched = []
+        for row in rows:
+            repos = row["repos"]
+            if isinstance(repos, str):
+                repos = json.loads(repos)
+            if task.get("project") in (repos or []) and row["tier"] in TIERS:
+                matched.append(row["tier"])
+        return min(matched, key=TIERS.index, default="normal")
+    except Exception:
+        return "normal"
 
 
 def park(project_id: str, *, actor: str, reason: str | None = None,
@@ -249,7 +295,7 @@ def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: 
 
 
 def milestone_add(project_id: str, title: str, *, actor: str, n: int | None = None,
-                  now: datetime | None = None, conn=None) -> int:
+                  now: datetime | None = None, conn=None, due_at=None, order_id=None) -> int:
     """Append a milestone (number = highest + 1 unless `n` is given). Returns its number."""
     now, actor = _utc(now), _actor(actor)
     title = _text(title, "title", limit=MAX_TITLE)
@@ -257,14 +303,18 @@ def milestone_add(project_id: str, title: str, *, actor: str, n: int | None = No
         raise PortfolioError("milestone number must be >= 1")
     with _tx(conn) as c:
         _project(c, project_id, lock=True)
+        if due_at is not None:
+            due_at = _utc(due_at)
+        if order_id is not None and _order(c, order_id)["project_id"] != project_id:
+            raise PortfolioError("milestone order must belong to this project")
         if n is None:
             n = c.execute("SELECT COALESCE(MAX(n), 0) + 1 FROM milestones WHERE project_id = ?",
                           (project_id,)).fetchone()[0]
         elif c.execute("SELECT 1 FROM milestones WHERE project_id = ? AND n = ?",
                        (project_id, n)).fetchone():
             raise PortfolioError(f"{project_id} already has milestone {n}")
-        c.execute("INSERT INTO milestones (project_id, n, title) VALUES (?, ?, ?)",
-                  (project_id, n, title))
+        c.execute("INSERT INTO milestones (project_id, n, title, due_at, order_id) VALUES (?, ?, ?, ?, ?)",
+                  (project_id, n, title, due_at, order_id))
         _event(c, project_id, "milestone", actor, {"op": "add", "n": n, "title": title}, now)
         return n
 
@@ -291,7 +341,7 @@ def milestone_done(project_id: str, n: int, evidence: str, *, actor: str,
 
 
 def block(project_id: str, on: str, what: str, *, actor: str,
-          now: datetime | None = None, conn=None) -> dict:
+          now: datetime | None = None, conn=None, ref=None, until=None) -> dict:
     """Record what the project waits for and on whom. The wait clock keeps its start while
     the blocker stays on the same party."""
     now, actor = _utc(now), _actor(actor)
@@ -301,9 +351,11 @@ def block(project_id: str, on: str, what: str, *, actor: str,
     with _tx(conn) as c:
         row = _project(c, project_id, lock=True)
         since = row["blocker_since"] if row["blocker_on"] == on and row["blocker_since"] else now
-        c.execute("UPDATE projects SET blocker_on = ?, blocker_what = ?, blocker_since = ? WHERE id = ?",
-                  (on, what, since, project_id))
-        _event(c, project_id, "blocker", actor, {"on": on, "what": what}, now)
+        c.execute("UPDATE projects SET blocker_on = ?, blocker_what = ?, blocker_since = ?,"
+                  " blocker_ref = ?, blocker_until = ? WHERE id = ?",
+                  (on, what, since, ref, _utc(until) if until else None, project_id))
+        _event(c, project_id, "blocker", actor,
+               {"on": on, "what": what, "ref": ref, "until": iso(_utc(until)) if until else None}, now)
         return {"project": project_id, "on": on, "since": iso(_as_utc(since))}
 
 
@@ -314,7 +366,8 @@ def unblock(project_id: str, *, actor: str, note: str | None = None,
         row = _project(c, project_id, lock=True)
         if row["blocker_on"] is None:
             raise PortfolioError(f"{project_id} has no blocker")
-        c.execute("UPDATE projects SET blocker_on = NULL, blocker_what = NULL, blocker_since = NULL"
+        c.execute("UPDATE projects SET blocker_on = NULL, blocker_what = NULL, blocker_since = NULL,"
+                  " blocker_ref = NULL, blocker_until = NULL"
                   " WHERE id = ?", (project_id,))
         body = {"was_on": row["blocker_on"], "since": iso(_as_utc(row["blocker_since"]))
                 if row["blocker_since"] else None}
@@ -645,14 +698,19 @@ def show(project_id: str | None = None, *, now: datetime | None = None, conn=Non
                 "SELECT project_id, count(done_at) AS done, count(*) AS total FROM milestones"
                 " GROUP BY project_id").fetchall()}
             out = []
-            for r in c.execute("SELECT id, name, lane, stage, blocker_on, blocker_since, last_active"
+            for r in c.execute("SELECT id, name, lane, stage, tier, blocker_on, blocker_since, last_active"
                                " FROM projects ORDER BY lane, id").fetchall():
                 d, t = tot.get(r["id"], (0, 0))
                 out.append(_jsonable({**dict(r), "pct": pct(d, t), "milestones": {"done": d, "total": t}}))
             return {"projects": out}
         proj = dict(_project(c, project_id))
-        ms = [dict(r) for r in c.execute("SELECT n, title, done_at, evidence FROM milestones"
+        ms = [dict(r) for r in c.execute("SELECT n, title, done_at, evidence, due_at, order_id FROM milestones"
                                          " WHERE project_id = ? ORDER BY n", (project_id,)).fetchall()]
+        if proj["due_at"] is None:
+            dues = [_as_utc(m["due_at"]) for m in ms if not m["done_at"] and m["due_at"]]
+            proj["due_at"] = max(dues) if dues else None
+        last = _as_utc(proj["last_beat_at"])
+        proj["next_beat_due"] = last + timedelta(hours=proj["cadence_h"]) if last and proj["cadence_h"] else None
         ev = [dict(r) for r in c.execute("SELECT at, kind, actor, body FROM project_events"
                                          " WHERE project_id = ? ORDER BY at DESC, id DESC LIMIT 20",
                                          (project_id,)).fetchall()]
@@ -697,7 +755,7 @@ def _monitor_all(now: datetime, conn=None) -> list[dict]:
     midnight = _midnight_bkk(now)
     with _tx(conn) as c:
         projects = c.execute(
-            "SELECT id, name, lane, stage, ph_session, blocker_on, blocker_since, last_active, opened_at"
+            "SELECT id, name, lane, stage, tier, ph_session, blocker_on, blocker_since, last_active, opened_at"
             " FROM projects WHERE stage IN ('active', 'review', 'parked')").fetchall()
         ms = {r["project_id"]: (r["done"], r["total"]) for r in c.execute(
             "SELECT project_id, count(done_at) AS done, count(*) AS total FROM milestones"
@@ -784,10 +842,309 @@ def monitor_rows(now: datetime | None = None, *, conn=None) -> list[dict]:
     return _monitor_all(_utc(now), conn)[:MAX_ROWS]
 
 
-def monitor_payload(now: datetime | None = None, *, conn=None) -> dict:
+def monitor_payload(now: datetime | None = None, *, conn=None, version=1) -> dict:
     """The whole P3-E v1 response body. `counts` are before the row cap."""
     now = _utc(now)
+    if version == 2:
+        return _monitor_v2(now, conn=conn)
+    if version != 1:
+        raise PortfolioError("monitor version must be 1 or 2")
     rows = _monitor_all(now, conn)
     counts = {"in_progress": sum(1 for r in rows if not r["parked"]),
               "parked": sum(1 for r in rows if r["parked"])}
     return {"v": 1, "generated_at": iso(now), "counts": counts, "projects": rows[:MAX_ROWS]}
+
+
+def _schedule(kind, due_at, due_set_by, cadence_h):
+    if kind not in ("finite", "loop"):
+        raise PortfolioError("kind must be finite or loop")
+    if due_set_by not in (None, "ceo", "clevel", "ph"):
+        raise PortfolioError("due_set_by must be ceo, clevel or ph")
+    if due_at is not None:
+        _utc(due_at)
+    if cadence_h is not None and (type(cadence_h) is not int or cadence_h <= 0):
+        raise PortfolioError("cadence must be a positive number of hours")
+
+
+def task_project_id(task):
+    """Explicit first-block registry id, then PH session; never prevent task creation."""
+    try:
+        header = re.split(r"\r?\n\s*\r?\n", task.get("description") or "", maxsplit=1)[0]
+        match = re.search(r"(?m)^\s*project:\s*([a-z0-9][a-z0-9-]{0,62})\s*$", header)
+        if match:
+            return match[1]
+        owner = _bare_session(task.get("owner_cto"))
+        if owner:
+            with _tx() as c:
+                row = c.execute("SELECT id FROM projects WHERE ph_session = ? ORDER BY id LIMIT 1",
+                                (owner,)).fetchone()
+                return row["id"] if row else None
+    except Exception:
+        pass
+    return None
+
+
+def set_plan(project_id, *, next_step, next_owner, actor, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    step, owner = _text(next_step, "next step"), _text(next_owner, "next owner", limit=120)
+    with _tx(conn) as c:
+        _project(c, project_id, lock=True)
+        c.execute("UPDATE projects SET next_step = ?, next_owner = ? WHERE id = ?", (step, owner, project_id))
+        _event(c, project_id, "plan", actor, {"next": step, "owner": owner}, now)
+        return dict(_project(c, project_id))
+
+
+def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=None):
+    from lib.config import is_c_level
+    now, actor, new_due = _utc(now), _actor(actor), _utc(new_due)
+    why = _text(why, "why")
+    if n < 0:
+        raise PortfolioError("milestone number must be >= 0")
+    with _tx(conn) as c:
+        project = dict(_project(c, project_id, lock=True))
+        target = project if n == 0 else c.execute(
+            "SELECT * FROM milestones WHERE project_id = ? AND n = ?", (project_id, n)).fetchone()
+        if target is None:
+            raise PortfolioError(f"no milestone {n}")
+        old = _as_utc(target["due_at"])
+        if actor_role == "project_head":
+            if project["due_set_by"] == "ceo":
+                raise PermissionError("a Project Head cannot move a CEO-set date")
+            if old is None or abs(new_due - old) > timedelta(days=2):
+                raise PermissionError("a Project Head may move a date by at most 2 days")
+        elif actor_role != "ceo" and not is_c_level(actor_role):
+            raise PermissionError("only a Project Head or C-level may replan")
+        # "moved from" is the project's own first CEO date; a milestone move never writes it.
+        if n == 0 and project["due_set_by"] == "ceo" and old and old != new_due:
+            c.execute("UPDATE projects SET due_first_at = COALESCE(due_first_at, ?) WHERE id = ?",
+                      (old, project_id))
+        if n == 0:
+            c.execute("UPDATE projects SET due_at = ? WHERE id = ?", (new_due, project_id))
+        else:
+            c.execute("UPDATE milestones SET due_at = ? WHERE project_id = ? AND n = ?",
+                      (new_due, project_id, n))
+        body = {"n": n, "from": iso(old) if old else None, "to": iso(new_due), "why": why}
+        _event(c, project_id, "replan", actor, body, now)
+        if actor_role != "project_head":
+            _event(c, project_id, "decided_for_ceo", actor, {"text": why}, now)
+        return body
+
+
+def beat(project_id, evidence, *, actor, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    evidence = _text(evidence, "evidence")
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        if row["kind"] != "loop":
+            raise PortfolioError("beat requires a loop project")
+        c.execute("UPDATE projects SET beat_n = beat_n + 1, last_beat_at = ? WHERE id = ?", (now, project_id))
+        _event(c, project_id, "beat", actor, {"evidence": evidence}, now)
+        result = dict(_project(c, project_id))
+        result["next_beat_due"] = now + timedelta(hours=row["cadence_h"]) if row["cadence_h"] else None
+        return _jsonable(result)
+
+
+def _order(c, order_id, *, lock=False):
+    row = c.execute("SELECT * FROM orders WHERE id = ?" + (" FOR UPDATE" if lock else ""), (order_id,)).fetchone()
+    if row is None:
+        raise PortfolioError(f"no such order: {order_id}")
+    return dict(row)
+
+
+def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_by=None, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    words, channel = _text(words, "words"), _text(channel, "channel", limit=120)
+    if not re.fullmatch(r"(?:sompong:\d+|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
+        raise PortfolioError("channel must be sompong:<n> or chat:<role>-<session>")
+    _schedule("finite", due_at, due_set_by, None)
+    oid = "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
+    with _tx(conn) as c:
+        if project_id:
+            _project(c, project_id, lock=True)
+        c.execute("INSERT INTO orders (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by)"
+                  " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                  (oid, words, channel, actor, now, project_id, due_at, due_set_by))
+        if project_id:
+            _event(c, project_id, "order", actor, {"op": "take", "id": oid}, now)
+    return oid
+
+
+def order_link(order_id, project_id, *, actor, due_at=None, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    with _tx(conn) as c:
+        _project(c, project_id, lock=True)
+        order = _order(c, order_id, lock=True)
+        if order["closed_at"]:
+            raise PortfolioError("cannot link a closed order")
+        if order["project_id"] and order["project_id"] != project_id:
+            raise PortfolioError("order is already linked to another project")
+        c.execute("UPDATE orders SET project_id = ?, due_at = COALESCE(?, due_at) WHERE id = ?",
+                  (project_id, _utc(due_at) if due_at else None, order_id))
+        _event(c, project_id, "order", actor, {"op": "link", "id": order_id}, now)
+        return _order(c, order_id)
+
+
+def order_close(order_id, outcome, *, actor, now=None, conn=None):
+    now, actor, outcome = _utc(now), _actor(actor), _text(outcome, "outcome")
+    with _tx(conn) as c:
+        order = _order(c, order_id, lock=True)
+        if order["closed_at"]:
+            raise PortfolioError("order is already closed")
+        c.execute("UPDATE orders SET closed_at = ?, outcome = ? WHERE id = ?", (now, outcome, order_id))
+        if order["project_id"]:
+            _event(c, order["project_id"], "order", actor, {"op": "close", "id": order_id, "outcome": outcome}, now)
+        return _order(c, order_id)
+
+
+def _order_progress(order, c, now):
+    if not order.get("project_id"):
+        return ("done" if order.get("closed_at") else "taken"), None
+    project = dict(_project(c, order["project_id"]))
+    linked = [dict(r) for r in c.execute("SELECT * FROM milestones WHERE order_id = ?", (order["id"],)).fetchall()]
+    ms = linked or [dict(r) for r in c.execute("SELECT * FROM milestones WHERE project_id = ?", (project["id"],)).fetchall()]
+    done = sum(bool(m["done_at"] and m["evidence"]) for m in ms)
+    progress = pct(done, len(ms))
+    if order.get("closed_at") or (linked and done == len(linked)):
+        return "done", progress
+    if project["blocker_on"]:
+        return "blocked", progress
+    active = c.execute("SELECT 1 FROM tasks WHERE project_id = ? AND status = 'in_progress' LIMIT 1",
+                       (project["id"],)).fetchone()
+    heartbeat = c.execute("SELECT max(at) AS at FROM session_heartbeats WHERE project_id = ?", (project["id"],)).fetchone()
+    last = _as_utc(heartbeat["at"]) if heartbeat else None
+    working = active or (last and timedelta(0) <= now - last <= timedelta(seconds=WORKING_S))
+    return ("working" if working else "queued"), progress
+
+
+def order_state(order, *, now=None, conn=None):
+    with _tx(conn) as c:
+        return _order_progress(order, c, _utc(now))[0]
+
+
+def order_pct(order, *, now=None, conn=None):
+    with _tx(conn) as c:
+        return _order_progress(order, c, _utc(now))[1]
+
+
+def _cut(value, limit):
+    return re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(value))[:limit] if value is not None else None
+
+
+def _stamp(value):
+    stamp = _as_utc(value)
+    return iso(stamp) if stamp else None
+
+
+def _v2_rows(now, c):
+    rows = _monitor_all(now, c)
+    projects = {r["id"]: dict(r) for r in c.execute("SELECT * FROM projects").fetchall()}
+    milestones = [dict(r) for r in c.execute("SELECT * FROM milestones").fetchall()]
+    for row in rows:
+        p = projects[row["id"]]
+        dues = [_as_utc(m["due_at"]) for m in milestones
+                if m["project_id"] == p["id"] and not m["done_at"] and m["due_at"]]
+        due = _as_utc(p["due_at"]) or (max(dues) if dues else None)
+        loop = p["kind"] == "loop"
+        last = _as_utc(p["last_beat_at"])
+        next_due = last + timedelta(hours=p["cadence_h"]) if last and p["cadence_h"] else None
+        deadline = next_due if loop else due
+        row.update(tier=p["tier"], kind=p["kind"], due_at=None if loop else _stamp(due),
+                   due_moved_from=_stamp(p["due_first_at"]),
+                   late_s=min(10**9, max(0, int((now - deadline).total_seconds()))) if deadline and now > deadline else None,
+                   next=_cut(p["next_step"], 60), owner=_cut(p["next_owner"], 40),
+                   beat={"n": min(10**9, max(0, p["beat_n"])), "last_at": _stamp(last), "next_due": _stamp(next_due)} if loop else None)
+        row["name"] = _cut(row["name"], 120)
+        if row["blocker"]:
+            row["blocker"].update(what=_cut(p["blocker_what"], 80), ref=_cut(p["blocker_ref"], 40))
+    return rows, projects, milestones
+
+
+def _monitor_v2(now, *, conn=None):
+    with _tx(conn) as c:
+        rows, projects, milestones = _v2_rows(now, c)
+        attention = []
+        counts = {"in_progress": sum(not r["parked"] for r in rows), "parked": sum(r["parked"] for r in rows),
+                  "late": 0, "waiting_ceo": 0, "no_plan": 0}
+        decisions = {}
+        for ev in c.execute("SELECT project_id, actor, body FROM project_events WHERE kind = 'decided_for_ceo'"
+                            " ORDER BY at, id").fetchall():
+            body = ev["body"] if isinstance(ev["body"], dict) else json.loads(ev["body"])
+            decisions[ev["project_id"]] = _cut(ev["actor"] + ": " + body.get("text", ""), 80)
+        for row in rows:
+            p = projects[row["id"]]
+            flags = []
+            if not row["parked"] and row["late_s"] is not None:
+                flags.append(("late", row["due_at"] or row["beat"]["next_due"], "เลยกำหนด"))
+            if not row["parked"] and row["state"] == "waiting_ceo":
+                flags.append(("waiting_ceo", row["blocker"]["since"], "รอคุณตอบ"))
+            if p["stage"] == "active" and not any(m["project_id"] == p["id"] and not m["done_at"] and m["due_at"] for m in milestones):
+                flags.append(("no_plan", _stamp(p["opened_at"]) or iso(now), "ไม่มีแผน"))
+            for kind, since, text in flags:
+                counts[kind] += 1
+                attention.append({"kind": kind, "project_id": row["id"], "order_id": None,
+                                  "text": text, "since": since, "decided": decisions.get(row["id"])})
+        orders = []
+        for order in c.execute("SELECT * FROM orders ORDER BY taken_at DESC, id").fetchall():
+            order = dict(order)
+            closed = _as_utc(order["closed_at"])
+            if closed and closed < now - timedelta(days=3):
+                continue
+            state, progress = _order_progress(order, c, now)
+            orders.append({"id": order["id"], "words": _cut(order["words"], 120), "project_id": order["project_id"],
+                           "state": state, "pct": progress, "due_at": _stamp(order["due_at"]),
+                           "taken_at": _stamp(order["taken_at"]), "closed_at": _stamp(closed)})
+            if not closed and not order["project_id"] and now - _as_utc(order["taken_at"]) > timedelta(minutes=30):
+                attention.append({"kind": "unlinked_order", "project_id": None, "order_id": order["id"],
+                                  "text": "ยังไม่ผูกโปรเจค", "since": _stamp(order["taken_at"]), "decided": None})
+        priority = {"late": 0, "waiting_ceo": 1, "no_plan": 2, "unlinked_order": 3}
+        attention.sort(key=lambda r: (priority[r["kind"]], r["since"], r["project_id"] or r["order_id"]))
+        # Legacy registry ids permit 63 characters; the v2 wire contract permits 40.
+        # Apply wire limits after all lookups, preserving v1 and the stored identifiers.
+        for row in rows:
+            row["id"] = _cut(row["id"], 40)
+        for row in attention + orders:
+            row["project_id"] = _cut(row["project_id"], 40)
+        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:10],
+                "projects": rows[:20], "orders": orders[:20]}
+
+
+def report(now=None, *, conn=None):
+    with _tx(conn) as c:
+        rows, _, _ = _v2_rows(_utc(now), c)
+    rows = [r for r in rows if not r["parked"]]
+    return sorted(rows, key=lambda r: (r["late_s"] is None, -(r["late_s"] or 0), r["lane"], r["id"]))
+
+
+def render_report(rows):
+    lines = ["สาย · โปรเจค · ชนิด · %/รอบ · วันส่ง · สถานะ · ติดอะไร · ขั้นต่อไป"]
+    for r in rows:
+        progress = f"รอบที่ {r['beat']['n']}" if r["beat"] else f"{r['pct']}%"
+        due = r["beat"]["next_due"] if r["beat"] else r["due_at"]
+        lines.append(" · ".join(str(x or "—") for x in (r["lane"], r["name"], r["kind"], progress, due,
+                     r["state"], (r["blocker"] or {}).get("what"), r["next"])))
+    return "\n".join(lines)
+
+
+def eta_stats(*, conn=None):
+    """Median signed slip in seconds, from the first due to the latest replan per target."""
+    from statistics import median
+    with _tx(conn) as c:
+        projects = {r["id"]: dict(r) for r in c.execute("SELECT id, lane FROM projects").fetchall()}
+        sizes = {r["project_id"]: r["total"] for r in c.execute(
+            "SELECT project_id, count(*) AS total FROM milestones GROUP BY project_id").fetchall()}
+        changes = {}
+        for r in c.execute("SELECT project_id, body FROM project_events WHERE kind = 'replan' ORDER BY at, id").fetchall():
+            body = r["body"] if isinstance(r["body"], dict) else json.loads(r["body"])
+            key = (r["project_id"], body["n"])
+            first = changes.get(key, (_as_utc(body["from"]), None))[0]
+            changes[key] = (first, _as_utc(body["to"]))
+    lanes, buckets = {}, {}
+    for (pid, _), (first, last) in changes.items():
+        if first is None or last is None:
+            continue
+        slip = (last - first).total_seconds()
+        lanes.setdefault(projects[pid]["lane"], []).append(slip)
+        size = sizes.get(pid, 0)
+        buckets.setdefault("S" if size <= 3 else "M" if size <= 6 else "L", []).append(slip)
+    return {"unit": "seconds", "by_lane": {k: median(v) for k, v in lanes.items()},
+            "by_size": {k: median(v) for k, v in buckets.items()}}
