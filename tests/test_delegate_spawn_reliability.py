@@ -100,6 +100,7 @@ def test_kickoff_never_sends_at_trust_dialog(spawn, monkeypatch):
 @pytest.mark.parametrize("has_owner", [False, True])
 def test_mac_owner_warning_is_appended(spawn, monkeypatch, has_owner):
     monkeypatch.setattr(d.sys, "platform", "darwin")
+    monkeypatch.setattr(d, "terminal_window", lambda host: True)  # a Mac that opens windows
     if has_owner:
         locks = d.ROOT / "state" / "locks"
         locks.mkdir(parents=True)
