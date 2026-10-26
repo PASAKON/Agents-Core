@@ -106,11 +106,13 @@ if [ -z "$ROLE" ]; then
 fi
 
 # Resolve explicit resume targets before any session or tab side effects.
+RESUME_UUID=""
 for ((i=0; i<${#ARGS[@]}; i++)); do
   case "${ARGS[i]}" in
     -r|--resume)
       if ((i+1 < ${#ARGS[@]})) && [[ "${ARGS[i+1]}" != -* ]]; then
         ARGS[i+1]="$(bash "$ROOT/scripts/resolve-resume-id.sh" "$ROLE" "${ARGS[i+1]}")" || exit 2
+        RESUME_UUID="${ARGS[i+1]}"
         i=$((i+1))
       fi
       ;;
@@ -361,22 +363,44 @@ fi
 # (ADR 2026-05-26, Decision 2) so the CEO's primary tab is never clobbered.
 if [ -n "$SESSION_OVERRIDE" ]; then
   CXO_SESSION_ID="$SESSION_OVERRIDE"
+elif [ -n "$RESUME_UUID" ]; then
+  CXO_SESSION_ID="$(printf '%s' "${RESUME_UUID: -8}" | tr '[:upper:]' '[:lower:]')"
 else
   if [ -z "${CXO_SESSION_ID:-}" ]; then
     # Standalone launch INSIDE a tmux session (the console's path): adopt the
     # id from the enclosing tmux session name so the lock basename matches the
     # session the phone shows. Two names for one session is what made the
     # Aug-10 orphan invisible (lock cto-4020c182 vs tmux cto-session-mslldjt6).
-    # Only <role>-<id> names are adopted; anything else falls back to a fresh
-    # uuid. Mirrors tools.session_name.id_from_tmux_session(_, role).
+    # Only <role>-<8 lowercase hex> names are adopted; anything else prints one
+    # stderr line and falls back to a fresh 8-hex uuid.
     if [ -n "${TMUX:-}" ]; then
       _SESS="$(tmux display-message -p '#S' 2>/dev/null | tr -d '[:space:]')"
       case "$_SESS" in
-        "$ROLE"-*) CXO_SESSION_ID="${_SESS#"$ROLE"-}" ;;
+        "$ROLE"-*)
+          _CANDIDATE="${_SESS#"$ROLE"-}"
+          if [[ "$_CANDIDATE" =~ ^[0-9a-f]{8}$ ]]; then
+            CXO_SESSION_ID="$_CANDIDATE"
+          else
+            echo "cxo-claude: tmux session name '$_SESS' was not adopted as CXO_SESSION_ID (suffix '$_CANDIDATE' is not 8 lowercase hex); minting a fresh 8-hex id" >&2
+          fi
+          ;;
+        ?*)
+          echo "cxo-claude: tmux session name '$_SESS' was not adopted as CXO_SESSION_ID (expected '$ROLE-<8 lowercase hex>'); minting a fresh 8-hex id" >&2
+          ;;
       esac
     fi
     if [ -z "${CXO_SESSION_ID:-}" ]; then
       CXO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+      if [ -n "${TMUX:-}" ] && [ -n "${_SESS:-}" ]; then
+        _NEW_SESS="$ROLE-$CXO_SESSION_ID"
+        if tmux has-session -t "=$_NEW_SESS" 2>/dev/null; then
+          echo "cxo-claude: warning: tmux session '$_NEW_SESS' already exists; keeping '$_SESS'" >&2
+        elif tmux rename-session -t "$_SESS" -- "$_NEW_SESS"; then
+          echo "cxo-claude: renamed tmux session '$_SESS' -> '$_NEW_SESS'" >&2
+        else
+          echo "cxo-claude: warning: could not rename tmux session '$_SESS' -> '$_NEW_SESS'; continuing" >&2
+        fi
+      fi
     fi
   fi
 fi
@@ -394,14 +418,8 @@ fi
 # Written unconditionally (ephemeral --session spawns included) — separate
 # bookkeeping from the ACTIVE_FILE pointer below, which exists for
 # CEO-tab routing, not identity.
-# Only ids shaped like the standard uuid4().hex[:8] (8 lowercase hex chars)
-# support the deterministic-suffix construction. Ephemeral spawns from
-# send_to_cxo.py --spawn set CXO_SESSION_ID to "req-xxxxxxxx" (see
-# send_to_cxo.py ~line 303/223) — non-hex, so it (and any future non-hex
-# custom --id) falls back to a fully random UUID instead of crashing
-# uuid.UUID(hex=...). Resume-by-short-id then degrades to spawn-cxo.sh's
-# existing picker-mode fallback, same as a pre-rollout session with no
-# .uuid file.
+# Resume uses --fork-session: mint a new destination UUID with the same short id.
+# The lock file records the new fork UUID, never the resume source UUID.
 if [[ "$CXO_SESSION_ID" =~ ^[0-9a-f]{8}$ ]]; then
   CXO_UUID="$(python3 -c "
 import uuid, sys
