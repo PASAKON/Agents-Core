@@ -248,6 +248,10 @@ each decision (QUESTIONS.md §10).
 
 ## When not to
 
+- A card that does not pass the filter in `ALL_Rules_Approvals` §Before anything reaches the CEO: if he already
+  decided it, already granted it or approved the same thing before, act on it and cite the id. A card that
+  passes starts its why with the reason word (`money`, `secret`, `deletion`, `his-name`, `his-account`,
+  `org-rule`, `login`, `his-choice`, `no-op`).
 - A browser login (Google, Facebook, TikTok …) → the login relay at `terminal.mooniex.com/relay`.
 - A command your own sandbox can run → run it; the phone is for what only a human at the box may do.
 - winbox or the Mac until P2 lands — the hub refuses, so do not promise the CEO a card there; use

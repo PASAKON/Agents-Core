@@ -8,6 +8,9 @@ cut to 32 characters. Every reader takes the old, the compact and the ruling sha
 from __future__ import annotations
 
 import sys
+import json
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -18,6 +21,50 @@ sys.path.insert(0, str(ROOT))
 import lib.config as config  # noqa: E402
 from lib import session_names as sn  # noqa: E402
 from tools import node_dispatch  # noqa: E402
+
+
+def _name_cli(*args):
+    return subprocess.run(
+        [sys.executable, "-m", "lib.session_names", *args], cwd=ROOT,
+        capture_output=True, env={**os.environ, "PYTHONIOENCODING": "cp1252"},
+    )
+
+
+@pytest.mark.parametrize("role,persona", [("cto", "Kavin"), ("cmo", "Ging"), ("coo", "SomPong")])
+def test_name_cli_clevel(role, persona):
+    proc = _name_cli("name", "--host", "winbox", "--role", role, "--sid", "2c6b9f03")
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.isascii() and len(proc.stdout.splitlines()) == 1
+    assert json.loads(proc.stdout) == sn.clevel_name(role, persona, "winbox")
+
+
+def test_name_cli_project_head():
+    proc = _name_cli("name", "--host", "winbox", "--role", "project_head", "--sid", "ba3f3fe1",
+                     "--lane", "cto", "--project", "CookieRun")
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.isascii() and len(proc.stdout.splitlines()) == 1
+    assert json.loads(proc.stdout) == sn.ph_session_name("ba3f3fe1", "cto", "CookieRun", "winbox")
+
+
+@pytest.mark.parametrize("role,extra", [
+    ("unknown", []), ("developer", []), ("project_head", []),
+    ("project_head", ["--lane", "cto"]), ("project_head", ["--project", "CookieRun"]),
+    ("project_head", ["--lane", " ", "--project", "CookieRun"]),
+])
+def test_name_cli_bad_input(role, extra):
+    proc = _name_cli("name", "--host", "winbox", "--role", role, "--sid", "ba3f3fe1", *extra)
+    assert proc.returncode == 2
+    assert b"usage:" in proc.stderr
+    assert proc.stdout == b""
+
+
+@pytest.mark.parametrize("host", ["winbox", "mac", "contabo", "unknown"])
+def test_prefix_module_cli_unchanged(host):
+    proc = subprocess.run([sys.executable, "-m", "lib.session_names", "prefix", host],
+                          cwd=ROOT, capture_output=True,
+                          env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    assert proc.returncode == 0
+    assert proc.stdout.decode("utf-8") == sn.HOST_EMOJI.get(host, "")
 
 
 @pytest.mark.parametrize("sid,lane,projects,expect", [
