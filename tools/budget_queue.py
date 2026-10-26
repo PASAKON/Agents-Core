@@ -9,7 +9,9 @@ from tools import disk_queue, usage_budget
 
 try:
     import fcntl
-except ImportError:          # Windows: no fcntl; the hub host (Linux) is where delegate + watchdog race
+    msvcrt = None
+except ImportError:          # Windows: lock byte 0 of the lock file instead
+    import msvcrt
     fcntl = None
 
 QUEUE_PATH = Path(__file__).resolve().parent.parent / "state" / "budget_queue.jsonl"
@@ -19,14 +21,25 @@ QUEUE_PATH = Path(__file__).resolve().parent.parent / "state" / "budget_queue.js
 def _locked(path):
     """One writer at a time: delegate enqueues and the watchdog pops/rotates in other processes."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path.with_name(path.name + ".lock"), "a") as fh:
+    with open(path.with_name(path.name + ".lock"), "a+") as fh:
         if fcntl:
             fcntl.flock(fh, fcntl.LOCK_EX)
+        else:
+            fh.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(fh.fileno(), msvcrt.LK_LOCK, 1)
+                    break
+                except OSError:      # LK_LOCK gives up after ~10 s; keep waiting
+                    continue
         try:
             yield
         finally:
             if fcntl:
                 fcntl.flock(fh, fcntl.LOCK_UN)
+            else:
+                fh.seek(0)
+                msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
 
 
 def _save(entries, path):
