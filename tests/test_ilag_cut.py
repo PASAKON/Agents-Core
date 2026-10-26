@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,7 @@ DEMO_EDL = REPO / "tests/fixtures/ilag_cut/demo_edl.json"
 KIT = REPO / "knowledge/brand-knowledge/brands/ilag/templates"
 HAS_FFMPEG = bool(shutil.which("ffmpeg") and shutil.which("ffprobe"))
 needs_ffmpeg = pytest.mark.skipif(not HAS_FFMPEG, reason="ffmpeg/ffprobe not on PATH")
+needs_pil = pytest.mark.skipif(not importlib.util.find_spec("PIL"), reason="PIL missing")
 
 
 def have_browser():
@@ -40,6 +42,13 @@ def have_browser():
 
 
 needs_cards = pytest.mark.skipif(not (HAS_FFMPEG and have_browser()), reason="Playwright/chromium/PIL/numpy/ffmpeg missing")
+
+
+@pytest.fixture(autouse=True)
+def private_render_lock(tmp_path, monkeypatch):
+    """`encode` takes the box's shared render lock by default (review item 7): a test must never wait on, or hold, the
+    real /opt/MoonieXHQ/Work/.bl-render.lock."""
+    monkeypatch.setattr(ilag_cut, "DEFAULT_LOCK", str(tmp_path / "default-render.lock"), raising=False)
 
 
 def ff(*args):
@@ -525,3 +534,376 @@ def test_cards_refuses_a_kit_with_no_logo(drawn, tmp_path, media, capsys):
     shutil.copytree(KIT, bare)                       # no images/ beside it and no logo.png inside
     code = ilag_cut.main(["cards", str(p), "--root", str(media), "--kit", str(bare), "--out", str(tmp_path / "w")])
     assert code == 1 and "no logo for the kit" in capsys.readouterr().err
+
+
+# ================================================================== Codex review of PR #468 (task-762348af)
+def make_symlink(link, target):
+    try:
+        os.symlink(target, link)
+    except (OSError, NotImplementedError):
+        pytest.skip("cannot create symlinks here")
+
+
+def colour_png(path):
+    ff("-f", "lavfi", "-i", "color=c=red:s=64x64", "-frames:v", "1", path)
+
+
+# ------------------------------------------------------------------ 1. EDL paths stay inside --root, kit Python is the repo's
+def escape_world(tmp_path):
+    root, outside = tmp_path / "root", tmp_path / "outside"
+    (root / "footage").mkdir(parents=True)
+    outside.mkdir()
+    (outside / "secret.mp4").write_bytes(b"not a video")
+    return root, outside
+
+
+def _link_src(e, root, outside):
+    make_symlink(root / "footage/link.mp4", outside / "secret.mp4")
+    e["segments"][0]["src"] = "footage/link.mp4"
+
+
+ESCAPES = [
+    ("dot-dot src", lambda e, r, o: e["segments"][0].update(src="../outside/secret.mp4")),
+    ("absolute src", lambda e, r, o: e["segments"][0].update(src=str(o / "secret.mp4"))),
+    ("symlinked src", _link_src),
+    ("end card src", lambda e, r, o: e["segments"][2].update(src="footage/../../outside/secret.mp4")),
+    ("ng take src", lambda e, r, o: e["segments"][1]["take"].update(src="../outside/secret.mp4")),
+    ("ng take2 src", lambda e, r, o: e["segments"][1]["take2"].update(src="../outside/secret.mp4")),
+    ("sfx folder", lambda e, r, o: e.update(sfx="../outside")),
+    ("kit folder", lambda e, r, o: e.update(kit="../outside")),
+]
+
+
+@pytest.mark.parametrize("name,escape", ESCAPES, ids=[x[0] for x in ESCAPES])
+def test_plan_refuses_an_edl_path_that_leaves_root(name, escape, tmp_path, capsys):
+    root, outside = escape_world(tmp_path)
+    e = base_edl()
+    escape(e, root, outside)
+    code, out, err = plan(root, e, capsys)
+    assert code == 1 and "outside" in err and "refused" in err, err
+    assert out == ""
+
+
+def test_plan_still_takes_paths_that_stay_inside_root(tmp_path, capsys):
+    root, _ = escape_world(tmp_path)
+    e = base_edl()
+    e["segments"][0]["src"] = "footage/../footage/a.mp4"                 # a .. that comes back
+    e["segments"][2]["src"] = str(root / "footage/a.mp4")                # absolute, but inside
+    code, _, err = plan(root, e, capsys)
+    assert code == 0, err
+
+
+@needs_ffmpeg
+def test_encode_never_reaches_ffmpeg_for_an_escaping_source(tmp_path, capsys, monkeypatch):
+    root, outside = escape_world(tmp_path)
+    monkeypatch.setattr(ilag_cut, "run", lambda cmd: pytest.fail(f"{cmd[0]} must not run: {cmd}"))
+    e = base_edl()
+    e["segments"][0]["src"] = "../outside/secret.mp4"
+    code, _, err = encode(root, root, e, tmp_path / "work", capsys)
+    assert code == 1 and "outside" in err
+
+
+@needs_ffmpeg
+def test_encode_refuses_an_sfx_file_that_is_a_link_out_of_root(tmp_path, media, capsys, monkeypatch):
+    root, outside = tmp_path / "root", tmp_path / "outside"
+    shutil.copytree(media, root)
+    outside.mkdir()
+    shutil.copy(root / "sfx/boom.wav", outside / "boom.wav")
+    (root / "sfx/boom.wav").unlink()
+    make_symlink(root / "sfx/boom.wav", outside / "boom.wav")
+    e, work = base_edl(), tmp_path / "work"
+    e["segments"][0]["sfx"] = [{"name": "boom", "at": 0.1, "gain": 1}]
+    dummy_cards(work, e)
+    real_run = ilag_cut.run
+    monkeypatch.setattr(ilag_cut, "run", lambda cmd: pytest.fail("ffmpeg must not run") if cmd[0] == "ffmpeg"
+                        else real_run(cmd))
+    code, _, err = encode(root, root, e, work, capsys)
+    assert code == 1 and "boom" in err and "outside" in err, err
+
+
+def test_output_name_cannot_carry_a_windows_drive(tmp_path, capsys):
+    code, _, err = plan(tmp_path, mutate(lambda e: e.update(output="C:x.mp4")), capsys)
+    assert code == 1 and "'output' must be" in err
+
+
+def booby_trapped_kit(tmp_path, how):
+    """A copy of the kit whose two Python files write a marker when they run."""
+    base, marker = tmp_path / "evil", tmp_path / "marker"
+    kit = base / "templates"
+    shutil.copytree(KIT, kit)
+    trap = f"import pathlib\npathlib.Path({str(marker)!r}).write_text('ran')\ndef build_kit(K):\n    return ''\n"
+    for f in ("render_kit.py", "cut_logo.py"):
+        (kit / f).write_text(trap, encoding="utf-8")
+    if how == "png":
+        colour_png(kit / "logo.png")
+    else:
+        (base / "images").mkdir()
+        ff("-f", "lavfi", "-i", "color=c=red:s=64x64", "-frames:v", "1", base / "images/ilag-page-logo-1080.jpg")
+    return kit, marker
+
+
+@needs_ffmpeg
+@pytest.mark.parametrize("how", ["png", "jpg"])
+def test_the_kit_python_always_comes_from_the_repo_kit(how, tmp_path):
+    """An EDL (or --kit) folder with its own render_kit.py / cut_logo.py must not get them run: the data (template,
+    fonts, logo) is read from the folder, the Python is the repo's own."""
+    kit, marker = booby_trapped_kit(tmp_path, how)
+    try:
+        stage, _ = ilag_cut.stage_kit(kit, tmp_path / "work")
+    except ilag_cut.Fail:
+        stage = tmp_path / "work/kit"                  # the repo's cut_logo.py may refuse the fake jpg; fine
+    assert not marker.exists(), "the kit folder's own Python ran"
+    if (stage / "render_kit.py").exists():
+        assert (stage / "render_kit.py").read_bytes() == (KIT / "render_kit.py").read_bytes()
+
+
+# ------------------------------------------------------------------ 2. a symlinked work sub-folder cannot redirect writes
+def test_refuse_escaping_links_unit(tmp_path):
+    work, outside = tmp_path / "work", tmp_path / "outside"
+    (work / "real").mkdir(parents=True)
+    outside.mkdir()
+    make_symlink(work / "alias", work / "real")                        # inside: fine
+    ilag_cut.refuse_escaping_links(work)
+    make_symlink(work / "real/out", outside)                           # escapes: refused, named
+    with pytest.raises(ilag_cut.Fail) as e:
+        ilag_cut.refuse_escaping_links(work)
+    assert str(work / "real/out") in str(e.value) and "outside" in str(e.value)
+
+
+@needs_ffmpeg
+@pytest.mark.parametrize("sub", ["seg", "out"])
+def test_encode_refuses_a_symlinked_work_folder(sub, tmp_path, media, capsys):
+    edl, work, outside = base_edl(), tmp_path / "work", tmp_path / "outside"
+    dummy_cards(work, edl)
+    outside.mkdir()
+    make_symlink(work / sub, outside)
+    code, _, err = encode(tmp_path, media, edl, work, capsys)
+    assert code == 1 and "outside" in err and sub in err, err
+    assert list(outside.iterdir()) == [], "something was written through the link"
+
+
+def test_cards_refuses_a_symlinked_cards_folder(tmp_path, media, capsys):
+    work, outside = tmp_path / "work", tmp_path / "outside"
+    work.mkdir()
+    outside.mkdir()
+    make_symlink(work / "cards", outside)
+    code = ilag_cut.main(["cards", str(write(tmp_path, base_edl())), "--root", str(media), "--kit", str(KIT),
+                          "--out", str(work)])
+    err = capsys.readouterr().err
+    assert code == 1 and "outside" in err and "cards" in err, err
+    assert list(outside.iterdir()) == [], "something was written through the link"
+
+
+def test_cards_refuses_a_symlinked_kit_stage(tmp_path, media, capsys):
+    work, outside = tmp_path / "work", tmp_path / "outside"
+    work.mkdir()
+    outside.mkdir()
+    make_symlink(work / "kit", outside)
+    code = ilag_cut.main(["cards", str(write(tmp_path, base_edl())), "--root", str(media), "--kit", str(KIT),
+                          "--out", str(work)])
+    assert code == 1 and "outside" in capsys.readouterr().err
+    assert list(outside.iterdir()) == []
+
+
+# ------------------------------------------------------------------ 3. a relative --out
+def test_cards_hands_an_absolute_work_folder_to_the_renderer(tmp_path, monkeypatch):
+    seen = {}
+    monkeypatch.setattr(ilag_cut, "render_card_set",
+                        lambda kit, work, wanted, force=False: seen.update(work=work) or (0, 0, False))
+    monkeypatch.setattr(ilag_cut, "draw_ng_frames", lambda work, *a, **k: seen.update(ng=work) or False)
+    monkeypatch.chdir(tmp_path)
+    p = write(tmp_path, base_edl())
+    assert ilag_cut.main(["cards", str(p), "--root", ".", "--kit", str(KIT), "--out", "rel/work"]) == 0
+    assert Path(seen["work"]).is_absolute() and Path(seen["ng"]).is_absolute(), seen
+
+
+@needs_cards
+def test_cards_with_a_relative_out_draws_instead_of_crashing_on_as_uri(tmp_path, media, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    p = write(tmp_path, base_edl())
+    assert ilag_cut.main(["cards", str(p), "--root", str(media), "--kit", str(KIT), "--out", "work"]) == 0
+    assert list((tmp_path / "work/cards").glob("*.png"))
+
+
+@needs_ffmpeg
+def test_encode_with_a_relative_out_and_root(tmp_path, media, capsys, monkeypatch):
+    edl = base_edl()
+    dummy_cards(tmp_path / "work", edl)
+    monkeypatch.chdir(tmp_path)
+    p = write(tmp_path, edl)
+    code = ilag_cut.main(["encode", str(p), "--root", os.path.relpath(media, tmp_path), "--out", "work"])
+    cap = capsys.readouterr()
+    assert code == 0, cap.err
+    assert (tmp_path / "work/out/ep.mp4").exists()
+
+
+# ------------------------------------------------------------------ 4. NG frame cache vs a source replaced at the same path
+def stub_ng_cards(work, parts):
+    """Transparent stand-ins for every card the NG slam frames are composited from."""
+    (Path(work) / "cards").mkdir(parents=True, exist_ok=True)
+    png = Path(work) / "stub.png"
+    ff("-f", "lavfi", "-i", "color=c=black@0.0:s=1080x1920,format=rgba", "-frames:v", "1", png)
+    for el, tx in ilag_cut.wanted_cards(parts, True):
+        shutil.copy(png, ilag_cut.card_path(work, el, tx))
+
+
+def solid_video(path, colour):
+    ff("-f", "lavfi", "-i", f"color=c={colour}:s=1080x1920:r=24:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", path)
+
+
+@needs_ffmpeg
+@needs_pil
+def test_ng_frames_are_redrawn_when_the_source_is_replaced_at_the_same_path(tmp_path):
+    from PIL import Image, ImageStat
+    root, work = tmp_path / "root", tmp_path / "work"
+    (root / "footage").mkdir(parents=True)
+    solid_video(root / "footage/a.mp4", "red")
+    _, _, segs = ilag_cut.check(base_edl())
+    parts = ilag_cut.all_parts(segs)
+    ng = next(p for p in parts if p["frames"])
+    stub_ng_cards(work, parts)
+    first = work / "cards" / f"ng-{ng['frames']['key']}" / "000.jpg"
+    luma = lambda: ImageStat.Stat(Image.open(first).convert("L")).mean[0]
+    assert ilag_cut.draw_ng_frames(work, root, ng, 24) is True
+    red = luma()
+    assert ilag_cut.draw_ng_frames(work, root, ng, 24) is False          # unchanged source: the cache still holds
+    solid_video(root / "footage/a.mp4", "blue")                           # same path, other picture
+    assert ilag_cut.draw_ng_frames(work, root, ng, 24) is True, "stale frames were reused"
+    assert luma() < red - 10, (luma(), red)
+
+
+@needs_ffmpeg
+@needs_pil
+def test_encode_refuses_ng_frames_drawn_from_a_replaced_source(tmp_path, capsys):
+    root, work = tmp_path / "root", tmp_path / "work"
+    (root / "footage").mkdir(parents=True)
+    (root / "sfx").mkdir()
+    for n in ("scratch", "thud", "rewind", "boom", "whoosh"):
+        ff("-f", "lavfi", "-i", "sine=frequency=300:sample_rate=48000:duration=0.4", root / f"sfx/{n}.wav")
+    solid_video(root / "footage/a.mp4", "red")
+    edl = base_edl()
+    _, _, segs = ilag_cut.check(edl)
+    parts = ilag_cut.all_parts(segs)
+    stub_ng_cards(work, parts)
+    ilag_cut.draw_ng_frames(work, root, next(p for p in parts if p["frames"]), 24)
+    solid_video(root / "footage/a.mp4", "blue")
+    code, _, err = encode(root, root, edl, work, capsys)
+    assert code == 1 and "stale" in err and "`cards`" in err, err
+
+
+# ------------------------------------------------------------------ 5. the NG rewind reverses in RAM like a reversed clip
+def test_ng_rewind_span_over_8_s_is_refused(tmp_path, capsys):
+    e = mutate(lambda e: e["segments"][1]["take"].update(dur=9.0))        # rewind_in defaults to the take's start
+    code, out, err = plan(tmp_path, e, capsys)
+    assert code == 1 and "reverse buffers every frame in RAM" in err and "rewind" in err, err
+    assert out == ""
+
+
+def test_ng_rewind_span_over_8_s_by_explicit_times_is_refused(tmp_path, capsys):
+    def long_rewind(e):
+        e["segments"][1]["take"].update(dur=12.0)
+        e["segments"][1].update(rewind_in=1.0, freeze_at=11.0)
+    code, _, err = plan(tmp_path, mutate(long_rewind), capsys)
+    assert code == 1 and "reverse buffers every frame in RAM" in err, err
+
+
+def test_a_long_take_is_fine_when_rewind_in_keeps_the_span_short(tmp_path, capsys):
+    def long_take(e):
+        e["segments"][1]["take"].update(dur=12.0)
+        e["segments"][1].update(rewind_in=9.0)                            # freeze_at defaults to 12: a 3 s rewind
+    code, _, err = plan(tmp_path, mutate(long_take), capsys)
+    assert code == 0, err
+
+
+# ------------------------------------------------------------------ 6. take-2 sticker longer than its part; non-finite numbers
+def test_take2_sticker_is_clamped_to_its_part():
+    errors, _, segs = ilag_cut.check(base_edl())                          # take 2 is 0.8 s, the sticker is 1.5 s
+    assert not errors
+    take2 = [p for _, ps in segs for p in ps if p["note"] == "take 2"][0]
+    sticker = take2["cards"][0]
+    assert sticker["el"] == "take2" and sticker["at"] + sticker["dur"] <= take2["dur"] + 1e-9, (sticker, take2["dur"])
+    e = base_edl()
+    e["segments"][1]["take2"]["dur"] = 3.0                                # a long part keeps the full sticker
+    _, _, segs = ilag_cut.check(e)
+    take2 = [p for _, ps in segs for p in ps if p["note"] == "take 2"][0]
+    assert take2["cards"][0]["dur"] == ilag_cut.TAKE2_STICKER
+
+
+def raw_plan(tmp_path, edl_text, capsys):
+    p = tmp_path / "edl.json"
+    p.write_text(edl_text, encoding="utf-8")
+    code = ilag_cut.main(["plan", str(p)])
+    cap = capsys.readouterr()
+    return code, cap.out, cap.err
+
+
+@pytest.mark.parametrize("literal", ["Infinity", "-Infinity", "NaN", "1e999", "1" + "0" * 400])
+def test_a_non_finite_or_absurd_number_is_a_clear_error_not_a_traceback(literal, tmp_path, capsys):
+    text = json.dumps(base_edl(), ensure_ascii=False).replace('"dur": 1.2', f'"dur": {literal}', 1)
+    assert literal in text
+    code, out, err = raw_plan(tmp_path, text, capsys)
+    assert code == 1 and ("'dur' must be a finite number" in err or "'dur' must be at most" in err), err
+    assert "Traceback" not in err and out == ""
+
+
+@pytest.mark.parametrize("field", ["at", "in", "gain", "blur", "freeze_last", "speed"])
+def test_every_number_field_refuses_infinity(field, tmp_path, capsys):
+    def put(e):
+        s = e["segments"][0]
+        if field == "at":
+            s["cards"][0]["at"] = float("inf")
+        else:
+            s[field] = float("inf")
+    code, _, err = plan(tmp_path, mutate(put), capsys)
+    assert code == 1 and f"'{field}' must be" in err and "Traceback" not in err, err
+
+
+# ------------------------------------------------------------------ 7. encode on Linux takes the shared render lock by default
+def test_pick_lock_rules(tmp_path, capsys):
+    lock = ilag_cut.DEFAULT_LOCK
+    assert ilag_cut.pick_lock("mine.lock", "linux") == "mine.lock"
+    assert capsys.readouterr().err == ""                                  # an explicit lock: no default, no warning
+    assert ilag_cut.pick_lock(None, "linux") == lock
+    err = capsys.readouterr().err
+    assert err.count("WARN") == 1 and lock in err and "--lock" in err
+    assert ilag_cut.pick_lock(None, "darwin") is None and ilag_cut.pick_lock(None, "win32") is None
+    assert capsys.readouterr().err == ""                                  # no flock off Linux: the old --lock warning only
+
+
+def test_pick_lock_without_the_lock_folder_warns_and_goes_on(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(ilag_cut, "DEFAULT_LOCK", str(tmp_path / "no-such-folder" / ".bl-render.lock"))
+    assert ilag_cut.pick_lock(None, "linux") is None
+    err = capsys.readouterr().err
+    assert err.count("WARN") == 1 and "no render lock" in err
+
+
+def test_the_default_lock_is_the_black_liquidity_render_lock():
+    src = Path(ilag_cut.__file__).read_text(encoding="utf-8")
+    assert '"/opt/MoonieXHQ/Work/.bl-render.lock"' in src
+
+
+@needs_ffmpeg
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="the default lock is Linux only")
+def test_encode_without_lock_holds_the_default_lock_and_warns_once(tmp_path, media, capsys, monkeypatch):
+    fcntl = pytest.importorskip("fcntl")
+    edl, work, lock = base_edl(), tmp_path / "work", ilag_cut.DEFAULT_LOCK
+    dummy_cards(work, edl)
+    seen, real_run = [], ilag_cut.run
+
+    def spy(cmd):
+        if cmd[0] == "ffmpeg":
+            with open(lock, "a+") as other:
+                try:
+                    fcntl.flock(other, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    seen.append("free")
+                except OSError:
+                    seen.append("held")
+        return real_run(cmd)
+
+    monkeypatch.setattr(ilag_cut, "run", spy)
+    code, _, err = encode(tmp_path, media, edl, work, capsys)             # no --lock
+    assert code == 0, err
+    assert seen and set(seen) == {"held"}
+    assert err.count("render lock") == 1 and lock in err                 # six segments, one warning
+    with open(lock, "a+") as other:                                       # let go afterwards
+        fcntl.flock(other, fcntl.LOCK_EX | fcntl.LOCK_NB)
