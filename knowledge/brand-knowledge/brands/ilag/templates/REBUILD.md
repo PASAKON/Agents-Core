@@ -1,4 +1,4 @@
-# Rebuild kit v1 (overlays, sheet, demo)
+# Rebuild kit v2 (overlays, sheet, demo)
 
 Work in a task folder (`Work/<task-id>/`), never in this repo folder: the scripts write `kit.html`,
 `overlays/`, `tiles/`, `seg/` and `out/` next to themselves. `K` below is that folder.
@@ -6,6 +6,10 @@ Work in a task folder (`Work/<task-id>/`), never in this repo folder: the script
 ```bash
 cp -r knowledge/brand-knowledge/brands/ilag/templates/. "$K"/ && mkdir -p "$K"/{footage,frames,sfx,out}
 PY=/opt/MoonieXHQ/Agents/Core/.venv/bin/python        # has Playwright + PIL
+
+# 0. Logo: logo.png is the Page's own profile picture lifted off its black square (never redrawn).
+#    It is made here every time, not kept in git (1.4 MB; media over 1 MB stays out of git, ADR 0030):
+$PY -I "$K"/cut_logo.py knowledge/brand-knowledge/brands/ilag/images/ilag-page-logo-1080.jpg "$K"/logo.png
 
 # 1. Overlays: every element, or a comma list (e.g. "name,end")
 $PY -I "$K"/render_kit.py "$K"
@@ -16,7 +20,7 @@ yt-dlp -f "2016235605762298v+2016235019095690a" --merge-output-format mp4 \
 for t in 0 30 66 78 132 140.5 141.4; do
   ffmpeg -v error -y -ss $t -i "$K"/footage/ep5-ep1.mp4 -frames:v 1 "$K"/frames/f_$t.png; done
 
-# 3. Contact sheet → out/ilag-kit-sheet-v1.jpg
+# 3. Contact sheet (20 tiles) → out/ilag-kit-sheet-v2.jpg
 $PY -I "$K"/compose_sheet.py "$K"
 
 # 4. Sound effects, synthesised (no library, nothing to license)
@@ -27,7 +31,7 @@ ffmpeg -v error -y -f lavfi -i "aevalsrc='(0.3*sin(2*PI*(1300+520*sin(2*PI*11*t)
 ffmpeg -v error -y -f lavfi -i "aevalsrc='0.95*sin(2*PI*46*t)*exp(-2.6*t)+0.35*(random(0)*2-1)*exp(-4.5*t)':s=48000:d=1.8" -af lowpass=f=260 boom.wav
 ffmpeg -v error -y -f lavfi -i "aevalsrc='0.5*(random(0)*2-1)*pow(sin(PI*t/0.9),2)':s=48000:d=0.9" -af "highpass=f=500,lowpass=f=3500" whoosh.wav
 
-# 5. Demo → out/ilag-kit-demo-v1.mp4 (44 s). The NG-slam frames need PIL, so draw them first;
+# 5. Demo → out/ilag-kit-demo-v2.mp4 (44 s). The NG-slam frames need PIL, so draw them first;
 #    the encode itself runs anywhere ffmpeg runs (winbox: ~1 min; Contabo: under the render lock).
 $PY -I "$K"/build_demo.py "$K" frames
 $PY -I "$K"/build_demo.py "$K"

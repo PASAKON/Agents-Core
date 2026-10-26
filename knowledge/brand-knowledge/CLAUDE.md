@@ -33,7 +33,7 @@ the CMO; it does not get quietly overridden inside an artifact.
 | `mooniex-rebate-posters` | ❌ | Images only — **gap**, needs a `BRAND.md`. |
 | `khaihet` | ✅ | ไขเหตุ: AI news-reconstruction FB Page (CEO 2026-10-17). Teal/ink/amber LOCKED; "ภาพจำลอง" tag on every AI frame. |
 | `mistergraph` | ✅ | Mr. Graph: the CEO's TikTok, free TradingView indicator lessons (CMO 2026-10-26). Orange/peach/slate LOCKED; no broker card; education only. |
-| `ilag` | ✅ | ละครสั้นคุณธรรม by ILAG Studio (FB). Navy/gold LOCKED (CEO 2026-09-28); channel kit v1 PROPOSED 2026-10-26 (17 tiles, `templates/`), locks tile by tile on the CEO's answer. |
+| `ilag` | ✅ | ละครสั้นคุณธรรม by ILAG Studio (FB). Gold/white/black LOCKED (CEO 2026-10-26, replaces navy/gold of 2026-09-28); the Page's own logo, never redrawn; channel kit v2 PROPOSED (20 tiles, `templates/`), locks tile by tile on the CEO's answer. |
 | `linkreed` | ✅ | New product (not Mooniex). AI link-in-bio builder. Warm ink/watercolor editorial mood, minimal mobile-first product UI. Palette LOCKED. |
 
 ## Hard rules
