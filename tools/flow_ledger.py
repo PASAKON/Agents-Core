@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """The per-shot memory for tools/flow_shoot.py — not a context window.
 
-Parses a «บัญชี» shot sheet (docs/scripts/banchi-ACTn.md, the format
+Parses a "บัญชี" shot sheet (docs/scripts/banchi-ACTn.md, the format
 tools/build_shotsheet.py renders) into one ledger row per shot, and keeps
 that ledger as a TSV file that survives a crash between any two writes.
 

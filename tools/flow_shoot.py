@@ -3,7 +3,7 @@
 """The zero-model Flow shot runner — docs/ops/flow-operator-design.md, built.
 
 Drives the logged-in automation Chrome (port 9223, dedicated profile — see
-scripts/flow/launch-chrome-debug.sh) over CDP to shoot a «บัญชี» act's shots
+scripts/flow/launch-chrome-debug.sh) over CDP to shoot a "บัญชี" act's shots
 in Google Flow: attach chips, paste the prompt, submit, download, verify.
 STANDALONE — no Claude in the loop, zero token cost at runtime, same pattern
 as scripts/higgsfield/gen_loop.py. The ledger (tools/flow_ledger.py) is the
@@ -380,7 +380,7 @@ def card_fragment(prompt: str) -> str | None:
     """The text the runner tracks a shot's card by, in submit and in `pull`.
 
     Dialogue first, because it is unique per shot. A shot with NO dialogue —
-    «บัญชี» 175, a silent reaction shot, 2026-09-23 — used to have no key at
+    "บัญชี" 175, a silent reaction shot, 2026-09-23 — used to have no key at
     all: submit never found its card, logged "failed — timeout" after eight
     minutes while the clip was being generated and paid for, and `pull` then
     refused it too. Fall back to the start of the action clause: the text

@@ -3,12 +3,12 @@
 """Find clips where the generator burned text into the picture — without watching them.
 
 Veo adds its own Thai captions to shots nobody asked to caption, and the Thai it
-writes is mangled: «ไม่ใส่ถั่วทอกใช่ไหเวิทย์» for "ไม่ใส่ถั่วงอกใช่ไหมวิทย์",
-«แล้วมูลนนั่ติกินหู้ร้กาอกิทย์» for nothing readable at all. It survives a
+writes is mangled: "ไม่ใส่ถั่วทอกใช่ไหเวิทย์" for "ไม่ใส่ถั่วงอกใช่ไหมวิทย์",
+"แล้วมูลนนั่ติกินหู้ร้กาอกิทย์" for nothing readable at all. It survives a
 re-shoot — shot 43 was re-fired for this exact defect and came back with
 different garbage in the same place.
 
-How many shots actually carry one, measured 2026-09-23 on the 173-shot «บัญชี»
+How many shots actually carry one, measured 2026-09-23 on the 173-shot "บัญชี"
 cut: **3 (29, 43, 115)**. The first version of this file said 14, and that
 number was wrong: it treated "tesseract read ≥8 Thai characters in the band" as
 a caption, and tesseract reads Thai out of anything — a floral nightgown, table
@@ -137,7 +137,7 @@ def main() -> int:
         if best >= GATE:
             text = read_text(f, t, work)
             rows.append((n, t, best, text))
-            print(f"  shot {n:>3}  {t:>5.1f}s  score {best:>4}  «{text}»")
+            print(f"  shot {n:>3}  {t:>5.1f}s  score {best:>4}  '{text}'")
 
     shots = [r[0] for r in rows]
     print(f"\n{len(shots)} of {len(clips)} clips carry burned-in text "

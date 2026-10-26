@@ -4,7 +4,7 @@
 
     python3 tools/continuity_sheet.py docs/scripts/banchi-ACT*.data.py [--out FILE.md]
 
-Built 2026-09-23 from «จุดจบของเจ้าหนี้นอกระบบ» (banchi), where every one of these
+Built 2026-09-23 from "จุดจบของเจ้าหนี้นอกระบบ" (banchi), where every one of these
 cost a re-shoot that a table would have caught for free. It reads the same
 `*.data.py` files `tools/build_shotsheet.py` renders, prints one row per shot
 (time · place · who · wearing what · props) and a TRANSITION line wherever the

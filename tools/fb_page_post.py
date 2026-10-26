@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Facebook Business Suite general-post + Story composers for the Page
-«ละครสั้นคุณธรรม by ILAG Studio» (task-e4482d34). Reuses tools/fb_reel_post.py
+"ละครสั้นคุณธรรม by ILAG Studio" (task-e4482d34). Reuses tools/fb_reel_post.py
 (imported, never copied) for everything the two tools share: Playwright/CDP
 connection, the caption box, the comment-identity gate, the duplicate-publish
 guard, and the three-state permalink resolver. fb_reel_post.py itself and
