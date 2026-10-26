@@ -636,7 +636,8 @@ def publish_rows(conn, host: str, rows, prev_uuids, publisher: str | None = None
 PULL_TIMEOUT_S = 25   # hard cap on one ssh pull; the local 5 s loop waits at most this
 
 # Runs on the pulled Windows host. A record is kept only when its pid exists and
-# the process started within 10 s of the record's startedAt (a reused pid fails).
+# its process creation FILETIME matches procStart within 1 ms, or, if procStart
+# is absent, the process started within 10 s of startedAt (a reused pid fails).
 # stdout is ONE json array; PowerShell's CLIXML progress noise goes to stderr.
 PS_PULL_SCRIPT = r"""$ProgressPreference='SilentlyContinue'
 [Console]::OutputEncoding=[Text.Encoding]::UTF8
@@ -645,8 +646,11 @@ $d=Join-Path $env:USERPROFILE '.claude\sessions'
 if(Test-Path $d){foreach($f in Get-ChildItem $d -Filter '*.json' -File){try{
 $j=Get-Content -Raw -Encoding UTF8 -LiteralPath $f.FullName|ConvertFrom-Json
 $p=Get-Process -Id ([int]$j.pid) -ErrorAction Stop
+if($null -ne $j.procStart){$keep=[math]::Abs($p.StartTime.ToFileTimeUtc() - [int64]$j.procStart) -le 10000}else{
 $t=[DateTimeOffset]::new($p.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()
-if([math]::Abs($t-[int64]$j.startedAt) -le 10000){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_});bridgeSessionId=[string]$j.bridgeSessionId}}
+$keep=[math]::Abs($t-[int64]$j.startedAt) -le 10000
+}
+if($keep){$o+=[pscustomobject]@{pid=[int]$j.pid;sessionId=[string]$j.sessionId;name=[string]$j.name;status=[string]$j.status;nameSince=$j.nameSince;formerNames=@($j.formerNames|Where-Object{$_});bridgeSessionId=[string]$j.bridgeSessionId}}
 }catch{}}}
 ConvertTo-Json -InputObject @($o) -Compress -Depth 4"""
 

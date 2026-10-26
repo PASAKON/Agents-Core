@@ -1206,6 +1206,26 @@ def test_the_powershell_script_is_valid_utf16le_base64_and_fits_a_command_line()
         assert needle in ps, needle
 
 
+def test_powershell_pull_prefers_proc_start_with_started_at_fallback():
+    ps = ls.PS_PULL_SCRIPT
+    assert "if($null -ne $j.procStart){$keep=[math]::Abs($p.StartTime.ToFileTimeUtc() - [int64]$j.procStart) -le 10000}else{" in ps
+    assert "$t=[DateTimeOffset]::new($p.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()" in ps
+    assert "$keep=[math]::Abs($t-[int64]$j.startedAt) -le 10000" in ps
+    assert "if($keep){$o+=" in ps
+
+
+def test_windows_proc_start_filetime_matches_observed_process_unix_ms():
+    filetime = 134374861243197417
+    unix_epoch_filetime = 116444736000000000
+    ticks_per_ms = 10000
+    observed_unix_ms = 1793012524319
+    assert (filetime - unix_epoch_filetime) // ticks_per_ms == observed_unix_ms
+    process_filetime = unix_epoch_filetime + observed_unix_ms * ticks_per_ms
+    assert abs(process_filetime - filetime) <= ticks_per_ms
+    # A later process holding the same pid must fail the FILETIME guard.
+    assert abs(process_filetime + 1000 * ticks_per_ms - filetime) > ticks_per_ms
+
+
 def test_pull_targets_come_from_hosts_yaml_through_the_ssh_alias(monkeypatch):
     assert ls.pull_targets("contabo") == [("winbox", "winbox")]
     assert ls.pull_targets("mac") == [] and ls.pull_targets("no-such-host") == []
