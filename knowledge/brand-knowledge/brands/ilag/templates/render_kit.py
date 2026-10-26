@@ -4,19 +4,9 @@ import shutil
 import sys
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
 
-K = Path(sys.argv[1]).resolve()
-FONTS = K / "fonts"
-for src, dst in (("Cinzel[wght].ttf", "Cinzel-VF.ttf"), ("Anuphan[wght].ttf", "Anuphan-VF.ttf")):
-    if (FONTS / src).exists() and not (FONTS / dst).exists():
-        shutil.copy(FONTS / src, FONTS / dst)
-
-EMBLEM = (K / "emblem.svg").read_text()
-
-
-def emblem(sfx):
-    s = EMBLEM
+def emblem(sfx, svg):
+    s = svg
     for i in ("gm", "bg", "cream", "dark", "L", "R"):
         s = s.replace(f'id="{i}"', f'id="{i}_{sfx}"').replace(f"url(#{i})", f"url(#{i}_{sfx})")
     return s.replace('width="400" height="400"', 'width="100%" height="100%"')
@@ -55,37 +45,59 @@ def ng(sfx):
             '</g></svg>')
 
 
-html = (K / "kit.tpl.html").read_text()
-html = re.sub(r"\{\{EM:(\w+)\}\}", lambda m: emblem(m.group(1)), html)
-html = re.sub(r"\{\{ORN:(\w+):(\w+)\}\}", lambda m: orn(m.group(1), m.group(2)), html)
-html = re.sub(r"\{\{NG:(\w+)\}\}", lambda m: ng(m.group(1)), html)
-(K / "kit.html").write_text(html)
+def build_kit(K):
+    """Write K/kit.html from kit.tpl.html (emblem, ornament and NG-stamp placeholders filled) and return its text."""
+    K = Path(K)
+    FONTS = K / "fonts"
+    for src, dst in (("Cinzel[wght].ttf", "Cinzel-VF.ttf"), ("Anuphan[wght].ttf", "Anuphan-VF.ttf")):
+        if (FONTS / src).exists() and not (FONTS / dst).exists():
+            shutil.copy(FONTS / src, FONTS / dst)
+    svg = (K / "emblem.svg").read_text()
+    html = (K / "kit.tpl.html").read_text()
+    html = re.sub(r"\{\{EM:(\w+)\}\}", lambda m: emblem(m.group(1), svg), html)
+    html = re.sub(r"\{\{ORN:(\w+):(\w+)\}\}", lambda m: orn(m.group(1), m.group(2)), html)
+    html = re.sub(r"\{\{NG:(\w+)\}\}", lambda m: ng(m.group(1)), html)
+    (K / "kit.html").write_text(html)
+    return html
 
-head = html.split("<body>")[0]
-(K / "emblem.html").write_text(head.replace("width:1080px;height:1920px", "width:1024px;height:1024px")
-                               + f'<body><div style="position:absolute;inset:0">{emblem("solo")}</div>'
-                               '<script>document.fonts.ready.then(()=>{document.body.dataset.ready="1"})</script></body></html>')
 
 ALL = [
     "wm", "skip", "rewcard", "flash", "ftag", "now", "place", "name", "title", "ng", "ngs", "ngt", "rew", "take2",
     "bltag", "blooper", "end", "sub", "safe", "fonts", "emblem"]
-NAMES = sys.argv[2].split(",") if len(sys.argv) > 2 else ALL
-if unknown := [n for n in NAMES if n not in ALL]:
-    sys.exit(f"unknown element: {','.join(unknown)} (known: {','.join(ALL)})")
-out = K / "overlays"
-out.mkdir(exist_ok=True)
-with sync_playwright() as p:
-    b = p.chromium.launch()
-    pg = b.new_page(viewport={"width": 1080, "height": 1920})
-    for name in NAMES:
-        pg.goto((K / "kit.html").as_uri() + f"?el={name}")
-        pg.wait_for_function('document.body.dataset.ready === "1"')
-        pg.wait_for_timeout(120)
-        pg.screenshot(path=str(out / f"{name}.png"), omit_background=True)
-    pg2 = b.new_page(viewport={"width": 1024, "height": 1024})
-    pg2.goto((K / "emblem.html").as_uri())
-    pg2.wait_for_function('document.body.dataset.ready === "1"')
-    pg2.wait_for_timeout(120)
-    pg2.screenshot(path=str(K / "out" / "ilag-emblem-1024.png"), omit_background=True)
-    b.close()
-print("rendered", len(NAMES), "overlays")
+
+
+def main():
+    from playwright.sync_api import sync_playwright
+
+    K = Path(sys.argv[1]).resolve()
+    html = build_kit(K)
+    svg = (K / "emblem.svg").read_text()
+    head = html.split("<body>")[0]
+    (K / "emblem.html").write_text(head.replace("width:1080px;height:1920px", "width:1024px;height:1024px")
+                                   + f'<body><div style="position:absolute;inset:0">{emblem("solo", svg)}</div>'
+                                   '<script>document.fonts.ready.then(()=>{document.body.dataset.ready="1"})</script></body></html>')
+
+    NAMES = sys.argv[2].split(",") if len(sys.argv) > 2 else ALL
+    if unknown := [n for n in NAMES if n not in ALL]:
+        sys.exit(f"unknown element: {','.join(unknown)} (known: {','.join(ALL)})")
+    out = K / "overlays"
+    out.mkdir(exist_ok=True)
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        pg = b.new_page(viewport={"width": 1080, "height": 1920})
+        for name in NAMES:
+            pg.goto((K / "kit.html").as_uri() + f"?el={name}")
+            pg.wait_for_function('document.body.dataset.ready === "1"')
+            pg.wait_for_timeout(120)
+            pg.screenshot(path=str(out / f"{name}.png"), omit_background=True)
+        pg2 = b.new_page(viewport={"width": 1024, "height": 1024})
+        pg2.goto((K / "emblem.html").as_uri())
+        pg2.wait_for_function('document.body.dataset.ready === "1"')
+        pg2.wait_for_timeout(120)
+        pg2.screenshot(path=str(K / "out" / "ilag-emblem-1024.png"), omit_background=True)
+        b.close()
+    print("rendered", len(NAMES), "overlays")
+
+
+if __name__ == "__main__":
+    main()
