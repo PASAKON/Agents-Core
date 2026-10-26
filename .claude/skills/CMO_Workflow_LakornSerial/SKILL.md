@@ -3,13 +3,15 @@ name: CMO_Workflow_LakornSerial
 kind: workflow
 owner: CMO
 description: >-
-  WORKFLOW — The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"):
-  one story split into ~3-minute EPs, one EP posted per day, every EP = a 3-second hook, then the story, then a
-  follow-me end card "EP.N ติดตามได้ที่เพจ …". Story → plates → 360p test → Flow shoot on winbox → QC → per-EP cut
-  → cover → post → Drive. Each step names the skill that owns its rules; the rules live there, not here.
+  WORKFLOW — The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio").
+  Since CEO 2026-10-26: EPs of 10–20 min, each a complete case with a 15-second hook, a twist and a pull into the
+  next EP, built with the channel kit (knowledge/brand-knowledge/brands/ilag) and an AI-mistake NG gag plus a
+  blooper reel. Story → plates → 360p test → Flow shoot on winbox → QC + NG bank → per-EP cut with the kit →
+  cover → post → Drive. Each step names the skill that owns its rules; the rules live there, not here.
   Trigger on /CMO_Workflow_LakornSerial and whenever a ละครสั้นคุณธรรม story is made as EPs, "ทำทีละ EP",
-  "ซีรีส์ละครสั้น", "EP.2 ต่อ", "ตัด EP", "hook 3 วิ". Use instead of CMO_Workflow_ShortFilm (that one is the ILAG
-  festival short film on Seedance / H3 / Wan, a different channel and engine).
+  "ซีรีส์ละครสั้น", "EP.2 ต่อ", "ตัด EP", "hook 15 วิ", "ฉากหลุด AI", "ตลาดนี้มีกรรม". Use instead of
+  CMO_Workflow_ShortFilm (that one is the ILAG festival short film on Seedance / H3 / Wan, a different channel and
+  engine).
 created_by: agent
 author: {role: cto, date: "2026-10-01"}
 audience: [cmo, cto]
@@ -18,7 +20,25 @@ lifecycle: active
 
 # ละครสั้นคุณธรรม serial — one EP a day
 
-## The pattern (CEO 2026-10-01, film 5 «ขายชื่อ»)
+## The pattern since 2026-10-26 (CEO: Chinese-series EPs, AI-mistake comedy)
+
+> "แบบ ซีรี่จีน เราทำ ตอนจบในตอน แค่ 10-20 นาทีต่อตอน … แต่ละ EP ต้องมี Hook ของตัวเองมี มีจุดพลิก หักมุม และให้น่าติดตามไปตอนถัดไป"
+> "ควรจะต้องมี 15 วิสำหรับ Hook คนดู … คนดูชอบอะไรที่มันตลกๆ ผิดธรรมชาติ หรือตื่นเต้นๆ … ของเราจะเด่นกว่าตรงที่
+> เราจะใช้ความผิดพลาดของ Ai ที่มนุษย์ดูแล้วมันตลก" — CEO, 2026-10-26
+
+| part | length | what |
+|---|---|---|
+| HOOK | 15 s | the most absurd, funny or exciting moment of THIS EP; it closes on the title sting (kit tile 10) |
+| STORY | 10–20 min | one complete case (story rule 1) with a turn and a twist; a kit card on every time jump, new place and first appearance of a named character |
+| PULL | last beat | a new question that the next EP answers |
+| END CARD | ~4 s | kit tile 15: ติดตามตอนต่อไป + EP.N+1 + the open question + time + Page name; the last EP of a season says "จบบริบูรณ์" |
+| BLOOPER REEL | 20–40 s | kit tile 14 header, then takes the AI really got wrong (from the NG bank) |
+
+The kit and its rules (watermark, time cards, NG stamp limits) are in `knowledge/brand-knowledge/brands/ilag/BRAND.md`.
+The table below is the 2026-10-01 pattern. Its hook length, EP length and one-EP-a-day cadence are superseded; the
+rest of it (write and ship EP by EP, each EP self-contained) still holds.
+
+## The pattern (CEO 2026-10-01, film 5 «ขายชื่อ») [SUPERSEDED 2026-10-26 for hook, EP length and cadence]
 
 > "อยากให้ ทำทีละ EP มากกว่า และเขียนทีละตอนมีผล สรุปเป็นของตัวเอง เริ่มต้น 3 วิต้องน่าตื่นเต้น น่าติดตาม
 > Hook ที่ดี … ต่อจากนั้นดำเนินเรื่องตามปกติ และจบท้ายด้วยการชวนติดตาม -> จบท้ายด้วย EP.2 ติดตามได้ที่เพจ ....
@@ -50,8 +70,12 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
    :9226 with the pc-lease (winbox-pc-lease). Log every spend: `tools/credit_ledger.py`.
 4. **QC** each clip: `tools/film_transcript.py <dir> --lang th` (script coverage per shot) +
    `tools/burned_text_scan.py <dir>`; look at frames only to confirm a flagged defect (CMO_Gate_Flow_Omni1.1_FilmQC).
-5. **Cut the EP:** hook clip (trimmed to the spoken line, ~3 s) + story shots in order + end card. ffmpeg concat,
-   1080×1920, 24 fps, AAC 48 kHz. Reference: film 5 EP1, 3:03.
+   Keep the **NG bank**: every funny failed take gets one line in the EP folder's `ng-bank.md` (shot id, what the AI got wrong, keep/drop) instead of being thrown away. It feeds the NG gag and the blooper reel.
+5. **Cut the EP:** 15 s hook + title sting + story shots in order + end card + blooper reel, with the kit cards from
+   `knowledge/brand-knowledge/brands/ilag/templates/` (watermark on every story frame, a card on every jump).
+   ffmpeg, 1080×1920, 24 fps, AAC 48 kHz, every segment with the same pixel format and SAR before a concat copy.
+   [SUPERSEDED 2026-10-26] hook clip (trimmed to the spoken line, ~3 s) + story shots + end card. Reference: film 5
+   EP1, 3:03.
 6. **Cover:** CMO_Procedure_ChatGPTImage_LakornCover, one cover per series with an "EP.N" pill; reuse it as the
    end-card background.
 7. **Post** one EP per day at the agreed time (20:00 default): `tools/fb_reel_post.py` dry-run first, then publish
@@ -67,3 +91,5 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
 - 2026-10-02 [MISSING] §Steps 1 — recutting one long script into EPs leaves the LAST EP on the source's cliffhanger with nobody's ending written (film 5 S68 "นั่นมันชื่อแม่ผม"); the final EP needs its own closing act (story rules 7-8) written and shot before its post day · evidence: 7c5e7510 (S69-78) · status: pending
 - 2026-10-02 [MISSING] §Steps 3 — winbox Chrome :9226 is shared: the CMO's stock `flow_shoot.py` takes the FIRST flow tab and runs without a pc-lease. Before opening a tab or firing, check `netstat -ano | findstr :9226` + the owning python's command line, and queue behind a live run · evidence: CMO khaoniao EP3 run on :9226 at 19:26, film 5 EP3 shoot queued behind it · status: pending
 - 2026-10-03 [MISSING] §Steps 7 — a `--comment-only` rerun after a failed comment step posted the EP2 first comment a second time. Facebook collapses a long comment ("ดูเพิ่มเติม") and the collapse fell on line 2, so the idempotency check, which matched the first line only, missed the live comment. Fixed in dbe0a59e (it now scans every run of lines). Until that has run clean twice: after any comment-step error, look at the post's comments before rerunning. Facebook also offers no pin control for a Page's own reel comment; a blocked pin click is now logged "not pinned", not a failure · evidence: EP2 post 2026-10-02, PR #203 · status: pending
+- 2026-10-26 [MISSING] §The pattern — proposed by the CMO, not yet measured (n=0; the pilot EP measures it): the 15 s hook as 0–3 s cold open on the EP's most absurd or exciting moment, 3–8 s the stakes in one line, 8–12 s the question the EP answers, 12–15 s title sting, then the same-day rewind card into the story; a micro-hook at least every 60 s; two peaks, each followed by a comic reset; mid-roll marks on live questions; the last 45 s open the next EP's question · evidence: kit demo ilag-kit-demo-v1.mp4 (44 s), CEO chat 2026-10-26 (CMO session d55bf0c1), knowledge/brand-knowledge/brands/ilag/BRAND.md · status: pending
+- 2026-10-26 [COSTLY] §Steps 5 — a concat copy of segments with different pixel formats silently loses frames in some readers: the NG-slam segment (from JPEG stills) came out yuvj420p with SAR 1:1 while the footage segments were yuv420p, and a 2 fps review sheet dropped the first 6 s. Fix: `setsar=1,format=yuv420p` on every segment plus `-color_range tv` at encode, and convert stills with `scale=in_range=pc:out_range=tv` · evidence: ilag kit demo v1, ffprobe frame pix_fmt at 1 s vs 6.5 s · status: pending
