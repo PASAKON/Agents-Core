@@ -1,0 +1,181 @@
+{
+ "vo_end": 11.634,
+ "phrase_start": {
+  "1.1": 0.1,
+  "1.2": 0.622,
+  "1.3": 1.726,
+  "2.1": 2.282,
+  "2.2": 2.614,
+  "2.3": 3.33,
+  "3.1": 4.115,
+  "3.2": 4.66,
+  "4.1": 5.528,
+  "4.2": 6.194,
+  "4.3": 7.017,
+  "5.1": 7.618,
+  "5.2": 8.124,
+  "5.3": 9.278,
+  "6.1": 9.907,
+  "6.2": 10.476,
+  "6.3": 11.032
+ },
+ "cuts": [
+  {
+   "cut": 1,
+   "from": 0.0,
+   "to": 0.5833333333333334,
+   "src": 4.2,
+   "shot": "S1",
+   "what": "the mother pounding at the stall",
+   "subs": [
+    "ป้าคนนี้"
+   ]
+  },
+  {
+   "cut": 2,
+   "from": 0.5833333333333334,
+   "to": 1.7083333333333333,
+   "src": 54.0,
+   "shot": "S7",
+   "what": "the mother chopping garlic",
+   "subs": [
+    "ตำส้มตำเก็บเงินแปดหมื่น"
+   ]
+  },
+  {
+   "cut": 3,
+   "from": 1.7083333333333333,
+   "to": 2.25,
+   "src": 8.0,
+   "shot": "S1",
+   "what": "the mother pounding, collector beside her",
+   "subs": [
+    "ห้าปี"
+   ]
+  },
+  {
+   "cut": 4,
+   "from": 2.25,
+   "to": 3.2916666666666665,
+   "src": 45.0,
+   "shot": "S6",
+   "what": "pestle raised at her son",
+   "subs": [
+    "ใครแตะ",
+    "โดนสากชี้หน้า"
+   ]
+  },
+  {
+   "cut": 5,
+   "from": 3.2916666666666665,
+   "to": 4.083333333333333,
+   "src": 48.0,
+   "shot": "S6",
+   "what": "the son takes it in",
+   "subs": [
+    "แม้แต่ลูกชาย"
+   ]
+  },
+  {
+   "cut": 6,
+   "from": 4.083333333333333,
+   "to": 5.5,
+   "src": 37.0,
+   "shot": "S5",
+   "what": "phone held at arm's length, no glasses",
+   "subs": [
+    "แว่นลืมได้",
+    "แต่แปดหมื่น อยู่ครบ"
+   ]
+  },
+  {
+   "cut": 7,
+   "from": 5.5,
+   "to": 6.166666666666667,
+   "src": 20.5,
+   "shot": "S3",
+   "what": "the son asks what is wrong",
+   "subs": [
+    "ลูกถามทีไร"
+   ]
+  },
+  {
+   "cut": 8,
+   "from": 6.166666666666667,
+   "to": 7.583333333333333,
+   "src": 22.5,
+   "shot": "S3",
+   "what": "the mother's bright smile over the papaya",
+   "subs": [
+    "ตอบว่าไม่มีอะไร",
+    "ยิ้มสุดฤทธิ์"
+   ]
+  },
+  {
+   "cut": 9,
+   "from": 7.583333333333333,
+   "to": 8.083333333333334,
+   "src": 11.0,
+   "shot": "S2",
+   "what": "the collector at the stall",
+   "subs": [
+    "แต่วันนี้"
+   ]
+  },
+  {
+   "cut": 10,
+   "from": 8.083333333333334,
+   "to": 9.25,
+   "src": 9.5,
+   "shot": "S1",
+   "what": "the collector speaking: the rent",
+   "subs": [
+    "เจ้าของแผงมาทวงสามพัน"
+   ]
+  },
+  {
+   "cut": 11,
+   "from": 9.25,
+   "to": 9.875,
+   "src": 13.0,
+   "shot": "S2",
+   "what": "the mother, palms pressed together",
+   "subs": [
+    "แล้วเธอก็..."
+   ]
+  },
+  {
+   "cut": 12,
+   "from": 9.875,
+   "to": 10.458333333333334,
+   "src": 17.0,
+   "shot": "S2",
+   "what": "the collector looking back: tomorrow noon",
+   "subs": [
+    "พรุ่งนี้เที่ยง"
+   ]
+  },
+  {
+   "cut": 13,
+   "from": 10.458333333333334,
+   "to": 11.0,
+   "src": 52.0,
+   "shot": "S7",
+   "what": "the son wiping his hands, jaw set",
+   "subs": [
+    "ลูกชายต้อง"
+   ]
+  },
+  {
+   "cut": 14,
+   "from": 11.0,
+   "to": 12.0,
+   "src": 133.0,
+   "shot": "S17",
+   "what": "a hand of blank cards fanned out",
+   "subs": [
+    "ทำอะไรบางอย่าง"
+   ]
+  }
+ ]
+}

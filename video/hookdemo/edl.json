@@ -1,0 +1,389 @@
+{
+ "fps": 24,
+ "size": [
+  1080,
+  1920
+ ],
+ "sfx": "work/sfx",
+ "output": "hook-demo-master.mp4",
+ "loudnorm": -16,
+ "note": "ILAG 15 s Chinese-style hook demo, task-ee1dbcf0",
+ "segments": [
+  {
+   "id": "h01",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 4.2,
+   "dur": 0.583323,
+   "gain": 0.12,
+   "note": "S1: the mother pounding at the stall",
+   "subs": [
+    {
+     "at": 0.08,
+     "dur": 0.501,
+     "text": "ป้าคนนี้"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h02",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 54.0,
+   "dur": 1.12499,
+   "gain": 0.12,
+   "note": "S7: the mother chopping garlic",
+   "subs": [
+    {
+     "at": 0.018,
+     "dur": 1.105,
+     "text": "ตำส้มตำเก็บเงินแปดหมื่น"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h03",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 8.0,
+   "dur": 0.541657,
+   "gain": 0.12,
+   "note": "S1: the mother pounding, collector beside her",
+   "subs": [
+    {
+     "at": 0.0,
+     "dur": 0.539,
+     "text": "ห้าปี"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h04",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 45.0,
+   "dur": 1.041657,
+   "gain": 0.12,
+   "note": "S6: pestle raised at her son",
+   "subs": [
+    {
+     "at": 0.012,
+     "dur": 0.329,
+     "text": "ใครแตะ"
+    },
+    {
+     "at": 0.343,
+     "dur": 0.696,
+     "text": "โดนสากชี้หน้า"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h05",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 48.0,
+   "dur": 0.791657,
+   "gain": 0.12,
+   "note": "S6: the son takes it in",
+   "subs": [
+    {
+     "at": 0.018,
+     "dur": 0.771,
+     "text": "แม้แต่ลูกชาย"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h06",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 37.0,
+   "dur": 1.416657,
+   "gain": 0.12,
+   "note": "S5: phone held at arm's length, no glasses",
+   "subs": [
+    {
+     "at": 0.011,
+     "dur": 0.543,
+     "text": "แว่นลืมได้"
+    },
+    {
+     "at": 0.556,
+     "dur": 0.858,
+     "text": "แต่แปดหมื่น อยู่ครบ"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h07",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 20.5,
+   "dur": 0.666657,
+   "gain": 0.12,
+   "note": "S3: the son asks what is wrong",
+   "subs": [
+    {
+     "at": 0.007,
+     "dur": 0.657,
+     "text": "ลูกถามทีไร"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h08",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 22.5,
+   "dur": 1.416657,
+   "gain": 0.12,
+   "note": "S3: the mother's bright smile over the papaya",
+   "subs": [
+    {
+     "at": 0.007,
+     "dur": 0.821,
+     "text": "ตอบว่าไม่มีอะไร"
+    },
+    {
+     "at": 0.83,
+     "dur": 0.584,
+     "text": "ยิ้มสุดฤทธิ์"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h09",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 11.0,
+   "dur": 0.49999,
+   "gain": 0.12,
+   "note": "S2: the collector at the stall",
+   "subs": [
+    {
+     "at": 0.014,
+     "dur": 0.484,
+     "text": "แต่วันนี้"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h10",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 9.5,
+   "dur": 1.166657,
+   "gain": 0.12,
+   "note": "S1: the collector speaking: the rent",
+   "subs": [
+    {
+     "at": 0.02,
+     "dur": 1.144,
+     "text": "เจ้าของแผงมาทวงสามพัน"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h11",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 13.0,
+   "dur": 0.62499,
+   "gain": 0.12,
+   "note": "S2: the mother, palms pressed together",
+   "subs": [
+    {
+     "at": 0.008,
+     "dur": 0.615,
+     "text": "แล้วเธอก็..."
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h12",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 17.0,
+   "dur": 0.583323,
+   "gain": 0.12,
+   "note": "S2: the collector looking back: tomorrow noon",
+   "subs": [
+    {
+     "at": 0.012,
+     "dur": 0.569,
+     "text": "พรุ่งนี้เที่ยง"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h13",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 52.0,
+   "dur": 0.541657,
+   "gain": 0.12,
+   "note": "S7: the son wiping his hands, jaw set",
+   "subs": [
+    {
+     "at": 0.0,
+     "dur": 0.539,
+     "text": "ลูกชายต้อง"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h14",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 133.0,
+   "dur": 0.99999,
+   "gain": 0.12,
+   "note": "S17: a hand of blank cards fanned out",
+   "subs": [
+    {
+     "at": 0.012,
+     "dur": 0.986,
+     "text": "ทำอะไรบางอย่าง"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "title",
+   "kind": "title",
+   "src": "src/ep5-ep1.mp4",
+   "in": 8.0,
+   "dur": 2.0,
+   "gain": 0.12,
+   "texts": {
+    "season": "ขายชื่อ",
+    "ep": "EP.1",
+    "title": "สามพันแลกชื่อ",
+    "tagline": "คุ้มจริงเหรอ?"
+   }
+  },
+  {
+   "id": "rew",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
+   "in": 4.2,
+   "dur": 1.0,
+   "gain": 0.3,
+   "cards": [
+    {
+     "el": "rewcard",
+     "at": 0.0,
+     "dur": 1.0,
+     "texts": {
+      "tct": "ย้อนกลับไปเมื่อเช้านี้"
+     }
+    }
+   ],
+   "sfx": [
+    {
+     "name": "whoosh",
+     "at": 0.0,
+     "gain": 0.5
+    }
+   ]
+  }
+ ]
+}
