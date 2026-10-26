@@ -63,7 +63,10 @@ moment of spending; this file is the org rule they all point to.
 > He approved this section on question card Q-20261026-0814-67e0: "ใส่เลย ให้ CTO เกลาคำได้".
 
 Every command card, question card, relay request and alert mail to the CEO passes these four checks first. A
-"yes" to check 1, 2 or 3 means it does not go to him.
+"yes" to check 1, 2 or 3 means it does not go to him. The filter drops only cards that were never needed; it
+never relaxes rules 1–4. A spend, a secret, a permanent deletion and a new channel in his name still need his
+word for that one instance, unless a standing approval he gave covers it: a brief's budget, the Green list, a
+standing op.
 
 1. **Already decided?** His order for this job, typed in your chat or as an answered Q-/RUN- id for the same
    action: act on it and cite the id. Never ask him twice for one thing.
