@@ -1,7 +1,7 @@
 ---
 name: CTO_Procedure_KeyFetch
 kind: procedure
-description: "PROCEDURE — A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. Trigger on /CTO_Procedure_KeyFetch and on \"worker ไปเอา KEY\", \"เอา key จาก provider\", \"สร้าง API key ใหม่\", \"fetch a new API key\", \"rotate a key\". Not for the login (relay-login) or Org-Infra (CEO only)."
+description: "PROCEDURE — A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. Trigger on /CTO_Procedure_KeyFetch and on \"worker ไปเอา KEY\", \"เอา key จาก provider\", \"สร้าง API key ใหม่\", \"fetch a new API key\", \"rotate a key\". Not for the login (relay-login). Org-Infra is allowed since 2026-10-26 (Q-20261026-0814-e94a), but the tools refuse it until its scope design lands."
 owner: CTO
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
@@ -31,9 +31,9 @@ client secret with the ancestor script `scripts/infisical/capture_client_secret.
 - Invoke for a new key, a rotation or an extra scope on any provider with a web page. A C-level writes the
   brief; a `browser_operator` runs it (a `developer` when the provider mints keys by API and no browser is
   needed — then it is a plain script ending in `put`).
-- Not for the login itself (`relay-login` owns it), not for Org-Infra values (PLAN §3b: the CEO enters them;
-  both the script and `put` refuse that project), and not for a value someone pasted to you — that is already a
-  leak: tag it `leaked` in Infisical and rotate it (`ALL_Protocol_RunInbox` explains why a card refuses it).
+- Not for the login itself (`relay-login` owns it), and not for a value someone pasted to you — that is already
+  a leak: tag it `leaked` in Infisical and rotate it (`ALL_Protocol_RunInbox` explains why a card refuses it).
+  Org-Infra: rule 3.
 
 ## Steps (numbered; each with the stop condition)
 
@@ -78,8 +78,12 @@ Done also means: the task report holds no value, no length, no screenshot of the
 2. **HARD — the value enters Infisical only through `put --stdin`**: never an argument, a file a model reads, a
    Run Inbox card or chat. **Why hard:** argv sits in the process list and in the transcript; the worker sandbox
    classifier refuses credential-shaped commands anyway (measured 2026-09-18, GH #156).
-3. **HARD — Org-Infra keys are the CEO's to enter** (PLAN §3b rule 1); the script and `put` refuse the project.
-   **Why hard:** scope of authorisation — the CEO drew that line on 2026-09-25.
+3. **Org-Infra keys follow the same steps** (CEO 2026-10-26, Q-20261026-0814-e94a, choice "ทุก project รวม
+   Org-Infra": "จริง ๆ ทุกโปรเจคควรเอาไปใส่ ORG infa นะ แล้ว แยก Scpoe ให้ชัดเจนว่าอันไหนใครใช้ได้"). Until the
+   Org-Infra scope design lands with its writer identity, the script and `put` still refuse the project: wait
+   for it, and never route around the refusal.
+   `[SUPERSEDED 2026-10-26]` "HARD — Org-Infra keys are the CEO's to enter (PLAN §3b rule 1); the script and
+   `put` refuse the project. Why hard: scope of authorisation — the CEO drew that line on 2026-09-25."
 4. The write identity is time-boxed: `setup` until it retires (2026-10-10); afterwards an identity minted for
    the task with write on ONE project and deleted after (`--as <identity>`); machine identities stay read-only.
 5. Least privilege at the provider: minimal scope, an expiry (default one year), a spend cap when offered. The
