@@ -46,3 +46,15 @@ All commands used `/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest`, witho
 ## Skill learning
 
 - (none)
+
+## CTO review fix (26 Oct 2026)
+
+- `tests/test_spawn_coo.py:507-508` still expected the old COO name, so it failed on the branch. Both
+  expected names are now the new one. The launcher's output was already right.
+- The socket-backed tests were rerun on Contabo (70 files touching names, sessions or routing):
+  3707 passed, 23 failed, 14 errors. Base 61bbe571 fails the same set in this environment
+  (`scripts/test_maintab.py` fixture 'tmp' ×14, `scripts/test_session_status.py` ×9,
+  `scripts/test_session_reconcile.py` ×8, `scripts/test_spawn_tab_routing.py` ×5). The one other failure was
+  `test_spawn_coo`, now fixed: `tests/test_spawn_coo.py tests/test_persona_names.py` 72 passed, 1 xfailed.
+- The new tests on base code: `tests/test_persona_names.py` plus
+  `test_rename_service.py::test_persona_migration_keeps_topic_and_leaves_ph_worker` → 11 failed.
