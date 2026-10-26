@@ -85,6 +85,11 @@ def test_proc_match_and_unreadable(monkeypatch, tmp_path):
     (orphan / "cmdline").write_bytes(b"claude\0--session-id\0" + orphan_uuid.encode() + b"\0")
     assert REAL_PROC_CHECK("cgo", proc) == "process_role_alive"
     assert REAL_PROC_CHECK("cfo", proc) is None
+    # An empty or garbled lock of the role refuses: it might belong to a claude still running.
+    for bad in ("", "garbage\n"):
+        (coo_dispatch.LOCKS_DIR / "cfo-12345678.uuid").write_text(bad)
+        assert REAL_PROC_CHECK("cfo", proc) == "lock_uuid_invalid"
+    (coo_dispatch.LOCKS_DIR / "cfo-12345678.uuid").unlink()
     monkeypatch.setattr(coo_dispatch, "process_role_refusal", lambda role: REAL_PROC_CHECK(role, proc))
     _queue_respawn()
     coo_dispatch.respawn_once()

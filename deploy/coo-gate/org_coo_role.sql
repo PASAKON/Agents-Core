@@ -195,6 +195,7 @@ DECLARE
   have text;
   forbidden_kind text;
   accepted boolean;
+  switched boolean;
   want text := 'c_level_sessions.charter:UPDATE events.actor:INSERT events.kind:INSERT '
     'events.payload:INSERT events.task_id:INSERT events.ts:INSERT tasks.created_at:INSERT '
     'tasks.depends_on:INSERT tasks.description:INSERT tasks.dispatcher_host:INSERT '
@@ -204,8 +205,15 @@ DECLARE
 BEGIN
   FOREACH forbidden_kind IN ARRAY ARRAY['coo_respawn_done', 'coo_respawn_request'] LOOP
     accepted := false;
+    switched := false;
     BEGIN
       SET LOCAL ROLE org_coo;
+      -- Plain variables survive the subtransaction rollback, so the handler can tell a failed
+      -- role switch (no proof) from a refused INSERT (proof).
+      switched := current_user = 'org_coo';
+      IF NOT switched THEN
+        RAISE EXCEPTION USING ERRCODE = 'ZX002', MESSAGE = 'proof could not act as org_coo';
+      END IF;
       INSERT INTO public.events (task_id, actor, kind, payload, ts)
         VALUES (NULL, 'coo_gate', forbidden_kind,
                 '{"role":null,"host":"contabo","by_session":"proof"}', now());
@@ -213,9 +221,13 @@ BEGIN
       RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'forbidden insert accepted';
     EXCEPTION
       WHEN SQLSTATE 'ZX001' THEN accepted := true;
-      -- Only the guard trigger's RAISE or a missing privilege counts as refused. Any other
-      -- error (the role switch failing, a missing table) is not proof, so it fails this run.
-      WHEN raise_exception OR insufficient_privilege THEN NULL;
+      -- Only the guard trigger's RAISE or a missing INSERT privilege, raised after the switch
+      -- to org_coo, counts as refused. Anything else (the switch itself denied, a missing
+      -- table) is not proof, so it fails this run.
+      WHEN raise_exception OR insufficient_privilege THEN
+        IF NOT switched THEN
+          RAISE;
+        END IF;
     END;
     IF accepted THEN
       RAISE EXCEPTION 'org_coo accepted forbidden insert: %', forbidden_kind;

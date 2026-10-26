@@ -487,6 +487,9 @@ def live_host_refusal(host, *, now=None):
     return None
 
 
+_UUID_BYTES = re.compile(rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+
+
 def process_role_refusal(role, proc_root=Path("/proc"), locks_dir=None):
     """Refuse while any process of `role` runs. Two argv shapes count:
     - the launcher: the item `cxo-claude.sh` (any path) followed by `--role <role>`;
@@ -497,7 +500,8 @@ def process_role_refusal(role, proc_root=Path("/proc"), locks_dir=None):
     locks_dir = LOCKS_DIR if locks_dir is None else locks_dir
     try:
         role_uuids = {p.read_bytes().strip().lower() for p in locks_dir.glob(f"{role}-*.uuid")}
-        role_uuids.discard(b"")
+        if any(not _UUID_BYTES.fullmatch(u) for u in role_uuids):
+            return "lock_uuid_invalid"  # an empty or garbled lock could hide a live claude
         for pid in proc_root.iterdir():
             if not pid.name.isdigit():
                 continue
