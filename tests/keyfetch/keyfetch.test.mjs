@@ -30,7 +30,7 @@ test('single value form still works: bare --field + --name, path defaults to /',
   assert.deepEqual(p.extractors, [{ src: 'key', name: 'FAL_API_KEY_RW' }]);
   assert.equal(p.mode, 'wire');
   assert.equal(p.opts.path, '/');
-  assert.equal(p.opts.as, 'setup');
+  assert.equal(p.opts.as, 'keyfetch-writer');
 });
 
 test('single value page form: --dom + --name', () => {

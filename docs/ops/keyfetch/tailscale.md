@@ -69,7 +69,7 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9284 --tab 'console\.tail
 INFISICAL_SETUP_PY=tools/infisical_setup.py PYTHON=.venv/bin/python \
 node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9284 \
   --tab 'console\.tailscale\.com' \
-  --project Agents-Core --env prod --path /org-join --as setup \
+  --project Agents-Core --env prod --path /org-join --as keyfetch-writer \
   --click '^generate credential' \
   --match '/tailnet/-/keys/?$' \
   --field 'data.id=TAILSCALE_OAUTH_CLIENT_ID' \
@@ -84,8 +84,9 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9284 \
 
 - `--new-only` refuses before the click when either secret already exists, so a Run Inbox card run or an
   earlier attempt is never overwritten.
-- `--as setup`: the machine identities (`contabo`, `mac`, `winbox`) are read-only viewers on Agents-Core, so
-  `put` needs the write identity. It retires 2026-10-10; after that mint a one-project write identity.
+- `--as keyfetch-writer`: the machine identities (`contabo`, `mac`, `winbox`) are read-only viewers on Agents-Core, so
+  `put` uses the manifest-scoped writer with a one-day client secret, revoked after verification.
+  A Tailscale key bound for Org-Infra is the CEO's to enter; KeyFetch must not write it there.
 - `--match '/tailnet/-/keys/?$'` and the default `--method POST` leave the list `GET …/keys?all=true…` alone.
 - Output of the real run: `provider answered HTTP 200; … present · … present`, `dialogs still open: 0`,
   two `created …` lines from `put`, `saved 2/2`, exit 0.
@@ -96,7 +97,7 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9284 \
 
 ## Verify without seeing the value
 
-1. `python3 tools/infisical_setup.py last4 Agents-Core prod <NAME> --path /org-join --as setup` for both names.
+1. `python3 tools/infisical_setup.py last4 Agents-Core prod <NAME> --path /org-join --as keyfetch-writer` for both names.
 2. The credential list row shows the client id in full: compare its **last four characters** only (do not
    print the row). The secret is never shown again, so only its Infisical metadata can be checked.
 3. Zero side-effect proof, token exchange only (`POST /api/v2/oauth/token`, grant `client_credentials`) through

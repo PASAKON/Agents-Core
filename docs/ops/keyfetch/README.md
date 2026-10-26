@@ -3,6 +3,10 @@
 Skill: `.claude/skills/CTO_Procedure_KeyFetch/SKILL.md` · script: `scripts/keyfetch/capture_key.mjs` ·
 sink: `tools/infisical_setup.py put` (value on stdin only).
 
+The default write identity is `keyfetch-writer` (org `no-access`, project `member`
+only for `config/keyfetch-writer.yaml`). See [seat setup, mint and revoke](infisical-setup-identity.md).
+Mint a one-day client secret immediately before a run and revoke after the last put verifies.
+
 Each `<provider>.md` here records, after the first successful run: the console deep link (the key page),
 `--tab`, `--click`, and either `--match` + `--field` (wire) or `--dom` (page), plus the provider's expiry and
 scope quirks. The next key on that provider is a replay of those flags — no exploration, no model.

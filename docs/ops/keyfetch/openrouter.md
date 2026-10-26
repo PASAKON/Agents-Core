@@ -23,7 +23,7 @@ The page name carries the expiry (`…-exp2027-01-12`): pick **90 days** on 2026
 INFISICAL_SETUP_PY=tools/infisical_setup.py PYTHON=python3 \
 node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9289 \
   --tab 'openrouter\.ai/settings/management-keys' \
-  --project Agents-Core --env prod --path /spend-guard --as setup --new-only \
+  --project Agents-Core --env prod --path /spend-guard --as keyfetch-writer --new-only \
   --click '^create$' --match 'keys' \
   --field 'key|data.key|data.secret|secret|data.token|token|data.api_key|api_key=OPENROUTER_API_KEY_ADMIN' \
   --comment '<purpose>' --meta provider_name=<page name> --meta console_url=<key page> \
