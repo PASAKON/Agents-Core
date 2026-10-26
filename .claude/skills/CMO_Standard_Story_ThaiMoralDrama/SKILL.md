@@ -49,6 +49,8 @@ CEO 2026-09-25: cliffhangers **inside** the film are wanted. See Structure gate 
 mini-EPs are stitched together like Chinese vertical series. The CEO has not yet ruled on
 whether a film may end on a hook into the NEXT film. Ask before writing one.
 
+CEO 2026-10-26 answered it for the ILAG Page: "แบบ ซีรี่จีน เราทำ ตอนจบในตอน แค่ 10-20 นาทีต่อตอน … แต่ละ EP ต้องมี Hook ของตัวเองมี มีจุดพลิก หักมุม และให้น่าติดตามไปตอนถัดไป". Each EP still closes its own case (this rule holds), and its last beat opens a question that the next EP answers. The order of work is `CMO_Workflow_LakornSerial`; the channel kit (watermark, time cards, name cards, NG stamp, end card) is `knowledge/brand-knowledge/brands/ilag/BRAND.md`.
+
 ### 2. The wrongdoer may be plainly evil (CEO 2026-09-25)
 > "คนร้ายที่ชั่วแบบการ์ตูน ก็ทำได้นะ"
 
@@ -430,7 +432,9 @@ re-shoot when it fires.
 
 ## Length, and where the money is
 
-**8–12 minutes (CEO 2026-09-25: "Scope อยู่ที่ 8 - 12 mins … 20 min อาจจะนานไป").**
+**10–20 minutes per EP (CEO 2026-10-26: "แค่ 10-20 นาทีต่อตอน").**
+
+[SUPERSEDED 2026-10-26 by the ruling above] **8–12 minutes (CEO 2026-09-25: "Scope อยู่ที่ 8 - 12 mins … 20 min อาจจะนานไป").**
 Keep ≤4 named characters and 2–3 locations, so every name still gets an ending.
 
 [SUPERSEDED 2026-09-25 by the ruling above] **18–24 minutes** (CEO: *"คนดูระหว่างกินข้าวไปด้วยได้"*).
@@ -603,3 +607,4 @@ The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
 - 2026-09-27 [MISSING] §Overflow acting — the CEO asked for over-the-top ensemble acting (no one waiting still for their line), watched the S1–S5 test in Flow and approved it as the standard. Rule body added on the CEO ruling · evidence: task-c816fbc0, docs/scripts/ep4-ACTacting.data.py, winbox C:\mooniex\ep4\clips\acting · status: promoted
 - 2026-09-28 [MISSING] §length/cost 'Budget roughly 1.4× the raw credit figure' — three films now give a measured credits-per-shot ratio against the 12-credit raw price: Film 3 13.3/12 (1.11×), Film 4 14.4/12 (1.20×), Film 2 19.2/12 (1.60×). Quote the range 1.1–1.6×, not an estimated 1.4×. It becomes a rule after a 4th film, or once someone checks the three ledgers · evidence: docs/plans/animal-series-channel-plan-2026-09-28.md §7 (from Film 2/3/4 balance deltas) · status: pending
 - 2026-10-01 [MISSING] §1 One episode is one complete story — the CEO answered the open question for film 5: "รอบนี้ ขอ 9 นาที แบบตัดจบแบบ ซีรี่ จีนเลย แค่คงแนวเดิมของเราไว้ได้ … ทำมาทั้งหมด 3 EP". Film 5 is a 3-EP serial: EP1 and EP2 end on a hook into the next EP, EP3 closes every ending as before. Scope so far = film 5 only ("รอบนี้"). Whether "9 นาที" is per EP or for the whole story is still open (plan table: ~204 vs ~68 shots) · evidence: docs/scripts/ep5-plan-DRAFT.md, CEO chat 2026-10-01 · status: pending
+- 2026-10-26 [MISSING] §1 + §Length — CEO ruling for the ILAG Page: 10–20 min per EP, each EP complete with its own 15 s hook, a twist and a pull into the next EP; the comic edge is AI mistakes ("AI ไปตบหน้าตัวละครผิดตัว … ตำรวจจับผิดคน … การตีลูกบอล มีการเปลี่ยนฝั่ง"). Both rule bodies changed on the ruling. Still proposals, waiting for his answer on kit sheet v1: at most two NG gags per EP, role or logic errors only, never body horror, never inside the moral climax (BRAND.md ilag rule 4) · evidence: CEO chat 2026-10-26 (CMO session d55bf0c1), knowledge/brand-knowledge/brands/ilag/BRAND.md · status: promoted
