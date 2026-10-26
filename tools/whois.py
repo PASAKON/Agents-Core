@@ -88,6 +88,10 @@ def parse_from(text: str) -> tuple[str, str] | None:
 def _norm(text: str) -> str:
     """A name or address to compare: NFKC, host emoji and leading symbols dropped, lowercase, one space."""
     s = session_names.strip_host(unicodedata.normalize("NFKC", text or ""))
+    s = " ".join(s.split())
+    identity = session_names.clevel_identity(s)
+    if identity:
+        return " ".join(identity)
     return " ".join(re.sub(r"^[\W_]+", "", s).casefold().split())
 
 

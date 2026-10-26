@@ -130,6 +130,8 @@ def test_fresh_tmux_rename(tmp_path):
     assert f"rename-session -t cto-fresh -- cto-{cap['sid']}" in (tmp_path / "tmux.log").read_text()
     assert f"renamed tmux session 'cto-fresh' -> 'cto-{cap['sid']}'" in proc.stderr
     assert cap['uuid_file_content'].endswith(cap['sid'])
+    assert cap['argv'][cap['argv'].index('-n') + 1] == (
+        "\U0001F310 CTO (\U0001F468\u200d\U0001F4BB: Kavin)")
 
 
 def test_rename_exclusions(tmp_path):

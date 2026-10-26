@@ -96,12 +96,12 @@ def test_every_worker_role_has_a_unique_short_word():
     ("Boss#afe - x", None),          # not a known short word
     ("Dev#AFE - x", None), ("Dev#afe5 - x", None), ("Dev #afe", None),
     ("PH#6c4 CTO - x", ("project_head", "6c4")),     # a compact PH name: "PH#<id3> <text>"
-    ("CTO (Kavin)", ("cto", "")),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin)", ("cto", "")),
     ("Dev·S#afe Org: x", ("developer", "afe")), ("Dev.S#afe Org: x", ("developer", "afe")),
     ("Dev#afe Org: x", ("developer", "afe")),
     ("CTO#c34 Main", ("cto", "c34")), ("COO SomPong", ("coo", "")),
     ("PH#7cf OrgRestructure", ("project_head", "7cf")), ("Watch#a1b Runs: 2🟢", ("watch", "a1b")),
-    ("CTO (Kavin) — CTO Main", ("cto", "")), ("CFO", ("cfo", "")),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", ("cto", "")), ("CFO", ("cfo", "")),
     ("MAC CTO #671f688f (PH LastBell + Scriptable)", ("cto", "671")),
     ("CTO Main", None), ("CEO", None), ("CEO#c34 Main", None), ("Watch#a1b", None),
 ])
@@ -142,12 +142,12 @@ def test_the_host_emoji_table():
 
 
 @pytest.mark.parametrize("name,bare", [
-    (CONTABO + " CTO (Kavin)", "CTO (Kavin)"),
+    (CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"),
     (WINBOX + " PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),
     ("\U0001F5A5 PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),     # typed without FE0F
     (MAC + "Dev#afe - x", "Dev#afe - x"),                                    # no space
     ("PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),               # no emoji
-    ("\u23f8 " + CONTABO + " CTO (Kavin) \u2014 t", "\u23f8 CTO (Kavin) \u2014 t"),  # state glyph kept
+    ("\u23f8 " + CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin) \u2014 t", "\u23f8 CTO (\U0001F468\u200d\U0001F4BB: Kavin) \u2014 t"),  # state glyph kept
     (CONTABO + " " + MAC + " CTO", MAC + " CTO"),                            # only one is stripped
     ("CONTABO CTO #e106b78b (x)", "CONTABO CTO #e106b78b (x)"),
 ])
@@ -168,7 +168,7 @@ def test_writers_put_the_right_emoji_and_none_for_an_unknown_host():
     assert config.ph_session_name("f35aaaaa", "cto", "CookieRun") == "PH#f35 (CTO) - CookieRun"
     assert config.ph_session_name("f35aaaaa", "cto", "CookieRun", "nowhere") == \
         "PH#f35 (CTO) - CookieRun"
-    assert sn.with_host("winbox", CONTABO + " CTO (Kavin)") == WINBOX + " CTO (Kavin)"
+    assert sn.with_host("winbox", CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)") == WINBOX + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)"
     assert config.worker_session_name("contabo", "developer", "task-afe57b21", "x",
                                       head="OrgRestructure") == CONTABO + " Dev·S#afe Org: x"
     assert config.worker_session_name("nowhere", "developer", "task-afe57b21", "x") == "Dev.S#afe x"   # unknown: ASCII, no emoji
@@ -197,32 +197,32 @@ def test_the_cli_prints_only_a_known_hosts_emoji():
 # --- M10: rule_problem, the validator live-sessions flags names with -----------------
 
 @pytest.mark.parametrize("name,role,sid,host,persona,why", [
-    (CONTABO + " CTO (Kavin)", "cto", "c34459eb", "contabo", "Kavin", None),
-    ("⏸ " + CONTABO + " CTO (Kavin) — t", "cto", "c34459eb", "contabo", "Kavin", None),
-    (WINBOX + " CTO (Kavin)", "cto", "x", "winbox", "Kavin", None),
-    ("\U0001F5A5 CTO (Kavin)", "cto", "x", "winbox", "Kavin", None),            # typed, no FE0F
-    ("CTO (Kavin)", "cto", "x", "nowhere", "Kavin", None),                      # unknown host: none
+    (CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "c34459eb", "contabo", "Kavin", None),
+    ("⏸ " + CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin) — t", "cto", "c34459eb", "contabo", "Kavin", None),
+    (WINBOX + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "x", "winbox", "Kavin", None),
+    ("\U0001F5A5 CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "x", "winbox", "Kavin", None),            # typed, no FE0F
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "x", "nowhere", "Kavin", None),                      # unknown host: none
     (CONTABO + " PH#7cf (CTO) - OrgRestructure — M10", "project_head", "7cf528f0", "contabo", None, None),
     ("Browser#4a5 - MimiPage: x", "browser_operator", "4a59a1a4", "winbox", None, None),         # old worker shape
     (CONTABO + " Dev#afe - OrgRestructure: x", "developer", "afe57b21", "contabo", None, None),
     ("Browser.S#4a5 Mimi: x", "browser_operator", "4a59a1a4", "winbox", None, None),            # compact worker shape
     (CONTABO + " Dev·S#49b Org: sparse worktrees", "developer", "49b1d2e3", "contabo", None, None),
     (CONTABO + " Dev#49b Org: x", "developer", "49b1d2e3", "contabo", None, None),             # a model with no letter
-    (CONTABO + " CTO (Kavin) — CTO Main", "cto", "c34459eb", "contabo", "Kavin", None),        # the CEO's own rename
+    (CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", "cto", "c34459eb", "contabo", "Kavin", None),        # the CEO's own rename
     (CONTABO + " PH#7cf (CTO) - OrgRestructure", "project_head", "7cf528f0", "contabo", None, None),
     (CONTABO + " PH#13d (CMO) - BlackLiquidity — a topic that is longer than any cap could allow",
      "project_head", "13d90a1b", "contabo", None, None),                                          # no cap on a PH name
-    (CONTABO + " CTO (Kavin) — " + "t" * 80, "cto", "c34459eb", "contabo", "Kavin", None),     # nor on a C-level's
+    (CONTABO + " CTO (\U0001F468\u200d\U0001F4BB: Kavin) — " + "t" * 80, "cto", "c34459eb", "contabo", "Kavin", None),     # nor on a C-level's
     (CONTABO + " CFO", "cfo", "x", "contabo", None, None),                                      # no persona: the bare role
-    (CONTABO + " COO (SomPong)", "coo", "fde4c4ca", "contabo", "SomPong", None),
+    (CONTABO + " COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", "coo", "fde4c4ca", "contabo", "SomPong", None),
     (CONTABO + " CTO#c34 Main", "cto", "c34459eb", "contabo", "Kavin", None),                  # compact shapes are read too
     (CONTABO + " COO SomPong", "coo", "fde4c4ca", "contabo", "SomPong", None),
     (CONTABO + " PH#7cf OrgRestructure", "project_head", "7cf528f0", "contabo", None, None),
     ("anything", "unknown", "x", "contabo", None, None),
     ("CEO", "ceo", "x", "contabo", None, None),
-    ("CTO (Kavin)", "cto", "x", "contabo", "Kavin", "no host emoji"),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "x", "contabo", "Kavin", "no host emoji"),
     ("CONTABO CTO #e106b78b (x)", "cto", "e106b78b", "contabo", None, "no host emoji"),
-    (MAC + " CTO (Kavin)", "cto", "x", "contabo", "Kavin", "wrong host emoji"),
+    (MAC + " CTO (\U0001F468\u200d\U0001F4BB: Kavin)", "cto", "x", "contabo", "Kavin", "wrong host emoji"),
     (CONTABO + " CMO (Ging)", "cto", "x", "contabo", None, 'not "CTO (<Name>)"'),
     (CONTABO + " CTO (Ging)", "cto", "x", "contabo", "Kavin", 'not "CTO (Kavin)"'),
     (CONTABO + " PH#abc (CTO) - X", "project_head", "7cf528f0", "contabo", None,
@@ -275,11 +275,11 @@ def body(name: str) -> str:
 
 
 @pytest.mark.parametrize("made,expect", [
-    (lambda: sn.clevel_name("cto", "Kavin", "contabo"), f"{CONTABO} CTO (Kavin)"),
-    (lambda: sn.clevel_name("cmo", "Ging", "mac"), f"{MAC} CMO (Ging)"),
-    (lambda: sn.clevel_name("coo", "SomPong", "contabo"), f"{CONTABO} COO (SomPong)"),
+    (lambda: sn.clevel_name("cto", "Kavin", "contabo"), f"{CONTABO} CTO (\U0001F468\u200d\U0001F4BB: Kavin)"),
+    (lambda: sn.clevel_name("cmo", "Ging", "mac"), f"{MAC} CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging)"),
+    (lambda: sn.clevel_name("coo", "SomPong", "contabo"), f"{CONTABO} COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)"),
     (lambda: sn.clevel_name("cfo", "", "contabo"), f"{CONTABO} CFO"),
-    (lambda: sn.clevel_name("cto", "Kavin"), "CTO (Kavin)"),
+    (lambda: sn.clevel_name("cto", "Kavin"), "CTO (\U0001F468\u200d\U0001F4BB: Kavin)"),
     (lambda: sn.ph_session_name("7cf528f0", "cto", "OrgRestructure", "contabo"), f"{CONTABO} PH#7cf (CTO) - OrgRestructure"),
     (lambda: sn.worker_name("Dev", "task-49b1d2e3", "OrgRestructure", "sparse worktrees", "claude-sonnet-5-5"),
      f"Dev{DOT}S#49b Org: sparse worktrees"),
@@ -359,16 +359,16 @@ def test_a_worker_name_takes_its_model_from_the_role_when_not_told():
 # emoji it is on the rule exactly as it is, and without one the emoji is the only thing missing.
 
 N2_ROWS = [
-    ("CTO (Kavin) — CTO Main", "cto", "c34459eb", "contabo", "Kavin"),
-    ("CMO (Ging) — CMO Main", "cmo", "ef04792e", "contabo", "Ging"),
-    ("COO (SomPong)", "coo", "fde4c4ca", "contabo", "SomPong"),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", "cto", "c34459eb", "contabo", "Kavin"),
+    ("CMO (\U0001F469\U0001F3FB\u200d\U0001F3A8: Ging) — CMO Main", "cmo", "ef04792e", "contabo", "Ging"),
+    ("COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong)", "coo", "fde4c4ca", "contabo", "SomPong"),
     ("PH#7cf (CTO) - OrgRestructure", "project_head", "7cf528f0", "contabo", None),
     ("PH#6c4 (CTO) - SpendGuard", "project_head", "6c487e37", "contabo", None),
     ("PH#f35 (CTO) - CookieRun", "project_head", "f35c0ffe", "contabo", None),
     ("PH#13d (CMO) - BlackLiquidity", "project_head", "13db8720", "contabo", None),
     ("PH#36c (CMO) - MimiPage", "project_head", "36c49776", "contabo", None),
     ("Dev#49b - OrgRestructure: Item 5: sparse worktrees for the hub and more tex…", "developer", "49b1d2e3", "contabo", None),
-    ("CTO (Kavin) — PH LastBell + Scriptable", "cto", "671f688f", "mac", "Kavin"),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — PH LastBell + Scriptable", "cto", "671f688f", "mac", "Kavin"),
     ("PH#f39 (CTO) - LuminaSkies — V2.6 push + M-R", "project_head", "f39cb080", "mac", None),
 ]
 
@@ -384,7 +384,7 @@ def test_N2_an_existing_name_is_on_the_rule_once_it_has_its_emoji_and_needs_noth
 
 
 @pytest.mark.parametrize("name,role,sid,expect", [
-    ("CTO (Kavin) — CTO Main", "cto", "c34459eb", ("cto", "")),
+    ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", "cto", "c34459eb", ("cto", "")),
     ("PH#7cf (CTO) - OrgRestructure", "project_head", "7cf528f0", ("project_head", "7cf")),
     ("Dev#49b - OrgRestructure: Item 5", "developer", "49b1d2e3", ("developer", "49b")),
     (f"Dev{DOT}S#49b Org: Item 5", "developer", "49b1d2e3", ("developer", "49b")),

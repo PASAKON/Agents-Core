@@ -172,7 +172,7 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
         persona = config.persona_for(role)
         if persona and not re.fullmatch(r"[A-Za-z]{2,32}", persona):
             return None
-        base = session_names.with_host(host, f"{role.upper()} ({persona})" if persona else role.upper())
+        base = session_names.clevel_name(role, persona, host)
     else:
         return None
     name = base + (f" — {topic}" if topic else "")
@@ -182,8 +182,15 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
 
 def _typable(name: str) -> bool:
     """True when `name` may follow "/rename " in a pane: one line, short, no leading "/",
-    no control, format or line/paragraph-separator character."""
-    return (len(name) <= NAME_MAX and not name.startswith("/")
+    no control, format or line/paragraph-separator character outside the persona emoji."""
+    original_length = len(name)
+    # Only a configured persona emoji may contain a format character (ZWJ).
+    identity = session_names.clevel_identity(name)
+    if identity:
+        emoji = config.persona_emoji_for(identity[0])
+        if emoji:
+            name = name.replace("(" + emoji + ": ", "(: ", 1)
+    return (original_length <= NAME_MAX and not name.startswith("/")
             and not any(unicodedata.category(c)[0] == "C" or c in "\n\r  " for c in name))
 
 
@@ -430,17 +437,18 @@ def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
         _DECIDED.pop(box, None)
         _NOTED.pop(box, None)
         return None
-    if why != "no host emoji":
+    if why not in ("no host emoji", "wrong person emoji"):
         if _NOTED.get(box) == (pid, why):
             return None
         _NOTED[box] = (pid, why)
-        return f'skip     {box}: "{shown}" is off-rule ({why}); the sweep only adds the host emoji'
+        return f'skip     {box}: "{shown}" is off-rule ({why}); the sweep only fixes host/person emoji'
     if box in pending or _DECIDED.get(box) == (pid, shown) or len(pending) >= PENDING_MAX:
         return None
     sess = session_of(box, host)            # the record the owner checks trust, not the listing
-    if sess is None or sess["pid"] != pid or problem(sess["name"]) != "no host emoji":
+    if sess is None or sess["pid"] != pid or problem(sess["name"]) not in ("no host emoji", "wrong person emoji"):
         return None
-    new = _with_host_after_state(host, sess["name"])
+    new = (session_names.upgrade_clevel(sess["name"], host)
+           if role != "project_head" else _with_host_after_state(host, sess["name"]))
     _DECIDED[box] = (pid, shown)
     if not _typable(new):
         return f"skip     {box}: its name has a character or a length that cannot be typed; left alone"
@@ -451,11 +459,11 @@ def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
 
 
 def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
-    """Queue the host emoji for every live C-level/PH session of this host whose name
-    lacks only that (rule_problem == "no host emoji"): sessions that started before
+    """Queue missing host emoji and upgrade C-level person emoji (CEO 26 Oct).
+    Preserve state and topic; PH names only gain a missing host emoji. Sessions before
     M9 never ask. The job is the one handle() queues, so _one() types it unchanged
     (empty box only, two _blocked checks, never C-u). The name is the session's own,
-    byte for byte, with the emoji added. A box already waiting, or already tried under
+    byte for byte apart from these emoji. A box already waiting, or already tried under
     this pid and name, is left alone; so is every other rule_problem, logged once.
     `now` is unused: it keeps the call like once()'s."""
     try:
