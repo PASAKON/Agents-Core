@@ -49,6 +49,15 @@ the CMO; it does not get quietly overridden inside an artifact.
 4. **Brand truth lives here, not in the artifact repo.** A brand rule
    discovered while building something gets written back into
    `brands/<brand>/BRAND.md`, not left as a comment in a script.
+5. **The live logo wins.** Before any logo, emblem or mark work, open the
+   brand's live mark: the site's asset, or the Page's profile picture for a
+   brand that lives on a social Page. Use it as it is; never redraw one that
+   exists (CEO 2026-10-26: "ILAG เรามี Logo อยู่แลวนะ ไม่ต้องทำใหม่", after kit
+   v1 drew a new emblem).
+6. **An asset over 1 MB stays out of git** (media_guard pre-commit, ADR 0030).
+   Commit its source under 1 MB plus the script that makes it, and write the
+   step in the brand's `templates/REBUILD.md` (ILAG: `cut_logo.py` makes
+   `logo.png` from `images/ilag-page-logo-1080.jpg`).
 
 ## Known fragmentation (2026-08-03 audit)
 

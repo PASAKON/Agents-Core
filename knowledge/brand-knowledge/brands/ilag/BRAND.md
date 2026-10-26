@@ -107,6 +107,50 @@ in a gold ring, on a black square (`images/ilag-page-logo-1080.jpg`). CEO 2026-1
 | 20 | `safe` Reels safe zones | — | check every overlay against it before render |
 | — | `bltag` | gold dot + "ฉากหลุด AI" top-right | over every blooper clip |
 
+## The hook: a narrated fast-cut montage (CEO 2026-10-26, on trial from the pilot EP1)
+
+The CEO, chat 26 Oct about 21:40 TH: "นี่คือ Hook แบบจีน แบบตัดถาพเร็วๆ / ชายคนนี้กินแกะ อย่างทั้งตัว ได้ภายใน ...
+เค้าสามารถกินได้ทุกอย่าง .... ตาชั่งที่บ้าน เขาพัง .... เขาดื่มผมวัวหมดทั้งตัวจนหมดทุกวัน วันนี้เขาจะ กิน ....
+พ่อของเขาต้องทำอะไรบางอย่าง -> แล้วเริ่มเริ่อง / ช่วง Hook ตัดสลับไว้ๆ ใช้หลาย Fotage เป็น Hookคนดูจะสนใจมากๆ
+ลองใช้กับ ละครสั้น ILAG ดูได้นะ".
+
+A narrator tells the viewer who this EP is about in six short lines, each wilder than the last, over a fast run of
+shots, and stops just before today's event. It replaces the CMO's cold-open formula for 0-12 s (`CMO_Workflow_LakornSerial`
+field note 2026-10-26). PROPOSED until the pilot's 72 h numbers are in.
+
+| beat | his example | what the line does |
+|---|---|---|
+| 1 | "ชายคนนี้กินแกะทั้งตัวได้ภายใน ..." | who, and one trait pushed past normal, with a number |
+| 2 | "เค้าสามารถกินได้ทุกอย่าง" | widens the trait |
+| 3 | "ตาชั่งที่บ้านเขาพัง" | an object proves it, and it is funny |
+| 4 | "เขาดื่มผมวัวหมดทั้งตัวจนหมดทุกวัน" | a daily habit, one step more absurd |
+| 5 | "วันนี้เขาจะกิน ...." | today's event, left unfinished |
+| 6 | "พ่อของเขาต้องทำอะไรบางอย่าง" | the pressure lands on someone else; hard cut into the story |
+
+- **The voice:** one narrator in the third person ("ชายคนนี้", "เขา", "ซอยนี้"), present tense, one short line each, no
+  silence between lines, the same narrator voice on every EP. Delivery as measured on the Thai narration channels: about
+  14 Thai characters a second, the pitch lifted on the payoff word (Agents-Wikis
+  `research/2026-10-23-thai-dub-chinese-drama-teardown.md` §4). Never imitate a real narrator's timbre.
+- **The narrator engine (CEO 2026-10-26 about 23:15 TH, on the $0 demo task-ee1dbcf0):** "Hook 15 วิ แบบจีน อันนี้ผ่านเลย
+  ติดแค่เสียง อาจจะต้องใช้ เสีนงจาก ElevenLab V4 นะให้ดูมี น้ำเสียง ขึ้นลง แบบ นักล้่าเรื่องตัวจริง". The demo's montage, lines
+  and cards passed; its voice did not (edge-tts NiwatNeural sped up 32% to fit). The narrator is ElevenLabs v4 on fal,
+  one call for all six lines so the rise and fall carries across them, never sped up afterwards; edge-tts is a $0
+  stand-in for drafts only. Measured v4 Thai pace: 10.9 characters a second with pauses, 13.2 speech only (CnDrama EP1,
+  13,855 characters, 25 Oct), so six lines that fit 15 s run about 160-175 characters, spaces not counted. Which v4 voice
+  is the CEO's pick by ear (takes in `/opt/MoonieXHQ/Work/task-e58b9235/voice-v4/`): PENDING.
+- **The pictures:** a new shot on every line, often two: 10-14 hard cuts in the first 12 s (about 0.7-1.5 s each), no
+  transitions, a music bed under the voice. Each shot shows what its line says.
+- **Where the shots come from:** moments from later in the same EP (a flash-forward), plus inserts that prove a fact
+  (an object, a pile, a crowd). A shot with a named character comes from the EP's own shoot, so the face holds. An insert
+  with no named character may come from a free lane once one is measured (the ChampaVeo PH).
+- **Truth:** every line is true in this EP and is shown later in it. The hook never gives away the twist or the karma
+  ending.
+- **Text:** the narration is burned in as subtitles (`sub`); the watermark stays on, because these are story frames.
+- **12-15 s:** the title sting (`title`), then the same-day rewind card (`rewcard`) into the story.
+- **Why it suits us (CMO):** short shots need no lip sync and leave the AI no time to drift, so the first 15 s, where
+  most viewers leave, becomes the cheapest and safest part of the EP.
+- **Measure:** 3 s and 15 s retention at 72 h, against "ขายชื่อ" EP1-3 on the same Page.
+
 ## Hard rules
 
 1. Every story frame carries the watermark, and every jump in time carries a card. A jump without a card fails QC.
