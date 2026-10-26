@@ -11,3 +11,7 @@
 #   - parses it with argparse allow_abbrev=False, with no short alias and no second cap flag;
 #   - passes no argv on to another program.
 # Candidates and what they still lack: state/handoff/2026-10-14/spend-cap-flag-gaps.md.
+
+# PR #469 (CTO review 27 Oct 2026): prices each call from its text before sending it and stops when the
+# job total, ledger included, would pass the cap.
+tools/fal_tts.py --max-usd
