@@ -5,6 +5,12 @@ import pytest
 
 from tools import clevel_gate, spawn_ph, tmux_session
 
+@pytest.fixture(autouse=True)
+def _no_hub_registry(monkeypatch):
+    """spawn/resume bind the PH to its hub registry row; these tests have no hub."""
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: plan.get("tier") or "normal")
+
+
 
 SID = "12ab34cd"
 NAME = f"project_head-{SID}"

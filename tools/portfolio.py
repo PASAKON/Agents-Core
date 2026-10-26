@@ -209,6 +209,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--done-criteria")
     s.add_argument("--host")
 
+    s = sub.add_parser("tier", help="set a project's budget tier")
+    s.add_argument("id")
+    s.add_argument("tier", choices=pf.TIERS)
+    s.add_argument("--why", required=True)
+    s.add_argument("--go")
+
     s = sub.add_parser("stage", help="move a project to another stage")
     s.add_argument("id")
     s.add_argument("stage", choices=list(pf.STAGES))
@@ -367,6 +373,8 @@ def _write(args, identity, now: datetime):
                                done_criteria=args.done_criteria, host=args.host)
     if v == "stage":
         return pf.set_stage(args.id, args.stage, actor=actor, reason=args.reason, now=now)
+    if v == "tier":
+        return pf.set_tier(args.id, args.tier, actor=actor, why=args.why, go=args.go, now=now)
     if v == "milestone":
         if args.op == "add":
             return {"project": args.id, "n": pf.milestone_add(args.id, args.title, actor=actor, n=args.n, now=now)}

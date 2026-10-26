@@ -449,6 +449,32 @@ def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
     return _make_plan(project, lane, owner)
 
 
+def _register_project(plan: dict) -> str:
+    """Bind every new PH to a registry row before starting its session."""
+    from lib import portfolio as pf
+    tier = plan.get("tier")
+    if tier is not None and tier not in pf.TIERS:
+        raise Refused(f"unknown tier {tier!r}")
+    try:
+        with pf._tx() as conn:
+            row = conn.execute("SELECT * FROM projects WHERE id = ? OR lower(name) = lower(?)",
+                               (plan["project"], plan["project"])).fetchone()
+            if row is None:
+                pid = re.sub(r"[^a-z0-9]+", "-", plan["project"].lower()).strip("-")
+                row = pf.open_project(pid, plan["project"], plan["lane"], actor=plan["owner"],
+                                      owner_session=plan["owner"], ph_session=plan["session_id"],
+                                      conn=conn)
+            else:
+                conn.execute("UPDATE projects SET ph_session = ? WHERE id = ?",
+                             (plan["session_id"], row["id"]))
+            if tier is not None and tier != row.get("tier"):
+                pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
+            tier = tier or row.get("tier") or "normal"
+    except Exception as exc:
+        raise Refused(f"project registration failed ({type(exc).__name__})") from exc
+    return tier
+
+
 def _write_claim(plan: dict, brief_text: str) -> None:
     """The brief, the project claim and the owner record of a Project Head about
     to start; call it under _claim_lock. The owner record is written before the
@@ -476,24 +502,33 @@ def _drop_claim(name: str) -> None:
 
 
 def spawn(project: str, brief: str = "", *, dry_run: bool = False,
-          card: list[str] | None = None) -> dict:
+          card: list[str] | None = None, tier: str | None = None) -> dict:
     """`card`: the argv of a Run Inbox card run (M13b); project and brief must be
     the ones in it."""
+    from lib.portfolio import TIERS
+    if tier is not None and tier not in TIERS:
+        raise Refused(f"unknown tier {tier!r}")
     if card is not None:
         a = parse_card_args(card)
         if (a["project"], a["brief"]) != (project, brief):
             raise Refused("the project and brief must be the card's")
     if dry_run:
-        return {**_plan(project, brief, card), "dry_run": True}
+        return {**_plan(project, brief, card), "tier": tier, "dry_run": True}
 
     from tools import tmux_session
 
     with _claim_lock(LOCKS_DIR):
         plan = _plan(project, brief, card)
+        plan["tier"] = tier
         if card is not None:
             use_nonce(parse_card_args(card)["nonce"])
         name = plan["tmux_session"]
-        _write_claim(plan, brief or f"(no brief given — ask {plan['owner']} for one)\n")
+        # The registry row is the hub's: a local spawn opens or binds it (a mesh spawn's
+        # node has no hub route). A caller-supplied tier line cannot disagree with it.
+        tier = _register_project(plan)
+        brief_text = brief or f"(no brief given — ask {plan['owner']} for one)\n"
+        brief_text = f"tier: {tier}\n" + re.sub(r"(?m)^tier:.*\n?", "", brief_text)
+        _write_claim(plan, brief_text)
     cmd = plan.pop("command")
     try:
         if os.name == "nt":
@@ -779,6 +814,11 @@ def resume(sid: str, dry_run: bool = False) -> dict:
     with _claim_lock(LOCKS_DIR):
         plan = resume_plan(sid)
         name = plan["tmux_session"]
+        tier = _register_project(plan)
+        brief_path = BRIEFS_DIR / f"{name}.md"
+        brief = brief_path.read_text(encoding="utf-8") if brief_path.exists() else ""
+        BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
+        brief_path.write_text(f"tier: {tier}\n" + re.sub(r"(?m)^tier:.*\n?", "", brief), encoding="utf-8")
         _unpark(name)
         try:
             tmux_session.create(name, ROOT, plan.pop("command"))
@@ -794,6 +834,8 @@ def main(argv: list[str] | None = None) -> int:
     if argv[:1] == ["mesh"]:
         return _mesh_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
+    ap.add_argument("--tier", choices=("critical", "normal", "low"),
+                    help="set the project's tier (default: keep the registry's, normal for a new row)")
     ap.add_argument("--project")
     ap.add_argument("--resume", help="resume a stopped Project Head's 8-hex session id")
     g = ap.add_mutually_exclusive_group()
@@ -823,7 +865,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.from_card is not None or args.sha is not None:
             card = argv
             parse_card_args(card)
-        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card),
+        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card, tier=args.tier),
                          ensure_ascii=False))
     except Refused as e:
         print(f"spawn-ph: {e}", file=sys.stderr)

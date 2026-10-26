@@ -31,6 +31,7 @@ from typing import Callable
 from lib import db
 
 STAGES = ("idea", "brainstorm", "ready", "active", "review", "closed", "parked", "cancelled")
+TIERS = ("critical", "normal", "low")
 TERMINAL = ("closed", "cancelled")
 BLOCKERS = ("ceo", "clevel", "external", "resource")
 MONITOR_STAGES = ("active", "review", "parked")
@@ -201,6 +202,45 @@ def set_stage(project_id: str, stage: str, *, actor: str, reason: str | None = N
             body["reason"] = _text(reason, "reason")
         _event(c, project_id, "stage", actor, body, now)
         return dict(_project(c, project_id))
+
+
+def set_tier(project_id, tier, *, actor, why, go=None, now=None, conn=None):
+    now, actor = _utc(now), _actor(actor)
+    if tier not in TIERS:
+        raise PortfolioError(f"unknown tier {tier!r}")
+    why = _text(why, "why")
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        c.execute("UPDATE projects SET tier = ? WHERE id = ?", (tier, project_id))
+        _event(c, project_id, "tier", actor,
+               {"from": row["tier"], "to": tier, "why": why, "go": go}, now)
+        return dict(_project(c, project_id))
+
+
+def tier_for(task) -> str:
+    """Header, PH owner, repository (highest tier), then normal; fail open on DB errors."""
+    try:
+        header = re.split(r"\r?\n\s*\r?\n", task.get("description") or "", maxsplit=1)[0]
+        for line in header.splitlines():
+            match = re.fullmatch(r"\s*tier:\s*(critical|normal|low)\s*", line)
+            if match:
+                return match[1]
+        with _tx() as c:
+            rows = [dict(r) for r in c.execute("SELECT tier, ph_session, repos FROM projects").fetchall()]
+        owner = _bare_session(task.get("owner_cto"))
+        owned = [r["tier"] for r in rows if owner and _bare_session(r["ph_session"]) == owner]
+        if owned:
+            return min((t for t in owned if t in TIERS), key=TIERS.index, default="normal")
+        matched = []
+        for row in rows:
+            repos = row["repos"]
+            if isinstance(repos, str):
+                repos = json.loads(repos)
+            if task.get("project") in (repos or []) and row["tier"] in TIERS:
+                matched.append(row["tier"])
+        return min(matched, key=TIERS.index, default="normal")
+    except Exception:
+        return "normal"
 
 
 def park(project_id: str, *, actor: str, reason: str | None = None,
@@ -645,7 +685,7 @@ def show(project_id: str | None = None, *, now: datetime | None = None, conn=Non
                 "SELECT project_id, count(done_at) AS done, count(*) AS total FROM milestones"
                 " GROUP BY project_id").fetchall()}
             out = []
-            for r in c.execute("SELECT id, name, lane, stage, blocker_on, blocker_since, last_active"
+            for r in c.execute("SELECT id, name, lane, stage, tier, blocker_on, blocker_since, last_active"
                                " FROM projects ORDER BY lane, id").fetchall():
                 d, t = tot.get(r["id"], (0, 0))
                 out.append(_jsonable({**dict(r), "pct": pct(d, t), "milestones": {"done": d, "total": t}}))
@@ -697,7 +737,7 @@ def _monitor_all(now: datetime, conn=None) -> list[dict]:
     midnight = _midnight_bkk(now)
     with _tx(conn) as c:
         projects = c.execute(
-            "SELECT id, name, lane, stage, ph_session, blocker_on, blocker_since, last_active, opened_at"
+            "SELECT id, name, lane, stage, tier, ph_session, blocker_on, blocker_since, last_active, opened_at"
             " FROM projects WHERE stage IN ('active', 'review', 'parked')").fetchall()
         ms = {r["project_id"]: (r["done"], r["total"]) for r in c.execute(
             "SELECT project_id, count(done_at) AS done, count(*) AS total FROM milestones"
