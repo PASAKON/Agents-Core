@@ -26,6 +26,7 @@ Hand-built SVG only; no image-gen for the mascot or any brand element.
 | slate | #141722 | badge and card backgrounds |
 | up | #22C55E | up / buy-side reading in captions and our own candles |
 | down | #EF4444 | down / sell-side reading, the warning line, the risk card |
+| ink | #0B0B0F | mascot suit, mustache and glasses frames (kit v3, CMO 26 Oct 2026) |
 
 ## Type (OFL only)
 - Captions and cards: **Kanit** SemiBold (rounded geometric Thai, close to his old captions).
@@ -42,6 +43,14 @@ Hand-built SVG only; no image-gen for the mascot or any brand element.
 - One honest "when it fails" beat in every video.
 - Last 4 s: a question to the viewer, or a "next: <indicator name>" card.
 - Voice mastered to about −14 LUFS.
+
+## Safe zones (TikTok's UI; margins PROPOSED until checked against TikTok's own safe-zone template)
+- TikTok draws its tabs over the top of the frame, its buttons over the right edge, and the caption and sound line
+  over the bottom. Keep every caption, card, rule chip, chart value, date and the pointing hand inside x 60-940 and
+  y 160-1520 of the 1080x1920 frame.
+- The mascot's body may run into the right or bottom margin. His hand, and whatever he points at, may not.
+- Nothing covers an axis value, the 30/70 lines, a date label or a caption, the mascot included.
+- The example on the chart shows exactly what the rule chip says (CMO review of kit v3, 26 Oct 2026).
 
 ## Hard rules
 1. **Education only.** No profit promise, no "buy/sell now", no signal. Titles never claim accuracy or a win rate
