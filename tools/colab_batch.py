@@ -3,21 +3,35 @@
 Usage: python3 tools/colab_batch.py --job /opt/MoonieXHQ/Work/job.json --max-credits 150
 Job: {"takes": [absolute_directory, ...], "checkpoints": [{"after": glob_or_list,
       "scenes": 102, "max_cu_per_scene": 0.44}], "log": absolute_path,
-      "run_take": {"root": absolute_ComfyRunpod_root, "python": absolute_venv_python}}
+      "run_take": {"root": absolute_ComfyRunpod_root, "python": absolute_venv_python},
+      "uploads_dir": absolute_directory_under_WORK}   # uploads_dir only for studio takes
 Exit: 0 done; 1 take failed; 2 invalid job/arguments (0 CU); 3 admission cap;
-      4 unreadable balance; 5 checkpoint; 6 pin refusal (0 CU); 7 shutdown unconfirmed (spend unknown).
+      4 unreadable balance; 5 checkpoint; 6 pin refusal, or a studio take's spec, reference
+      or output folder changed since load (0 CU for that take); 7 shutdown unconfirmed (spend unknown).
 
-Only immutable, verified copies of the listed ComfyRunpod files execute. Specs and
-reference images are snapshotted as job data before any balance query. Studio mode
-is refused: it can load additional local assets and leave a billable warm VM.
+Only immutable, verified copies of the listed ComfyRunpod files execute. File-based
+specs and reference images are snapshotted as job data before any balance query.
 No caller argv or environment overrides are forwarded. Batch logs contain counts/
 codes, never specs, prompts, environment values or subprocess exception messages.
 Child output goes only to each take's run.log, as requested.
 
+Studio specs ("studio": true) are accepted only on a narrow path, else refused at 0 CU:
+uploads_dir must be the job's uploads_dir (under WORK); idle_stop_min must be 0 (no warm VM);
+lora_dir, vm_dir, data_dir and slot must be absent or null and no scene may carry loras;
+every reference file (refs, ref_videos, ref_audios, first_frame, last_frame, chain.prev_clip)
+must resolve inside uploads_dir and every scene out_dir inside uploads_dir/renders; progress
+must be <take dir>/progress.json. run_take requires those files in place, so they are not
+snapshotted: spec.json and every reference are hashed at load and re-hashed right before each
+attempt, and a mismatch stops before the take (exit 6, 0 CU for that take). The child reads a
+byte-identical copy of the hashed spec from the pinned temp tree. Each out_dir must be empty or
+carry this take's id in a .colab_batch_take marker, and no out_dir may be shared with another
+take; a folder holding files of unknown origin or another take is refused. The child writes its
+state to <parent>/<spec take_id>/, so shutdown is verified against that folder, not the spec's.
+
 Audit scope: file-based takes upload the pinned remote_take.py, take_tail.py and
 vm_watchdog.py, plus compiled job data and snapshotted image references. No local
-notebook is loaded. Workflow graphs come from PINNED. Studio-only external paths
-(uploads_dir, data_dir, vm_dir and local LoRAs) are refused by rejecting studio.
+notebook is loaded. Workflow graphs come from PINNED. Studio takes also upload their
+references from uploads_dir (hashed as above) and run the pinned scan_frames.py.
 No checkout absolute path is used in the supported path. CLI/auth and VM-installed
 third-party packages/weights remain external services, not ComfyRunpod source pins.
 The bootstrap is hashed separately. It uses -I -S (no site startup hooks).
@@ -48,10 +62,13 @@ import subprocess
 import sys
 import tempfile
 import time
+from typing import NamedTuple
 
 WORK = Path('/opt/MoonieXHQ/Work')
 COLAB = '/root/.local/bin/colab'
 ENTRY = 'scripts/colab/run_take.py'
+ID_RE = re.compile(r'[A-Za-z0-9_-]{1,40}')
+OUT_MARK = '.colab_batch_take'
 EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_BALANCE, EXIT_CHECKPOINT, EXIT_PIN = range(1, 7)
 PINNED_FROM = '4144ad1d7a67d28b8715adb5b7e9ba73ab4cea04'
 # Generated from git objects at PINNED_FROM, not from potentially dirty working files.
@@ -148,6 +165,10 @@ class PinError(ValueError):
     pass
 
 
+class StaleError(PinError):
+    """A studio take's spec, reference or output folder is not what was hashed or checked at load."""
+
+
 class BalanceError(ValueError):
     pass
 
@@ -228,11 +249,143 @@ def pinned_tree(source):
         yield root
 
 
+class Take(NamedTuple):
+    directory: Path
+    spec: dict
+    budget: Decimal
+    assets: dict
+    studio: dict | None
+
+    @property
+    def home(self):
+        # run_take writes take_state.json and colab-sessions.json to <--out>/<spec take_id>/.
+        # For file-based takes take_id is the folder name; a studio spec brings its own.
+        return self.directory.parent / self.spec['take_id']
+
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as handle:
+        for block in iter(lambda: handle.read(1 << 20), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def studio_files(scene):
+    """Every local file the pinned run_take reads for one studio scene."""
+    found = []
+    for key in ('refs', 'ref_videos', 'ref_audios'):
+        if scene.get(key) is not None:
+            if not isinstance(scene[key], list):
+                raise JobError(key + ' must be a list')
+            found += scene[key]
+    found += [scene[key] for key in ('first_frame', 'last_frame') if scene.get(key) is not None]
+    chain = scene.get('chain')
+    if chain is not None and not isinstance(chain, dict):
+        raise JobError('invalid chain')
+    if chain and chain.get('prev_clip'):
+        found.append(chain['prev_clip'])
+    if not all(isinstance(p, str) and Path(p).is_absolute() for p in found):
+        raise JobError('studio file paths must be absolute strings')
+    return found
+
+
+def studio_spec(directory, spec, raw, uploads):
+    """The narrow studio path (docstring), or JobError. Nothing is copied: run_take needs the
+    references in place inside uploads_dir, so they are hashed here and checked again per take."""
+    if uploads is None:
+        raise JobError('a studio take needs the job uploads_dir')
+    if spec['studio'] is not True:
+        raise JobError('studio must be exactly true')
+    given = spec.get('uploads_dir')
+    if not isinstance(given, str) or not Path(given).is_absolute() or Path(given).resolve() != uploads:
+        raise JobError('uploads_dir is not the job uploads_dir')
+    idle = spec.get('idle_stop_min')
+    if isinstance(idle, bool) or not isinstance(idle, (int, float)) or idle != 0:
+        raise JobError('idle_stop_min must be 0')
+    for key in ('lora_dir', 'vm_dir', 'data_dir', 'slot'):
+        if spec.get(key) is not None:
+            raise JobError(key + ' is refused in studio mode')
+    if not isinstance(spec.get('take_id'), str) or not ID_RE.fullmatch(spec['take_id']):
+        raise JobError('studio take_id invalid')
+    progress = spec.get('progress')
+    if not isinstance(progress, str) or not Path(progress).is_absolute() or \
+            Path(progress).name != 'progress.json' or Path(progress).parent.resolve() != directory:
+        raise JobError('progress must be <take dir>/progress.json')
+    renders = (uploads / 'renders').resolve()
+    if uploads not in renders.parents:
+        raise JobError('renders must resolve inside uploads_dir')
+    inputs, outs, hashes = {}, set(), {}
+    for position, scene in enumerate(spec['scenes'], 1):
+        if not isinstance(scene, dict) or type(scene.get('index')) is not int or scene['index'] != position:
+            raise JobError('scene index must be its 1-based position')
+        if scene.get('loras') not in (None, []):
+            raise JobError('scene loras are refused in studio mode')
+        for given in studio_files(scene):
+            resolved = Path(given).resolve()
+            if uploads not in resolved.parents or not resolved.is_file():
+                raise JobError('reference is not a file inside uploads_dir')
+            if resolved not in hashes:
+                hashes[resolved] = sha256_file(resolved)
+            inputs[given] = (str(resolved), hashes[resolved])
+        out = scene.get('out_dir')
+        if not isinstance(out, str) or not Path(out).is_absolute() or renders not in Path(out).resolve().parents:
+            raise JobError('out_dir must be inside uploads_dir/renders')
+        outs.add(Path(out).resolve())
+    return {'raw': raw, 'sha': hashlib.sha256(raw).hexdigest(), 'inputs': inputs,
+            'outs': outs, 'renders': renders}
+
+
+def check_outputs(studio, take_id, mark):
+    """Refuse an out_dir that holds files of another take or of unknown origin. With mark, create
+    the folder and stamp it with this take's id, which is what lets a retry reuse its own folder."""
+    for out in sorted(studio['outs']):
+        if out.resolve() != out or studio['renders'] not in out.parents:
+            raise StaleError('out_dir moved')
+        if mark:
+            out.mkdir(parents=True, exist_ok=True)
+        elif not out.exists():
+            continue
+        names = os.listdir(out)
+        stamp = out / OUT_MARK
+        if OUT_MARK in names:
+            if stamp.is_symlink() or not stamp.is_file():
+                raise StaleError('out_dir marker is not a file')
+            with open(stamp, 'rb') as handle:
+                if handle.read(64) != take_id.encode():
+                    raise StaleError('out_dir belongs to another take')
+        elif names:
+            raise StaleError('out_dir holds files of unknown origin')
+        elif mark:
+            fd = os.open(stamp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            with os.fdopen(fd, 'w') as handle:
+                handle.write(take_id)
+
+
+def studio_ready(directory, studio, take_id):
+    """Right before an attempt: spec and every reference still hash to what was loaded, and the
+    output folders are this take's alone. Raises StaleError (exit 6, nothing started) otherwise."""
+    try:
+        if sha256_file(directory / 'spec.json') != studio['sha']:
+            raise StaleError('spec.json changed')
+        for given, (resolved, digest) in studio['inputs'].items():
+            if str(Path(given).resolve()) != resolved or sha256_file(given) != digest:
+                raise StaleError('reference changed')
+    except OSError:
+        raise StaleError('spec or reference unreadable') from None
+    check_outputs(studio, take_id, mark=True)
+
+
 def load_job(path):
     job = json.loads(path.read_text())
-    if not isinstance(job, dict) or set(job) - {'takes', 'checkpoints', 'log', 'run_take'}:
+    if not isinstance(job, dict) or set(job) - {'takes', 'checkpoints', 'log', 'run_take', 'uploads_dir'}:
         raise JobError('invalid job object')
     log = work_path(job['log'])
+    uploads = None
+    if job.get('uploads_dir') is not None:
+        uploads = work_path(job['uploads_dir'])
+        if not uploads.is_dir():
+            raise JobError('uploads_dir is not a directory')
     run = job['run_take']
     if set(run) != {'root', 'python'}:
         raise JobError('run_take requires root and python')
@@ -246,20 +399,25 @@ def load_job(path):
     takes = []
     for value in job['takes']:
         directory = work_path(value)
-        spec = json.loads((directory / 'spec.json').read_text())
-        if not isinstance(spec, dict) or spec.get('studio'):
-            raise JobError('only file-based non-studio specs are supported')
-        if not re.fullmatch(r'[A-Za-z0-9_-]{1,40}', directory.name):
+        raw = (directory / 'spec.json').read_bytes()
+        spec = json.loads(raw)
+        if not isinstance(spec, dict):
+            raise JobError('invalid spec object')
+        if not ID_RE.fullmatch(directory.name):
             raise JobError('take directory must be a valid take_id')
-        wf = spec.get('workflow')
-        if not isinstance(wf, str) or not re.fullmatch(r'[A-Za-z0-9_]+', wf) or \
-                f'workflows/{wf}.json' not in PINNED:
-            raise JobError('workflow is not pinned')
+        if not spec.get('studio'):
+            wf = spec.get('workflow')
+            if not isinstance(wf, str) or not re.fullmatch(r'[A-Za-z0-9_]+', wf) or \
+                    f'workflows/{wf}.json' not in PINNED:
+                raise JobError('workflow is not pinned')
         budget = number(spec['budget']['max_cu'])
         if not budget or not number(spec['budget']['max_minutes']):
             raise JobError('take budgets must be positive')
         if not isinstance(spec.get('scenes'), list) or not spec['scenes']:
             raise JobError('scenes must be a nonempty list')
+        if spec.get('studio'):
+            takes.append(Take(directory, spec, budget, {}, studio_spec(directory, spec, raw, uploads)))
+            continue
         # Read data once; the child will receive only these bytes, never mutable originals.
         assets = {}
         for obj in [spec, *spec['scenes']]:
@@ -271,10 +429,25 @@ def load_job(path):
                 p = work_path(str(directory / ref))
                 assets[ref] = (p.suffix, p.read_bytes())
         spec['take_id'] = directory.name
-        takes.append((directory, spec, budget, assets))
-    paths = [str(t[0]) for t in takes]
+        takes.append(Take(directory, spec, budget, assets, None))
+    paths = [str(t.directory) for t in takes]
     if len(paths) != len(set(paths)):
         raise JobError('duplicate takes')
+    # Each take owns <parent>/<take_id>/ for its state and its out_dirs; no two takes may share either.
+    homes = [t.home for t in takes]
+    if len(homes) != len(set(homes)) or any(t.home != t.directory and str(t.home) in paths for t in takes):
+        raise JobError('take ids collide with each other or with another take folder')
+    owned = [(out, i) for i, t in enumerate(takes) if t.studio for out in t.studio['outs']]
+    for a, i in owned:
+        for b, j in owned:
+            if i != j and (a == b or a in b.parents):
+                raise JobError('two takes share or nest an out_dir')
+    for t in takes:
+        if t.studio:
+            try:
+                check_outputs(t.studio, t.spec['take_id'], mark=False)
+            except StaleError as exc:
+                raise JobError(str(exc)) from None
     checkpoints = {}
     for cp in job.get('checkpoints', []):
         after = cp['after']
@@ -304,6 +477,17 @@ def snapshot_spec(root, index, spec, assets):
             obj['refs'] = [names[r] for r in obj['refs']]
     path = dest / 'spec.json'
     path.write_text(json.dumps(spec))
+    return path
+
+
+def snapshot_studio_spec(root, index, studio):
+    # The exact bytes that were hashed at load; the child never reads the mutable original.
+    dest = root / 'data' / str(index)
+    dest.mkdir(parents=True)
+    path = dest / 'spec.json'
+    path.write_bytes(studio['raw'])
+    if hashlib.sha256(path.read_bytes()).hexdigest() != studio['sha']:
+        raise PinError('studio spec copy mismatch')
     return path
 
 
@@ -346,12 +530,13 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
     except (OSError, subprocess.SubprocessError, ValueError, TypeError):
         raise PinError('interpreter trust check failed') from None
     with pinned_tree(Path(run['root'])) as root:
-        specs = [snapshot_spec(root, i, spec, assets)
-                 for i, (_, spec, _, assets) in enumerate(takes)]
+        specs = [snapshot_studio_spec(root, i, t.studio) if t.studio else
+                 snapshot_spec(root, i, t.spec, t.assets) for i, t in enumerate(takes)]
         start = balance(reader)
         spent = reserved = Decimal(0)
         emit(f'BALANCE {start} spent 0 CU cap {cap}')
-        for i, (directory, spec, budget, _) in enumerate(takes):
+        for i, take in enumerate(takes):
+            directory, spec, budget = take.directory, take.spec, take.budget
             emit(f'TAKE {i + 1}')
             for attempt in range(1, 4):
                 current = balance(reader)
@@ -360,6 +545,13 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                 if max(spent, reserved) + budget > cap:
                     emit(f'STOP cap spent {spent} reserved {reserved} next {budget}')
                     return EXIT_CAP
+                if take.studio:
+                    try:
+                        studio_ready(directory, take.studio, spec['take_id'])
+                    except StaleError:
+                        emit(f'REFUSE take {i + 1} spec, reference or output folder changed since load; '
+                             f'take not started; spent {spent} CU so far')
+                        return EXIT_PIN
                 reserved = max(spent, reserved) + budget
                 (directory / 'progress.json').unlink(missing_ok=True)
                 log_path = directory / 'run.log'
@@ -375,7 +567,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                     except (OSError, subprocess.SubprocessError):
                         rc = 125
                     finally:
-                        stopped = stopper(run['python'], root, directory)
+                        stopped = stopper(run['python'], root, take.home)
                         emit(f'SHUTDOWN confirmed {bool(stopped)}')
                     if not stopped:
                         emit('STOP shutdown unconfirmed; spend unknown')
