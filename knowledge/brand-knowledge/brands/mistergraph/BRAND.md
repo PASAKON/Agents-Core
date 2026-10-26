@@ -47,7 +47,7 @@ Hand-built SVG only; no image-gen for the mascot or any brand element.
 1. **Education only.** No profit promise, no "buy/sell now", no signal. Titles never claim accuracy or a win rate
    ("แม่นมาก", "ชนะ 90%"); name the tool and the situation instead.
 2. **No broker or sponsor card, logo or name, anywhere in a public video or caption** (CMO 26 Oct 2026, under the
-   CEO's Sept 2026 ruling: broker links only in closed channels). His old FXGT card is not carried over.
+   CEO's Sept 2026 ruling: broker links only in closed channels). His old broker end card is not carried over.
 3. Every video carries the red risk card once, mid-video: "คลิปนี้ทำเพื่อการศึกษาเท่านั้น ไม่ได้ชักชวนลงทุน".
 4. **Built-in indicators only** (`indicators-20.md`), so a viewer can repeat it in one click. Every setting and
    reading rule is checked against TradingView's own help page, and the page is listed in the episode notes.
