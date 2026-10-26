@@ -1,0 +1,324 @@
+"""Text to speech on fal (ElevenLabs v4) that stops at its own spend cap: a declared spend tool for
+Run Inbox script cards (Console docs/run.md §Spend label, config/spend-tools.txt). CMO Ging, 2026-10-26.
+
+A job file lists the calls. Before each call the tool prices it from its text (characters times the
+model's price in PRICES) and stops if the running total would pass --max-usd. The total starts from the
+attempts already in the job's ledger, so every run of one job shares one cap. Every attempt counts as
+spent, failed or not. A call whose mp3 already exists is skipped and costs nothing.
+
+The fal key comes from FAL_MEDIA_API_KEY_RW in the environment, or, on a Run card, from Infisical
+(Agents-Core prod /cmo-media) as this host's machine identity. It is never printed, and it goes only to
+queue.fal.run, never to the file host the audio comes from. Standard library only: a script card runs
+this file with the system python3.
+
+Job file (JSON). Every path is absolute and under /opt/MoonieXHQ/Work/:
+  {"model": "elevenlabs/tts/eleven-v4", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
+   "calls": [{"name": "t1_Brian_s0.5", "text_file": "/opt/MoonieXHQ/Work/<job>/narration.txt",
+              "voice": "Brian", "stability": 0.5, "language_code": "th", "seed": 7, "timestamps": true}]}
+Each call writes <out_dir>/<name>.mp3 and <name>.json (fal's whole answer, timestamps included).
+The ledger is <job file name without .json>.ledger.jsonl, next to the job file.
+
+Usage: python3 tools/fal_tts.py --job /opt/MoonieXHQ/Work/<job>/job.json --max-usd 0.07 [--dry-run]
+Exit: 0 every call saved or skipped · 1 a call failed · 2 bad job, ledger or arguments ·
+      3 stopped before the cap · 4 no key
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import fcntl
+import json
+import os
+import re
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+WORK = Path("/opt/MoonieXHQ/Work")
+# USD per character sent. Add a model only with its price read off its fal model page.
+PRICES = {"elevenlabs/tts/eleven-v4": 0.08 / 1000}  # "$0.08 per 1000 character", read 2026-10-26
+QUEUE = "https://queue.fal.run/"
+KEY_NAME = "FAL_MEDIA_API_KEY_RW"
+KEY_PROJECT, KEY_ENV, KEY_PATH = "Agents-Core", "prod", "/cmo-media"
+MAX_CALLS = 60
+MAX_CHARS = 5000
+POLL_S, POLL_N = 2, 150
+CALL_KEYS = {"name", "text_file", "voice", "stability", "similarity_boost", "language_code", "seed",
+             "timestamps"}
+NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+VOICE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}$")
+LANG_RE = re.compile(r"^[a-z]{2}$")
+CAP_RE = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")  # the hub's own cap number (tools/ask_run.py _CAP_NUMBER)
+EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_KEY = 1, 2, 3, 4
+
+
+class JobError(ValueError):
+    """The job file, a path in it or its ledger is not usable; nothing was spent."""
+
+
+class FalError(Exception):
+    def __init__(self, code: int, text: str) -> None:
+        super().__init__(f"HTTP {code}: {text}")
+        self.code = code
+
+
+def under_work(p: object, what: str) -> Path:
+    """The real path of `p` when it is absolute and lies under WORK once symlinks are followed."""
+    if not isinstance(p, str) or not os.path.isabs(p):
+        raise JobError(f"{what} must be an absolute path")
+    real = Path(os.path.realpath(p))
+    if Path(os.path.realpath(WORK)) not in real.parents:
+        raise JobError(f"{what} must be under {WORK}")
+    return real
+
+
+def _unit(c: dict, k: str, i: int) -> float:
+    v = c[k]
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not 0 <= v <= 1:
+        raise JobError(f"call {i}: {k} must be a number from 0 to 1")
+    return float(v)
+
+
+def load_job(job_path: Path) -> dict:
+    try:
+        job = json.loads(job_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise JobError(f"cannot read the job file ({e.__class__.__name__})") from None
+    if not isinstance(job, dict) or set(job) - {"model", "out_dir", "calls"}:
+        raise JobError("the job file holds one object with model, out_dir and calls")
+    model = job.get("model")
+    if model not in PRICES:
+        raise JobError(f"model must be one of {sorted(PRICES)}")
+    out_dir = under_work(job.get("out_dir"), "out_dir")
+    calls = job.get("calls")
+    if not isinstance(calls, list) or not 1 <= len(calls) <= MAX_CALLS:
+        raise JobError(f"calls must be a list of 1 to {MAX_CALLS} calls")
+    seen: set[str] = set()
+    out = []
+    for i, c in enumerate(calls, 1):
+        if not isinstance(c, dict) or set(c) - CALL_KEYS:
+            raise JobError(f"call {i} must be an object with only {sorted(CALL_KEYS)}")
+        name = c.get("name")
+        if not isinstance(name, str) or not NAME_RE.match(name) or name in seen:
+            raise JobError(f"call {i}: name must be unique and match {NAME_RE.pattern}")
+        seen.add(name)
+        text_path = under_work(c.get("text_file"), f"call {i} text_file")
+        try:
+            text = text_path.read_text(encoding="utf-8").strip()
+        except (OSError, ValueError) as e:
+            raise JobError(f"call {i}: cannot read text_file ({e.__class__.__name__})") from None
+        if not 1 <= len(text) <= MAX_CHARS:
+            raise JobError(f"call {i}: the text must be 1 to {MAX_CHARS} characters")
+        voice = c.get("voice")
+        if not isinstance(voice, str) or not VOICE_RE.match(voice):
+            raise JobError(f"call {i}: voice must match {VOICE_RE.pattern}")
+        body: dict = {"text": text, "voice": voice}
+        for k in ("stability", "similarity_boost"):
+            if k in c:
+                body[k] = _unit(c, k, i)
+        if "language_code" in c:
+            if not isinstance(c["language_code"], str) or not LANG_RE.match(c["language_code"]):
+                raise JobError(f"call {i}: language_code must be two small letters")
+            body["language_code"] = c["language_code"]
+        if "seed" in c:
+            seed = c["seed"]
+            if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2 ** 31:
+                raise JobError(f"call {i}: seed must be a whole number from 0 to 2^31-1")
+            body["seed"] = seed
+        ts = c.get("timestamps", False)
+        if not isinstance(ts, bool):
+            raise JobError(f"call {i}: timestamps must be true or false")
+        if ts:
+            body["timestamps"] = True
+        out.append({"name": name, "body": body, "chars": len(text)})
+    return {"model": model, "price": PRICES[model], "out_dir": out_dir, "calls": out}
+
+
+def ledger_path(job_path: Path) -> Path:
+    return job_path.with_name(job_path.name.removesuffix(".json") + ".ledger.jsonl")
+
+
+def ledger_spent(lf) -> float:
+    """USD of every attempt in the open ledger. An unreadable row refuses: it must never read as $0."""
+    lf.seek(0)
+    total = 0.0
+    for n, line in enumerate(lf, 1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+            if row["what"] == "attempt":
+                usd = float(row["usd"])
+                if not usd >= 0:
+                    raise ValueError
+                total += usd
+        except (ValueError, KeyError, TypeError):
+            raise JobError(f"ledger row {n} is unreadable; fix the ledger by hand before spending") from None
+    return total
+
+
+def write_row(lf, row: dict) -> None:
+    lf.seek(0, os.SEEK_END)
+    lf.write(json.dumps({"at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), **row},
+                        ensure_ascii=False) + "\n")
+    lf.flush()
+    os.fsync(lf.fileno())
+
+
+def fetch_key() -> str | None:
+    key = os.environ.get(KEY_NAME)
+    if key:
+        return key
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools import infisical_setup as inf
+        org = inf.Org(inf.self_host())
+        secret = inf._get_secret(org, inf._project(org, KEY_PROJECT)["id"], KEY_ENV, KEY_NAME, KEY_PATH)
+    except (Exception, SystemExit) as e:  # _project() exits when the project is missing
+        print(f"no key: Infisical lookup failed ({e.__class__.__name__})", file=sys.stderr)
+        return None
+    return (secret or {}).get("secretValue") or None
+
+
+def http_json(url: str, key: str, body: dict | None = None) -> dict:
+    if not url.startswith(QUEUE):
+        raise FalError(0, "refusing to send the key off queue.fal.run")
+    req = urllib.request.Request(url, data=None if body is None else json.dumps(body).encode(),
+                                 headers={"Authorization": f"Key {key}", "Content-Type": "application/json"},
+                                 method="GET" if body is None else "POST")
+    try:
+        with urllib.request.urlopen(req, timeout=120) as f:
+            return json.loads(f.read())
+    except urllib.error.HTTPError as e:
+        raise FalError(e.code, e.read()[:300].decode(errors="replace")) from None
+
+
+def download(url: str, dest: Path) -> None:
+    """The audio file, fetched with no key, written whole or not at all."""
+    if not url.startswith("https://"):
+        raise FalError(0, "the audio URL is not https")
+    tmp = dest.with_name(dest.name + ".part")
+    with urllib.request.urlopen(url, timeout=120) as f:
+        tmp.write_bytes(f.read())
+    tmp.replace(dest)
+
+
+def one_call(model: str, key: str, body: dict) -> tuple[str | None, dict]:
+    sub = http_json(QUEUE + model, key, body)
+    for _ in range(POLL_N):
+        if http_json(sub["status_url"], key).get("status") == "COMPLETED":
+            break
+        time.sleep(POLL_S)
+    else:
+        raise FalError(0, f"not COMPLETED after {POLL_S * POLL_N} s, request {sub.get('request_id')}")
+    return sub.get("request_id"), http_json(sub["response_url"], key)
+
+
+def cap_number(s: str) -> float:
+    if not CAP_RE.match(s):
+        raise argparse.ArgumentTypeError("a plain number such as 0.07")
+    return float(s)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], allow_abbrev=False)
+    ap.add_argument("--job", required=True, help="the job file, an absolute path under /opt/MoonieXHQ/Work/")
+    ap.add_argument("--max-usd", required=True, type=cap_number, help="never spend more than this, in USD")
+    ap.add_argument("--dry-run", action="store_true", help="price the job; call nothing, write nothing")
+    a = ap.parse_args(argv)
+    try:
+        job_path = under_work(a.job, "--job")
+        job = load_job(job_path)
+    except JobError as e:
+        print(f"bad job: {e}", file=sys.stderr)
+        return EXIT_BAD
+    model, price, out_dir = job["model"], job["price"], job["out_dir"]
+    led = ledger_path(job_path)
+    if a.dry_run and not led.exists():
+        lf = None
+        spent = 0.0
+    else:
+        lf = open(led, "a+", encoding="utf-8")
+        try:
+            fcntl.flock(lf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("another run of this job holds its ledger", file=sys.stderr)
+            lf.close()
+            return EXIT_BAD
+        try:
+            spent = ledger_spent(lf)
+        except JobError as e:
+            print(f"bad ledger: {e}", file=sys.stderr)
+            lf.close()
+            return EXIT_BAD
+    print(f"{model}: {len(job['calls'])} calls, ${price * 1000:g} per 1,000 characters; "
+          f"ledger ${spent:.4f}; cap ${a.max_usd:g}", flush=True)
+    key = None
+    if not a.dry_run:
+        key = fetch_key()
+        if not key:
+            return EXIT_KEY
+    redact = (lambda s: s.replace(key, "<redacted>")) if key else (lambda s: s)
+    saved = skipped = fails = 0
+    try:
+        for c in job["calls"]:
+            name = c["name"]
+            mp3 = out_dir / f"{name}.mp3"
+            if mp3.exists():
+                skipped += 1
+                print(f"skip {name}: {mp3.name} exists", flush=True)
+                continue
+            body = c["body"]
+            while True:
+                cost = c["chars"] * price
+                if spent + cost > a.max_usd + 1e-12:
+                    print(f"STOP before {name}: ${spent + cost:.4f} would pass the cap ${a.max_usd:g}", flush=True)
+                    return EXIT_CAP
+                spent += cost
+                if a.dry_run:
+                    print(f"dry run: {name} {c['chars']} chars ${cost:.4f}, total ${spent:.4f}", flush=True)
+                    break
+                write_row(lf, {"what": "attempt", "name": name, "model": model, "chars": c["chars"],
+                               "usd": round(cost, 6), "voice": body["voice"],
+                               "timestamps": bool(body.get("timestamps"))})
+                try:
+                    rid, res = one_call(model, key, body)
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    (out_dir / f"{name}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1),
+                                                          encoding="utf-8")
+                    download(res["audio"]["url"], mp3)
+                except FalError as e:
+                    write_row(lf, {"what": "result", "name": name, "ok": False, "code": e.code})
+                    print(f"FAIL {name}: {redact(str(e))}", flush=True)
+                    if e.code == 422 and body.get("timestamps"):
+                        print(f"{name}: refused as invalid, once more without timestamps", flush=True)
+                        body = {k: v for k, v in body.items() if k != "timestamps"}
+                        continue
+                    fails += 1
+                    if e.code in (401, 403):
+                        print("the key or the account was refused; stopping the job", flush=True)
+                        return EXIT_FAIL
+                    break
+                except (OSError, ValueError, KeyError, TypeError) as e:
+                    write_row(lf, {"what": "result", "name": name, "ok": False, "code": e.__class__.__name__})
+                    print(f"FAIL {name}: {e.__class__.__name__}: {redact(str(e))[:200]}", flush=True)
+                    fails += 1
+                    break
+                write_row(lf, {"what": "result", "name": name, "ok": True, "request_id": rid})
+                saved += 1
+                print(f"saved {mp3.name}: {c['chars']} chars ${cost:.4f}, request {rid}", flush=True)
+                break
+    finally:
+        print(f"done: {saved} saved, {skipped} skipped, {fails} failed; job ${spent:.4f} of cap "
+              f"${a.max_usd:g}{' (dry run)' if a.dry_run else ''}; ledger {led}", flush=True)
+        if lf:
+            lf.close()
+    return EXIT_FAIL if fails else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
