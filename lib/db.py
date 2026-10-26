@@ -366,6 +366,10 @@ _LETTERS_MIGRATION = [
 # carries as `from=bridge:<id>`); tools/whois reads it to tell which row a
 # cross-host sender is. NULL for a session with no Remote Control, and on a hub
 # that has not run init() yet (publishers and readers probe the column).
+_PROJECTS_MIGRATION = [
+    ("tier", "TEXT NOT NULL DEFAULT 'normal'"),
+]
+
 _LIVE_SESSIONS_MIGRATION = [
     ("verified", "BOOLEAN"),
     ("bridge_id", "TEXT"),
@@ -720,6 +724,16 @@ _PG_CREATE_RE = re.compile(
     re.IGNORECASE)
 
 
+def _project_event_kinds_current(conn) -> bool:
+    row = conn.execute(
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint"
+        " WHERE conrelid = 'project_events'::regclass"
+        " AND conname = 'project_events_kind_check' AND contype = 'c'"
+    ).fetchone()
+    return bool(row and set(re.findall(r"'([^']*)'", row[0]))
+                == set(db_pg.PROJECT_EVENT_KINDS))
+
+
 def _pg_schema_current(conn) -> bool:
     """True when every DDL statement init_schema() would run on Postgres is a
     no-op: each table and index the schema scripts create exists, every
@@ -744,7 +758,8 @@ def _pg_schema_current(conn) -> bool:
               "c_level_sessions": _C_LEVEL_SESSION_MIGRATION,
               "hosts": _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION,
               "letters": _LETTERS_MIGRATION,
-              "live_sessions": _LIVE_SESSIONS_MIGRATION}
+              "live_sessions": _LIVE_SESSIONS_MIGRATION,
+              "projects": _PROJECTS_MIGRATION}
     have: dict[str, set[str]] = {}
     for table, column in conn.execute(
             "SELECT table_name, column_name FROM information_schema.columns"
@@ -760,6 +775,8 @@ def _pg_schema_current(conn) -> bool:
         " AND c.relname = 'project_events' AND t.tgenabled IN ('O', 'A')").fetchall()}
     if not set(db_pg.PORTFOLIO_TRIGGER_NAMES) <= triggers:
         return False
+    if not _project_event_kinds_current(conn):
+        return False
     return all({col for col, _ in cols} <= have.get(table, set())
                for table, cols in wanted.items())
 
@@ -770,6 +787,10 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
     if is_pg:
         # Org restructure P3-A: one statement each, never split on ";".
+        if not _project_event_kinds_current(conn):
+            conn.execute("ALTER TABLE project_events DROP CONSTRAINT IF EXISTS project_events_kind_check")
+            conn.execute("ALTER TABLE project_events ADD CONSTRAINT project_events_kind_check "
+                         + db_pg.PROJECT_EVENT_KIND_CHECK)
         for stmt in db_pg.PORTFOLIO_GUARDS:
             conn.execute(stmt)
     conn.executescript(JOIN_TOKENS_SCHEMA)
@@ -809,6 +830,14 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     for col, coltype in _LETTERS_MIGRATION:
         if col not in letters_existing:
             conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
+    projects_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(projects)").fetchall()}
+    # Portfolio is PG-only today; migrate SQLite too if it has projects.
+    if projects_existing:
+        for col, coltype in _PROJECTS_MIGRATION:
+            if col not in projects_existing:
+                guard = "IF NOT EXISTS " if is_pg else ""
+                conn.execute(f"ALTER TABLE projects ADD COLUMN {guard}{col} {coltype}")
     if is_pg:
         live_existing = {r["name"] for r in conn.execute(
             "PRAGMA table_info(live_sessions)").fetchall()}

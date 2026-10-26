@@ -84,7 +84,10 @@ def endpoint(base: str | None = None) -> str | None:
 
 def build_payload() -> dict:
     from lib import portfolio
-    return portfolio.monitor_payload()
+    payload = portfolio.monitor_payload()
+    for row in payload["projects"]:
+        row["tier_badge"] = row.get("tier", "normal")
+    return payload
 
 
 def _post(url: str, token: str, body: bytes) -> int:

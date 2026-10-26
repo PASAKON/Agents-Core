@@ -2044,8 +2044,23 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
                       or (task.get("model_hint") or "").strip().lower() == "claude")
         if router_off:
             _log_router_off(task, pinned)
-        if pinned or router_off:
+        if router_off:
             return None
+        from lib import portfolio
+        tier = portfolio.tier_for(task)
+        if pinned:
+            # Manual/retry pins keep their old behaviour unless a fresh budget
+            # closes this project's gate. A pin must not bypass the tier policy.
+            rows = route.usage_budget.load_gate_rows()
+            if tier not in ("normal", "low") or not rows:
+                return None
+            if tier == "low":
+                return "defer" if any(rows.get(b, {}).get("state") == "over"
+                                      for b in ("agy-gemini", "codex", "claude")) else None
+            candidate = f"{task.get('runner') or 'claude'}:{task.get('runner_model') or task.get('model_hint') or ''}"
+            bucket = route.bucket_for(candidate, route.load_plans())
+            if rows.get(bucket, {}).get("state") != "over":
+                return None
 
         touches = task.get("touches")
         if isinstance(touches, str):
@@ -2057,9 +2072,14 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
             touches = []
         brief = task.get("description")
 
-        choice = route.pick_runner(role_name, host, touches=touches, brief=brief)
+        choice = route.pick_runner(role_name, host, touches=touches, brief=brief,
+                                   tier=tier)
+        if pinned and tier == "normal" and (choice is None or choice.runner == "claude"):
+            return "defer"
         if choice is None:
             return None
+        if choice.defer:
+            return "defer"
         line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"
         # set_fields, not update_status: the status must not be rewritten
         # from this (possibly stale) dict or logged as a transition.
@@ -2440,6 +2460,12 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
 
     # Off the event loop: a cold quota read is an ssh + a CLI call.
     routed = await asyncio.to_thread(_route_runner, task, role_name, resolved_host)
+    if routed == "defer":
+        from tools import budget_queue
+        from lib import portfolio
+        ahead = budget_queue.enqueue(task_id, task.get("owner_cto"), tier=portfolio.tier_for(task))
+        db.set_fields(task_id, delegate_log=f"tier_defer: queued for budget ({ahead} ahead)", actor="cto")
+        return db.get_task(task_id)
     if routed:
         task["runner"] = routed
     if host_line:

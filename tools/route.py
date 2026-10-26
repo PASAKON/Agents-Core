@@ -35,6 +35,7 @@ class Choice:
     daily: float | None
     skill: float | None
     reason: str
+    defer: bool = False
 
 
 @dataclass
@@ -395,6 +396,7 @@ def plan(
     now: datetime | None = None,
     needs_shell: bool | None = None,
     needs_claude_tool: bool | None = None,
+    tier: str | None = None,
 ) -> list[Plan]:
     """Plan candidate runners for role with quota forecasts and verdicts."""
     try:
@@ -540,11 +542,47 @@ def plan(
                     _is_claude(p, cfg),
                     rows.get(p.choice.bucket, {}).get("state") == "over",
                 ))
-            return ordered
+            return _tier_plans(ordered, tier, now=now)
 
-        return ok_plans + unknown_plans + will_hit_plans + cannot_plans
+        return _tier_plans(ok_plans + unknown_plans + will_hit_plans + cannot_plans, tier, now=now)
     except Exception:
         return []
+
+
+def _tier_plans(plans, tier, *, now=None):
+    """A defer plan carries Choice.defer=True; None still means legacy Claude fallback."""
+    if tier not in ("normal", "low"):
+        return plans
+    rows = usage_budget.load_gate_rows(now=now)
+    if not rows:
+        return plans
+    eligible = [p for p in plans if p.verdict != "cannot" and "exhausted" not in p.choice.reason]
+    picked = eligible[0] if eligible else None
+    outside = [p for p in plans if p.choice.runner in ("agy", "codex")]
+    # Missing budget information must not turn a possible runner into a refusal.
+    if any(p.choice.bucket not in rows for p in plans):
+        return plans
+    def over(p):
+        return rows[p.choice.bucket]["state"] == "over"
+    if tier == "low":
+        gate = any(rows.get(b, {}).get("state") == "over"
+                   for b in ("agy-gemini", "codex", "claude"))
+    else:
+        gate = bool((picked and over(picked)) or
+                    (outside and any(over(p) for p in outside) and
+                     all(over(p) or p.verdict != "ok" for p in outside)))
+    if not gate:
+        return plans
+    if tier == "normal":
+        allowed = [p for p in outside if p.verdict == "ok" and not over(p)
+                   and "exhausted" not in p.choice.reason]
+        if allowed:
+            for p in allowed:
+                p.why += "; tier_no_claude"
+            return allowed
+    choice = Choice("defer", "", "", picked.choice.bucket if picked else None,
+                    None, None, None, "tier_defer", defer=True)
+    return [Plan(choice, "", None, "", None, "defer", "tier_defer", None)]
 
 
 def plan_line(p: Plan) -> str:
@@ -609,11 +647,20 @@ def pick_runner(
     now: datetime | None = None,
     needs_shell: bool | None = None,
     needs_claude_tool: bool | None = None,
+    tier: str | None = None,
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
         cls = class_for(role, brief, cfg)
         if not cls:
+            # Unrouted roles stay on Claude; they still obey a fresh tier gate.
+            bucket = next((b for b, v in cfg.get("buckets", {}).items()
+                           if v.get("provider") == "anthropic"), None)
+            fallback = Plan(Choice("claude", "claude", "", bucket, None, None, None, ""),
+                            "", None, "", None, "ok", "", None)
+            gated = _tier_plans([fallback], tier, now=now)
+            if gated and gated[0].choice.defer:
+                return gated[0].choice
             return None
         quotas = quotas if quotas is not None else cached_quotas(cfg)
         skill = skill if skill is not None else load_skill_scores()
@@ -632,7 +679,11 @@ def pick_runner(
             now=now,
             needs_shell=needs_shell,
             needs_claude_tool=needs_claude_tool,
+            tier=tier,
         )
+
+        if plans and plans[0].choice.defer:
+            return plans[0].choice
 
         claude_plans = [p for p in plans if _is_claude(p, cfg)]
         every_claude_will_hit = (
@@ -727,6 +778,8 @@ if __name__ == "__main__":
 
 
 REASON_CODES = (
+    "tier_no_claude",
+    "tier_defer",
     "review",
     "security",
     "silent-wrong",
