@@ -1,4 +1,4 @@
-"""Cut a ~45 s ILAG kit demo from «ขายชื่อ» EP1 footage: one ffmpeg segment at a time, then concat + loudnorm."""
+"""Cut a ~45 s ILAG kit demo from "ขายชื่อ" EP1 footage: one ffmpeg segment at a time, then concat + loudnorm."""
 import subprocess
 import sys
 from pathlib import Path
@@ -122,9 +122,9 @@ seg("d", [*clip(0.0, 6.0), *png("wm", 6.0), *png("rewcard", 6.0), *png("place", 
     "[b][1:v]overlay[b1];[b1][r]overlay[b2];[b2][p]overlay,setsar=1,format=yuv420p[v]",
     mix([(0, 0, 1.0), (4, 0, 0.6)], 6.0), 6.0)
 
-# E1 · flashback: sepia, vignette, grain, the card and the 'อดีต' tag (5.0 s)
+# E1 · flashback: black and white (v2 theme, was sepia), vignette, grain, the card and the 'อดีต' tag (5.0 s)
 seg("e1", [*clip(30.0, 5.0), *png("wm", 5.0), *png("flash", 5.0), *png("ftag", 5.0), *sfx("whoosh")],
-    "[0:v]setpts=PTS-STARTPTS,colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131,"
+    "[0:v]setpts=PTS-STARTPTS,hue=s=0,eq=contrast=1.12,"
     f"vignette=PI/4,noise=alls=9:allf=t[b];{fade(2, 0.2, 2.8, 'f')};"
     "[b][1:v]overlay[b1];[b1][f]overlay[b2];[b2][3:v]overlay,setsar=1,format=yuv420p[v]",
     "[0:a]lowpass=f=2600,volume=0.8[x];[4:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=0.6[w];"
@@ -161,5 +161,5 @@ order = ["a", "b1", "b2", "b3", "b4", "c", "d", "e1", "e2", "f", "g", "h1", "h2"
 run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(SEG / "list.txt"), "-c", "copy", str(SEG / "joined.mp4")])
 run(["ffmpeg", "-v", "error", "-y", "-i", str(SEG / "joined.mp4"), "-c:v", "copy",
      "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "160k", "-ar", "48000",
-     "-movflags", "+faststart", str(K / "out/ilag-kit-demo-v1.mp4")])
+     "-movflags", "+faststart", str(K / "out/ilag-kit-demo-v2.mp4")])
 print("demo done")
