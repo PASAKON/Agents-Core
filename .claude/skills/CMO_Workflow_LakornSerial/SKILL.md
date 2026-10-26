@@ -60,8 +60,9 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
 
 ## Steps
 
-1. **Story, one EP.** CMO_Standard_Story_ThaiMoralDrama (dialogue density, overflow acting). Pick the 3-second
-   hook line while writing, not at the edit. Lint: `tools/shotsheet_lint.py`.
+1. **Story, one EP.** CMO_Standard_Story_ThaiMoralDrama (dialogue density, overflow acting). Pick the 15 s hook
+   (the EP's most absurd or exciting moment) while writing, not at the edit. Lint: `tools/shotsheet_lint.py`.
+   [SUPERSEDED 2026-10-26] Pick the 3-second hook line while writing.
 2. **Pre-scan the dialogue for Flow's filter** before any credit (CTO_Flow_Omni1.1_Ops). Film 5 field data: lines
    with บัญชี / เปิดบัญชี / ยืมชื่อ / ค่าหัว / ค่าแผงค้าง, a scam caller's instructions ("โทรไปบอกว่า…พัวพันคดี"),
    gambling ("ติดพนันบอล") and a stated amount inside a scam call were refused; a refused generation is never
@@ -78,9 +79,11 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
    EP1, 3:03.
 6. **Cover:** CMO_Procedure_ChatGPTImage_LakornCover, one cover per series with an "EP.N" pill; reuse it as the
    end-card background.
-7. **Post** one EP per day at the agreed time (20:00 default): `tools/fb_reel_post.py` dry-run first, then publish
-   once; never repost, never edit. Caption = 2-line hook + question + "«ชื่อเรื่อง» EP.N | ละครสั้นคุณธรรม" +
-   "EP.N+1 พรุ่งนี้ 20:00 น." + help line (real hotline only) + "(ละครสร้างด้วย AI)" + hashtags.
+7. **Post** an EP once it is cut and the CEO has watched it, at 20:00 by default. The end card and the caption name
+   the real day of the next EP ("พรุ่งนี้" only when the next EP is already cut). `tools/fb_reel_post.py` drives the
+   Reels composer and has only carried EPs of about 3 min: dry-run a 10–20 min file before the first long post.
+   Dry-run first, then publish once; never repost, never edit. [SUPERSEDED 2026-10-26] one EP per day. Caption = 2-line hook + question + "«ชื่อเรื่อง» EP.N | ละครสั้นคุณธรรม" +
+   "EP.N+1 <วัน> 20:00 น." + help line (real hotline only) + "(ละครสร้างด้วย AI)" + hashtags.
    First comment = a question to the viewer + one "รู้ไว้ใช่ว่า" fact + next-EP time.
 8. **Drive:** the EP folder (CXO_Rules_GDrive_Filing): final, cover, end card, clips, logs.txt, md5.
 

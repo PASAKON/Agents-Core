@@ -77,7 +77,7 @@ photographic Page logo at watermark size: below about 120 px it turns to mush.
 | 12 | `rew` rewind | "◀◀ กรอกลับ" + scanlines | straight after the NG stamp |
 | 13 | `take2` | clapper "เทค 2" | over the corrected take |
 | 14 | `blooper` header | "ฉากหลุด AI" / "ทุกฉากต่อจากนี้คือเทคที่ AI พลาดจริงระหว่างถ่าย" | after the end card, before the blooper reel |
-| 15 | `end` end card | ติดตามตอนต่อไป / EP.N+1 / the open question / "พรุ่งนี้ 20:00 น." / "ละครสั้นคุณธรรม by ILAG Studio" | last 4 s of the story |
+| 15 | `end` end card | ติดตามตอนต่อไป / EP.N+1 / the open question / "<วัน> 20:00 น." (the real day; "พรุ่งนี้" only when the next EP is cut) / "ละครสั้นคุณธรรม by ILAG Studio" | last 4 s of the story |
 | 16 | `sub` subtitles | Anuphan, lower third | proposal: the CEO decides whether we burn them in |
 | 17 | `safe` Reels safe zones | — | check every overlay against it before render |
 | — | `bltag` | "● ฉากหลุด AI" top-right | over every blooper clip |
