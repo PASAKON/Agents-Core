@@ -131,6 +131,13 @@ field note 2026-10-26). PROPOSED until the pilot's 72 h numbers are in.
   silence between lines, the same narrator voice on every EP. Delivery as measured on the Thai narration channels: about
   14 Thai characters a second, the pitch lifted on the payoff word (Agents-Wikis
   `research/2026-10-23-thai-dub-chinese-drama-teardown.md` §4). Never imitate a real narrator's timbre.
+- **The narrator engine (CEO 2026-10-26 about 23:15 TH, on the $0 demo task-ee1dbcf0):** "Hook 15 วิ แบบจีน อันนี้ผ่านเลย
+  ติดแค่เสียง อาจจะต้องใช้ เสีนงจาก ElevenLab V4 นะให้ดูมี น้ำเสียง ขึ้นลง แบบ นักล้่าเรื่องตัวจริง". The demo's montage, lines
+  and cards passed; its voice did not (edge-tts NiwatNeural sped up 32% to fit). The narrator is ElevenLabs v4 on fal,
+  one call for all six lines so the rise and fall carries across them, never sped up afterwards; edge-tts is a $0
+  stand-in for drafts only. Measured v4 Thai pace: 10.9 characters a second with pauses, 13.2 speech only (CnDrama EP1,
+  13,855 characters, 25 Oct), so six lines that fit 15 s run about 160-175 characters, spaces not counted. Which v4 voice
+  is the CEO's pick by ear (takes in `/opt/MoonieXHQ/Work/task-e58b9235/voice-v4/`): PENDING.
 - **The pictures:** a new shot on every line, often two: 10-14 hard cuts in the first 12 s (about 0.7-1.5 s each), no
   transitions, a music bed under the voice. Each shot shows what its line says.
 - **Where the shots come from:** moments from later in the same EP (a flash-forward), plus inserts that prove a fact
