@@ -3,7 +3,9 @@
 The CEO, 26 Oct 2026, about 20:10 TH: "คุณให้ ChatGPT ออกแบบ เอกลักษณ์ ของ Mr กราฟ มาดีกว่านะ ใช้โครงสร้างเดิมได้เลย
 สีและตรีแบบเดิมทุกอย่าง ให้ออกแบบมาเป็นแนว PNG แล้วเอามาขยับเป็น ภาพๆ เอา แบบ Pixel Art เขาทำกัน / ทำมาเก็บไว้หลายๆ
 แบบ ที่ใช้ประจำ ๆ ได้เลย ลองคิดท่ทางที่ต้งอใช้ทั้งหมดมาดู".
-Style (smooth cartoon or true pixel art) waits on question card Q-20261026-1308-7fb5.
+**Style (decided):** the smooth cartoon of the current mascot, drawn cleaner and prettier, then moved frame by frame.
+CEO, question card Q-20261026-1308-7fb5, 26 Oct 13:19Z: "ลายเส้นการ์ตูนเรียบแบบเดิม วาดให้สวยขึ้น แล้วขยับทีละภาพ".
+"Pixel Art" in his order meant the frame-by-frame way of moving, not a pixel grid.
 
 ## How every pose is made
 - **The art:**
@@ -16,7 +18,7 @@ Style (smooth cartoon or true pixel art) waits on question card Q-20261026-1308-
     cost; never the OpenAI API.
   - The run waits until the CEO releases winbox (`pc-lease status`; "PC: CEO" means wait).
   - Only one driver at a time: run under `flock /opt/MoonieXHQ/Work/.winbox-chatgpt.lock`.
-  - The queue on that lock (CMO, 26 Oct): CnDrama EP02 plates and logos, then the Mr. Graph style test (2 images),
+  - The queue on that lock (CMO, 26 Oct): CnDrama EP02 plates and logos, then the Mr. Graph master sheet and pose 2,
     then the pose batches.
 - **One motion = one strip.** Ask for all of a motion's frames side by side in ONE image, so the character stays
   the same across them. Then slice the strip, align the frames and check them by eye.
@@ -32,9 +34,9 @@ Style (smooth cartoon or true pixel art) waits on question card Q-20261026-1308-
   - Never mirror a frame: the quiff always sweeps up and to the right.
   - Half body (waist up) unless the pose says otherwise.
 - **Colour lock:** snap every frame's flat areas to the BRAND.md tokens (orange, peach, white, slate, ink). Leave
-  the edge pixels alone in the smooth style; snap every pixel in pixel art. Image models drift off hex.
-- **Pixel art only:** bring each frame down to one true pixel grid (nearest neighbour, the same grid for every
-  pose), then scale it up by a whole number for video.
+  the edge pixels of the line art alone. Image models drift off hex.
+- [DROPPED 2026-10-26, Q-20261026-1308-7fb5] Pixel art only: one true pixel grid (nearest neighbour), scaled up by a
+  whole number.
 - **Playback:** stepped, 8–12 frames a second, the way game sprites move. A loop's last frame must lead back into
   its first.
 
@@ -82,9 +84,11 @@ Style (smooth cartoon or true pixel art) waits on question card Q-20261026-1308-
 | 25 | Waves goodbye, points at the next-episode card | 4 | the last 4 s |
 
 ## Order of work
-1. Style test: pose 2 in both styles (the card).
-2. After the CEO picks: one master model sheet, then poses 1, 2, 4 and 5.
+1. First run: one master model sheet (front, three-quarter, the main expressions) and pose 2 as one strip, in the
+   decided style. The CMO checks it by eye; the CEO then sees the sheet.
+2. Then poses 1, 4 and 5.
 3. Then A, B, C and D, in that order.
+[SUPERSEDED 2026-10-26, Q-20261026-1308-7fb5] Style test: pose 2 in both styles, then the CEO picks.
 4. Each batch goes to the CMO as one numbered contact sheet plus a looping preview per motion; the CEO answers by
    number.
 5. Until the new poses pass, videos keep the hand-built SVG mascot on its own layer, so the new frames swap in as
