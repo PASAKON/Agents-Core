@@ -587,6 +587,11 @@ def cmd_plan(a):
 
 
 # ------------------------------------------------------------------ cards (Playwright + PIL)
+def edl_root(a):
+    """--root, else the EDL's own folder: absolute, symlinks followed."""
+    return Path(a.root or Path(a.edl).resolve().parent).resolve()
+
+
 def logo_source(kit):
     """(path, how): the kit folder's own logo.png (REBUILD step 0), else the Page's logo jpg next to the templates
     folder, which cut_logo.py turns into logo.png.  The logo is never redrawn."""
@@ -676,7 +681,7 @@ def render_card_set(kit, work, wanted, force=False):
         from playwright.sync_api import sync_playwright
     except ImportError:
         raise Fail("cards needs Playwright + PIL: run with /opt/MoonieXHQ/Agents/Core/.venv/bin/python")
-    work = Path(work)
+    work = Path(work).resolve()                         # as_uri() below needs an absolute path
     (work / "cards").mkdir(parents=True, exist_ok=True)
     fp = kit_fingerprint(Path(kit))
     sidecar = work / "cards" / ".kit-sha"
@@ -760,17 +765,17 @@ def cmd_cards(a):
         for e in errors:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    root = Path(a.root or Path(a.edl).resolve().parent)
+    root, work = edl_root(a), Path(a.out).resolve()
     kit = a.kit or edl.get("kit")
     if not kit:
         raise Fail("no kit folder: pass --kit or set 'kit' in the EDL")
     kit = resolve(root, kit) if not a.kit else Path(a.kit)
     parts = all_parts(segs)
     wanted = wanted_cards(parts, True)
-    rendered, reused, stale = render_card_set(kit, a.out, wanted, a.force)
-    nf = sum(draw_ng_frames(a.out, root, p, int(edl.get("fps", 24)), a.force or stale)
+    rendered, reused, stale = render_card_set(kit, work, wanted, a.force)
+    nf = sum(draw_ng_frames(work, root, p, int(edl.get("fps", 24)), a.force or stale)
              for p in parts if p["frames"])
-    print(f"cards: {rendered} rendered, {reused} reused, {nf} NG frame set(s) drawn -> {Path(a.out) / 'cards'}")
+    print(f"cards: {rendered} rendered, {reused} reused, {nf} NG frame set(s) drawn -> {work / 'cards'}")
     return 0
 
 
@@ -989,7 +994,7 @@ def cmd_encode(a):
         for e in errors:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    root, work = Path(a.root or Path(a.edl).resolve().parent), Path(a.out)
+    root, work = edl_root(a), Path(a.out).resolve()
     probes = {}
     errs = preflight(edl, segs, root, work, probes)
     if errs:
