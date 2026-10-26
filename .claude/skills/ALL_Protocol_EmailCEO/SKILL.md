@@ -26,6 +26,8 @@ next one, and then the ACTION that mattered is missed. So the channel is narrow 
 | `done` | An order **he gave** is finished and there is a result to open (merged, posted, deployed, file on Drive). | open it later | silent |
 | `deadline` | One of **his** to-dos falls due within 24 h. Usually sent by the timer, not by you. | see it at 08:00 | no mail (digest) |
 
+For `done`, the 07:50 feed sends the daily merged-PR line (ref `merge-digest-<date>`), so a merger sends no merge mail.
+
 **Never send:**
 - progress or "still working"
 - FYI or background
