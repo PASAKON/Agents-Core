@@ -7,7 +7,7 @@ its own research workers -- researcher, data_analyst, browser_operator -- and ne
 
 This server runs as the unix user `sompong`, as a child of SomPong's Claude session
 (scripts/lib/cxo_mcp_config.py wires it as the "org" server for role coo). It has no hub
-credential and never reads one: every tool is one JSON line to the COO gate
+credential and never reads one: worker tools send one JSON line to the COO gate
 (runners/coo_gate.py) over /run/org-coo-gate/gate.sock, which checks the caller's uid and does the
 hub work as the narrow Postgres role org_coo. The session id comes from CXO_SESSION_ID, which the
 COO launcher sets; the gate checks that it is a coo session.
@@ -23,11 +23,14 @@ Tools (mcp__org__<name> inside the session):
   live_sessions(all)                            who is live on every host: run before SendMessage
   ask_run / ask_ceo / ask_run_wait              Run Inbox command and question cards for the CEO's
                                                 tap (root work goes through ask_run, CEO 2026-10-01)
+  email_ceo(kind, title, ...)                   action / alert / done / deadline to the CEO only
+  quota()                                      read the local runner quota snapshot
 
 The three Run Inbox tools do not go through the gate and touch no hub database: they are
 tools/ask_run.py (the same code as every other C-level's org server), plain HTTPS to the Run Inbox
 with SomPong's own token, ~/.config/mooniex/run-inbox.token (0600, owned by sompong). The COO is a
 C-level (policies/agents.yaml c_level), so the hub lets it raise command and question cards.
+email_ceo uses the same token through tools/email_ceo.py; quota reads no credentials.
 
 CLI for tests and for SomPong's own Bash (no MCP needed):
   .venv/bin/python -m runners.coo_mcp_server --cli create_task '{"role": "researcher", ...}'
@@ -39,19 +42,21 @@ import os
 import socket
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 SOCKET_PATH = os.environ.get("COO_GATE_SOCKET") or "/run/org-coo-gate/gate.sock"
 TIMEOUT_S = 15.0
 POLL_S = 10.0
 MAX_WAIT_S = 1800
+QUOTA_PATH = Path(__file__).resolve().parent.parent / "state" / "quota-snapshot.json"
 # Statuses that mean "the worker is still going": wait_task keeps polling through these.
 RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote")
 # The tool names this server serves, in order. cxo_mcp_config builds the coo session's
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
               "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait",
-              "respawn_clevel")
+              "email_ceo", "quota", "respawn_clevel")
 
 
 def session_id() -> str:
@@ -164,6 +169,37 @@ def ask_ceo(**arguments) -> dict:
     return _run_inbox("mcp_ask_ceo", arguments)
 
 
+def email_ceo(**arguments) -> dict:
+    from tools import email_ceo as email_ceo_tool
+    if not (os.environ.get("CXO_SESSION_ID") or "").strip():
+        return {"ok": False, "error": "CXO_SESSION_ID is not set in this session's environment"}
+    arguments.update(role="coo", session=session_id())
+    try:
+        out = email_ceo_tool.mcp_send(arguments)
+    except (email_ceo_tool.Refused, email_ceo_tool.HubError, ValueError) as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, **out}
+
+
+def quota() -> dict:
+    """Read the public snapshot only; never fetch live quota or expose source paths."""
+    fields = ("weekly_remaining", "daily_remaining", "weekly_resets_at", "daily_resets_at",
+              "limit_hit", "limit_until", "error")
+    try:
+        snapshot = json.loads(QUOTA_PATH.read_text(encoding="utf-8"))
+        ts = datetime.fromisoformat(snapshot["ts"].replace("Z", "+00:00"))
+        if ts.tzinfo is None:
+            raise ValueError("snapshot timestamp has no timezone")
+        buckets = {name: {field: bucket.get(field) for field in fields}
+                   for name, bucket in snapshot["buckets"].items()}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+        return {"ok": False, "error": f"quota snapshot: {type(e).__name__}: {e}"}
+    out = {"ok": True, "ts": snapshot["ts"], "buckets": buckets}
+    if (datetime.now(timezone.utc) - ts).total_seconds() > 2 * 60 * 60:
+        out["stale"] = True
+    return out
+
+
 def ask_run_wait(id: str, max_wait_s: float = 600.0, interval_s: float = 5.0,
                  tail_lines: int = 40) -> dict:
     return _run_inbox("wait_result", id, max_wait_s=max_wait_s, interval_s=interval_s,
@@ -272,6 +308,21 @@ def _serve() -> None:
         when max_wait_s ran out first (default 600, keep it at or under 1500): call again."""
         out = await asyncio.to_thread(ask_run_wait, id, max_wait_s, interval_s, tail_lines)
         return json.dumps(out, indent=2, ensure_ascii=False)
+
+    @mcp.tool(name="email_ceo")
+    async def _email_ceo(kind: str, title: str, need: str = "", why: str = "",
+                         if_not: str = "", link: str = "", due: str = "", ref: str = "",
+                         dry_run: bool = False) -> str:
+        """Send action/alert/done/deadline notifications to the CEO only. The hub enforces caps
+        and deduplication; dry_run previews without sending. Uses this COO session's identity."""
+        out = await asyncio.to_thread(email_ceo, kind=kind, title=title, need=need, why=why,
+                                      if_not=if_not, link=link, due=due, ref=ref, dry_run=dry_run)
+        return json.dumps(out, indent=2, ensure_ascii=False)
+
+    @mcp.tool(name="quota")
+    def _quota() -> str:
+        """Read runner quota remaining and resets; stale=true means the snapshot is over 2 h old."""
+        return json.dumps(quota(), ensure_ascii=False)
 
     @mcp.tool(name="respawn_clevel")
     def _respawn_clevel(role: str = "", host: str = "contabo",
