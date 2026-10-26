@@ -14,7 +14,10 @@ card, sticker, sfx and subtitle comes from the EDL.  The kit's look is untouched
         loudnorm to WORK/out/<output>.  Stdlib + ffmpeg/ffprobe on PATH only, so it runs on winbox Windows Python.
         On Linux without --lock it warns once and holds /opt/MoonieXHQ/Work/.bl-render.lock (one render at a time).
 
-EDL (JSON).  Paths are relative to --root (default: the EDL's folder).  Times are seconds; gains are linear.
+EDL (JSON).  Paths are relative to --root (default: the EDL's folder) and must resolve, symlinks followed, to inside
+it: a src, sfx or kit that leads outside is an error.  The kit folder gives the template, fonts and logo only; the kit's
+Python (render_kit.py, cut_logo.py) is always the repo's own copy.  The work folder (--out) may hold no symlink that
+resolves outside it.  Times are seconds; gains are linear; every number must be finite and at most 1e6.
   top level   fps (24)  size [1080,1920]  sfx "sfx" (folder of <name>.wav)  kit "templates" (default for `cards --kit`)
               output "ilag-ep.mp4"  loudnorm -16 (LUFS)  segments [...]  note
   every segment   id (unique, A-Za-z0-9_-)  kind  note  cards  subs  sfx          (ng: cards/subs/sfx sit inside take/take2)
@@ -63,6 +66,8 @@ SIZE = [1080, 1920]
 ENC_SALT = "ilag_cut-2"         # bump when the filter graphs change: invalidates every cached segment
 SRC_STAMP = ".src"              # in an NG frame folder: path, size and mtime_ns of the source the frames were cut from
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+REPO_KIT = Path(__file__).resolve().parents[1] / "knowledge/brand-knowledge/brands/ilag/templates"
+KIT_PYTHON = ("render_kit.py", "cut_logo.py")    # the only Python `cards` runs: always REPO_KIT's copy, never an EDL path's
 DASHES = "—–"
 GUILLEMETS = "\u00ab\u00bb"
 PATH_KEYS = {"src", "kit", "sfx", "output", "id"}      # strings the dash rule does not read
@@ -439,8 +444,9 @@ def load_edl(path):
     return edl
 
 
-def check(edl):
-    """-> (errors, warnings, segments) where segments = [(segment dict, [parts])] in EDL order."""
+def check(edl, root=None):
+    """-> (errors, warnings, segments) where segments = [(segment dict, [parts])] in EDL order.  With a root, every
+    path the EDL names (sources, sfx folder, kit folder) must also resolve, symlinks followed, to inside it."""
     v = V()
     v.keys(edl, {"fps", "size", "sfx", "kit", "output", "loudnorm", "segments", "note"}, "EDL")
     fps = v.num(edl, "fps", "EDL", default=24.0, lo=12, hi=60)
@@ -450,7 +456,7 @@ def check(edl):
     if edl.get("size", SIZE) != SIZE:
         v.err("EDL", f"'size' must be {SIZE} (the kit overlays are {SIZE[0]}x{SIZE[1]}), got {edl.get('size')!r}")
     out = v.string(edl, "output", "EDL", default="ilag-ep.mp4")
-    if out and not re.match(r"^[^/\\]+\.mp4$", out):
+    if out and not re.match(r"^[^/\\:]+\.mp4$", out):
         v.err("EDL", f"'output' must be a file name ending .mp4, got {out!r}")
     v.num(edl, "loudnorm", "EDL", default=-16.0, lo=-70, hi=-5)
     for k in ("sfx", "kit"):
@@ -492,6 +498,14 @@ def check(edl):
             v.err(f"segment '{seg.get('id')}'", "blooper segment must come after the blooper_header")
     if "blooper_header" in kinds and not any(isinstance(s, dict) and s.get("blooper") for s in segs):
         v.warnings.append("blooper_header with no blooper segment after it")
+    if root is not None:
+        named = [(f"segment '{p['seg']}' src", p["src"]) for _, ps in out_segs for p in ps if p["src"]]
+        named += [(f"EDL '{k}'", edl[k]) for k in ("sfx", "kit") if isinstance(edl.get(k), str)]
+        for what, path in dict.fromkeys(named):
+            try:
+                resolve(root, path, what)
+            except Fail as e:
+                v.errors.append(str(e))
     if not v.errors:
         total = sum(p["dur"] for _, ps in out_segs for p in ps)
         if "title" in kinds:
@@ -557,7 +571,7 @@ def clock(t):
 
 def cmd_plan(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     for w in warnings:
         print(f"WARN  {w}", file=sys.stderr)
     if errors:
@@ -621,7 +635,7 @@ def logo_source(kit):
     if (kit / "logo.png").exists():
         return kit / "logo.png", "png"
     jpg = kit.parent / "images" / "ilag-page-logo-1080.jpg"
-    if jpg.exists() and (kit / "cut_logo.py").exists():
+    if jpg.exists() and (REPO_KIT / "cut_logo.py").exists():
         return jpg, "jpg"
     raise Fail(f"no logo for the kit: put logo.png in {kit} or keep images/ilag-page-logo-1080.jpg beside the templates "
                f"folder (REBUILD.md step 0 makes logo.png with cut_logo.py)")
@@ -630,32 +644,37 @@ def logo_source(kit):
 def kit_fingerprint(kit):
     kit = Path(kit)
     h = hashlib.sha256()
-    for name in ("kit.tpl.html", "render_kit.py"):
-        h.update((kit / name).read_bytes())
+    h.update((kit / "kit.tpl.html").read_bytes())
+    h.update((REPO_KIT / "render_kit.py").read_bytes())                  # what actually runs
     src, how = logo_source(kit)
     h.update(src.read_bytes())
     if how == "jpg":
-        h.update((kit / "cut_logo.py").read_bytes())
+        h.update((REPO_KIT / "cut_logo.py").read_bytes())
     for f in sorted((kit / "fonts").glob("*.ttf")):
         h.update(f"{f.name}:{f.stat().st_size}".encode())
     return h.hexdigest()
 
 
 def stage_kit(kit, work):
-    """Copy the kit's template files into WORK/kit (kit.html needs fonts/ and logo.png beside it), build kit.html there."""
+    """Copy the kit's data (template, fonts, logo) into WORK/kit (kit.html needs fonts/ and logo.png beside it) and
+    build kit.html there.  The kit folder may be named by an EDL or by --kit, so it supplies text and pictures, never
+    code: render_kit.py (run here) and cut_logo.py (run in a child) are always the repo's own copies, REPO_KIT."""
     kit, stage = Path(kit), Path(work) / "kit"
-    for need in ("kit.tpl.html", "render_kit.py", "fonts"):
+    for need in ("kit.tpl.html", "fonts"):
         if not (kit / need).exists():
             raise Fail(f"{kit} is not the ILAG templates folder: no {need}")
+    for need in KIT_PYTHON:
+        if not (REPO_KIT / need).is_file():
+            raise Fail(f"the repo's own ILAG kit is incomplete: no {REPO_KIT / need}")
     src, how = logo_source(kit)
     stage.mkdir(parents=True, exist_ok=True)
-    for f in ("kit.tpl.html", "render_kit.py"):
-        shutil.copy2(kit / f, stage / f)
+    shutil.copy2(kit / "kit.tpl.html", stage / "kit.tpl.html")
+    shutil.copy2(REPO_KIT / "render_kit.py", stage / "render_kit.py")
     shutil.copytree(kit / "fonts", stage / "fonts", dirs_exist_ok=True)
     if how == "png":
         shutil.copy2(src, stage / "logo.png")
     else:
-        done = subprocess.run([sys.executable, "-I", str(kit / "cut_logo.py"), str(src), str(stage / "logo.png")],
+        done = subprocess.run([sys.executable, "-I", str(REPO_KIT / "cut_logo.py"), str(src), str(stage / "logo.png")],
                               capture_output=True, text=True)
         if done.returncode:
             raise Fail(f"cut_logo.py failed (it needs numpy and PIL: use the Agents-Core venv python):\n"
@@ -665,7 +684,7 @@ def stage_kit(kit, work):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     if not hasattr(mod, "build_kit"):
-        raise Fail(f"{kit}/render_kit.py has no build_kit(): copy the current templates folder")
+        raise Fail(f"{REPO_KIT}/render_kit.py has no build_kit(): the repo's own kit is broken")
     return stage, mod.build_kit(stage)
 
 
@@ -783,7 +802,7 @@ def draw_ng_frames(work, root, p, fps, force=False):
 
 def cmd_cards(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     if errors:
         for e in errors:
             print(f"ERROR {e}", file=sys.stderr)
@@ -792,7 +811,7 @@ def cmd_cards(a):
     kit = a.kit or edl.get("kit")
     if not kit:
         raise Fail("no kit folder: pass --kit or set 'kit' in the EDL")
-    kit = resolve(root, kit) if not a.kit else Path(a.kit)
+    kit = resolve(root, kit, "EDL 'kit'") if not a.kit else Path(a.kit)
     parts = all_parts(segs)
     wanted = wanted_cards(parts, True)
     rendered, reused, stale = render_card_set(kit, work, wanted, a.force)
@@ -803,9 +822,28 @@ def cmd_cards(a):
 
 
 # ------------------------------------------------------------------ encode (stdlib + ffmpeg)
-def resolve(root, p):
-    p = Path(p)
-    return p if p.is_absolute() else Path(root) / p
+def inside(base, p, what, shown=None):
+    """p with every symlink followed, which must sit inside base (followed too).  Returns that resolved path.
+    `shown` is the text to quote in an error (what the EDL wrote), default p."""
+    shown = repr(str(shown if shown is not None else p))[:120]
+    try:
+        base_r, p_r = Path(base).resolve(), Path(p).resolve()
+    except (OSError, RuntimeError, ValueError) as e:             # a link loop, a NUL byte, ...
+        raise Fail(f"{what}: {shown} does not resolve ({e}); refused")
+    if p_r != base_r and base_r not in p_r.parents:
+        raise Fail(f"{what}: {shown} resolves to {p_r}, outside {base_r}; refused (an EDL path must stay inside --root)")
+    return p_r
+
+
+def resolve(root, p, what="path"):
+    """An EDL path against --root; refused when it (or a link on the way) leads outside.  Returned resolved, so the
+    path that was checked is the path that is opened."""
+    q = Path(p)
+    return inside(root, q if q.is_absolute() else Path(root) / q, what, shown=p)
+
+
+def sfx_file(root, sfx, name):
+    return resolve(root, resolve(root, sfx, "sfx folder") / f"{name}.wav", f"sfx '{name}'")
 
 
 def run(cmd):
@@ -861,7 +899,7 @@ def build_cmd(p, env):
         files.extend(f)
         return sum(1 for x in args if x == "-i") - 1
 
-    mk, src = p["media"], (resolve(root, p["src"]) if p["src"] else None)
+    mk, src = p["media"], (resolve(root, p["src"], f"segment '{p['seg']}' src") if p["src"] else None)
     if mk == "video":
         vi = add(["-ss", fmt(p["ss"]), "-t", fmt(p["span"]), "-i", str(src)], src)
     elif mk == "image":
@@ -917,7 +955,7 @@ def build_cmd(p, env):
             g *= 0.8
         parts.append((vi, 0.0, g, ex))
     for s in p["sfx"]:
-        wav = resolve(root, env["sfx"]) / f"{s['name']}.wav"
+        wav = sfx_file(root, env["sfx"], s["name"])
         parts.append((add(["-i", str(wav)], wav), s["at"], s["gain"], []))
     si = add(["-f", "lavfi", "-t", fmt(d), "-i", "anullsrc=r=48000:cl=stereo"])
     parts.insert(0, (si, 0.0, 1.0, []))
@@ -968,10 +1006,13 @@ def lock_file(path):
 def preflight(edl, segs, root, work, probes):
     """Missing files and sources too short for their span; every problem listed."""
     errs = []
-    sfx_dir = resolve(root, edl.get("sfx", "sfx"))
     for p in all_parts(segs):
         if p["src"]:
-            src = resolve(root, p["src"])
+            try:
+                src = resolve(root, p["src"], f"segment '{p['seg']}' src")
+            except Fail as e:
+                errs.append(str(e))
+                continue
             info = None
             if not src.exists():
                 errs.append(f"segment '{p['seg']}': source not found: {src}")
@@ -994,13 +1035,18 @@ def preflight(edl, segs, root, work, probes):
             if not fdir.is_dir() or not list(fdir.glob("*.jpg")):
                 errs.append(f"segment '{p['seg']}': NG slam frames missing ({fdir}); run `cards` first")
             else:                                                       # drawn from a file that has since been replaced?
-                fsrc, stamp = resolve(root, p["frames"]["src"]), fdir / SRC_STAMP
+                fsrc, stamp = resolve(root, p["frames"]["src"], f"segment '{p['seg']}' src"), fdir / SRC_STAMP
                 if fsrc.exists() and stamp.exists() and stamp.read_text() != json.dumps(stat_key([fsrc])):
                     errs.append(f"segment '{p['seg']}': NG slam frames are stale: {fsrc.name} changed since they were "
                                 f"drawn; run `cards` again")
         for s in p["sfx"]:
-            if not (sfx_dir / f"{s['name']}.wav").exists():
-                errs.append(f"segment '{p['seg']}': sfx '{s['name']}' not found in {sfx_dir}")
+            try:
+                wav = sfx_file(root, edl.get("sfx", "sfx"), s["name"])
+            except Fail as e:
+                errs.append(f"segment '{p['seg']}': {e}")
+                continue
+            if not wav.exists():
+                errs.append(f"segment '{p['seg']}': sfx '{s['name']}' not found in {wav.parent}")
     missing = [(el, tx) for el, tx in wanted_cards(all_parts(segs), False) if not card_path(work, el, tx).exists()]
     if missing:
         errs.append(f"{len(missing)} card PNG(s) missing from {Path(work) / 'cards'}; run `ilag_cut.py cards` first "
@@ -1010,7 +1056,7 @@ def preflight(edl, segs, root, work, probes):
 
 def cmd_encode(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     for w in warnings:
         print(f"WARN  {w}", file=sys.stderr)
     if errors:
