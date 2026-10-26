@@ -44,10 +44,11 @@ Hand-built SVG only; no image-gen for the mascot or any brand element.
 - Last 4 s: a question to the viewer, or a "next: <indicator name>" card.
 - Voice mastered to about −14 LUFS.
 
-## Safe zones (TikTok's UI; margins PROPOSED until checked against TikTok's own safe-zone template)
+## Safe zones (TikTok's UI; measured, PH MrGraph 26 Oct 2026)
 - TikTok draws its tabs over the top of the frame, its buttons over the right edge, and the caption and sound line
   over the bottom. Keep every caption, card, rule chip, chart value, date and the pointing hand inside x 60-940 and
-  y 160-1520 of the 1080x1920 frame.
+  y 220-1440 of the 1080x1920 frame. Source: Revid's measured TikTok template (220 px top, 480 px bottom); TikTok
+  publishes its own only as overlay files. [SUPERSEDED 26 Oct: y 160-1520, the CMO's first guess.]
 - The mascot's body may run into the right or bottom margin. His hand, and whatever he points at, may not.
 - Nothing covers an axis value, the 30/70 lines, a date label or a caption, the mascot included.
 - The example on the chart shows exactly what the rule chip says (CMO review of kit v3, 26 Oct 2026).
