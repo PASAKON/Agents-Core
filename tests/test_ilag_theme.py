@@ -103,6 +103,19 @@ def test_story_card_draws_only_the_v2_colours():
     assert solid == {_rgb(c) for c in (th.BLACK, th.GOLD, th.WHITE, th.MIST)}
 
 
+def test_story_writes_the_card_png_and_hands_it_to_ffmpeg(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(th.subprocess, "run", lambda argv, **kw: calls.append(argv))
+    out = tmp_path / "story.mp4"
+    args = th.argparse.Namespace(film="film.mp4", start=3.0, dur=20.0, title=TITLE, question=QUESTION, out=str(out))
+    th.story(args)
+    png = tmp_path / "story.card.png"
+    assert png.exists()
+    (argv,) = calls
+    assert argv[0] == "ffmpeg" and str(png) in argv and str(out) == argv[-1]
+    assert "gte(t,15.0)" in " ".join(argv)  # the card shows on the last 5 s
+
+
 def test_story_card_refuses_a_line_too_long_for_the_plate():
     with pytest.raises(SystemExit):
         th.card_image("ก" * 120, QUESTION)
@@ -117,4 +130,4 @@ def test_no_render_path_refers_to_a_v1_token_or_a_guillemet():
             assert name not in src
         for v1 in V1_HEX:
             assert v1.lower() not in src.lower()
-        assert "«" not in src and "»" not in src
+        assert "\u00ab" not in src and "\u00bb" not in src
