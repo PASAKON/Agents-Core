@@ -471,7 +471,7 @@ def _shell(tmp_path, *argv, fail='', prep_marker=False):
     (scripts / 'org-restart.sh').write_text((REPO / 'scripts/org-restart.sh').read_text())
     (scripts / 'hub/org-python.sh').write_text(
         'echo "$HOME|$*" >> "$CALL_LOG"\n'
-        + ('case " $* " in *" prep "*) touch state/restart/pending-contabo.json;; esac\n'
+        + ('case " $* " in *" prep "*) echo "{\\"run\\": $$}" > state/restart/pending-contabo.json;; esac\n'
            if prep_marker else '') +
         'case " $* " in *" $FAIL "*) exit 4;; esac\n')
     bindir = tmp_path / 'bin'
@@ -520,6 +520,16 @@ def test_restart_shell_failed_prep_does_not_resume_old_manifest(tmp_path, preexi
     assert result.returncode == 4
     assert len(calls) == 1
     assert ('fallback resume skipped: marker predates this run' in result.stdout) == preexisting
+
+
+def test_restart_shell_resumes_when_prep_replaced_stale_marker(tmp_path):
+    marker = tmp_path / 'state/restart/pending-contabo.json'
+    marker.parent.mkdir(parents=True)
+    marker.write_text('{}')
+    result, calls = _shell(tmp_path, '--sessions-only', fail='prep', prep_marker=True)
+    assert result.returncode == 4
+    assert calls[-1].endswith('--host contabo resume')
+    assert 'marker predates' not in result.stdout
 
 
 def test_resume_unit_sets_home():
