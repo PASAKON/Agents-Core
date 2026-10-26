@@ -5,23 +5,23 @@
   1920
  ],
  "sfx": "work/sfx",
- "output": "hook-demo-master.mp4",
+ "output": "hook-rehearsal-master.mp4",
  "loudnorm": -16,
- "note": "ILAG 15 s Chinese-style hook demo, task-ee1dbcf0",
+ "note": "ILAG 15 s Chinese-style hook demo, one-file narration, task-ee1dbcf0",
  "segments": [
   {
    "id": "h01",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 4.2,
-   "dur": 0.583323,
+   "dur": 0.666657,
    "gain": 0.12,
    "note": "S1: the mother pounding at the stall",
    "subs": [
     {
      "at": 0.08,
-     "dur": 0.501,
-     "text": "ป้าคนนี้"
+     "dur": 0.584,
+     "text": "ป้⁠า⁠ค⁠น⁠นี้ ต⁠ำ⁠ส้⁠ม⁠ต⁠ำ⁠เก็⁠บ⁠แป⁠ด⁠ห⁠มื่⁠น"
     }
    ],
    "sfx": [
@@ -37,14 +37,14 @@
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 54.0,
-   "dur": 1.12499,
+   "dur": 1.041657,
    "gain": 0.12,
    "note": "S7: the mother chopping garlic",
    "subs": [
     {
-     "at": 0.018,
-     "dur": 1.105,
-     "text": "ตำส้มตำเก็บเงินแปดหมื่น"
+     "at": 0.0,
+     "dur": 1.039,
+     "text": "ป้⁠า⁠ค⁠น⁠นี้ ต⁠ำ⁠ส้⁠ม⁠ต⁠ำ⁠เก็⁠บ⁠แป⁠ด⁠ห⁠มื่⁠น"
     }
    ],
    "sfx": [
@@ -60,14 +60,14 @@
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 8.0,
-   "dur": 0.541657,
+   "dur": 1.083323,
    "gain": 0.12,
-   "note": "S1: the mother pounding, collector beside her",
+   "note": "S1: the mother pounding, the collector beside her",
    "subs": [
     {
      "at": 0.0,
-     "dur": 0.539,
-     "text": "ห้าปี"
+     "dur": 0.564,
+     "text": "ป้⁠า⁠ค⁠น⁠นี้ ต⁠ำ⁠ส้⁠ม⁠ต⁠ำ⁠เก็⁠บ⁠แป⁠ด⁠ห⁠มื่⁠น"
     }
    ],
    "sfx": [
@@ -83,19 +83,14 @@
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 45.0,
-   "dur": 1.041657,
+   "dur": 1.24999,
    "gain": 0.12,
    "note": "S6: pestle raised at her son",
    "subs": [
     {
-     "at": 0.012,
-     "dur": 0.329,
-     "text": "ใครแตะ"
-    },
-    {
-     "at": 0.343,
-     "dur": 0.696,
-     "text": "โดนสากชี้หน้า"
+     "at": 0.013,
+     "dur": 1.234,
+     "text": "ใค⁠ร⁠แต⁠ะ โด⁠น⁠ส⁠า⁠ก⁠ชี้⁠ห⁠น้⁠า แม้⁠แต่⁠ลู⁠ก⁠ช⁠า⁠ย"
     }
    ],
    "sfx": [
@@ -111,14 +106,14 @@
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 48.0,
-   "dur": 0.791657,
+   "dur": 1.37499,
    "gain": 0.12,
    "note": "S6: the son takes it in",
    "subs": [
     {
-     "at": 0.018,
-     "dur": 0.771,
-     "text": "แม้แต่ลูกชาย"
+     "at": 0.0,
+     "dur": 1.231,
+     "text": "ใค⁠ร⁠แต⁠ะ โด⁠น⁠ส⁠า⁠ก⁠ชี้⁠ห⁠น้⁠า แม้⁠แต่⁠ลู⁠ก⁠ช⁠า⁠ย"
     }
    ],
    "sfx": [
@@ -134,19 +129,14 @@
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
    "in": 37.0,
-   "dur": 1.416657,
+   "dur": 1.041657,
    "gain": 0.12,
    "note": "S5: phone held at arm's length, no glasses",
    "subs": [
     {
-     "at": 0.011,
-     "dur": 0.543,
-     "text": "แว่นลืมได้"
-    },
-    {
-     "at": 0.556,
-     "dur": 0.858,
-     "text": "แต่แปดหมื่น อยู่ครบ"
+     "at": 0.413,
+     "dur": 0.626,
+     "text": "แว่⁠น⁠ลื⁠ม⁠ได้ แต่⁠แป⁠ด⁠ห⁠มื่⁠น อ⁠ยู่⁠ค⁠ร⁠บ"
     }
    ],
    "sfx": [
@@ -161,15 +151,15 @@
    "id": "h07",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 20.5,
-   "dur": 0.666657,
+   "in": 40.0,
+   "dur": 1.416657,
    "gain": 0.12,
-   "note": "S3: the son asks what is wrong",
+   "note": "S5: the son looks on while she holds the phone",
    "subs": [
     {
-     "at": 0.007,
-     "dur": 0.657,
-     "text": "ลูกถามทีไร"
+     "at": 0.0,
+     "dur": 1.314,
+     "text": "แว่⁠น⁠ลื⁠ม⁠ได้ แต่⁠แป⁠ด⁠ห⁠มื่⁠น อ⁠ยู่⁠ค⁠ร⁠บ"
     }
    ],
    "sfx": [
@@ -184,20 +174,15 @@
    "id": "h08",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 22.5,
-   "dur": 1.416657,
+   "in": 20.5,
+   "dur": 1.333323,
    "gain": 0.12,
-   "note": "S3: the mother's bright smile over the papaya",
+   "note": "S3: the son asks what is wrong",
    "subs": [
     {
-     "at": 0.007,
-     "dur": 0.821,
-     "text": "ตอบว่าไม่มีอะไร"
-    },
-    {
-     "at": 0.83,
-     "dur": 0.584,
-     "text": "ยิ้มสุดฤทธิ์"
+     "at": 0.417,
+     "dur": 0.913,
+     "text": "ลู⁠ก⁠ถ⁠า⁠ม⁠ที⁠ไร ยิ้⁠ม⁠สุ⁠ด⁠ฤ⁠ท⁠ธิ์"
     }
    ],
    "sfx": [
@@ -212,15 +197,15 @@
    "id": "h09",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 11.0,
-   "dur": 0.49999,
+   "in": 24.0,
+   "dur": 1.37499,
    "gain": 0.12,
-   "note": "S2: the collector at the stall",
+   "note": "S3: her bright smile over the papaya",
    "subs": [
     {
-     "at": 0.014,
-     "dur": 0.484,
-     "text": "แต่วันนี้"
+     "at": 0.0,
+     "dur": 0.902,
+     "text": "ลู⁠ก⁠ถ⁠า⁠ม⁠ที⁠ไร ยิ้⁠ม⁠สุ⁠ด⁠ฤ⁠ท⁠ธิ์"
     }
    ],
    "sfx": [
@@ -235,15 +220,15 @@
    "id": "h10",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 9.5,
-   "dur": 1.166657,
+   "in": 11.0,
+   "dur": 0.583323,
    "gain": 0.12,
-   "note": "S1: the collector speaking: the rent",
+   "note": "S2: the collector at the stall",
    "subs": [
     {
-     "at": 0.02,
-     "dur": 1.144,
-     "text": "เจ้าของแผงมาทวงสามพัน"
+     "at": 0.071,
+     "dur": 0.509,
+     "text": "แต่⁠วั⁠น⁠นี้ โด⁠น⁠ท⁠ว⁠ง⁠ส⁠า⁠ม⁠พั⁠น แล้⁠ว⁠ป้⁠า⁠ก็"
     }
    ],
    "sfx": [
@@ -258,15 +243,15 @@
    "id": "h11",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 13.0,
-   "dur": 0.62499,
+   "in": 9.5,
+   "dur": 0.74999,
    "gain": 0.12,
-   "note": "S2: the mother, palms pressed together",
+   "note": "S1: the collector speaking: the rent",
    "subs": [
     {
-     "at": 0.008,
-     "dur": 0.615,
-     "text": "แล้วเธอก็..."
+     "at": 0.0,
+     "dur": 0.748,
+     "text": "แต่⁠วั⁠น⁠นี้ โด⁠น⁠ท⁠ว⁠ง⁠ส⁠า⁠ม⁠พั⁠น แล้⁠ว⁠ป้⁠า⁠ก็"
     }
    ],
    "sfx": [
@@ -281,15 +266,15 @@
    "id": "h12",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 17.0,
-   "dur": 0.583323,
+   "in": 14.5,
+   "dur": 1.208323,
    "gain": 0.12,
-   "note": "S2: the collector looking back: tomorrow noon",
+   "note": "S2: the mother, palms pressed together",
    "subs": [
     {
-     "at": 0.012,
-     "dur": 0.569,
-     "text": "พรุ่งนี้เที่ยง"
+     "at": 0.0,
+     "dur": 1.056,
+     "text": "แต่⁠วั⁠น⁠นี้ โด⁠น⁠ท⁠ว⁠ง⁠ส⁠า⁠ม⁠พั⁠น แล้⁠ว⁠ป้⁠า⁠ก็"
     }
    ],
    "sfx": [
@@ -304,15 +289,15 @@
    "id": "h13",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
-   "in": 52.0,
-   "dur": 0.541657,
+   "in": 17.0,
+   "dur": 0.958323,
    "gain": 0.12,
-   "note": "S7: the son wiping his hands, jaw set",
+   "note": "S2: the collector looking back: tomorrow noon",
    "subs": [
     {
-     "at": 0.0,
-     "dur": 0.539,
-     "text": "ลูกชายต้อง"
+     "at": 0.392,
+     "dur": 0.563,
+     "text": "พ⁠รุ่⁠ง⁠นี้⁠เที่⁠ย⁠ง ลู⁠ก⁠ช⁠า⁠ย⁠ต้⁠อ⁠งท⁠ำ⁠อ⁠ะ⁠ไร⁠บ⁠า⁠ง⁠อ⁠ย่⁠า⁠ง"
     }
    ],
    "sfx": [
@@ -327,15 +312,38 @@
    "id": "h14",
    "kind": "clip",
    "src": "src/ep5-ep1.mp4",
+   "in": 52.0,
+   "dur": 0.708323,
+   "gain": 0.12,
+   "note": "S7: the son wiping his hands, jaw set",
+   "subs": [
+    {
+     "at": 0.0,
+     "dur": 0.706,
+     "text": "พ⁠รุ่⁠ง⁠นี้⁠เที่⁠ย⁠ง ลู⁠ก⁠ช⁠า⁠ย⁠ต้⁠อ⁠งท⁠ำ⁠อ⁠ะ⁠ไร⁠บ⁠า⁠ง⁠อ⁠ย่⁠า⁠ง"
+    }
+   ],
+   "sfx": [
+    {
+     "name": "thud",
+     "at": 0.0,
+     "gain": 0.3
+    }
+   ]
+  },
+  {
+   "id": "h15",
+   "kind": "clip",
+   "src": "src/ep5-ep1.mp4",
    "in": 133.0,
-   "dur": 0.99999,
+   "dur": 1.208323,
    "gain": 0.12,
    "note": "S17: a hand of blank cards fanned out",
    "subs": [
     {
-     "at": 0.012,
-     "dur": 0.986,
-     "text": "ทำอะไรบางอย่าง"
+     "at": 0.0,
+     "dur": 1.168,
+     "text": "พ⁠รุ่⁠ง⁠นี้⁠เที่⁠ย⁠ง ลู⁠ก⁠ช⁠า⁠ย⁠ต้⁠อ⁠งท⁠ำ⁠อ⁠ะ⁠ไร⁠บ⁠า⁠ง⁠อ⁠ย่⁠า⁠ง"
     }
    ],
    "sfx": [
