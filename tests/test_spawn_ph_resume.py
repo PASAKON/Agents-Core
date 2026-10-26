@@ -19,6 +19,7 @@ NAME = f"project_head-{SID}"
 @pytest.fixture
 def locks(tmp_path, monkeypatch):
     monkeypatch.setattr(spawn_ph, "LOCKS_DIR", tmp_path)
+    monkeypatch.setattr(spawn_ph, "BRIEFS_DIR", tmp_path / "briefs")
     monkeypatch.setattr(tmux_session, "has_session", lambda name: False)
     monkeypatch.setattr(clevel_gate, "live_lock", lambda *a: None)
     monkeypatch.setattr(spawn_ph, "SPAWN_PROMPT_DELAY_S", 0)

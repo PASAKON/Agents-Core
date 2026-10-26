@@ -22,7 +22,7 @@ ORG_TEST_DB_URL = os.environ.get("ORG_TEST_DB_URL", "").strip()
 needs_pg = pytest.mark.skipif(not ORG_TEST_DB_URL, reason="ORG_TEST_DB_URL not set (local Postgres 16)")
 
 PORTFOLIO = ("projects", "project_events", "milestones", "ceo_gos",
-             "resource_locks", "post_ledger", "session_heartbeats")
+             "resource_locks", "post_ledger", "session_heartbeats", "orders")
 
 
 def test_every_portfolio_table_is_in_pg_schema_and_not_in_sqlite():

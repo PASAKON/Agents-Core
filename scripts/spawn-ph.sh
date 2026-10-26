@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # spawn-ph.sh — start a Project Head for one project (org restructure P2, plan §3.2).
 #
-#   bash scripts/spawn-ph.sh --project <Name> [--brief-file <path> | --brief <text>] [--dry-run]
+#   bash scripts/spawn-ph.sh --project <Name> --kind finite --due <when> [--brief-file <path>]
+#   bash scripts/spawn-ph.sh --project <Name> --kind loop --cadence <hours>
+#   bash scripts/spawn-ph.sh --resume <session> [--dry-run]
 #
 # Run it from inside a C-level session. The Project Head's lane is your role and
 # its owner is your session; it reports to you and to no one else. Refused unless

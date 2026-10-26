@@ -462,7 +462,7 @@ def test_spawn_ph_from_a_cto_claude_session(ph_dirs, monkeypatch):
     monkeypatch.setenv("CXO_ROLE", "cto")
     monkeypatch.setenv("CTO_SESSION_ID", OWNER)
     assert spawn_ph.refusal("Console") is None
-    assert spawn_ph.spawn("Console", "x", dry_run=True)["owner"] == f"cto-{OWNER}"
+    assert spawn_ph.spawn("Console", "x", dry_run=True, kind="loop", cadence=24)["owner"] == f"cto-{OWNER}"
 
 
 def test_spawn_ph_respects_the_hop_cap(ph_dirs, monkeypatch):
@@ -511,7 +511,7 @@ def test_records_another_user_wrote_are_ignored(ph_dirs, monkeypatch, tmp_path):
 
 def test_spawn_ph_dry_run_writes_nothing(ph_dirs, monkeypatch):
     _as_clevel(monkeypatch)
-    out = spawn_ph.spawn("Console", "brief", dry_run=True)
+    out = spawn_ph.spawn("Console", "brief", dry_run=True, kind="loop", cadence=24)
     cmd = out["command"]
     assert cmd.startswith("unset CTO_SESSION CTO_SESSION_ID CXO_ROLE; ")
     for part in ("ORG_PH_ROLES=1", "ORG_PH_LANE=cto", "ORG_PH_PROJECT=Console",
@@ -538,7 +538,7 @@ def test_spawn_ph_records_owner_before_the_session_starts(ph_dirs, monkeypatch, 
     monkeypatch.setattr(tmux_session, "create", _create)
     monkeypatch.setattr(tmux_session, "capture", lambda name, lines=200: screen)
     monkeypatch.setattr(spawn_ph.subprocess, "run", lambda argv, **k: keys.append(argv[-1]))
-    out = spawn_ph.spawn("Console", "ship the login page")
+    out = spawn_ph.spawn("Console", "ship the login page", kind="loop", cadence=24)
     sid = out["session_id"]
     assert seen["name"] == f"{PH}-{sid}"
     assert seen["owner_at_create"] == f"cxo:cto:{OWNER}"
@@ -558,7 +558,7 @@ def test_spawn_ph_failed_start_leaves_no_claim(ph_dirs, monkeypatch):
 
     monkeypatch.setattr(tmux_session, "create", _boom)
     with pytest.raises(spawn_ph.Refused, match="tmux spawn failed"):
-        spawn_ph.spawn("Console", "x")
+        spawn_ph.spawn("Console", "x", kind="loop", cadence=24)
     # Only the claim lock stays: it is the flock file every spawn shares.
     assert [p.name for p in ph_dirs.iterdir()] == [".ph-projects.flock"]
 
