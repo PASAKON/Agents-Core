@@ -202,7 +202,7 @@ def feed_deadlines(*, dry_run: bool = False, now: datetime | None = None, env: d
     env.setdefault("CXO_SESSION_ID", FEED_SESSION.split("-", 1)[1])
     now = now or datetime.now(timezone.utc)
     todos = due_todos(now, env, fetch)
-    post = (lambda body: print(json.dumps(body, ensure_ascii=False))) if dry_run else (post or _post)
+    post = post or (lambda body: _post(body, dry_run=dry_run))
     out = {"due": len(todos), "queued": 0, "duplicate": 0, "refused": []}
     for todo in todos:
         body = build_payload(deadline_fields(todo), kind="deadline", session=FEED_SESSION, role="cto", env=env)

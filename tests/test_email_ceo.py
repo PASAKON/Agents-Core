@@ -134,9 +134,15 @@ def test_no_merged(monkeypatch):
 def test_dry_run_never_posts(monkeypatch, capsys):
     monkeypatch.setattr(email_ceo, "due_todos", lambda *a: [{"id": "one", "text": "due", "due_at": ""}])
     monkeypatch.setattr(email_ceo.subprocess, "run", lambda *a, **kw: SimpleNamespace(stdout=json.dumps([pr()])))
-    monkeypatch.setattr(email_ceo, "_post", lambda *a, **kw: pytest.fail("dry-run posted"))
+    hub_dry_runs = []
+    def post(body, *, dry_run=False):
+        if not dry_run:
+            pytest.fail("dry-run posted")
+        hub_dry_runs.append(body["kind"])
+        return {"ok": True}
+    monkeypatch.setattr(email_ceo, "_post", post)
     assert email_ceo.main(["deadlines", "--dry-run"]) == 0
     output = capsys.readouterr().out
-    assert '"kind": "deadline"' in output
+    assert hub_dry_runs == ["deadline"]
     assert 'merged-digest dry-run: {"kind": "done"' in output
     assert "Agents-Core 1: #447" in output
