@@ -83,7 +83,7 @@ Checked `HOOK-1` through `HOOK-6` (`0:00` to `0:15`) against `knowledge/brand-kn
 
 - Verified all 80 shots against the exact regexes and rounding arithmetic of `tools/shotsheet_lint.py` (`[ก-ฮ]` consonant count divided by `1.6`, rounded to nearest even integer).
 - Verified that `E1-S24` and its `CHECKED 2026-10-26` OCPB source in section 5 remain completely unchanged.
-- Verified that no `«`, `»`, em dash, or en dash appears anywhere in `docs/scripts/ilag-s1-ep1-SCRIPT-v1.md` or this report.
+- Verified that no guillemet (U+00AB, U+00BB), em dash, or en dash appears anywhere in `docs/scripts/ilag-s1-ep1-SCRIPT-v1.md` or this report.
 - Verified that none of the Flow-filter forbidden words (`บัญชี`, `เปิดบัญชี`, `ยืมชื่อ`, `ค่าหัว`, `ค่าแผงค้าง`, `โอน`, `หลอก`, `ต้ม`, `มิจฉาชีพ`, `ธนาคาร`, `อายัด`, `ระงับ`, `แจ้งความ`, `เงิน`, `แบงก์`, `บาท`, `มึง`, `กู`, `พนัน`, `กุญแจมือ`, `ไซเรน`, `สายด่วน`, or law names) appear in any dialogue line or Flow prompt (including as substrings).
 - **Limitation**: Per the AGY Remote Worker Contract ("For AGY, use file tools only; leave shell validation to the review process"), only file tools (`read_file`, `edit_file`, `write_file`) were used; shell execution of `tools/shotsheet_lint.py` on a temporary adapter file is left to the review process.
 
