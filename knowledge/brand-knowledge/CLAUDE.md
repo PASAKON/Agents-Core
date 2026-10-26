@@ -45,6 +45,7 @@ the CMO; it does not get quietly overridden inside an artifact.
    database or a screenshot.
 3. **No em dash in public copy** — posts, web, ads, any user-facing text
    (IRON-RULES §39). Internal docs are exempt.
+   No `« »` in any Thai text, internal or public (CEO 2026-10-26): straight quotes "..." or none.
 4. **Brand truth lives here, not in the artifact repo.** A brand rule
    discovered while building something gets written back into
    `brands/<brand>/BRAND.md`, not left as a comment in a script.
