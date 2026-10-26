@@ -468,7 +468,7 @@ def test_spawn_still_takes_back_its_files_when_the_launch_fails(box, monkeypatch
     monkeypatch.setattr(spawn_ph.os, "name", "posix")
     monkeypatch.setattr(tmux_session, "create", Mock(side_effect=RuntimeError("no tmux")))
     with pytest.raises(spawn_ph.Refused, match="tmux spawn failed"):
-        spawn_ph.spawn("LuminaSkies", "a brief")
+        spawn_ph.spawn("LuminaSkies", "a brief", kind="loop", cadence=24)
     assert box.claim_files() == []
     assert [p.read_text() for p in box.briefs.iterdir()] == ["tier: normal\na brief"]
 

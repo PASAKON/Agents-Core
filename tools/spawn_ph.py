@@ -466,10 +466,10 @@ def _register_project(plan: dict) -> str:
             if "kind" not in plan:
                 if row is None:
                     raise Refused("resume requires an existing project registry row")
+                # A resume re-uses the row's schedule; an explicit --tier still applies below.
                 conn.execute("UPDATE projects SET ph_session = ? WHERE id = ?",
                              (plan["session_id"], row["id"]))
-                return row.get("tier") or "normal"
-            if row is None:
+            elif row is None:
                 pid = re.sub(r"[^a-z0-9]+", "-", plan["project"].lower()).strip("-")
                 row = pf.open_project(pid, plan["project"], plan["lane"], actor=plan["owner"],
                                       owner_session=plan["owner"], ph_session=plan["session_id"],

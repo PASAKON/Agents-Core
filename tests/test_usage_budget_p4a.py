@@ -201,7 +201,7 @@ def test_spawn_writes_the_registry_tier_into_the_brief(monkeypatch, tmp_path):
     monkeypatch.setattr(send_to_cxo, "record_spawn", lambda *a: None)
     monkeypatch.setattr(tmux_session, "create", lambda *a: None)
     monkeypatch.setattr(spawn_ph, "dismiss_mcp_screen", lambda name: False)
-    spawn_ph.spawn("p", "tier: critical\nWork\n\nBody")
+    spawn_ph.spawn("p", "tier: critical\nWork\n\nBody", kind="loop", cadence=24)
     assert (tmp_path / "brief.md").read_text().startswith("tier: low\nWork")
 
 
