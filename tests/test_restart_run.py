@@ -503,8 +503,9 @@ def test_restart_shell_sessions_only_resumes_without_reboot(tmp_path):
     assert not any(c.startswith('systemd-run') for c in calls)
 
 
-def test_restart_shell_sessions_only_rolls_back_when_prep_fails(tmp_path):
-    result, calls = _shell(tmp_path, '--sessions-only', fail='prep', prep_marker=True)
+@pytest.mark.parametrize('mode', [('--sessions-only',), ()])
+def test_restart_shell_rolls_back_when_prep_fails(tmp_path, mode):
+    result, calls = _shell(tmp_path, *mode, fail='prep', prep_marker=True)
     assert result.returncode == 4
     assert calls[-1].endswith('--host contabo resume')
     assert not any('--notify' in c or c.startswith('systemd-run') for c in calls)
@@ -530,6 +531,20 @@ def test_restart_shell_resumes_when_prep_replaced_stale_marker(tmp_path):
     assert result.returncode == 4
     assert calls[-1].endswith('--host contabo resume')
     assert 'marker predates' not in result.stdout
+
+
+@pytest.mark.parametrize('body', ['naive', 'no_timestamp', 'bad_json'])
+def test_prep_odd_marker_ages_out(tmp_path, monkeypatch, body):
+    current = rr.now()
+    monkeypatch.setattr(rr, 'now', lambda: current)
+    old = current - timedelta(hours=7)
+    path = manifest([entry()])
+    marker = rr.STATE / 'pending-contabo.json'
+    marker.write_text({'naive': json.dumps(dict(timestamp=old.replace(tzinfo=None).isoformat())),
+                       'no_timestamp': '{}', 'bad_json': '{'}[body])
+    for p in (path, marker):
+        os.utime(p, (old.timestamp(), old.timestamp()))
+    assert abs((rr.pending_since(marker, path) - old).total_seconds()) < 1
 
 
 def test_resume_unit_sets_home():

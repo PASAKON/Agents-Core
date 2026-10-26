@@ -212,6 +212,17 @@ def launcher(row, host):
     raise ValueError(f'{role}: launcher cannot preserve session id (COO is service_managed)')
 
 
+def pending_since(marker, manifest_path):
+    """When the pending restart began: the marker's timestamp, else the newest file mtime."""
+    try:
+        timestamp = datetime.fromisoformat(json.loads(marker.read_text())['timestamp'])
+    except (OSError, ValueError, KeyError, TypeError):
+        # A legacy or damaged marker still ages out by its file time.
+        path = marker if marker.exists() else manifest_path
+        timestamp = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+    return timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc)
+
+
 def prep(args):
     plan = json.loads(args.plan.read_text()) if args.plan else restart_plan.build_plan(args.host, now(), STATE)
     if plan.get('host') != args.host:
@@ -254,9 +265,7 @@ def prep(args):
     manifest_path = STATE / f'{args.host}-resume.json'
     marker = STATE / f'pending-{args.host}.json'
     if manifest_path.exists() or marker.exists():
-        timestamp = (datetime.fromisoformat(json.loads(marker.read_text())['timestamp'])
-                     if marker.exists() else
-                     datetime.fromtimestamp(manifest_path.stat().st_mtime, timezone.utc))
+        timestamp = pending_since(marker, manifest_path)
         if (now() - timestamp).total_seconds() <= STALE_HOURS * 3600:
             raise ValueError('pending resume manifest exists; resume/report it before another prep')
         stale_path = manifest_path.with_name(f'{args.host}-resume.stale-{stamp()}.json')

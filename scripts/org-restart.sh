@@ -44,8 +44,9 @@ if "${P[@]}" prep --wait-max 600 "${dry[@]}"; then
 else
   status=$?
   echo "Restart refused: prep exited $status; review the safety-gate output above."
-  # Bring back only sessions covered by this prep's recovery marker.
-  if [[ $mode == sessions && ${#dry[@]} -eq 0 ]]; then
+  # Bring back only sessions covered by this prep's recovery marker; a refused
+  # prep never reboots, so reboot mode needs the same rollback.
+  if (( ${#dry[@]} == 0 )); then
     if [[ -e "$marker" && "$(cat "$marker")" != "$marker_before" ]]; then
       "${P[@]}" resume || true
     elif [[ -n "$marker_before" ]]; then
