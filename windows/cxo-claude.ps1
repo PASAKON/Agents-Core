@@ -468,7 +468,29 @@ $machineLabel = 'WINDOWS'
 # fork, positional prompt.
 $chromeArgs = @()
 if ($isPh) { $chromeArgs = @('--chrome') }
-$fullArgs = @('-n', "$machineLabel $resolvedTabTitle") + $modelArgs +
+$sessionName = "$machineLabel $resolvedTabTitle"
+if (-not $PSBoundParameters.ContainsKey('TabTitle')) {
+    try {
+        Push-Location -LiteralPath $root -ErrorAction Stop
+        try {
+            $nameArgs = @()
+            if ($isPh) { $nameArgs = @('--lane', $Lane, '--project', $Project) }
+            $nameJson = & $venvPy -m lib.session_names name --host winbox --role $Role --sid $sid @nameArgs 2>$null
+            if ($LASTEXITCODE -ne 0) { throw 'Session name helper failed' }
+            if (-not $nameJson) { throw 'Session name helper returned no output' }
+            $ruleName = $nameJson | ConvertFrom-Json -ErrorAction Stop
+            if ($ruleName -isnot [string] -or [string]::IsNullOrWhiteSpace($ruleName)) {
+                throw 'Session name helper returned an invalid name'
+            }
+            $sessionName = $ruleName
+        } finally {
+            Pop-Location
+        }
+    } catch {
+        $sessionName = "$machineLabel $resolvedTabTitle"
+    }
+}
+$fullArgs = @('-n', $sessionName) + $modelArgs +
     @('--permission-mode', 'auto', '--append-system-prompt', $rolePrompt) +
     $mcpArgs + $remoteControlArgs + $chromeArgs + $allowedToolsArgs +
     @('--session-id', $cxoUuid) + $forkArgs + $positional

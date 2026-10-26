@@ -272,9 +272,31 @@ def rule_problem(name: str, role: str, sid: str, host: str | None,
 
 
 if __name__ == "__main__":   # `python lib/session_names.py prefix <host>`: the emoji, or nothing
+    import argparse
+    import json
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "prefix":
         sys.stdout.write(HOST_EMOJI.get(sys.argv[2], ""))
         sys.exit(0)
-    sys.stderr.write("usage: session_names.py prefix <host>\n")
+    if len(sys.argv) > 1 and sys.argv[1] == "name":
+        from lib import config
+
+        parser = argparse.ArgumentParser(prog="python -m lib.session_names name")
+        parser.add_argument("--host", required=True)
+        parser.add_argument("--role", required=True)
+        parser.add_argument("--sid", required=True)
+        parser.add_argument("--lane")
+        parser.add_argument("--project")
+        args = parser.parse_args(sys.argv[2:])
+        if args.role == "project_head":
+            if not (args.lane and args.lane.strip() and args.project and args.project.strip()):
+                parser.error("project_head requires --lane and --project")
+            name = ph_session_name(args.sid, args.lane, args.project, args.host)
+        elif config.is_c_level(args.role):
+            name = clevel_name(args.role, config.persona_for(args.role), args.host)
+        else:
+            parser.error("unknown role: " + args.role)
+        print(json.dumps(name, ensure_ascii=True))
+        sys.exit(0)
+    sys.stderr.write("usage: session_names.py prefix <host> | name --host <host> --role <role> --sid <sid> [--lane <lane>] [--project <Project>]\n")
     sys.exit(2)
