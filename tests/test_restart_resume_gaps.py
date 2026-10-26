@@ -9,6 +9,13 @@ from tests.test_restart_run import args, commands, entry, isolated, manifest, ro
 from tools import clevel_gate, restart_run as rr, spawn_ph, tmux_session
 
 
+@pytest.fixture(autouse=True)
+def _no_hub_registry(monkeypatch):
+    """spawn/resume bind the PH to its hub registry row; these tests have no hub."""
+    from tools import spawn_ph
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: plan.get("tier") or "normal")
+
+
 @pytest.mark.parametrize('active', [False, True])
 @pytest.mark.parametrize('role', ['cto', 'cfo'])
 def test_resume_clears_only_active_scope_before_create(tmp_path, active, role):

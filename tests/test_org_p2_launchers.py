@@ -32,6 +32,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import lib.mailbox as mailbox  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _no_hub_registry(monkeypatch):
+    """spawn/resume bind the PH to its hub registry row; these tests have no hub."""
+    from tools import spawn_ph
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: plan.get("tier") or "normal")
 import tools.agent_transport as agent_transport  # noqa: E402
 import tools.clevel_gate as clevel_gate  # noqa: E402
 import tools.live_sessions as live_sessions  # noqa: E402
@@ -536,7 +543,8 @@ def test_spawn_ph_records_owner_before_the_session_starts(ph_dirs, monkeypatch, 
     assert seen["name"] == f"{PH}-{sid}"
     assert seen["owner_at_create"] == f"cxo:cto:{OWNER}"
     assert (ph_dirs / f"{PH}-{sid}.project").read_text() == "Console"
-    assert Path(out["brief"]).read_text() == "ship the login page"
+    # P1a: the brief opens with the registry tier.
+    assert Path(out["brief"]).read_text() == "tier: normal\nship the login page"
     # Escape only on the MCP-servers screen: anywhere else it interrupts the first turn.
     assert keys == (["Escape"] if escape else []) and out["mcp_screen_dismissed"] is escape
 
