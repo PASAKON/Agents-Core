@@ -23,14 +23,26 @@ SomPong session (uid sompong)
 
 | entry point | guard |
 |---|---|
-| `runners/coo_gate.py` `op_create_task`, `op_delegate_task` | `lib/coo_policy.check_role` before any hub write; the dispatcher checks again before a worker starts |
+| `runners/coo_gate.py` `op_create_task`, `op_delegate_task`, `op_respawn_clevel` | `lib/coo_policy.check_role` for worker tasks (`check_respawn` + strict key set `{op, session_id, role, host}` + rate limits for `respawn_clevel`) before any hub write; the dispatcher checks again before starting a worker or C-level |
 | `lib/db.create_task` (every Python path that inserts a task) | `coo_policy.check_role(owner_role, role)` right after the owner is resolved |
-| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three roles, three event kinds, its own charter |
+| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three worker roles, three task-bound event kinds (`task_created`, `coo_delegate_request`, `coo_close_request`), taskless `coo_respawn_request` (`task_id IS NULL`, JSON payload keys `role` in `{cto, cmo, cgo, cfo}`, `host = 'contabo'`, non-empty `by_session`), and its own charter |
 
-`org_coo` holds INSERT on the create columns of `tasks`, INSERT on `events`, SELECT on `tasks`,
-four `c_level_sessions` columns plus UPDATE of `charter`, and SELECT on the `live_hosts` /
-`live_sessions` columns the live list needs. Nothing else: no UPDATE of a task, no DELETE, no other
-table. The SQL proves it at the end of every run (§6).
+`org_coo` holds INSERT on the create columns of `tasks`, INSERT on `events`, SELECT on the
+owner-owned security-barrier view `coo_respawn_events` (only respawn request/done events),
+SELECT on `tasks`, five `c_level_sessions` columns plus UPDATE of
+`charter`, and SELECT on the `live_hosts` / `live_sessions` columns the live list needs. Nothing
+else: no UPDATE of a task, no DELETE, no other table. The SQL proves it at the end of every run (§6).
+
+## C-level respawn
+
+The dispatcher selects the role's most recently started Contabo session from
+`c_level_sessions` (including legacy rows with an empty host; ties use session ID)
+and resolves its session ID with `scripts/resolve-resume-id.sh`
+as root. A resolved UUID supplies the resume source and its last eight hex digits
+supply the short ID. The launcher forks into a new UUID ending in that short ID
+and records the destination UUID in the lock file. Without a resolved UUID, the
+dispatcher starts a fresh session. Live rows, the role flock, tmux sessions, and
+rate limits must all permit the launch.
 
 ## The research box (`runners/coo_worker.py`)
 

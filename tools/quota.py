@@ -659,6 +659,8 @@ def write_snapshot(
             temp_path = Path(f.name)
             json.dump(payload, f, ensure_ascii=False, indent=2)
             f.write("\n")
+        # Public quota data: SomPong reads this without the secretary group's credentials.
+        temp_path.chmod(0o644)
         os.replace(temp_path, p)
     except Exception:
         if temp_path and temp_path.exists():

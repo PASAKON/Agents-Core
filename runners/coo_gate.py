@@ -55,6 +55,8 @@ LIST_LIMIT = 50
 CLOSABLE = ("review", "failed", "stalled", "blocked_human")
 TASK_FIELDS = ("id", "role", "title", "status", "runner", "runner_model", "report",
                "delegate_log", "created_at", "updated_at", "owner_cto")
+RESPAWN_FIELDS = frozenset({"op", "session_id", "role", "host"})
+RESPAWN_STATUS_FIELDS = frozenset({"op", "session_id", "request_id"})
 
 log = logging.getLogger("coo_gate")
 
@@ -210,6 +212,106 @@ def op_live_sessions(req: dict, uid: int) -> dict:
         return {"text": live_sessions.render(conn, all_roles=bool(req.get("all")))}
 
 
+def op_respawn_clevel(req: dict, uid: int, *, now=None) -> dict:
+    """Queue a C-level respawn request on Contabo (CEO pick #18, 2026-10-26).
+
+    Accepts ONLY {op, session_id, role, host}: no prompt, brief, argv, id or uuid from the COO may
+    reach the new session. Rate-limited here and again in runners/coo_dispatch.py."""
+    extra = sorted(set(req) - RESPAWN_FIELDS)
+    if extra:
+        raise Refused(
+            f"respawn_clevel accepts only role, host, session_id (unexpected: {', '.join(extra)})"
+        )
+    session_id = _text(req, "session_id", 64)
+    role = _text(req, "role", 40)
+    host = _text(req, "host", 40)
+    try:
+        coo_policy.check_respawn(role, host)
+    except coo_policy.CooRoleRefused as e:
+        raise Refused(str(e)) from e
+    _coo_session(session_id)
+    with db.get_conn() as conn:
+        rows = [
+            dict(r) for r in conn.execute(
+                "SELECT id, payload, ts FROM coo_respawn_events WHERE kind=?",
+                ("coo_respawn_request",),
+            ).fetchall()
+        ]
+        reason = coo_policy.respawn_rate_limit_reason(rows, role, now=now)
+        if reason:
+            raise Refused(reason)
+        payload = {"role": role, "host": host, "by_session": session_id}
+        db.log_event(conn, None, "coo_gate", "coo_respawn_request", payload)
+        # events.payload is text: match by_session and role in Python, so the
+        # same SQL runs on Postgres and the SQLite tests.
+        request_id = 0
+        for ev in conn.execute(
+            "SELECT id, payload FROM coo_respawn_events WHERE kind=? ORDER BY id DESC LIMIT 20",
+            ("coo_respawn_request",),
+        ).fetchall():
+            raw = ev["payload"]
+            p = json.loads(raw) if isinstance(raw, str) else (raw or {})
+            if isinstance(p, dict) and p.get("by_session") == session_id and p.get("role") == role:
+                request_id = int(ev["id"])
+                break
+    return {"request_id": request_id, "role": role, "host": host, "queued": True}
+
+
+def op_respawn_status(req: dict, uid: int) -> dict:
+    """Read the dispatcher's coo_respawn_done event for a prior coo_respawn_request id."""
+    extra = sorted(set(req) - RESPAWN_STATUS_FIELDS)
+    if extra:
+        raise Refused(
+            f"respawn_status accepts only request_id, session_id (unexpected: {', '.join(extra)})"
+        )
+    if req.get("session_id") is not None:
+        _coo_session(_text(req, "session_id", 64))
+    request_id = req.get("request_id")
+    if isinstance(request_id, bool) or not isinstance(request_id, int) or request_id < 1:
+        raise Refused("request_id must be a positive integer")
+    with db.get_conn() as conn:
+        req_row = conn.execute(
+            "SELECT id, payload, ts FROM coo_respawn_events WHERE id=? AND kind=?",
+            (request_id, "coo_respawn_request"),
+        ).fetchone()
+        if req_row is None:
+            raise Refused(f"respawn request {request_id} not found")
+        raw_req = req_row["payload"]
+        req_payload = json.loads(raw_req) if isinstance(raw_req, str) else (raw_req or {})
+        done_rows = conn.execute(
+            "SELECT id, payload, ts FROM coo_respawn_events WHERE kind=? AND id>? ORDER BY id ASC",
+            ("coo_respawn_done", request_id),
+        ).fetchall()
+    for row in done_rows:
+        raw_done = row["payload"]
+        try:
+            done_payload = json.loads(raw_done) if isinstance(raw_done, str) else (raw_done or {})
+        except ValueError:
+            continue
+        if not isinstance(done_payload, dict):
+            continue
+        rid = done_payload.get("request_id")
+        if rid == request_id:
+            return {
+                "request_id": request_id,
+                "done": True,
+                "respawn_ok": bool(done_payload.get("ok")),
+                "role": done_payload.get("role"),
+                "host": done_payload.get("host"),
+                "mode": done_payload.get("mode"),
+                "sid": done_payload.get("sid"),
+                "uuid": done_payload.get("uuid"),
+                "reason": done_payload.get("reason"),
+                "event": done_payload,
+            }
+    return {
+        "request_id": request_id,
+        "done": False,
+        "role": req_payload.get("role"),
+        "host": req_payload.get("host"),
+    }
+
+
 OPS: dict[str, Callable[[dict, int], dict]] = {
     "ping": op_ping,
     "set_charter": op_set_charter,
@@ -219,6 +321,8 @@ OPS: dict[str, Callable[[dict, int], dict]] = {
     "list_tasks": op_list_tasks,
     "close_task": op_close_task,
     "live_sessions": op_live_sessions,
+    "respawn_clevel": op_respawn_clevel,
+    "respawn_status": op_respawn_status,
 }
 
 
