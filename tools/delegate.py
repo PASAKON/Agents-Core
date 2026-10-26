@@ -2461,6 +2461,9 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
     # Off the event loop: a cold quota read is an ssh + a CLI call.
     routed = await asyncio.to_thread(_route_runner, task, role_name, resolved_host)
     if routed == "defer":
+        if dry_run:
+            # A preview never queues: a queued task is spawned for real once the budget allows.
+            return {**db.get_task(task_id), "dry_run": True, "would": "tier_defer"}
         from tools import budget_queue
         from lib import portfolio
         ahead = budget_queue.enqueue(task_id, task.get("owner_cto"), tier=portfolio.tier_for(task))

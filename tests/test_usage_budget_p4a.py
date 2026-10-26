@@ -286,3 +286,52 @@ def test_delegate_deferral_queues_without_spawning(routing, monkeypatch):
     assert "queued for budget (0 ahead)" in result["delegate_log"]
     assert budget_queue.is_queued(task["id"])
     assert "runner" not in result
+
+
+def test_concurrent_enqueues_keep_every_task(routing, monkeypatch):
+    # Review task-35ff509d: an unlocked read/modify/write dropped one of two racing enqueues.
+    import threading
+    real_load = budget_queue.disk_queue.all_entries
+    barrier = threading.Barrier(2, timeout=2)
+
+    def slow_load(*, path=None):
+        rows = real_load(path=path)
+        try:
+            barrier.wait()        # without the lock both threads read the empty queue here
+        except threading.BrokenBarrierError:
+            pass                  # with the lock the second thread waits outside: expected
+        return rows
+    monkeypatch.setattr(budget_queue.disk_queue, "all_entries", slow_load)
+    threads = [threading.Thread(target=budget_queue.enqueue, args=(t, "ph")) for t in ("task-a", "task-b")]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    monkeypatch.setattr(budget_queue.disk_queue, "all_entries", real_load)
+    assert sorted(e["task_id"] for e in budget_queue.all_entries()) == ["task-a", "task-b"]
+
+
+def test_a_failing_head_rotates_to_the_tail(routing, monkeypatch):
+    from runners import watchdog
+    budget_queue.enqueue("task-a", "ph")
+    budget_queue.enqueue("task-b", "ph")
+    monkeypatch.setattr(budget_queue, "ready", lambda entry, **kw: True)
+    monkeypatch.setattr(watchdog.db, "get_task", lambda t: {"id": t, "status": "pending", "owner_cto": "ph"})
+    tried = []
+
+    async def fail(task_id, **kw):
+        tried.append(task_id)
+        raise PermissionError("role not allowed")
+    monkeypatch.setattr(watchdog.delegate, "delegate_task", fail)
+    for _ in range(3):
+        watchdog._drain_budget_queue()
+    assert tried == ["task-a", "task-b", "task-a"]
+    assert sorted(e["task_id"] for e in budget_queue.all_entries()) == ["task-a", "task-b"]
+
+
+def test_queue_write_is_atomic_and_pop_keeps_the_rest(routing):
+    budget_queue.enqueue("task-a", "ph")
+    budget_queue.enqueue("task-b", "ph")
+    budget_queue.pop("task-a")
+    assert [e["task_id"] for e in budget_queue.all_entries()] == ["task-b"]
+    assert not budget_queue.QUEUE_PATH.with_name(budget_queue.QUEUE_PATH.name + ".tmp").exists()

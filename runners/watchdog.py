@@ -947,6 +947,8 @@ def _drain_budget_queue() -> dict | None:
         try:
             row = asyncio.run(delegate.delegate_task(task_id))
         except Exception as exc:
+            # To the tail: a task that always fails must not starve the entries behind it.
+            budget_queue.requeue(task_id, task.get("owner_cto"), tier=entry.get("tier", "normal"))
             return {"task": task_id, "error": type(exc).__name__}
         if row and (row.get("status") != "pending" or row.get("assigned_agent")
                     or row.get("spawned_at") != task.get("spawned_at")):
@@ -954,8 +956,7 @@ def _drain_budget_queue() -> dict | None:
         elif row:
             # A reset grants a retry, not a permanent bypass. A new refusal
             # joins today's queue at the tail and cannot starve later entries.
-            budget_queue.pop(task_id)
-            budget_queue.enqueue(task_id, task.get("owner_cto"), tier=entry.get("tier", "normal"))
+            budget_queue.requeue(task_id, task.get("owner_cto"), tier=entry.get("tier", "normal"))
         return {"task": task_id}
     return None
 
