@@ -13,7 +13,7 @@ The rule "ตัวละครขับเนื้อเรื่อง — �
 `CMO_Standard_Story_ThaiMoralDrama` as a TEST ("strip the images, read the dialogue cold") rather
 than as a CONSTRAINT ("every shot carries a line"). A test run after the fact
 does not stop anyone writing 24 silent shots, and on 2026-09-18 it did not: Act 1
-of «บัญชี» went to camera 50% silent, with two unbroken 48-second stretches
+of "บัญชี" went to camera 50% silent, with two unbroken 48-second stretches
 carrying plot the audience could only get by looking.
 
 Worse, the artefact used to run that test — a transcript file containing only the

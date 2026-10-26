@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Mechanically check «บัญชี» clips against the shot sheet that produced them.
+"""Mechanically check "บัญชี" clips against the shot sheet that produced them.
 
 Why this exists: the first Act 1 cut was rejected with "ดูไม่รู้เรื่องเลย", and
 the cause turned out to be measurable — the film spoke for about two seconds of

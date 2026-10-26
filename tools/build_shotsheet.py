@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Render a «บัญชี» shot sheet from its data file.
+"""Render a "บัญชี" shot sheet from its data file.
 
 Why this exists: in the first Act 1 shoot the bedroom rendered as two different
 rooms on the same location chip, the grandmother sat up because one prompt forgot
@@ -75,7 +75,7 @@ def check_plates(d) -> None:
 def build(d, act: str = "?") -> str:
     out, t = [], 0.0
     total_cost = 0
-    out.append(f"# «บัญชี» — องก์ {act}\n")
+    out.append(f"# บัญชี — องก์ {act}\n")
     out.append(f"**สร้างจาก `docs/scripts/banchi-ACT{act}.data.py` ด้วย `tools/build_shotsheet.py` — "
                "ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**\n")
     out.append("Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1\n")
