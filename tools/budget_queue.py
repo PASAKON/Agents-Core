@@ -2,6 +2,7 @@
 import contextlib
 import json
 import os
+import stat
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,13 +16,24 @@ except ImportError:          # Windows: lock byte 0 of the lock file instead
     fcntl = None
 
 QUEUE_PATH = Path(__file__).resolve().parent.parent / "state" / "budget_queue.jsonl"
+_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)    # no O_NOFOLLOW on Windows
+
+
+def _open_regular(path, flags):
+    """Open without following a planted symlink: state/ is group-writable and root writes here."""
+    fd = os.open(path, flags | _NOFOLLOW, 0o664)
+    if not stat.S_ISREG(os.fstat(fd).st_mode):
+        os.close(fd)
+        raise OSError(f"{path} is not a regular file")
+    return fd
 
 
 @contextlib.contextmanager
 def _locked(path):
     """One writer at a time: delegate enqueues and the watchdog pops/rotates in other processes."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path.with_name(path.name + ".lock"), "a+") as fh:
+    fd = _open_regular(path.with_name(path.name + ".lock"), os.O_RDWR | os.O_CREAT)
+    with os.fdopen(fd, "a+") as fh:
         if fcntl:
             fcntl.flock(fh, fcntl.LOCK_EX)
         else:
@@ -45,7 +57,10 @@ def _locked(path):
 def _save(entries, path):
     """Write a temp file and rename it over the queue: a crash never leaves a truncated queue."""
     tmp = path.with_name(path.name + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as fh:
+    with contextlib.suppress(FileNotFoundError):
+        os.unlink(tmp)                      # a stale tmp from a crash, or a planted link
+    fd = _open_regular(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
         fh.write("".join(json.dumps(e, ensure_ascii=False) + "\n" for e in entries))
         fh.flush()
         os.fsync(fh.fileno())
