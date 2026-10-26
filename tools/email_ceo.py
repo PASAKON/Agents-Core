@@ -32,7 +32,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pwd
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -117,7 +119,9 @@ def _post(body: dict, *, dry_run: bool = False) -> dict:
         msg = f"hub refused ({e.code}: {got.get('error', 'error')}{'; ' + detail if detail else ''})"
         if got.get("hint"):
             msg += f": {got['hint']}"
-        raise Refused(msg) from None
+        refused = Refused(msg)
+        refused.status = e.code
+        raise refused from None
     except (urllib.error.URLError, OSError) as e:
         raise HubError(f"hub unreachable at {ask_run.base_url()}: {getattr(e, 'reason', e)}", transient=True) from None
 
@@ -198,7 +202,7 @@ def feed_deadlines(*, dry_run: bool = False, now: datetime | None = None, env: d
     env.setdefault("CXO_SESSION_ID", FEED_SESSION.split("-", 1)[1])
     now = now or datetime.now(timezone.utc)
     todos = due_todos(now, env, fetch)
-    post = post or (lambda body: _post(body, dry_run=dry_run))
+    post = (lambda body: print(json.dumps(body, ensure_ascii=False))) if dry_run else (post or _post)
     out = {"due": len(todos), "queued": 0, "duplicate": 0, "refused": []}
     for todo in todos:
         body = build_payload(deadline_fields(todo), kind="deadline", session=FEED_SESSION, role="cto", env=env)
@@ -211,6 +215,79 @@ def feed_deadlines(*, dry_run: bool = False, now: datetime | None = None, env: d
             else:
                 out["refused"].append(f"{body['ref']}: {e}")
     return out
+
+
+def merged_fields(prs: list[dict], now: datetime) -> dict | None:
+    """Compact repository totals, with detail available through the search link."""
+    repos: dict[str, set[int]] = {}
+    for pr in prs:
+        name = pr["repository"]["nameWithOwner"]
+        number = pr["number"]
+        if not isinstance(name, str) or not re.fullmatch(r"PASAKON/[\w.-]+", name):
+            raise ValueError("invalid repository")
+        if type(number) is not int or number <= 0:
+            raise ValueError("invalid PR number")
+        repos.setdefault(name.split("/", 1)[1], set()).add(number)
+    if not repos:
+        return None
+    window = f"{(now - timedelta(hours=24)).isoformat()}..{now.isoformat()}"
+    query = f"org:PASAKON is:pr is:merged merged:{window}"
+    link = "https://github.com/search?" + urllib.parse.urlencode({"q": query, "type": "pullrequests"})
+    lines = []
+    shown = 3 if len(repos) <= 3 else 2
+    for name, numbers in sorted(repos.items())[:shown]:
+        prefix = f"{name} {len(numbers)}:"
+        if len(prefix) > 75:
+            prefix = f"{name[:60]}… {len(numbers)}:"
+        line = prefix
+        for number in sorted(numbers):
+            token = f" #{number}"
+            if len(line + token) > 88:
+                line += " …"
+                break
+            line += token
+        lines.append(line)
+    if len(repos) > shown:
+        lines.append(f"+{len(repos) - shown} repo …")
+    return {"title": f"merge แล้ว 24 ชม.: {sum(map(len, repos.values()))} PR",
+            "why": "\n".join(lines), "link": link,
+            "ref": f"merge-digest-{now.astimezone(THAI):%Y-%m-%d}"}
+
+
+def feed_merged(*, dry_run: bool = False, now: datetime | None = None,
+                env: dict | None = None, runner=None) -> dict:
+    """One gh search; failures never change the deadline feed's result."""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    env = dict(os.environ if env is None else env)
+    env.setdefault("CXO_ROLE", "cto")
+    try:
+        if not env.get("HOME"):
+            env["HOME"] = pwd.getpwuid(os.getuid()).pw_dir
+        window = f"{(now - timedelta(hours=24)).isoformat()}..{now.isoformat()}"
+        result = (runner or subprocess.run)(
+            ["gh", "search", "prs", "--owner", "PASAKON", "--merged", "--merged-at", window,
+             "--limit", "1000", "--json", "number,repository"],
+            env=env, capture_output=True, text=True, check=True, timeout=60)
+        prs = json.loads(result.stdout)
+        if not isinstance(prs, list):
+            raise ValueError("expected list")
+        fields = merged_fields(prs, now)
+        if fields is None:
+            return {"sent": 0, "status": "no merged PRs"}
+        if dry_run:
+            body = build_payload(fields, kind="done", session=FEED_SESSION, role="cto", env=env)
+            print("merged-digest dry-run: " + json.dumps(body, ensure_ascii=False))
+            return {"sent": 0, "status": "dry-run"}
+        try:
+            send(fields, kind="done", session=FEED_SESSION, role="cto", env=env)
+        except Refused as e:
+            if getattr(e, "status", None) == 409:
+                return {"sent": 1, "status": "already sent"}
+            raise
+        return {"sent": 1}
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, Refused, HubError):
+        print("email_ceo: merged-digest unavailable; skipped", file=sys.stderr)
+        return {"sent": 0, "status": "unavailable"}
 
 
 # ------------------------------------------------------------------ CLI
@@ -232,6 +309,7 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--dry-run", action="store_true", help="show the mail the hub would send; send nothing")
     d = sub.add_parser("deadlines", help="timer: his LungNote to-dos due within 24 h → kind=deadline")
     d.add_argument("--dry-run", action="store_true")
+    d.add_argument("--no-merged", action="store_true", help="skip the daily merged-PR digest")
     return ap
 
 
@@ -242,7 +320,12 @@ def main(argv: list[str] | None = None) -> int:
             fields = {k: getattr(args, k) for k in FIELDS}
             got = send(fields, kind=args.kind, session=args.session, role=args.role, dry_run=args.dry_run)
         else:
-            got = feed_deadlines(dry_run=args.dry_run)
+            try:
+                got = feed_deadlines(dry_run=args.dry_run)
+            finally:
+                if not args.no_merged:
+                    merged = feed_merged(dry_run=args.dry_run)
+                    print("merged-digest: " + json.dumps(merged, ensure_ascii=False))
     except Refused as e:
         print(f"email_ceo: refused: {e}", file=sys.stderr)
         return EXIT_REFUSED
