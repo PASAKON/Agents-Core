@@ -2,7 +2,7 @@
 
 ## 1. Layout
 
-Mandate supplied by task: CEO card Q-20261026-0814-e94a says every project belongs in Org-Infra with explicit scopes; C-levels may create/delete provider keys through KeyFetch. Card text independently located: not found in the repo.
+Mandate: CEO card Q-20261026-0814-e94a (choice "ทุก project รวม Org-Infra"): every project belongs in Org-Infra with explicit scopes, and C-levels may create/delete provider keys through KeyFetch. Recorded in `.claude/skills/ALL_Rules_Approvals/SKILL.md` rule 2 and `CLAUDE.md` §Secrets; until this design lands the tools refuse Org-Infra.
 Use one Infisical project, `Org-Infra`, environments `dev` and `prod`, project namespaces `/<Project>`; preserve existing subfolders beneath them.
 Keep existing infrastructure job folders `/dns`, `/deploy`, `/repo`, `/net`, `/db`, `/vault` in prod only, avoiding a disruptive rename; current list: `tools/infisical_setup.py:110`.
 Runtime names and metadata move unchanged, following `docs/design/secrets-infisical/PLAN.md:203` and `docs/design/secrets-infisical/PLAN.md:206`; retain infra naming/expiry/blast-radius rules from `docs/design/secrets-infisical/PLAN.md:127`.
