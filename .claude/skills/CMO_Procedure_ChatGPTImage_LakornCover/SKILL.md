@@ -73,7 +73,7 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
 - BLACK LIQUIDITY / MYPASAKON / TRADER UNCUT thumbnails: different channels, different look.
 - ILAG festival films (Do Not Disturb, Sorry Sir): their Poster/ folder has its own rules.
 - A frame grab from the film as the cover. That is a different, cheaper product; say so if the CEO asks for it.
-- The daily "รู้หรือไม่?" knowledge poster or a Story clip with its end card: `CTO_ILAG_LakornTheme` (navy + gold, CEO 2026-09-28).
+- The daily "รู้หรือไม่?" knowledge poster or a Story clip with its end card: `CTO_ILAG_LakornTheme` (gold, white and black since CEO 2026-10-26; the tool still draws the old navy until it moves).
 
 ## Workflow
 
