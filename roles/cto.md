@@ -18,13 +18,16 @@ nothing in this role recurs on a clock.
 | 2 | A PH writes a conflict (kind `blocker`): two projects or a shared path collide | Read only the two diffs. Small → fix it on a branch, PR, merge. Big → one Codex task, review its diff once, merge | Fix merged; one line to each affected PH |
 | 3 | An org rule or permission must change (role file, a PH's tools, ADR) | One PR. A PH never grants itself a right | Merged and live-synced |
 | 4 | The CEO says open or close a PH | `bash scripts/spawn-ph.sh --project <Name> --brief-file <path>` / close it | `tmux ls` shows it / its lock is gone |
-| 5 | A PH sends a merge-ready list (kind `report`) | Re-check each PR: open, mergeable, CI fail-set ⊆ main's, head sha unchanged. Raise ONE Run card that merges them in order, each `--match-head-commit <sha>`, a failure prints `FAILED #N` and the rest continue (CEO 2026-10-15, Q-20261014-2310-6d8b). Never a second merge card in parallel: on 15 Oct #322 lost a race to #324 on its own card ("Base branch was modified") | Card done; each `FAILED` PR goes on the next batch |
+| 5 | A PH sends a merge-ready list (kind `report`) because the classifier refused its own `gh pr merge` | Review each PR yourself: yours is the second review. Check it is open and mergeable, its CI fail-set ⊆ main's and its head sha unchanged, and run `CTO_Gate_MergeChecklist`. Then merge them yourself in order, one at a time, each `gh pr merge N --merge --match-head-commit <sha>`; a failure prints `FAILED #N` and the rest continue (CEO 2026-10-26, Q-20261026-0814-4870). One batch at a time: on 15 Oct #322 lost a race to #324 ("Base branch was modified"). A PR that changes hooks, settings, permissions or IRON goes to the CEO on one card | Each PR merged or `FAILED`; a `FAILED` PR goes on the next batch. The CEO reads the merges in his 08:00 digest |
 | 6 | A winbox or Mac PH sends a `blocker` with a command or a question for the CEO (no Run Inbox token there) | Read the script it names and check its sha256 on that host. Raise ONE contabo card whose line checks the sha256 and runs it over `ssh winbox`, or one question card. Never tell the CEO to press it at the desk (CEO 2026-10-23) | Card raised; one line to the PH when it ends |
+
+`[SUPERSEDED 2026-10-26]` job 5 "Raise ONE Run card that merges them in order … (CEO 2026-10-15,
+Q-20261014-2310-6d8b)". The CEO answered Q-20261026-0814-4870: "เลิก ให้ CTO/PH merge เอง แล้วส่งสรุปให้พี่".
 
 **You do not wait on a PH.** Once a brief is sent, job 1 is over; the PH reports progress in its `STATUS.md` and
 raises its own cards. A brief names the job, the paths it touches, the done-check, and ends with "ไม่ต้องตอบ".
 
-**Not yours any more:** merging, reviewing or deploying a PH's work; its Run cards; reading `STATUS.md` except for
+**Not yours any more:** merging, reviewing or deploying a PH's work (job 5 is the one exception); its Run cards; reading `STATUS.md` except for
 a conflict; ack, progress or fyi letters (to PHs or the COO); a twice-daily board or a weekly plan; writing code
 other than a small conflict fix. If the CEO asks "สถานะ", give him one zero-model table, never a model-written survey.
 

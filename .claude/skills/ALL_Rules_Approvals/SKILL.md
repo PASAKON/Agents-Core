@@ -2,7 +2,7 @@
 name: ALL_Rules_Approvals
 kind: rules
 owner: COO
-description: RULES — What needs the CEO and what does not (CEO ruling 2026-09-27) — own-lane work and skills, cross-lane skills without asking, money / secrets / permanent deletion / speaking in his name need him, deploys are the CTO's call. Trigger on /ALL_Rules_Approvals, "ต้องขออนุมัติไหม", "ขออนุมัติ", "need approval", "can I deploy", "ใช้ skill สายอื่นได้ไหม".
+description: RULES — What needs the CEO and what does not (CEO ruling 2026-09-27) — own-lane work and skills, cross-lane skills without asking, money / secrets / permanent deletion / speaking in his name need him, deploys and merges are the CTO's and PHs' call, and the four checks every card, relay request or alert passes before it reaches him (2026-10-26). Trigger on /ALL_Rules_Approvals, "ต้องขออนุมัติไหม", "ขออนุมัติ", "need approval", "can I deploy", "ใช้ skill สายอื่นได้ไหม", "ส่งการ์ดหา CEO", "raise a card".
 created_by: agent
 author: {role: cto, date: "2026-09-27"}
 audience: [all]
@@ -44,13 +44,52 @@ moment of spending; this file is the org rule they all point to.
    name and cannot be unsent.
 5. **Deploys are the CTO's call.** The CTO deploys when its checklist is green, announces it with a rollback
    line, and reports after. Another lane that needs a deploy hands it to the CTO rather than deploying.
-   Code merges were already the CTO's (CEO 2026-09-19).
+   Code merges were already the CTO's (CEO 2026-09-19). Merges need no CEO card: the CTO and each PH merge
+   their own after `CTO_Gate_MergeChecklist`, and he reads them in the 08:00 digest. A PR that changes hooks,
+   settings, permissions or IRON still goes to him (CEO 2026-10-26, Q-20261026-0814-4870: "เลิก ให้ CTO/PH merge
+   เอง แล้วส่งสรุปให้พี่").
 6. **Work your own lane; borrow another lane's skill when the job needs it, without asking.** Code → CTO,
    content / film / posters / posts → CMO, metrics and A/B results → CGO, money → CFO, portfolio and the
    org system → COO. When you borrow, file what you learned back into the owner skill as a Field note and
    write the borrowing in the project's `STATUS.md`, so the COO sees which lanes lack a skill.
 7. Story, characters, lines, the ending and the order of a film are the director's (`CMO_Knowledge_Film_Production`
    §10). Not a gate: a boundary on what is ours to decide.
+
+## Before anything reaches the CEO: the filter (CEO 2026-10-26)
+
+> CEO 2026-10-26 ~14:50 TH, verbatim: "ช่วยเขียน กฏ หรือ Skill ในการใช้งาน RUN หน่อยว่า สิ่งที่่สงมา
+> ต้องกรองอย่างดีแล้วว่า อันนี้ ต้องให้ CEO ตัดสินใจเท่านั้น หรือเป็น คำสั่งที รันเองไม่ได้อยู่นอกเหนือการควบุคุมจริงๆ
+> ไม่มี ข้อมูลย้อนหลัง ที่เคยตัดสินใจเลยในงานนี้ ไม่มี Premission ที่ CEO เคยให้สิทธ์ไว้เลย"
+> He approved this section on question card Q-20261026-0814-67e0: "ใส่เลย ให้ CTO เกลาคำได้".
+
+Every command card, question card, relay request and alert mail to the CEO passes these four checks first. A
+"yes" to check 1, 2 or 3 means it does not go to him.
+
+1. **Already decided?** His order for this job, typed in your chat or as an answered Q-/RUN- id for the same
+   action: act on it and cite the id. Never ask him twice for one thing.
+2. **Already granted?** Look in this order: this file (rule 3 Green deletes, rule 5 merges and deploys, rule 6
+   lanes), IRON §61 (Green disk), §62 (merge, deploy), §63 item 4 (a C-level decides its lane), your role file,
+   and the job's skill (`CTO_Procedure_KeyFetch`: the worker creates the key, the CEO only logs in). Granted: do
+   it, through a standing op where it needs root.
+3. **Done before?** He approved the same class of action at the same scope before (`tools/ask_run.py list`, the
+   hub ledger, the owner skill's Field notes): it is decided, so do it through a standing op. If no op exists
+   yet, raise the card once with `precedent: <id>` in the why, and send the CTO "needs a standing op: <class>".
+4. **CEO-only?** Only these: money past a standing budget · a secret or an access-control change · a permanent
+   deletion outside the Green list · speaking in his name on a new channel · his personal accounts, devices or
+   billing · an org-wide rule · a login, CAPTCHA or consent only his hands can do · his creative or design
+   choice on his own project · a command that needs root or another host and that no standing op covers. Raise
+   it only then, and start the why with the reason: `money` | `secret` | `deletion` | `his-name` |
+   `his-account` | `org-rule` | `login` | `his-choice` | `no-op`.
+
+Never a card:
+- a report, an ack or "nothing needed from you": that goes in `STATUS.md`, your report or the 08:00 digest;
+- a question whose only options are "รับทราบ" or "ดู";
+- a retry of a failed card before its cause is fixed (one re-raise after an expiry, IRON §63.5);
+- a card another session already raised for the same action: read the pending cards first;
+- a step whose prerequisite he has not done yet: run a read-only probe first, or ask a question card.
+
+**Why:** from 19 to 26 Oct, 73 items reached him. The sender already had the decision for 37 of them, 19 were
+waste or noise, and 17 needed him (SomPong `docs/coo/run-audit-2026-10-26.md`).
 
 ## When the CEO changes a rule
 
