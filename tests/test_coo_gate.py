@@ -394,3 +394,164 @@ def test_coo_ask_run_hub_error_comes_back_as_ok_false(monkeypatch):
     monkeypatch.setattr(ask_run_tool, "submit", boom)
     out = coo_mcp_server.ask_run(host="contabo", why="check the unit", command="uptime")
     assert out == {"ok": False, "error": "the hub is unreachable"}
+
+
+# --------------------------------------------------------------------------- respawn_clevel (CEO pick #18)
+
+def _respawn(role="cto", host="contabo", sid=SID, **extra) -> dict:
+    return coo_gate.handle(
+        {"op": "respawn_clevel", "session_id": sid, "role": role, "host": host, **extra},
+        994,
+    )
+
+
+def _respawn_events() -> list[dict]:
+    with db_mod.get_conn() as conn:
+        rows = conn.execute(
+            "SELECT id, task_id, actor, kind, payload, ts FROM events WHERE kind='coo_respawn_request' ORDER BY id"
+        ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["payload"] = json.loads(d["payload"]) if isinstance(d["payload"], str) else d["payload"]
+        out.append(d)
+    return out
+
+
+@pytest.mark.parametrize("role", ["cto", "cmo", "cgo", "cfo"])
+def test_respawn_policy_and_gate_allow_four_peer_c_levels(role):
+    assert coo_policy.COO_RESPAWN_ROLES == ("cto", "cmo", "cgo", "cfo")
+    coo_policy.check_respawn(role, "contabo")
+    out = _respawn(role=role)
+    assert out["ok"] is True and out["queued"] is True and out["role"] == role and out["host"] == "contabo"
+    assert isinstance(out["request_id"], int) and out["request_id"] >= 1
+    evs = [e for e in _respawn_events() if e["id"] == out["request_id"]]
+    assert len(evs) == 1
+    assert evs[0]["task_id"] is None
+    assert evs[0]["actor"] == "coo_gate"
+    assert evs[0]["payload"] == {"role": role, "host": "contabo", "by_session": SID}
+
+
+@pytest.mark.parametrize("bad_role", ["coo", "researcher", "developer", "project_head", "CTO", ""])
+def test_respawn_gate_refuses_bad_roles(bad_role):
+    out = _respawn(role=bad_role)
+    assert out["ok"] is False
+    assert _respawn_events() == []
+
+
+@pytest.mark.parametrize("bad_host", ["mac", "winbox", "CONTABO", "localhost", ""])
+def test_respawn_gate_refuses_non_contabo_hosts(bad_host):
+    out = _respawn(host=bad_host)
+    assert out["ok"] is False
+    if bad_host.strip():
+        assert "other hosts wait for Run Inbox P2" in out["error"]
+    assert _respawn_events() == []
+
+
+@pytest.mark.parametrize("extra_field,val", [
+    ("prompt", "do something"),
+    ("brief", "secret instructions"),
+    ("argv", ["--dangerously-skip-permissions"]),
+    ("id", "deadbeef"),
+    ("uuid", "d405e3e2-1111-2222-3333-a6f2f69c4825"),
+    ("initial_prompt", "hi"),
+    ("session", "override"),
+])
+def test_respawn_gate_rejects_any_extra_field(extra_field, val):
+    out = _respawn(**{extra_field: val})
+    assert out["ok"] is False and extra_field in out["error"]
+    assert _respawn_events() == []
+
+
+def test_respawn_gate_refuses_non_coo_session():
+    db_mod.register_cxo_session("cto", "ctosess1", "contabo")
+    out = _respawn(sid="ctosess1")
+    assert out["ok"] is False and "not a coo session" in out["error"]
+    assert _respawn_events() == []
+
+
+def test_respawn_gate_rate_limit_one_per_10_min_and_three_per_thai_day(monkeypatch):
+    # 2026-10-26 02:00 UTC == 09:00 Asia/Bangkok.
+    monkeypatch.setattr(coo_gate, "_now", lambda: "2026-10-26T02:00:00+00:00")
+    with db_mod.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_respawn_request', ?, ?)",
+            (json.dumps({"role": "cto", "host": "contabo", "by_session": SID}), "2026-10-26T01:55:00+00:00"),
+        )
+    # 5 min later: refused for cto (10-min cooldown), but cmo is independent and allowed.
+    refused_10m = _respawn(role="cto")
+    assert refused_10m["ok"] is False and "10 min" in refused_10m["error"]
+    allowed_cmo = _respawn(role="cmo")
+    assert allowed_cmo["ok"] is True
+
+    # 15 min after first cto request (02:10 UTC == 09:10 BKK): 2nd cto request today succeeds.
+    monkeypatch.setattr(coo_gate, "_now", lambda: "2026-10-26T02:10:00+00:00")
+    with db_mod.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO events (task_id, actor, kind, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_respawn_request', 'coo_respawn_request', ?, ?)"
+            if False else
+            "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_respawn_request', ?, ?)",
+            (json.dumps({"role": "cto", "host": "contabo", "by_session": SID}), "2026-10-26T02:10:00+00:00"),
+        )
+        conn.execute(
+            "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_respawn_request', ?, ?)",
+            (json.dumps({"role": "cto", "host": "contabo", "by_session": SID}), "2026-10-26T02:30:00+00:00"),
+        )
+    # At 03:00 UTC (10:00 BKK), 3 cto requests already exist in the current Thai day -> 4th refused.
+    monkeypatch.setattr(coo_gate, "_now", lambda: "2026-10-26T03:00:00+00:00")
+    refused_day = _respawn(role="cto")
+    assert refused_day["ok"] is False and "Thai day" in refused_day["error"]
+
+    # At 17:05 UTC == 2026-10-27 00:05 Asia/Bangkok (next Thai day, still 2026-10-26 in UTC!): allowed!
+    monkeypatch.setattr(coo_gate, "_now", lambda: "2026-10-26T17:05:00+00:00")
+    allowed_next_thai_day = _respawn(role="cto")
+    assert allowed_next_thai_day["ok"] is True
+
+
+def test_sql_events_guard_allows_only_narrow_coo_respawn_request():
+    sql = (ROOT / "deploy" / "coo-gate" / "org_coo_role.sql").read_text()
+    assert "IF NEW.kind = 'coo_respawn_request' THEN" in sql
+    assert "IF NEW.task_id IS NOT NULL THEN" in sql
+    assert "ARRAY['by_session', 'host', 'role']" in sql
+    m = re.search(r"\(NEW\.payload::jsonb ->> 'role'\) NOT IN \(([^)]*)\)", sql)
+    assert m, "coo_respawn_request role allowlist missing in org_coo_events_guard"
+    assert tuple(re.findall(r"'([a-z_]+)'", m.group(1))) == coo_policy.COO_RESPAWN_ROLES
+    assert "(NEW.payload::jsonb ->> 'host') IS DISTINCT FROM 'contabo'" in sql
+    assert "GRANT SELECT (id, kind, payload, ts), INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;" in sql
+
+
+def test_respawn_status_and_mcp_tool_roundtrip(monkeypatch):
+    assert coo_mcp_server.TOOL_NAMES[-1] == "respawn_clevel"
+    monkeypatch.setenv("CXO_SESSION_ID", SID)
+    monkeypatch.setattr(
+        coo_mcp_server,
+        "call",
+        lambda op, **fields: coo_gate.handle({"op": op, **fields}, 994),
+    )
+    queued = coo_mcp_server.respawn_clevel("cto", "contabo")
+    assert queued["ok"] is True and queued["queued"] is True
+    req_id = queued["request_id"]
+
+    pending_status = coo_mcp_server.respawn_status(req_id)
+    assert pending_status["ok"] is True and pending_status["done"] is False
+
+    with db_mod.get_conn() as conn:
+        db_mod.log_event(
+            conn, None, "coo_dispatch", "coo_respawn_done",
+            {
+                "request_id": req_id,
+                "role": "cto",
+                "host": "contabo",
+                "ok": True,
+                "mode": "resume",
+                "sid": "f69c4825",
+                "uuid": "d405e3e2-1111-2222-3333-a6f2f69c4825",
+                "reason": "resume session started in tmux cto-f69c4825",
+            },
+        )
+    done_status = coo_mcp_server.respawn_clevel(request_id=req_id)
+    assert done_status["ok"] is True and done_status["done"] is True
+    assert done_status["respawn_ok"] is True
+    assert done_status["mode"] == "resume"
+    assert done_status["sid"] == "f69c4825"
+    assert done_status["uuid"] == "d405e3e2-1111-2222-3333-a6f2f69c4825"

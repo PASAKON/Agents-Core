@@ -50,7 +50,8 @@ RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote"
 # The tool names this server serves, in order. cxo_mcp_config builds the coo session's
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
-              "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait")
+              "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait",
+              "respawn_clevel")
 
 
 def session_id() -> str:
@@ -129,6 +130,16 @@ def close_task(task_id: str, result: str = "pass", why: str = "") -> dict:
 
 def live_sessions(all: bool = False) -> dict:
     return call("live_sessions", all=bool(all))
+
+
+def respawn_status(request_id: int) -> dict:
+    return call("respawn_status", request_id=request_id)
+
+
+def respawn_clevel(role: str = "", host: str = "contabo", request_id: int | None = None) -> dict:
+    if request_id is not None:
+        return respawn_status(request_id)
+    return _with_session("respawn_clevel", role=role, host=host)
 
 
 # Run Inbox. tools.ask_run is imported here, not at the top: cxo_mcp_config loads this module under
@@ -262,12 +273,22 @@ def _serve() -> None:
         out = await asyncio.to_thread(ask_run_wait, id, max_wait_s, interval_s, tail_lines)
         return json.dumps(out, indent=2, ensure_ascii=False)
 
+    @mcp.tool(name="respawn_clevel")
+    def _respawn_clevel(role: str = "", host: str = "contabo",
+                        request_id: int | None = None) -> str:
+        """Start or resume a missing peer C-level on Contabo (role: cto, cmo, cgo, or cfo;
+        host must be 'contabo'). Returns {request_id, queued}; pass request_id to read the
+        dispatcher's coo_respawn_done result."""
+        return json.dumps(respawn_clevel(role=role, host=host, request_id=request_id),
+                          ensure_ascii=False)
+
     mcp.run()
 
 
 def _cli(argv: list[str]) -> int:
-    if not argv or argv[0] not in TOOL_NAMES + ("ping",):
-        print(f"usage: --cli <{'|'.join(TOOL_NAMES + ('ping',))}> ['<json args>']", file=sys.stderr)
+    if not argv or argv[0] not in TOOL_NAMES + ("ping", "respawn_status"):
+        print(f"usage: --cli <{'|'.join(TOOL_NAMES + ('ping', 'respawn_status'))}> ['<json args>']",
+              file=sys.stderr)
         return 2
     args = json.loads(argv[1]) if len(argv) > 1 else {}
     if argv[0] == "ping":
