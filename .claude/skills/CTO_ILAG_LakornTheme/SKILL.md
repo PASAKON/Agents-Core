@@ -1,12 +1,23 @@
 ---
 name: CTO_ILAG_LakornTheme
-description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): navy + gold, approved by the CEO 2026-09-28 on EP4 'ขายฝากนาแม่'. Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
+description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of 2026-10-26 (it replaced the navy + gold approved 2026-09-28 on EP4 'ขายฝากนาแม่'; the tool still draws navy until it moves). Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
 audience: [cto, browser_operator, developer]
 ---
 
-# ILAG lakorn theme — navy + gold
+# ILAG lakorn theme — gold, white, black (CEO 2026-10-26)
+
+> "Theme ILAG ที่อยากได้จริงๆ อยากได้ เป็น ทอง ขาว ดำ / ทองสำหรับ พวก font ขอบ หรือจุด เด่น จุดตัด / ส่วน ขาว ดำ เป็น สี
+> หรือ พื้นหลังต่างๆ ให้อารม์ เหมือน YIN YANG ตัวดี ตัว ร้าย เหมือน ดอกบัว ใน โลโก้ของเราที่มี ส่วนขาวและ ส่วนที่ดำ"
+> — CEO, 2026-10-26 (CMO chat)
+
+**The tool has not moved yet.** `tools/ilag_theme.py` and everything below still draw the navy v1 look. Until the
+tool lands the v2 tokens (owner: PH IlagLakorn, d5e4d1fd), do not fire a new navy poster or Story card: ask the PH.
+The v2 palette, the Page's own logo (never redrawn) and the 20-tile channel kit are in
+`knowledge/brand-knowledge/brands/ilag/BRAND.md`. When the tool moves, this skill's tokens and layout follow it.
+
+[SUPERSEDED 2026-10-26 by the ruling above — kept as history:]
 
 > "โปสเตอร์กับ Story ผ่านแล้ว นะ เราต้อง KEEP Theme ไว้นะ เป็นน้ำเงิน เหลือง แบบที่คุณทำ ทั้งโปสเตอร์ และ Card
 > ที่แสดงบน Video เมื่อ Worker ทำออกมาเราจะได้แบบเดิม รวมถึง Font และการจัดวางด้วย / เขียนลง Skill ได้เลย
