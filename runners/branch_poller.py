@@ -47,6 +47,7 @@ sys.path.insert(0, str(ROOT))
 from lib import db, mesh  # noqa: E402
 from lib.config import get_project, host as get_host, self_host  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
+from lib.run_liveness import parse_ts  # noqa: E402
 from tools import delegate as delegate_mod  # noqa: E402
 from tools import tmux_session  # noqa: E402
 from tools.git_ops import _run_shell  # noqa: E402
@@ -74,6 +75,8 @@ EXTERNAL_RUNNERS = ("codex", "agy")
 REVIEW_CLOSE_QUIET_S = 5 * 60
 
 _LOGGER = None
+# Last round diagnosed per task; shared by REPORT and BLOCKER checks.
+_STALE_FILE_ROUNDS: dict[str, float] = {}
 
 
 def _log():
@@ -121,17 +124,38 @@ def read_remote_file(repo_path: str, branch: str, file_name: str) -> str | None:
 
 
 def read_task_file(repo_path: str, branch: str, task_id: str,
-                   file_name: str) -> str | None:
+                   file_name: str, *, started: float | None = None) -> str | None:
     """A worker's REPORT.md / BLOCKER.md as pushed on `branch`:
     `docs/reports/<task-id>/<file_name>` first, then `<file_name>` at the
     repo root (the layout every worker used before W0.6 moved codex/agy
     reports under docs/). The first path that exists wins outright -- a
     docs-path file with the wrong header is refused by the caller, never
-    papered over by a root file that happens to carry the right one."""
-    text = read_remote_file(repo_path, branch, f"docs/reports/{task_id}/{file_name}")
-    if text is not None:
+    papered over by a root file that happens to carry the right one.
+    When `started` is supplied, only a file committed after that epoch is
+    returned; stale or unverifiable files count as absent for this round."""
+    for path in (f"docs/reports/{task_id}/{file_name}", file_name):
+        text = read_remote_file(repo_path, branch, path)
+        if text is None:
+            continue
+        if started is not None:
+            result = _run(["git", "log", "-1", "--format=%ct",
+                           f"origin/{branch}", "--", path], cwd=repo_path)
+            try:
+                committed = int(result.stdout.strip()) if result.returncode == 0 else None
+            except ValueError:
+                committed = None
+            # Without commit evidence, leave this round running and retry.
+            if committed is None or committed <= started:
+                if _STALE_FILE_ROUNDS.get(task_id) != started:
+                    _log().info(
+                        "task %s: ignoring %s on %s for round %s "
+                        "(file commit %s is not after spawn)",
+                        task_id, path, branch, started, committed,
+                    )
+                    _STALE_FILE_ROUNDS[task_id] = started
+                return None
         return text
-    return read_remote_file(repo_path, branch, file_name)
+    return None
 
 
 def remote_commit_age_seconds(repo_path: str, branch: str) -> float | None:
@@ -504,7 +528,10 @@ def check_task(task: dict) -> None:
     if remote_branch_exists(repo_path, branch):
         fetch_branch(repo_path, branch)
 
-        report = read_task_file(repo_path, branch, task_id, "REPORT.md")
+        started = parse_ts(task.get("spawned_at"))
+        # Preserve legacy reads when the row has no usable spawn timestamp.
+        freshness = {"started": started} if started is not None else {}
+        report = read_task_file(repo_path, branch, task_id, "REPORT.md", **freshness)
         if report is not None:
             header_id = _header_task_id(report, "REPORT")
             if header_id != task_id:
@@ -549,7 +576,7 @@ def check_task(task: dict) -> None:
                 _maybe_close_finished_remote_worker(task_id, repo_path, branch)
             return
 
-        blocker = read_task_file(repo_path, branch, task_id, "BLOCKER.md")
+        blocker = read_task_file(repo_path, branch, task_id, "BLOCKER.md", **freshness)
         if blocker is not None:
             header_id = _header_task_id(blocker, "BLOCKER")
             if header_id != task_id:
