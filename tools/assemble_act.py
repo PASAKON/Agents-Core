@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Concatenate a «บัญชี» act's clips into one file, and refuse to lie about it.
+"""Concatenate a "บัญชี" act's clips into one file, and refuse to lie about it.
 
     python3 tools/assemble_act.py ~/Desktop/banchi-ACT1-v2 \
                                   docs/scripts/banchi-ACT1.data.py \

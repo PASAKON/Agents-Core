@@ -121,7 +121,7 @@ def main() -> int:
         # Forcing --lang hides a line spoken in ANOTHER language: whisper spells English
         # in Thai letters and it reads as "slightly garbled Thai". 2026-09-26: taachang
         # S75 said "Be careful not to slip, son." / "I won, Grandma!" and this tool showed
-        # «ระวังไม่ต้องสลิบสัน» — the CEO heard English. So every segment's language is
+        # "ระวังไม่ต้องสลิบสัน" — the CEO heard English. So every segment's language is
         # detected on its own slice of audio, and a foreign one is transcribed in its own
         # language and flagged.
         audio = decode_audio(str(f), sampling_rate=16000)
@@ -162,12 +162,12 @@ def main() -> int:
         print(f"ฉาก {n:>3}: {len(heard)} ช่วง / บท {len(want)} บรรทัด{flag}")
         for (t0, t1, text), lg in zip(heard, langs):
             mark = "" if lg == args.lang else f"  ⚠️ ภาษา {lg}"
-            print(f"        {t0:6.2f}–{t1:6.2f}  «{text}»{mark}")
+            print(f"        {t0:6.2f}–{t1:6.2f}  '{text}'{mark}")
 
     if foreign:
         print(f"\n⚠️ พูดภาษาอื่นที่ไม่ใช่ {args.lang}: {len(foreign)} ช่วง")
         for n, t0, lg, text in foreign:
-            print(f"   ฉาก {n} @{t0}s [{lg}] «{text}»")
+            print(f"   ฉาก {n} @{t0}s [{lg}] '{text}'")
     else:
         print(f"\nภาษา: ทุกช่วงเป็น {args.lang} (ตรวจทีละช่วงแล้ว)")
 

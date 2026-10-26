@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Assemble an episode cut from a JSON manifest (zero-model: ffmpeg only).
 
-Built for «บ้านนี้มีมีมี่» (EP1 cut v2 approved by the CEO 2026-10-01); works for any 9:16 short film made of
+Built for "บ้านนี้มีมีมี่" (EP1 cut v2 approved by the CEO 2026-10-01); works for any 9:16 short film made of
 generated clips plus text cards.  Recipe and traps: skill CMO_Workflow_ShortFilm, Step 9 · Edit.
 
   tools/film_cut_assemble.py docs/scripts/khaoniao-ep1-cut-manifest.json --var PROD=... --var RS1=... --var CARDS=... --var OUT=...

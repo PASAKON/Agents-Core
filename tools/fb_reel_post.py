@@ -174,7 +174,7 @@ UPLOAD_TIMEOUT_S = 30 * 60  # spec: poll the DOM, timeout 30 min
 STEP_ADVANCE_TIMEOUT_S = 20
 STEP_ADVANCE_MAX_CLICKS = 3
 
-# «ละครสั้นคุณธรรม by ILAG Studio» — the only Page this tool posts as today.
+# "ละครสั้นคุณธรรม by ILAG Studio" — the only Page this tool posts as today.
 DEFAULT_PAGE_ID = "61594116376333"
 DEFAULT_PAGE_NAME = "ละครสั้นคุณธรรม by ILAG Studio"
 
