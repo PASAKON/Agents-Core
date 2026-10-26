@@ -56,9 +56,26 @@ def test_proc_match_and_unreadable(monkeypatch, tmp_path):
     proc = tmp_path / "proc"
     pid = proc / "123"
     pid.mkdir(parents=True)
-    (pid / "environ").write_bytes(b"CXO_ROLE=cto\0CXO_SESSION=1\0")
+    (pid / "comm").write_bytes(b"bash\n")
+    (pid / "cmdline").write_bytes(b"bash\0/opt/x/scripts/cxo-claude.sh\0--role\0cto\0")
+    # The shared tmux server's argv names its first command; it never counts as a launcher.
+    tmux = proc / "77"
+    tmux.mkdir()
+    (tmux / "comm").write_bytes(b"tmux: server\n")
+    (tmux / "cmdline").write_bytes(b"tmux\0new-session\0bash scripts/cxo-claude.sh --role cmo\0")
+    # A PH launched for the cto lane is not a cto C-level; an arg merely mentioning the script is not either.
+    ph = proc / "88"
+    ph.mkdir()
+    (ph / "comm").write_bytes(b"bash\n")
+    (ph / "cmdline").write_bytes(b"bash\0scripts/cxo-claude.sh\0--role\0project_head\0--lane\0cto\0")
+    other = proc / "99"
+    other.mkdir()
+    (other / "comm").write_bytes(b"grep\n")
+    (other / "cmdline").write_bytes(b"grep\0cxo-claude.sh --role cgo\0")
     assert REAL_PROC_CHECK("cto", proc) == "process_role_alive"
     assert REAL_PROC_CHECK("cmo", proc) is None
+    assert REAL_PROC_CHECK("cgo", proc) is None
+    assert not list(proc.glob("*/environ"))
     monkeypatch.setattr(coo_dispatch, "process_role_refusal", lambda role: REAL_PROC_CHECK(role, proc))
     _queue_respawn()
     coo_dispatch.respawn_once()

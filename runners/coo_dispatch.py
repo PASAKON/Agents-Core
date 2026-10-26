@@ -487,17 +487,27 @@ def live_host_refusal(host, *, now=None):
 
 
 def process_role_refusal(role, proc_root=Path("/proc")):
+    """Refuse while any launcher process for `role` runs: argv holds the item `cxo-claude.sh`
+    (any path) followed by `--role <role>`. Reads cmdline only, never environ (secrets), and
+    skips tmux processes: the shared server's own argv names the command it was started with."""
     try:
         for pid in proc_root.iterdir():
             if not pid.name.isdigit():
                 continue
             try:
-                environ = (pid / "environ").read_bytes().split(b"\0")
+                comm = (pid / "comm").read_bytes().strip()
+                argv = (pid / "cmdline").read_bytes().split(b"\0")
             except OSError:
                 if not pid.exists():
                     continue
                 raise
-            if f"CXO_ROLE={role}".encode() in environ and b"CXO_SESSION=1" in environ:
+            if comm.startswith(b"tmux"):
+                continue
+            launcher = [i for i, a in enumerate(argv) if a.rsplit(b"/", 1)[-1] == b"cxo-claude.sh"]
+            if not launcher:
+                continue
+            rest = argv[launcher[0] + 1:]
+            if any(rest[i] == b"--role" and rest[i + 1] == role.encode() for i in range(len(rest) - 1)):
                 return "process_role_alive"
     except OSError as exc:
         log.exception("Cannot inspect process environment")
