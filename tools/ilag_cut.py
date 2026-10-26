@@ -61,6 +61,7 @@ REVERSE_MAX = 8                 # seconds of source a reverse may buffer: every 
 NUM_MAX = 1e6                   # larger than any EDL number; inf, nan and 1e999 are typos that would overflow
 SIZE = [1080, 1920]
 ENC_SALT = "ilag_cut-2"         # bump when the filter graphs change: invalidates every cached segment
+SRC_STAMP = ".src"              # in an NG frame folder: path, size and mtime_ns of the source the frames were cut from
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 DASHES = "—–"
 GUILLEMETS = "\u00ab\u00bb"
@@ -713,14 +714,16 @@ def draw_ng_frames(work, root, p, fps, force=False):
     f = p["frames"]
     d = Path(work) / "cards" / f"ng-{f['key']}"
     n = int(NG_FREEZE * fps)
-    if not force and len(list(d.glob("*.jpg"))) == n:
-        return False
-    d.mkdir(parents=True, exist_ok=True)
-    for old in d.glob("*.jpg"):
-        old.unlink()
     src = resolve(root, f["src"])
     if not src.exists():
         raise Fail(f"segment '{p['seg']}': source not found for the freeze frame: {src}")
+    src_file, seen = d / SRC_STAMP, json.dumps(stat_key([src]))  # the key names the EDL's text; this names the file's state
+    if not force and len(list(d.glob("*.jpg"))) == n and src_file.exists() and src_file.read_text() == seen:
+        return False
+    d.mkdir(parents=True, exist_ok=True)
+    src_file.unlink(missing_ok=True)                            # no stamp until every frame is written
+    for old in d.glob("*.jpg"):
+        old.unlink()
     tmp = d / "freeze.png"
     r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", fmt(f["freeze_at"]), "-i", str(src), "-frames:v", "1",
                         "-vf", f"scale={SIZE[0]}:{SIZE[1]}:force_original_aspect_ratio=increase,crop={SIZE[0]}:{SIZE[1]}",
@@ -746,6 +749,7 @@ def draw_ng_frames(work, root, p, fps, force=False):
             im.alpha_composite(tape)
         im.convert("RGB").save(d / f"{fr:03d}.jpg", quality=94)
     tmp.unlink()
+    src_file.write_text(seen)
     return True
 
 
@@ -961,6 +965,11 @@ def preflight(edl, segs, root, work, probes):
             fdir = Path(work) / "cards" / f"ng-{p['frames']['key']}"
             if not fdir.is_dir() or not list(fdir.glob("*.jpg")):
                 errs.append(f"segment '{p['seg']}': NG slam frames missing ({fdir}); run `cards` first")
+            else:                                                       # drawn from a file that has since been replaced?
+                fsrc, stamp = resolve(root, p["frames"]["src"]), fdir / SRC_STAMP
+                if fsrc.exists() and stamp.exists() and stamp.read_text() != json.dumps(stat_key([fsrc])):
+                    errs.append(f"segment '{p['seg']}': NG slam frames are stale: {fsrc.name} changed since they were "
+                                f"drawn; run `cards` again")
         for s in p["sfx"]:
             if not (sfx_dir / f"{s['name']}.wav").exists():
                 errs.append(f"segment '{p['seg']}': sfx '{s['name']}' not found in {sfx_dir}")
