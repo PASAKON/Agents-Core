@@ -42,7 +42,7 @@ cd /opt/MoonieXHQ/Agents/Core            # Contabo; the tab must be on https://w
 LOG=$(mktemp)
 node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9288 \
   --tab 'pixellab\.ai/account' \
-  --project MoonieX-Bedrock --env prod --as setup \
+  --project MoonieX-Bedrock --env prod --as keyfetch-writer \
   --name PIXELLAB_API_KEY \
   --match 'api\.pixellab\.ai/generate-new-token(\?|$)' --field token \
   --wait --new-only \

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Set up the MoonieX Infisical org: phase 1 of docs/design/secrets-infisical/PLAN.md.
 
-Stdlib only: a Run Inbox card copies this one file out of the repo and runs it with python3, so
-it cannot import anything else from Agents-Core.
+Stdlib only: no Python imports from Agents-Core. Writer puts also require the repository's
+config/keyfetch-writer.yaml beside tools/; run these from the checkout (missing config fails closed).
 
     save <identity>        Ask for a Universal Auth Client ID and Client Secret on this terminal
                            (the CEO types them into a Run Inbox card or a real terminal, never
@@ -75,6 +75,10 @@ _DEFAULT_USER_CRED_DIR = (os.path.join(os.environ.get("LOCALAPPDATA") or os.path
                           if os.name == "nt" and "INFISICAL_CRED_DIR" not in os.environ else None)
 USER_CRED_DIR = os.environ.get("INFISICAL_USER_CRED_DIR", _DEFAULT_USER_CRED_DIR)
 SETUP = "setup"
+WRITER = "keyfetch-writer"
+WRITER_MAX_DAYS = 1
+WRITER_MANIFEST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                               "config", "keyfetch-writer.yaml")
 SETUP_MAX_DAYS = 14  # the admin identity lives only for the migration (PLAN §6)
 
 # W4.6c F2: the one project a node's token comes from. `contabo` is a viewer HERE (the hub reads it
@@ -333,6 +337,8 @@ def cmd_save(name: str, from_stdin: bool = False, scope: str = "machine") -> Non
         _, claims, ttl = login(client_id, client_secret)
     except ApiError as exc:
         sys.exit(f"login failed, nothing saved ({exc})")
+    if name == WRITER and not 0 < ttl <= WRITER_MAX_DAYS * 86_400:
+        sys.exit("keyfetch-writer token TTL must be positive and at most 1 day; nothing saved")
     try:
         path = write_cred(name, client_id, client_secret, scope=scope)
     except AclError as exc:
@@ -342,6 +348,30 @@ def cmd_save(name: str, from_stdin: bool = False, scope: str = "machine") -> Non
     if name == SETUP:
         until = dt.date.today() + dt.timedelta(days=SETUP_MAX_DAYS)
         print(f"reminder: `setup` is an org admin; retire it by {until} (retire-setup)")
+    if name == WRITER:
+        print("reminder: keyfetch-writer client secret must be minted for at most 1 day; "
+              "revoke after the last put verifies (bootstrap_setup_identity.mjs --revoke)")
+
+
+def writer_projects() -> list[str]:
+    """Fail closed; shared restricted YAML flow-list format, no YAML dependency."""
+    try:
+        with open(WRITER_MANIFEST, encoding="utf-8") as fh:
+            source = "\n".join(line.split("#", 1)[0] for line in fh).strip()
+    except OSError:
+        sys.exit(f"keyfetch-writer manifest missing: {WRITER_MANIFEST}")
+    match = re.fullmatch(r"projects:\s*\[([^\]]*)\]\s*", source)
+    projects = [p.strip() for p in match[1].split(",")] if match else []
+    if (not projects or any(not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", p)
+                           or p.lower() in (ORG_INFRA.lower(), NODE_PROJECT.lower()) for p in projects)
+            or len({p.lower() for p in projects}) != len(projects)):
+        sys.exit("keyfetch-writer manifest: forbidden project, duplicate, or invalid format")
+    return projects
+
+
+def guard_writer_project(project: str) -> None:
+    if project not in writer_projects():
+        sys.exit("keyfetch-writer refuses project outside config/keyfetch-writer.yaml")
 
 
 # --- state ----------------------------------------------------------------------------------
@@ -530,6 +560,7 @@ def cmd_status(org: Org) -> None:
 
 
 def cmd_retire_setup(org: Org) -> None:
+    print("retire-setup is superseded by scripts/infisical/keyfetch_writer_seat.mjs")
     if not org.setup_identity:
         sys.exit("cannot tell which identity `setup` is")
     org.send("DELETE", f"/api/v1/identities/{org.setup_identity}")
@@ -959,9 +990,9 @@ def main(argv: list[str] | None = None) -> None:
             c.add_argument("--only", default="", metavar="A,B", help="import only these names")
         if cmd == "run":
             c.usage = "%(prog)s project env [--as HOST] [--path /folder] -- <command> [args...]"
-        c.add_argument("--as", dest="identity", default=self_host() if cmd == "run" else SETUP,
+        c.add_argument("--as", dest="identity", default=self_host() if cmd == "run" else WRITER,
                        help=f"identity whose file under {CRED_DIR} logs in "
-                            f"(default: {'this machine' if cmd == 'run' else SETUP})")
+                            f"(default: {'this machine' if cmd == 'run' else WRITER})")
         c.add_argument("--path", default="/", metavar="/folder",
                        help="folder inside the environment; one per instance when two prod "
                             "instances of one repo need different values (PLAN §3, 2026-09-28)")
@@ -992,6 +1023,8 @@ def main(argv: list[str] | None = None) -> None:
                 sys.exit(f"bad identity name {args.identity!r}")
             cmd_perms(Org(args.identity), args.project)
         elif args.cmd == "put":
+            if args.identity == WRITER:
+                guard_writer_project(args.project)  # Before Org reads credentials or logs in.
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
                     args.meta, args.multiline, legacy=args.legacy, path=args.path)
         elif args.cmd == "import-env":
@@ -1007,7 +1040,7 @@ def main(argv: list[str] | None = None) -> None:
     except ApiError as exc:
         sys.exit(f"Infisical API error: {exc}")
     except FileNotFoundError as exc:
-        sys.exit(f"missing credentials: {exc.filename} (run `save {SETUP}` first)")
+        sys.exit(f"missing credentials: {exc.filename} (run `save {getattr(args, 'identity', SETUP)}` first)")
 
 
 if __name__ == "__main__":
