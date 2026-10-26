@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from datetime import datetime, timezone
 import json
+import stat
 from pathlib import Path
 import sys
 
@@ -143,6 +144,23 @@ def test_read_snapshot_invalid_or_stale(tmp_path: Path, four_buckets: dict[str, 
     assert len(res_fresh) == 4
 
 
+def test_snapshot_is_public_before_atomic_replace(tmp_path, four_buckets, monkeypatch):
+    path = tmp_path / "quota-snapshot.json"
+    path.write_text("old snapshot")
+    path.chmod(0o600)
+    replace = quota_mod.os.replace
+
+    def checked_replace(src, dst):
+        assert path.read_text() == "old snapshot"
+        assert stat.S_IMODE(src.stat().st_mode) == 0o644
+        assert len(json.loads(src.read_text())["buckets"]) == 4
+        replace(src, dst)
+
+    monkeypatch.setattr(quota_mod.os, "replace", checked_replace)
+    write_snapshot(four_buckets, path=path)
+    assert stat.S_IMODE(path.stat().st_mode) == 0o644
+
+
 def test_cached_quotas_uses_fresh_snapshot_without_live_fetch(
     tmp_path: Path,
     four_buckets: dict[str, Quota],
@@ -236,6 +254,8 @@ def test_cli_snapshot_flag_exits_0_on_bucket_error(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture,
 ):
+    from tools import usage_budget
+    monkeypatch.setattr(usage_budget, "SNAPSHOT", tmp_path / "usage-budget.json")
     four_buckets["agy-claude"].error = "failed to parse /usage"
     snap_file = tmp_path / "custom-snap.json"
     history_file = tmp_path / "custom-hist.jsonl"
