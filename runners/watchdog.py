@@ -50,7 +50,7 @@ from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
 from runners.branch_poller import remote_pid_alive
 from runners import branch_poller
 from tools import delegate
-from tools import disk_queue
+from tools import disk_queue, budget_queue
 from tools import send_to_cto
 from tools import send_to_cxo
 from tools import work_watch
@@ -934,6 +934,33 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
 DISK_QUEUE_RESUME_MARGIN_GB = 1.0
 
 
+def _drain_budget_queue() -> dict | None:
+    """Retry one eligible pending task; retain entries when another gate refuses."""
+    for entry in budget_queue.all_entries():
+        task_id = entry["task_id"]
+        task = db.get_task(task_id)
+        if task is None or task["status"] != "pending":
+            budget_queue.pop(task_id)
+            continue
+        if not budget_queue.ready(entry):
+            continue
+        try:
+            row = asyncio.run(delegate.delegate_task(task_id))
+        except Exception as exc:
+            # To the tail: a task that always fails must not starve the entries behind it.
+            budget_queue.requeue(task_id, task.get("owner_cto"), tier=entry.get("tier", "normal"))
+            return {"task": task_id, "error": type(exc).__name__}
+        if row and (row.get("status") != "pending" or row.get("assigned_agent")
+                    or row.get("spawned_at") != task.get("spawned_at")):
+            budget_queue.pop(task_id)
+        elif row:
+            # A reset grants a retry, not a permanent bypass. A new refusal
+            # joins today's queue at the tail and cannot starve later entries.
+            budget_queue.requeue(task_id, task.get("owner_cto"), tier=entry.get("tier", "normal"))
+        return {"task": task_id}
+    return None
+
+
 def _drain_disk_queue() -> dict | None:
     """Pop and spawn at most ONE queued task per scan_once tick, oldest
     first, through the same `tools.delegate.delegate_task` path the original
@@ -1281,6 +1308,10 @@ def scan_once() -> dict:
 
     # Sixth-b pass — mesh spawns that got no answer (W2.3): one retry per
     # queued_remote row this box dispatched. No-op unless ORG_MESH_DISPATCH is on.
+    try:
+        _drain_budget_queue()
+    except Exception as e:
+        warn(f"watchdog budget queue drain error: {e}")
     try:
         _retry_queued_remote()
     except Exception as e:

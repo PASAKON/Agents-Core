@@ -158,11 +158,14 @@ def parse_card_args(args: list[str]) -> dict:
     plus an optional `--brief B`: nothing the CEO did not see on the card."""
     args = list(args)
     keys = args[0:6:2]
-    if keys != ["--project", "--from-card", "--sha"] or len(args) not in (6, 8) \
-            or (len(args) == 8 and args[6] != "--brief"):
+    if keys != ["--project", "--from-card", "--sha"] or len(args) < 6 or len(args) % 2:
         raise Refused("a card run takes exactly --project <P> --from-card <nonce> --sha <sha> "
                       "[--brief <one line>]")
-    out = {"project": args[1], "nonce": args[3], "sha": args[5], "brief": args[7] if len(args) == 8 else ""}
+    extras = dict(zip(args[6::2], args[7::2]))
+    if len(extras) != len(args[6::2]) or set(extras) - {"--brief", "--kind", "--due", "--cadence"}:
+        raise Refused("unsupported or repeated card argument")
+    out = {"project": args[1], "nonce": args[3], "sha": args[5], "brief": extras.get("--brief", ""),
+           "kind": extras.get("--kind"), "due": extras.get("--due"), "cadence": extras.get("--cadence")}
     if not _NONCE_RE.fullmatch(out["nonce"]):
         raise Refused("--from-card takes the 16-hex nonce the card was raised with")
     if not _SHA_RE.fullmatch(out["sha"]):
@@ -449,6 +452,45 @@ def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
     return _make_plan(project, lane, owner)
 
 
+def _register_project(plan: dict) -> str:
+    """Bind every new PH to a registry row before starting its session."""
+    from lib import portfolio as pf
+    tier = plan.get("tier")
+    if tier is not None and tier not in pf.TIERS:
+        raise Refused(f"unknown tier {tier!r}")
+    try:
+        with pf._tx() as conn:
+            row = conn.execute("SELECT * FROM projects WHERE id = ? OR lower(name) = lower(?)",
+                               (plan["project"], plan["project"])).fetchone()
+            row = dict(row) if row is not None else None
+            if "kind" not in plan:
+                if row is None:
+                    raise Refused("resume requires an existing project registry row")
+                # A resume re-uses the row's schedule; an explicit --tier still applies below.
+                conn.execute("UPDATE projects SET ph_session = ? WHERE id = ?",
+                             (plan["session_id"], row["id"]))
+            elif row is None:
+                pid = re.sub(r"[^a-z0-9]+", "-", plan["project"].lower()).strip("-")
+                row = pf.open_project(pid, plan["project"], plan["lane"], actor=plan["owner"],
+                                      owner_session=plan["owner"], ph_session=plan["session_id"],
+                                      conn=conn, kind=plan["kind"], due_at=plan.get("due_at"),
+                                      cadence_h=plan.get("cadence_h"), due_set_by="clevel")
+            else:
+                old_due = pf._as_utc(row.get("due_at"))
+                if old_due and plan.get("due_at") and old_due != plan["due_at"]:
+                    pf.replan(row["id"], 0, plan["due_at"], actor=plan["owner"],
+                              actor_role=plan["lane"], why="PH spawn schedule", conn=conn)
+                conn.execute("UPDATE projects SET ph_session = ?, kind = ?, due_at = ?, cadence_h = ?,"
+                             " due_set_by = COALESCE(due_set_by, 'clevel') WHERE id = ?",
+                             (plan["session_id"], plan["kind"], plan.get("due_at"), plan.get("cadence_h"), row["id"]))
+            if tier is not None and tier != row.get("tier"):
+                pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
+            tier = tier or row.get("tier") or "normal"
+    except Exception as exc:
+        raise Refused(f"project registration failed ({type(exc).__name__})") from exc
+    return tier
+
+
 def _write_claim(plan: dict, brief_text: str) -> None:
     """The brief, the project claim and the owner record of a Project Head about
     to start; call it under _claim_lock. The owner record is written before the
@@ -475,25 +517,56 @@ def _drop_claim(name: str) -> None:
         p.unlink(missing_ok=True)
 
 
+def ready_schedule(kind=None, due=None, cadence=None):
+    from datetime import datetime, timezone
+    from tools.portfolio import parse_when
+    from lib.portfolio import PortfolioError
+    if kind not in ("finite", "loop"):
+        raise Refused("--kind finite|loop is required")
+    if kind == "finite" and not due:
+        raise Refused("finite projects require --due")
+    if kind == "loop" and (type(cadence) is not int or cadence <= 0):
+        raise Refused("loop projects require --cadence > 0")
+    try:
+        due_at = parse_when(due, datetime.now(timezone.utc)) if due else None
+    except PortfolioError as exc:
+        raise Refused(str(exc)) from exc
+    return {"kind": kind, "due_at": due_at, "cadence_h": cadence}
+
+
 def spawn(project: str, brief: str = "", *, dry_run: bool = False,
-          card: list[str] | None = None) -> dict:
+          card: list[str] | None = None, tier: str | None = None,
+          kind=None, due=None, cadence=None) -> dict:
     """`card`: the argv of a Run Inbox card run (M13b); project and brief must be
     the ones in it."""
+    from lib.portfolio import TIERS
+    schedule = ready_schedule(kind, due, cadence)
+    if tier is not None and tier not in TIERS:
+        raise Refused(f"unknown tier {tier!r}")
     if card is not None:
         a = parse_card_args(card)
         if (a["project"], a["brief"]) != (project, brief):
             raise Refused("the project and brief must be the card's")
+        if (a["kind"], a["due"], a["cadence"]) != (kind, due, str(cadence) if cadence is not None else None):
+            raise Refused("the schedule must be the card's")
     if dry_run:
-        return {**_plan(project, brief, card), "dry_run": True}
+        return {**_plan(project, brief, card), **schedule, "tier": tier, "dry_run": True}
 
     from tools import tmux_session
 
     with _claim_lock(LOCKS_DIR):
         plan = _plan(project, brief, card)
+        plan["tier"] = tier
+        plan.update(schedule)
         if card is not None:
             use_nonce(parse_card_args(card)["nonce"])
         name = plan["tmux_session"]
-        _write_claim(plan, brief or f"(no brief given — ask {plan['owner']} for one)\n")
+        # The registry row is the hub's: a local spawn opens or binds it (a mesh spawn's
+        # node has no hub route). A caller-supplied tier line cannot disagree with it.
+        tier = _register_project(plan)
+        brief_text = brief or f"(no brief given — ask {plan['owner']} for one)\n"
+        brief_text = f"tier: {tier}\n" + re.sub(r"(?m)^tier:.*\n?", "", brief_text)
+        _write_claim(plan, brief_text)
     cmd = plan.pop("command")
     try:
         if os.name == "nt":
@@ -615,10 +688,12 @@ def spawn_from_mesh(project: str, lane: str, owner_sid: str, *, launch, windows:
     return {"session_id": plan["session_id"], "project": project, "owner": plan["owner"]}
 
 
-def card_command(host: str, project: str, brief: str, sha: str, nonce: str | None = None) -> list[str]:
+def card_command(host: str, project: str, brief: str, sha: str, nonce: str | None = None,
+                 *, kind=None, due=None, cadence=None) -> list[str]:
     """argv of the `tools/ask_run.py create` that asks the CEO to start a
     Project Head on `host` (M13b). Run it from the owning C-level session: the
     card's requester becomes the owner."""
+    ready_schedule(kind, due, cadence)
     why = roles.ph_project_refusal(project)
     if why:
         raise Refused(why)
@@ -628,8 +703,12 @@ def card_command(host: str, project: str, brief: str, sha: str, nonce: str | Non
         raise Refused(f"a card brief is one line of at most {CARD_BRIEF_MAX} characters "
                       "(the hub caps script args); send the full brief to the PH once it is up")
     nonce = nonce or uuid.uuid4().hex[:16]
-    args = ["--project", project, "--from-card", nonce, "--sha", sha]
-    if brief:
+    args = ["--project", project, "--from-card", nonce, "--sha", sha, "--kind", kind]
+    if due:
+        args += ["--due", due]
+    if cadence is not None:
+        args += ["--cadence", str(cadence)]
+    if brief:                       # last: the card checks read the brief as the final pair
         args += ["--brief", brief]
     if len(" ".join(args)) > CARD_ARGS_MAX:
         raise Refused(f"the card's args are over {CARD_ARGS_MAX} characters; shorten the brief")
@@ -644,6 +723,9 @@ def card_command(host: str, project: str, brief: str, sha: str, nonce: str | Non
 def _card_main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="python -m tools.spawn_ph card")
     ap.add_argument("--host", required=True)
+    ap.add_argument("--kind", choices=("finite", "loop"))
+    ap.add_argument("--due")
+    ap.add_argument("--cadence", type=int)
     ap.add_argument("--project", required=True)
     ap.add_argument("--brief", default="", help=f"one line, at most {CARD_BRIEF_MAX} characters")
     ap.add_argument("--sha", default=None, help="pushed Agents-Core commit (default: origin/main)")
@@ -652,7 +734,8 @@ def _card_main(argv: list[str]) -> int:
     sha = args.sha or _git("rev-parse", "origin/main")
     try:
         _caller()       # only a C-level that may start a session raises one
-        cmd = card_command(args.host, args.project, args.brief, sha)
+        cmd = card_command(args.host, args.project, args.brief, sha,
+                           kind=args.kind, due=args.due, cadence=args.cadence)
     except Refused as e:
         print(f"spawn-ph card: {e}", file=sys.stderr)
         return 1
@@ -779,6 +862,11 @@ def resume(sid: str, dry_run: bool = False) -> dict:
     with _claim_lock(LOCKS_DIR):
         plan = resume_plan(sid)
         name = plan["tmux_session"]
+        tier = _register_project(plan)
+        brief_path = BRIEFS_DIR / f"{name}.md"
+        brief = brief_path.read_text(encoding="utf-8") if brief_path.exists() else ""
+        BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
+        brief_path.write_text(f"tier: {tier}\n" + re.sub(r"(?m)^tier:.*\n?", "", brief), encoding="utf-8")
         _unpark(name)
         try:
             tmux_session.create(name, ROOT, plan.pop("command"))
@@ -794,7 +882,12 @@ def main(argv: list[str] | None = None) -> int:
     if argv[:1] == ["mesh"]:
         return _mesh_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
+    ap.add_argument("--tier", choices=("critical", "normal", "low"),
+                    help="set the project's tier (default: keep the registry's, normal for a new row)")
     ap.add_argument("--project")
+    ap.add_argument("--kind", choices=("finite", "loop"))
+    ap.add_argument("--due")
+    ap.add_argument("--cadence", type=int)
     ap.add_argument("--resume", help="resume a stopped Project Head's 8-hex session id")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--brief", default="")
@@ -805,7 +898,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
     if args.resume is not None:
-        if args.project is not None or args.brief or args.brief_file or args.from_card or args.sha:
+        if (args.project is not None or args.brief or args.brief_file or args.from_card or args.sha
+                or args.kind or args.due or args.cadence is not None or args.tier):
             ap.error("--resume takes only a session id and optional --dry-run")
         try:
             print(json.dumps(resume(args.resume, dry_run=args.dry_run), ensure_ascii=False))
@@ -823,8 +917,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.from_card is not None or args.sha is not None:
             card = argv
             parse_card_args(card)
-        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card),
-                         ensure_ascii=False))
+        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card, tier=args.tier,
+                               kind=args.kind, due=args.due, cadence=args.cadence),
+                         ensure_ascii=False, default=str))
     except Refused as e:
         print(f"spawn-ph: {e}", file=sys.stderr)
         return 1

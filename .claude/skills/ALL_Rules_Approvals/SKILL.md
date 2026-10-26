@@ -31,6 +31,15 @@ moment of spending; this file is the org rule they all point to.
 2. **HARD — Secrets go to the CEO.** Creating, moving, printing, rotating or pasting a credential, token,
    password or key, or putting one into a file, a chat or a worker, waits for him (Infisical is the target
    home). **Why hard:** safety — a leaked secret cannot be un-leaked.
+   Exception (CEO 2026-10-26, Q-20261026-0814-e94a): a C-level creates or deletes a provider API key itself,
+   with no card per key, in the key's own repo project, but only through `CTO_Procedure_KeyFetch`. A worker
+   drives the provider page in a Browser Home and pipes the key straight into Infisical. No model sees the
+   value, and each create or delete gets one ledger line. Org-Infra stays his to enter. On the free plan the
+   project is the only wall, so nothing moves into Org-Infra (CEO 2026-10-26, Q-20261026-1118-4d3d: "ฟรี: แยก
+   project ต่อ repo เป็นกำแพง, keyfetch-writer แทนที่นั่ง setup (แนะนำ)"). Moving, printing or pasting a value, and
+   any change to who may read a secret, still wait for him.
+   `[SUPERSEDED 2026-10-26]` "in every project including Org-Infra" (e94a, choice "ทุก project รวม Org-Infra"):
+   the free plan cannot scope inside one project, and on 4d3d the CEO chose the free plan.
 3. **HARD — Permanent deletion of data waits for his word.** Drive files, disk contents and datasets are
    deleted only after he says so for that deletion, with the backup shown (`CXO_Rules_GDrive_Filing`,
    `ALL_Rules_DiskHygiene`). Moving to an archive or a trash that can be restored is not deletion.
@@ -70,14 +79,15 @@ standing op.
 
 1. **Already decided?** His order for this job, typed in your chat or as an answered Q-/RUN- id for the same
    action: act on it and cite the id. Never ask him twice for one thing.
-2. **Already granted?** Look in this order: this file (rule 3 Green deletes, rule 5 merges and deploys, rule 6
-   lanes), IRON §61 (Green disk), §62 (merge, deploy), §63 item 4 (a C-level decides its lane), your role file,
+2. **Already granted?** Look in this order: this file (rule 2 provider keys through KeyFetch, rule 3 Green deletes,
+   rule 5 merges and deploys, rule 6 lanes), IRON §61 (Green disk), §62 (merge, deploy), §63 item 4 (a C-level decides its lane), your role file,
    and the job's skill (`CTO_Procedure_KeyFetch`: the worker creates the key, the CEO only logs in). Granted: do
    it, through a standing op where it needs root.
 3. **Done before?** He approved the same class of action at the same scope before (`tools/ask_run.py list`, the
    hub ledger, the owner skill's Field notes): it is decided, so do it through a standing op. If no op exists
    yet, raise the card once with `precedent: <id>` in the why, and send the CTO "needs a standing op: <class>".
-4. **CEO-only?** Only these: money past a standing budget · a secret or an access-control change · a permanent
+4. **CEO-only?** Only these: money past a standing budget · a secret outside the rule 2 exception, or
+   an access-control change · a permanent
    deletion outside the Green list · speaking in his name on a new channel · his personal accounts, devices or
    billing · an org-wide rule · a login, CAPTCHA or consent only his hands can do · his creative or design
    choice on his own project · a command that needs root or another host and that no standing op covers. Raise

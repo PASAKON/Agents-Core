@@ -118,6 +118,12 @@ def handoff(task_id, *, pct_done=None, limit_text=None, dry_run=False, delegate=
     task = db.get_task(task_id)
     if task is None:
         raise ValueError("task not found")
+    from lib import portfolio
+    from tools import usage_budget
+    rows = usage_budget.load_gate_rows() or {}
+    tier = portfolio.tier_for(task)
+    if rows.get("claude", {}).get("state") == "over" and tier != "critical":
+        raise ValueError("tier_no_claude: Claude is over today's target; only critical work hands off to it")
     runner = task.get("runner")
     if runner not in ("codex", "agy", "jules"):
         raise ValueError("task runner must be codex, agy or jules")
@@ -145,7 +151,8 @@ def handoff(task_id, *, pct_done=None, limit_text=None, dry_run=False, delegate=
     description = (
         f'override: quota-handoff — {runner} hit its limit on {task_id} ("{matched}"), '
         f'{pct_done if pct_done is not None else "unknown"}% done; finish it on that branch\n'
-        f'Start: git fetch origin {branch} && git merge --no-edit origin/{branch}. Keep the partial work; do not redo it.\n\n'
+        f'Start: git fetch origin {branch} && git merge --no-edit origin/{branch}. Keep the partial work; do not redo it.\n'
+        f'tier: {tier}\n\n'   # the successor keeps its project's tier
         + (task.get("description") or ""))
     touches = task.get("touches") or []
     if isinstance(touches, str):

@@ -84,6 +84,8 @@ def endpoint(base: str | None = None) -> str | None:
 
 def build_payload() -> dict:
     from lib import portfolio
+    if os.environ.get("PORTFOLIO_MONITOR_V") == "2":
+        return portfolio.monitor_payload(version=2)
     return portfolio.monitor_payload()
 
 

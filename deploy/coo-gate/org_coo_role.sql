@@ -18,9 +18,11 @@
 -- What each grant is for (the SQL the gate's ops run, all through lib/db.py):
 --   tasks            SELECT              db.get_task / the gate's list and wait ops, the guard below
 --                    INSERT 16 columns   db.create_task (its INSERT names exactly these)
---   events           INSERT 5 columns    db.log_event: task_created, and the two requests the gate
---                                        files for the root dispatcher (coo_delegate_request,
---                                        coo_close_request)
+--   coo_respawn_events SELECT view    rate-limit count on coo_respawn_request and reading
+--                                        coo_respawn_done in respawn_status
+--   events           INSERT 5 columns    db.log_event: task_created, the two worker requests the
+--                                        gate files for the root dispatcher (coo_delegate_request,
+--                                        coo_close_request), and coo_respawn_request (task_id NULL)
 --   c_level_sessions SELECT 5 columns    db._require_charter, and the gate's "is this a coo
 --                                        session" check
 --                    UPDATE charter      the gate's set_charter op, coo rows only
@@ -30,8 +32,10 @@
 -- Column grants cannot limit ROWS. Section 5's triggers do, for org_coo only: a task it inserts is
 -- pending, owner_role 'coo', and one of the three roles (the same list as
 -- lib/coo_policy.COO_WORKER_ROLES; tests/test_coo_gate.py keeps them equal); an event it writes
--- belongs to a coo task and is one of three kinds; the only session row it may change is a coo
--- one. Every other role passes through the triggers untouched.
+-- either belongs to a coo task and is one of three kinds, or is a taskless coo_respawn_request
+-- whose JSON payload has keys role (in lib/coo_policy.COO_RESPAWN_ROLES), host ('contabo') and
+-- by_session; the only session row it may change is a coo one. Every other role passes through the
+-- triggers untouched.
 
 \set ON_ERROR_STOP on
 
@@ -80,6 +84,7 @@ ALTER ROLE org_coo SET idle_in_transaction_session_timeout = '15s';
 
 -- 3. Start from nothing, so a grant removed from this file is removed from the role.
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM org_coo;
+REVOKE SELECT (id, kind, payload, ts) ON events FROM org_coo;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM org_coo;
 REVOKE ALL ON SCHEMA public FROM org_coo;
 GRANT USAGE ON SCHEMA public TO org_coo;
@@ -90,6 +95,10 @@ GRANT INSERT (id, project, role, status, title, description, parent_task, depend
               owner_cto, owner_role, host, dispatcher_host, runner, created_at, updated_at)
   ON tasks TO org_coo;
 GRANT INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;
+CREATE OR REPLACE VIEW coo_respawn_events WITH (security_barrier) AS
+  SELECT id, kind, payload, ts FROM events
+  WHERE kind IN ('coo_respawn_request','coo_respawn_done');
+GRANT SELECT ON coo_respawn_events TO org_coo;
 GRANT SELECT (role, session_id, status, host, charter), UPDATE (charter)
   ON c_level_sessions TO org_coo;
 -- Read-only: the live-session list SomPong checks before any SendMessage (CEO 2026-10-13,
@@ -123,6 +132,24 @@ CREATE OR REPLACE FUNCTION org_coo_events_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog AS $fn$
 BEGIN
   IF current_user <> 'org_coo' THEN
+    RETURN NEW;
+  END IF;
+  IF NEW.kind = 'coo_respawn_request' THEN
+    IF NEW.task_id IS NOT NULL THEN
+      RAISE EXCEPTION 'org_coo coo_respawn_request must have task_id NULL';
+    END IF;
+    IF NEW.payload IS NULL
+       OR jsonb_typeof(NEW.payload::jsonb) IS DISTINCT FROM 'object'
+       OR ARRAY(SELECT k FROM jsonb_object_keys(NEW.payload::jsonb) AS k ORDER BY k)
+          IS DISTINCT FROM ARRAY['by_session', 'host', 'role']
+       OR jsonb_typeof(NEW.payload::jsonb -> 'role') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'role') IN ('cto', 'cmo', 'cgo', 'cfo')) IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'host') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'host') = 'contabo') IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'by_session') IS DISTINCT FROM 'string'
+       OR COALESCE(NEW.payload::jsonb ->> 'by_session', '') = '' THEN
+      RAISE EXCEPTION 'org_coo coo_respawn_request payload must have keys role (cto/cmo/cgo/cfo), host (contabo), by_session';
+    END IF;
     RETURN NEW;
   END IF;
   IF NEW.kind NOT IN ('task_created', 'coo_delegate_request', 'coo_close_request') THEN
@@ -162,10 +189,13 @@ CREATE TRIGGER org_coo_guard BEFORE UPDATE ON c_level_sessions
   FOR EACH ROW EXECUTE FUNCTION org_coo_sessions_guard();
 
 -- 6. Prove it. The role holds exactly the INSERT/UPDATE privileges of section 4, SELECT only on
---    tasks, c_level_sessions, live_hosts and live_sessions, nothing destructive, or this run fails.
+--    tasks, coo_respawn_events, c_level_sessions, live_hosts and live_sessions, nothing destructive, or this run fails.
 DO $check$
 DECLARE
   have text;
+  forbidden_kind text;
+  accepted boolean;
+  switched boolean;
   want text := 'c_level_sessions.charter:UPDATE events.actor:INSERT events.kind:INSERT '
     'events.payload:INSERT events.task_id:INSERT events.ts:INSERT tasks.created_at:INSERT '
     'tasks.depends_on:INSERT tasks.description:INSERT tasks.dispatcher_host:INSERT '
@@ -173,6 +203,36 @@ DECLARE
     'tasks.parent_task:INSERT tasks.project:INSERT tasks.role:INSERT tasks.runner:INSERT '
     'tasks.status:INSERT tasks.title:INSERT tasks.touches:INSERT tasks.updated_at:INSERT';
 BEGIN
+  FOREACH forbidden_kind IN ARRAY ARRAY['coo_respawn_done', 'coo_respawn_request'] LOOP
+    accepted := false;
+    switched := false;
+    BEGIN
+      SET LOCAL ROLE org_coo;
+      -- Plain variables survive the subtransaction rollback, so the handler can tell a failed
+      -- role switch (no proof) from a refused INSERT (proof).
+      switched := current_user = 'org_coo';
+      IF NOT switched THEN
+        RAISE EXCEPTION USING ERRCODE = 'ZX002', MESSAGE = 'proof could not act as org_coo';
+      END IF;
+      INSERT INTO public.events (task_id, actor, kind, payload, ts)
+        VALUES (NULL, 'coo_gate', forbidden_kind,
+                '{"role":null,"host":"contabo","by_session":"proof"}', now());
+      -- Force rollback even if the forbidden insertion unexpectedly succeeds.
+      RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'forbidden insert accepted';
+    EXCEPTION
+      WHEN SQLSTATE 'ZX001' THEN accepted := true;
+      -- Only the guard trigger's RAISE or a missing INSERT privilege, raised after the switch
+      -- to org_coo, counts as refused. Anything else (the switch itself denied, a missing
+      -- table) is not proof, so it fails this run.
+      WHEN raise_exception OR insufficient_privilege THEN
+        IF NOT switched THEN
+          RAISE;
+        END IF;
+    END;
+    IF accepted THEN
+      RAISE EXCEPTION 'org_coo accepted forbidden insert: %', forbidden_kind;
+    END IF;
+  END LOOP;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'org_coo' AND (
        rolsuper OR rolcreaterole OR rolcreatedb OR rolreplication OR rolbypassrls
        OR NOT rolcanlogin OR rolconnlimit <> 3)) THEN
@@ -194,7 +254,7 @@ BEGIN
 
   IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
-                AND c.relname NOT IN ('tasks', 'c_level_sessions', 'live_hosts', 'live_sessions')
+                AND c.relname NOT IN ('tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions')
                 AND has_any_column_privilege('org_coo', c.oid, 'SELECT')) THEN
     RAISE EXCEPTION 'org_coo can read a table outside section 4';
   END IF;

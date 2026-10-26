@@ -27,12 +27,17 @@ class _Rows:
     def fetchall(self):
         return self._rows
 
+    def fetchone(self):
+        return self._rows[0] if self._rows else None
+
 
 class _Catalog:
     """Answers _pg_schema_current's catalog reads from a fixed set of
     relation names, (table, column) pairs and trigger names."""
 
-    def __init__(self, relations, columns, triggers=db_pg.PORTFOLIO_TRIGGER_NAMES):
+    def __init__(self, relations, columns, triggers=db_pg.PORTFOLIO_TRIGGER_NAMES,
+                 kinds=db_pg.PROJECT_EVENT_KINDS):
+        self.kinds = kinds
         self.relations = set(relations)
         self.columns = set(columns)
         self.triggers = set(triggers)
@@ -40,6 +45,8 @@ class _Catalog:
 
     def execute(self, sql, params=()):
         self.queries.append(sql)
+        if "pg_get_constraintdef" in sql:
+            return _Rows([("CHECK (kind IN (" + ", ".join(map(repr, self.kinds)) + "))",)])
         if "pg_trigger" in sql:
             return _Rows([(name,) for name in self.triggers])
         asked = set(params[0])
@@ -58,11 +65,73 @@ def _complete_catalog():
     columns |= {("hosts", c) for c, _ in db_mod._HOSTS_MIGRATION + db_mod._HOSTS_JOIN_MIGRATION}
     columns |= {("letters", c) for c, _ in db_mod._LETTERS_MIGRATION}
     columns |= {("live_sessions", c) for c, _ in db_mod._LIVE_SESSIONS_MIGRATION}
+    columns |= {("projects", c) for c, _ in db_mod._PROJECTS_MIGRATION}
+    columns |= {("milestones", c) for c, _ in db_mod._MILESTONES_MIGRATION}
     return relations, columns
 
 
 def test_a_complete_schema_is_current():
     assert db_mod._pg_schema_current(_Catalog(*_complete_catalog())) is True
+
+
+def test_every_pg_schema_statement_matches_scan():
+    for stmt in db_pg._split_statements(db_pg.PG_SCHEMA):
+        assert db_mod._PG_CREATE_RE.match(stmt), stmt
+
+
+def test_sqlite_existing_projects_gets_tier_once():
+    conn = db_mod.sqlite_connect(":memory:")
+    try:
+        conn.execute("CREATE TABLE projects (id TEXT PRIMARY KEY)")
+        conn.execute("INSERT INTO projects VALUES ('p')")
+        db_mod._create_and_migrate(conn, is_pg=False)
+        db_mod._create_and_migrate(conn, is_pg=False)
+        assert conn.execute("SELECT tier FROM projects").fetchone()[0] == "normal"
+    finally:
+        conn.close()
+
+
+def test_missing_project_tier_is_not_current():
+    relations, columns = _complete_catalog()
+    columns.remove(("projects", "tier"))
+    assert not db_mod._pg_schema_current(_Catalog(relations, columns))
+
+
+@pytest.mark.parametrize("missing", db_pg.PROJECT_EVENT_KINDS)
+def test_missing_event_kind_is_not_current(missing):
+    kinds = tuple(k for k in db_pg.PROJECT_EVENT_KINDS if k != missing)
+    assert not db_mod._pg_schema_current(_Catalog(*_complete_catalog(), kinds=kinds))
+
+
+def test_constraint_migration_only_when_needed():
+    class Hub(_Recorder):
+        def __init__(self):
+            super().__init__()
+            self.current = False
+            self.tier = False
+
+        def execute(self, sql, params=()):
+            out = super().execute(sql, params)
+            if "pg_get_constraintdef" in sql:
+                return _Rows([(db_pg.PROJECT_EVENT_KIND_CHECK,)]) if self.current else _Rows([])
+            if "ADD CONSTRAINT project_events_kind_check" in sql:
+                self.current = True
+            if "PRAGMA table_info(projects)" in sql:
+                return _Rows([{"name": c} for c in (["id"] + [c for c, _ in db_mod._PROJECTS_MIGRATION]
+                                                    if self.tier else ["id"])])
+            if "ALTER TABLE projects ADD" in sql:
+                self.tier = True
+            return out
+
+    conn = Hub()
+    db_mod._create_and_migrate(conn, is_pg=True)
+    ddl = [s for s in conn.sql if s.startswith("ALTER TABLE project")]
+    expected = db_pg._split_statements(
+        (ROOT / "docs/design/projecttrack-p1-ddl.sql").read_text())
+    assert set(ddl) == {" ".join(s.split()) for s in expected if s.startswith("ALTER TABLE project")}
+    conn.sql.clear()
+    db_mod._create_and_migrate(conn, is_pg=True)
+    assert not [s for s in conn.sql if s.startswith("ALTER TABLE project")]
 
 
 @pytest.mark.parametrize("missing", ["tasks", "idx_letters_to_host_status", "node_secrets"])

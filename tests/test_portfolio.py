@@ -30,7 +30,7 @@ FIXTURE = ROOT / "docs" / "plans" / "fixtures" / "portfolio-monitor-v1.json"
 STATUS_MD = ROOT / "docs" / "plans" / "org-restructure-STATUS.md"
 SNAPSHOTS = ROOT / "tests" / "fixtures" / "status_files"        # the four PH STATUS.md files, 15 Oct 2026
 PORTFOLIO = ("projects", "project_events", "milestones", "ceo_gos",
-             "resource_locks", "post_ledger", "session_heartbeats")
+             "resource_locks", "post_ledger", "session_heartbeats", "orders")
 UTC = timezone.utc
 T = datetime(2026, 10, 14, 3, 20, tzinfo=UTC)                  # the fixture's generated_at
 COO, CTO, CMO = (Identity("cxo", r, s) for r, s in (("coo", "f66280fc"), ("cto", "c34459eb"), ("cmo", "ef04792e")))

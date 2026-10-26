@@ -5,6 +5,12 @@ import pytest
 
 from tools import clevel_gate, spawn_ph, tmux_session
 
+@pytest.fixture(autouse=True)
+def _no_hub_registry(monkeypatch):
+    """spawn/resume bind the PH to its hub registry row; these tests have no hub."""
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: plan.get("tier") or "normal")
+
+
 
 SID = "12ab34cd"
 NAME = f"project_head-{SID}"
@@ -13,6 +19,7 @@ NAME = f"project_head-{SID}"
 @pytest.fixture
 def locks(tmp_path, monkeypatch):
     monkeypatch.setattr(spawn_ph, "LOCKS_DIR", tmp_path)
+    monkeypatch.setattr(spawn_ph, "BRIEFS_DIR", tmp_path / "briefs")
     monkeypatch.setattr(tmux_session, "has_session", lambda name: False)
     monkeypatch.setattr(clevel_gate, "live_lock", lambda *a: None)
     monkeypatch.setattr(spawn_ph, "SPAWN_PROMPT_DELAY_S", 0)

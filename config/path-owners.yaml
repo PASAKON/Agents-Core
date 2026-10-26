@@ -36,19 +36,32 @@ OrgRestructure:
   - lib/run_liveness.py                          # run liveness
   - tools/run_watch.py                           # run watcher
   # --- Project Head layer (P2, P3) ---
-  - tools/spawn_ph.py                            # spawn a Project Head
-  - scripts/spawn-ph.sh                          # its shell entry
   - tools/clevel_gate.py                         # C-level spawn gate (Run card)
   - lib/org_flags.py                             # the ORG_* host flags
   - tests/test_org_p2_gates.py                   # P2 gates in Core
-  - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
   - tests/test_terminal_window.py                # terminal_window flag tests (PR 327)
-  - tests/test_portfolio_schema.py               # P3-A portfolio tables (tables themselves live in lib/db*.py = shared)
   - docs/plans/fixtures/portfolio-monitor-v1.json  # P3 portfolio fixture
   - docs/plans/org-restructure-*                 # STATUS + P3 plan
   - docs/design/org-restructure-*                # P2 design
   - docs/ops/ph-anywhere.md                      # PH on any host
   - docs/ops/state-dir-perms.md                  # sticky bit on state/
+
+ProjectTrack:
+  # CTO Main 2026-10-26: the Project Head layer moved here from OrgRestructure, which has no Project Head,
+  # until ProjectTrack closes (spawn registers the project and checks the ready gate); then back to shared.
+  - tools/spawn_ph.py                            # spawn a Project Head
+  - scripts/spawn-ph.sh                          # its shell entry
+  - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
+  - tests/test_portfolio_schema.py               # portfolio tables (tables themselves live in lib/db*.py = shared)
+  # --- its own area ---
+  - lib/portfolio.py                             # project register, orders, monitor payload
+  - tools/portfolio*.py                          # portfolio CLI, push, watch
+  - tools/budget_queue.py                        # budget refusal queue (UsageBudget P4a)
+  - tests/test_portfolio*.py                     # their tests
+  - tests/test_projecttrack*.py                  # ProjectTrack tests
+  - docs/plans/projecttrack-*                    # STATUS + plan
+  - docs/design/projecttrack-*                   # DDL + design
+  - docs/design/portfolio-monitor-v2.md          # monitor contract v2
 
 SpendGuard:
   - tools/spend*                                 # spend_guard.py and any spend_* sibling

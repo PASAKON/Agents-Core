@@ -47,7 +47,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib import db
 from lib.config import host as get_host, self_host
 from runners.branch_poller import remote_pid_alive
-from tools import disk_queue
+from tools import disk_queue, budget_queue
 from tools.worker_reap import (_pid_alive, is_dispatched_here, is_local_row,
                                is_remote_row, row_host)
 from tools.worktree import remove_worktree
@@ -216,7 +216,7 @@ def gc_stale_tasks(
         # the 30-minute floor below would cancel it long before space
         # returns; disk_queue.pop() is what actually drops a queued entry
         # once its task is cancelled/closed elsewhere.
-        if disk_queue.is_queued(t["id"]):
+        if disk_queue.is_queued(t["id"]) or budget_queue.is_queued(t["id"]):
             continue
         # Never reap a task whose DEV is still running. A task stays
         # 'pending' for the whole spawn window — dev_init flips it to
