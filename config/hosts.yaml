@@ -85,6 +85,7 @@ hosts:
   contabo:
     os: linux
     remote_control: true   # session shows in the CEO Claude app
+    terminal_window: false   # CTO 2026-10-26: no iTerm/osascript on Linux; spawn-cxo.sh exited 127 (RUN-20261026-0622-fa27)
     ssh: mooniex-vps
     # mooniex-vps dials Contabo's public address; the mesh needs the tailnet one.
     mesh_ssh: root@100.118.171.23
