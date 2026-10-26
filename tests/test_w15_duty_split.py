@@ -215,7 +215,7 @@ def _gc_duties(mp, tmp_path, variant: str):
     mp.setattr(gc, "remote_pid_alive", lambda cfg, pid: variant == "local")
     mp.setattr(gc, "get_host", lambda name: {"ssh": name})
     mp.setattr(gc, "_reclaim_worktree", lambda t, dry_run=False: {})
-    mp.setattr(gc.disk_queue, "is_queued", lambda task_id: False)
+    mp.setattr(gc.disk_queue, "is_queued", lambda task_id, **kw: False)
     gc.gc_stale_tasks()
     with db_mod.get_conn() as conn:
         cancelled = [r["id"] for r in conn.execute("SELECT id FROM tasks WHERE status='cancelled'")]
