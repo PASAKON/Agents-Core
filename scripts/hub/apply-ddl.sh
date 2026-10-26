@@ -25,4 +25,20 @@ SELECT table_name || '.' || column_name FROM information_schema.columns
  ORDER BY 1;
 SQL
 args+=(-f "$tmp/zz-check.sql")
-"$repo/scripts/hub/with-org-db-env.sh" bash -c ': "${ORG_DB_URL:?ORG_DB_URL is required}"; exec psql "$ORG_DB_URL" -X -q -At -v ON_ERROR_STOP=1 "$@"' _ "${args[@]}"
+# The URL carries the password: hand it to psql as PG* environment, never as an argument (ps shows argv).
+"$repo/scripts/hub/with-org-db-env.sh" /usr/bin/python3 -I -c '
+import os, sys
+from urllib.parse import parse_qsl, unquote, urlsplit
+url = os.environ.pop("ORG_DB_URL", "")
+if not url:
+    sys.exit("ORG_DB_URL is required")
+env = {k: v for k, v in os.environ.items() if not k.startswith("PG")}
+u = urlsplit(url)
+for key, value in (("PGHOST", u.hostname), ("PGPORT", u.port), ("PGUSER", u.username),
+                   ("PGPASSWORD", u.password), ("PGDATABASE", u.path.lstrip("/"))):
+    if value:
+        env[key] = unquote(str(value))
+for key, value in parse_qsl(u.query):
+    env["PG" + key.upper()] = value
+os.execvpe("psql", ["psql", "-X", "-q", "-At", "-v", "ON_ERROR_STOP=1", *sys.argv[1:]], env)
+' "${args[@]}"
