@@ -3,7 +3,7 @@ name: CMO_Procedure_ChatGPTImage_LakornCover
 kind: procedure
 owner: CMO
 aka: [CTO_ChatGPT-Image_LakornCover]
-description: "PROCEDURE — Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from ChatGPT, a custom title LOGO from ChatGPT on pure black, lettered locally in the Thai lakorn poster layout, three options for the CEO to pick. Trigger on /CMO_Procedure_ChatGPTImage_LakornCover and whenever an episode needs a cover, poster, thumbnail or key art — 'ทำปก', 'ปกละคร', 'ปกคลิป', 'โปสเตอร์ละคร', 'thumbnail', 'ทำมาให้เลือก 3 แบบ', 'โลโก้ชื่อเรื่อง'. Use instead of typing the title in a font or asking an image model to draw the whole poster. Do NOT fire for YouTube thumbnails of BLACK LIQUIDITY / MYPASAKON (different look) or festival key art (ILAG festival films have their own Poster rules)."
+description: "PROCEDURE — Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from ChatGPT, a custom title LOGO from ChatGPT on pure black, lettered locally in the Thai lakorn poster layout, three options for the CEO to pick. Trigger on /CMO_Procedure_ChatGPTImage_LakornCover and whenever an episode needs a cover, poster, thumbnail or key art — 'ทำปก', 'ปกละคร', 'ปกคลิป', 'โปสเตอร์ละคร', 'thumbnail', 'ทำมาให้เลือก 3 แบบ', 'โลโก้ชื่อเรื่อง'. Use instead of typing the title in a font or asking an image model to draw the whole poster. Do NOT fire for YouTube thumbnails of BLACK LIQUIDITY / MYPASAKON (different look) or festival key art (ILAG festival films have their own Poster rules)."
 created_by: agent
 author: {role: cto, date: "2026-09-24"}
 audience: [cmo, cto, browser_operator]
@@ -16,8 +16,8 @@ audience: [cmo, cto, browser_operator]
 **Proven on:** ChatGPT **Plus web UI** (gpt-image, Thai UI, Sep 2026) driven by
 `tools/chatgpt_images.py` on the Mac automation Chrome (`--cdp-url http://127.0.0.1:9223`,
 profile `~/.flow-automation/chrome-profile`, signed in by the CEO 2026-09-24), plus
-`tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). Films: «จุดจบของเจ้าหนี้นอกระบบ» (banchi),
-«ตาชั่งของเสี่ย» (taachang).
+`tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). Films: "จุดจบของเจ้าหนี้นอกระบบ" (banchi),
+"ตาชั่งของเสี่ย" (taachang).
 
 The ChatGPT UI changed on 2026-09-26 (send button aria-label ส่ง, no `section[data-turn]`, the image in a
 gallery with a `blob:` src) and the runner followed it (38898881). If every image fails with "send did not
@@ -86,7 +86,7 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
    Check every face against its plate, and check no ending prop or costume slipped in.
 2. **Three logo concepts.** Write each concept from the story's own material: its
    prop, its turn, its genre colour. Banchi's three: the moneylender's ledger with a
-   red strike-through (the story's working title was «บัญชี»; the strike is «จุดจบ»),
+   red strike-through (the story's working title was "บัญชี"; the strike is "จุดจบ"),
    cracked antique gold, raw red-and-white brush. Use the prompt template below, one
    JSON item each, and run:
    `.venv/bin/python tools/chatgpt_images.py --cdp-url http://127.0.0.1:9223 --json <Work>/logos/round1.json --out <Work>/logos`
@@ -149,7 +149,7 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
    Thai name and its shape ("the tone mark above ช must be MAI EK ่ — one short straight vertical
    stroke — not mai tho ้").
 7. A pale logo over a pale shirt needs the tool's dark halo (built in since 2026-09-24).
-   Check the smallest line («จุดจบของ») at poster scale, not only the big one.
+   Check the smallest line ("จุดจบของ") at poster scale, not only the big one.
 8. The runner's traps (first paste can land nothing, never click Send twice in a live chat, the
    2026-09-26 UI in §Model scope) are handled in the tool. If it misbehaves, read `ledger.json`
    and use `--recover <name>` before generating again.
@@ -183,7 +183,7 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 เลือกแบบไหน หรือจะแก้ตรงไหนต่อในแชตเดิมได้ (~2 นาที/รอบ)
 ```
 
-## Worked example — «จุดจบของเจ้าหนี้นอกระบบ», 2026-09-24
+## Worked example — "จุดจบของเจ้าหนี้นอกระบบ", 2026-09-24
 
 - People: `Work/task-d206afca/out/cover-3-ensemble-c.png` (6 characters; the officer in a grey polo).
 - Logos: `Work/task-d206afca/logos/` + `ledger.json`: logo-a-ledger, logo-b-cracked-gold → b2 (debris

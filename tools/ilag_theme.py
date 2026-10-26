@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The ILAG lakorn channel theme: navy + gold, approved by the CEO on 2026-09-28 for the Page
-«ละครสั้นคุณธรรม by ILAG Studio» ("KEEP Theme ไว้ … ทั้งโปสเตอร์และ Card ที่แสดงบน Video … รวมถึง Font
+"ละครสั้นคุณธรรม by ILAG Studio" ("KEEP Theme ไว้ … ทั้งโปสเตอร์และ Card ที่แสดงบน Video … รวมถึง Font
 และการจัดวางด้วย"). Everything that decides the look lives in this file, so a worker cannot drift from it.
 Skill: .claude/skills/CTO_ILAG_LakornTheme/SKILL.md
 
@@ -53,7 +53,7 @@ One highlighted tip line, navy text in a rounded gold box across the full width:
 {tip}
 
 Footer strip at the very bottom, under a thin gold line, over a dim dusk rice-field silhouette (dark trees, last orange light), small white text on the left, two lines:
-ดูละครสั้น «{title}» ได้ที่เพจ
+ดูละครสั้น "{title}" ได้ที่เพจ
 {page}
 then a thin vertical gold divider, and on the right an EMPTY plain white circle (no drawing inside) about 12% of the poster width, reserved for a logo.
 
@@ -139,10 +139,10 @@ def story(a):
     card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(card)
     d.rounded_rectangle((60, y, W - 60, y + 300), radius=28, fill=CARD_BG)
-    d.text((W // 2, y + 80), f"ดูเต็มเรื่อง «{a.title}»", font=f(60), fill=CARD_GOLD, anchor="mm")
+    d.text((W // 2, y + 80), f'ดูเต็มเรื่อง "{a.title}"', font=f(60), fill=CARD_GOLD, anchor="mm")
     d.text((W // 2, y + 170), f"ที่เพจ {PAGE_NAME}", font=f(44, 4), fill=CARD_WHITE, anchor="mm")
     d.text((W // 2, y + 240), a.question, font=f(40, 4), fill=CARD_CREAM, anchor="mm")
-    for text, font in ((f"ดูเต็มเรื่อง «{a.title}»", f(60)), (a.question, f(40, 4))):
+    for text, font in ((f'ดูเต็มเรื่อง "{a.title}"', f(60)), (a.question, f(40, 4))):
         if d.textlength(text, font=font) > W - 160:
             sys.exit(f"card line too long for the box, shorten it: {text}")
     png = Path(a.out).with_suffix(".card.png")

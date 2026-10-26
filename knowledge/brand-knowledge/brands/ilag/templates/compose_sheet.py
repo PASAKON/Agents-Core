@@ -1,4 +1,4 @@
-"""Composite kit overlays over real «ขายชื่อ» EP1 frames and lay them out as one numbered contact sheet."""
+"""Composite kit overlays over real "ขายชื่อ" EP1 frames and lay them out as one numbered contact sheet."""
 import sys
 from pathlib import Path
 
@@ -74,7 +74,7 @@ ft = ImageFont.truetype(str(K / "fonts/Taviraj-SemiBold.ttf"), 30)
 fh = ImageFont.truetype(str(K / "fonts/Taviraj-Bold.ttf"), 64)
 fs = ImageFont.truetype(str(K / "fonts/Taviraj-Medium.ttf"), 32)
 d.text((GAP, 28), "ILAG ชุดประจำช่อง v1 (ร่าง) · ตอบเป็นเบอร์ได้เลย", font=fh, fill=(247, 196, 64))
-d.text((GAP, 112), "พื้นหลังคือเฟรมจริงจาก «ขายชื่อ» EP1 · ตัวหนังสือทุกตัวเป็นฟอนต์ OFL ใช้ฟรีถาวร · สแตมป์ NG ในตัวอย่างวางบนเทคปกติ (ของจริงจะใช้เทคที่ AI พลาดจริง)",
+d.text((GAP, 112), "พื้นหลังคือเฟรมจริงจากเรื่องขายชื่อ EP1 / ตัวหนังสือทุกตัวเป็นฟอนต์ OFL ใช้ฟรีถาวร / สแตมป์ NG ในตัวอย่างวางบนเทคปกติ ของจริงจะใช้เทคที่ AI พลาดจริง",
        font=fs, fill=(200, 205, 220))
 for i in range(len(TILES)):
     r, c = divmod(i, COLS)

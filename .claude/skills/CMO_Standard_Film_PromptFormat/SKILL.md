@@ -19,7 +19,7 @@ audience: [cmo, cto, script_writer, prompt_engineer, browser_operator]
 
 # The shot prompt file
 
-Built on «Sorry, Sir» (Seedance 2.5) and reused on the ILAG trailer (MiniMax H3). Each rule carries the
+Built on "Sorry, Sir" (Seedance 2.5) and reused on the ILAG trailer (MiniMax H3). Each rule carries the
 engine it was **measured** on: `[SD]` Seedance 2.5, `[H3]` MiniMax H3, `[ANY]` engine-independent by its
 nature. On an engine where a rule was never measured, treat it as the default and record the first test in
 that engine's skill. The original evidence stays in `docs/prompts/absence/PROMPT-STYLE.md` and
@@ -84,7 +84,7 @@ One file = one shot that can actually be fired; never two timelines in one block
 9. **A declaration is not a fix** [ANY]: a note saying "camera changed" does not change the beat that
    still describes the old camera. When a shared block is wrong for one shot, **split the shared block**;
    never write an override on top of it (an override is proof the source text is still wrong, and on
-   «Sorry, Sir» the override itself was the only place the banned words appeared).
+   "Sorry, Sir" the override itself was the only place the banned words appeared).
 10. **Numbers must count** [ANY]: "the three riders" names three; after any edit, recount.
 11. **Only the CTO edits prompt files** [ANY]. An operator who hits a problem while firing stops and
     reports; it never writes a warning into the prompt file (that is how the S1C override accident

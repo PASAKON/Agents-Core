@@ -1,6 +1,6 @@
 ---
 name: CTO_ILAG_LakornTheme
-description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on EP4 «ขายฝากนาแม่». Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
+description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): navy + gold, approved by the CEO 2026-09-28 on EP4 'ขายฝากนาแม่'. Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
 audience: [cto, browser_operator, developer]
@@ -19,7 +19,7 @@ position anywhere else; run the tool. A change to the theme is a CEO decision, a
 
 **Proven on:** ChatGPT **Plus web UI** (gpt-image) through `tools/chatgpt_images.py` on the Mac automation
 Chrome `http://127.0.0.1:9223`, for the poster. Pillow with raqm plus Sukhumvit Set, and ffmpeg, for the Story
-card. One film: EP4 «ขายฝากนาแม่», 2026-09-28. ChatGPT spelled all the Thai correctly in that one poster (n=1).
+card. One film: EP4 "ขายฝากนาแม่", 2026-09-28. ChatGPT spelled all the Thai correctly in that one poster (n=1).
 
 The Story card is local and deterministic: the tool rebuilt the approved clip bit for bit (PSNR inf at 10 s
 and 21 s). The logo step put the logo at the approved position and size (checked by eye). The poster prompt
@@ -65,7 +65,7 @@ Top to bottom:
 5. **Three numbered points**, white, left-aligned, each number in a gold disc with a navy digit.
 6. **Tip box**: full-width rounded gold box, navy bold text, one line of advice.
 7. **Footer** over a dim dusk rice-field strip, under a thin gold line. Two small white lines on the left:
-   `ดูละครสั้น «<title>» ได้ที่เพจ` / `ละครสั้นคุณธรรม by ILAG Studio`. Then a vertical gold divider, then the
+   `ดูละครสั้น "<title>" ได้ที่เพจ` / `ละครสั้นคุณธรรม by ILAG Studio`. Then a vertical gold divider, then the
    Page logo in a circle on the right (ChatGPT draws an empty white circle, `logo` fills it).
 
 ## Story end card (1080x1920, last 5 s)
@@ -74,7 +74,7 @@ Rounded box (60, 1440)–(1020, 1740), radius 28, `CARD_BG`. Three centred lines
 
 | y | text | font | colour |
 |---|---|---|---|
-| 1520 | `ดูเต็มเรื่อง «<title>»` | Bold 60 | `CARD_GOLD` |
+| 1520 | `ดูเต็มเรื่อง "<title>"` | Bold 60 | `CARD_GOLD` |
 | 1610 | `ที่เพจ ละครสั้นคุณธรรม by ILAG Studio` | Semi Bold 44 | `CARD_WHITE` |
 | 1680 | the open question | Semi Bold 40 | `CARD_CREAM` |
 
@@ -97,7 +97,7 @@ Encode: libx264 crf 20, preset medium, yuv420p, AAC 128k, +faststart.
    drifts, see Model scope.
 6. **Post** as the Page (see Rules 5 and 6): the photo with a short caption, then comment 1 and comment 2.
 
-Comment 1: `ดูละครสั้น «<title>» เต็มเรื่องได้ที่นี่เลยครับ 👇 <EP link>`
+Comment 1: `ดูละครสั้น "<title>" เต็มเรื่องได้ที่นี่เลยครับ 👇 <EP link>`
 Comment 2: `อยากฟังเรื่องไหนต่อ คอมเมนต์บอกกันมาได้เลยครับ แอดมินจะหยิบไปทำเป็นละครสั้นตอนต่อไป / แท็กเพื่อนที่ควรรู้เรื่องนี้ไว้ด้วยนะครับ`
 
 ## Workflow — the daily Story

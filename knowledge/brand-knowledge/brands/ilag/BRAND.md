@@ -10,7 +10,7 @@ rejected.
 
 ## What the brand is
 
-- FB Page «ละครสั้นคุณธรรม by ILAG Studio», id 61594116376333. It posts Thai moral dramas made with AI: the
+- FB Page "ละครสั้นคุณธรรม by ILAG Studio", id 61594116376333. It posts Thai moral dramas made with AI: the
   wrongdoer meets karma, and the family comes through. The story rules are in `CMO_Standard_Story_ThaiMoralDrama`.
 - CEO, 26 Oct 2026: the Page is back on, because followers are rising (+2–4 a post). The new format runs 10–20 min
   per EP. Each EP is complete in itself, opens with a 15 s hook, has a twist, and pulls into the next EP. Our edge
@@ -72,7 +72,7 @@ photographic Page logo at watermark size: below about 120 px it turns to mush.
 | 7 | `now` back to the present | "ปัจจุบัน" | first shot after a flashback |
 | 8 | `place` | "<สถานที่>" / "<เวลา> น. · <วัน>" lower-left | first time a location appears in an EP |
 | 9 | `name` name card | name in gold / role / red pill "ฉายา: …" | first appearance of each named character in an EP, Chinese-series style |
-| 10 | `title` title sting | emblem + «season» + red "EP.N" pill + «EP title» + tagline | 0:12–0:15, closing the hook |
+| 10 | `title` title sting | emblem + season name + red EP.N pill + EP title (no quote marks) + tagline | 0:12–0:15, closing the hook |
 | 11 | `ng` NG stamp | "AI หลุด" / NG / "ILAG STUDIO" + a tape line saying what the AI got wrong | the AI-glitch gag, at most 2 per EP |
 | 12 | `rew` rewind | "◀◀ กรอกลับ" + scanlines | straight after the NG stamp |
 | 13 | `take2` | clapper "เทค 2" | over the corrected take |
@@ -87,7 +87,9 @@ photographic Page logo at watermark size: below about 120 px it turns to mush.
 1. Every story frame carries the watermark, and every jump in time carries a card. A jump without a card fails QC.
 2. Every piece of on-screen text is set by us from this kit. The video model never draws text: prompts carry the
    "no text" line.
-3. No em dash in on-screen text, captions or comments (IRON §39).
+3. No em dash in on-screen text, captions or comments (IRON §39), and no `« »` in any Thai text (CEO 2026-10-26).
+   A title alone on a card takes no quote marks; inside a sentence it takes straight quotes "...".
+   `scripts/check-post-text.sh` refuses both.
 4. **The NG gag is a role or logic error:** the wrong man slapped, the wrong man arrested, players changing sides.
    Never body horror (melting faces, extra limbs). Never on a victim's pain, and never inside the moral climax.
    At most two per EP.
@@ -101,7 +103,7 @@ photographic Page logo at watermark size: below about 120 px it turns to mush.
 - `templates/render_kit.py` renders it to `kit.html`, then uses Playwright to make `overlays/<id>.png` (1080×1920,
   transparent) and the 1024 emblem.
 - `templates/compose_sheet.py` builds the numbered contact sheet over real frames.
-- `templates/build_demo.py` cuts the 44 s demo from «ขายชื่อ» EP1. It runs anywhere ffmpeg runs: winbox renders it
+- `templates/build_demo.py` cuts the 44 s demo from "ขายชื่อ" EP1. It runs anywhere ffmpeg runs: winbox renders it
   in about a minute; Contabo needs the render lock.
 - `templates/emblem.svg` is the emblem master. `templates/fonts/` holds the OFL fonts and `OFL.txt`.
 - `images/ilag-emblem-1024.png` is the emblem render.

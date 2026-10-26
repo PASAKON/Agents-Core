@@ -1,4 +1,4 @@
-"""Cut a ~45 s ILAG kit demo from «ขายชื่อ» EP1 footage: one ffmpeg segment at a time, then concat + loudnorm."""
+"""Cut a ~45 s ILAG kit demo from "ขายชื่อ" EP1 footage: one ffmpeg segment at a time, then concat + loudnorm."""
 import subprocess
 import sys
 from pathlib import Path

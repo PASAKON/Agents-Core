@@ -10,7 +10,7 @@ PY=/opt/MoonieXHQ/Agents/Core/.venv/bin/python        # has Playwright + PIL
 # 1. Overlays: every element, or a comma list (e.g. "name,end")
 $PY -I "$K"/render_kit.py "$K"
 
-# 2. Footage: «ขายชื่อ» EP1 from our own Page (183.6 s, 1080x1920, 24 fps)
+# 2. Footage: "ขายชื่อ" EP1 from our own Page (183.6 s, 1080x1920, 24 fps)
 yt-dlp -f "2016235605762298v+2016235019095690a" --merge-output-format mp4 \
   -o "$K/footage/ep5-ep1.%(ext)s" "https://www.facebook.com/61594116376333/videos/1376542657800427/"
 for t in 0 30 66 78 132 140.5 141.4; do

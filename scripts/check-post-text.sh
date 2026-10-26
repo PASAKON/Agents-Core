@@ -22,6 +22,8 @@ BANNED=$'—|em dash|เว้นวรรค หรือขึ้นบรร�
 ”|smart quote|"
 ‘|smart quote|'"'"'
 ’|smart quote|'"'"'
+«|guillemet|" หรือไม่ต้องใส่ (CEO 2026-10-26)
+»|guillemet|" หรือไม่ต้องใส่ (CEO 2026-10-26)
 ·|middle dot|- หรือ /
 →|arrow|-> หรือเขียนเป็นคำ
 ←|arrow|<- หรือเขียนเป็นคำ
