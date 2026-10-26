@@ -337,6 +337,24 @@ def test_queue_write_is_atomic_and_pop_keeps_the_rest(routing):
     assert not budget_queue.QUEUE_PATH.with_name(budget_queue.QUEUE_PATH.name + ".tmp").exists()
 
 
+def test_queue_never_writes_through_a_planted_symlink(routing, tmp_path):
+    # CTO review 26 Oct: state/ is group-writable; root followed .tmp/.lock links (e.g. to /etc/shadow).
+    victim = tmp_path / "victim"
+    victim.write_text("keep")
+    q = budget_queue.QUEUE_PATH
+    tmp, lock = q.with_name(q.name + ".tmp"), q.with_name(q.name + ".lock")
+    q.parent.mkdir(parents=True, exist_ok=True)
+    tmp.symlink_to(victim)
+    budget_queue.enqueue("task-a", "ph")
+    assert victim.read_text() == "keep" and not tmp.exists()
+    lock.unlink()
+    lock.symlink_to(victim)
+    with pytest.raises(OSError):
+        budget_queue.enqueue("task-b", "ph")
+    assert victim.read_text() == "keep"
+    assert [e["task_id"] for e in budget_queue.all_entries()] == ["task-a"]
+
+
 def test_windows_lock_path_keeps_every_task(routing, monkeypatch):
     # Review task-35ff509d round 2: without fcntl the queue had no lock at all.
     import threading
