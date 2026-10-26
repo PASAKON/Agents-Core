@@ -21,7 +21,7 @@ Pick **1 year** on 2026-10-14 for `…-exp2027-10-14`. The preset is a `button[r
 ```bash
 INFISICAL_SETUP_PY=tools/infisical_setup.py PYTHON=python3 \
 node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9290 \
-  --tab 'fal\.ai/dashboard/keys' --project Agents-Core --env prod --path /spend-guard --as setup --new-only \
+  --tab 'fal\.ai/dashboard/keys' --project Agents-Core --env prod --path /spend-guard --as keyfetch-writer --new-only \
   --click '^create preset key' --match '/keys' --field 'key_id+key_secret=FAL_BILLING_API_KEY_RO' \
   --comment '<purpose>' --meta provider_name=<page name> --meta console_url=https://fal.ai/dashboard/keys \
   --meta scope=BILLING-preset --meta expires=2027-10-14 --meta owner=CTO

@@ -13,7 +13,7 @@ const BARE_FLAGS = new Set(['wait', 'check', 'multiline', 'new-only']);
 const REPEATABLE = new Set(['meta', 'field', 'dom']);
 
 export function parseArgs(argv) {
-  const opts = { meta: [], field: [], dom: [], method: 'POST', click: '^(create|generate|new|add)\\b', as: 'setup', path: '/' };
+  const opts = { meta: [], field: [], dom: [], method: 'POST', click: '^(create|generate|new|add)\\b', as: 'keyfetch-writer', path: '/' };
   let cdpUrl = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];

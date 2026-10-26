@@ -77,13 +77,13 @@ HOST_ORDER = ("contabo", "mac", "winbox")
 # (CEO 2026-10-14 session names). A name without one parses as before.
 _NAME_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)"
-    r"(?:\s+\([A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
+    r"(?:\s+\((?:[^\w\s():]+: )?[A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
 # CEO 2026-10-14: a C-level's name is "<ROLE> (<Name>)", e.g. "CTO (Kavin)", with no
 # machine and no #id; a role without a persona is the bare role, "CFO". Text after
 # " — " is the human topic (session-rename.sh). The role and id come from the
 # session record instead (_ids_from_record), never from this name alone.
 _SHORT_NAME_RE = re.compile(
-    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\(([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
+    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\((?:[^\w\s():]+: )?([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
 # The launchers run every org session in a tmux session named "<role>-<sid>"
 # (cxo-claude.sh, cto-claude.sh, spawn-ph.sh); Claude Code records it in the
 # session file as "<tmux session>:@<window>.%<pane>".
@@ -299,7 +299,22 @@ def _clean(text, limit: int) -> str:
     characters. A session file is written by whoever owns the registry dir (the
     sompong user, a root worker, winbox), and the name is printed as an address
     the model is told to send to verbatim: a "\\n" in it would forge a row."""
-    s = "".join(" " if unicodedata.category(c) in _BAD_CHARS else c for c in str(text))
+    from lib import session_names
+    raw = str(text)
+    body = session_names.split_name(raw)[2]
+    match = session_names._C_LEVEL_BODY_RE.fullmatch(body)
+    if not match:
+        long = session_names._MACHINE_LONG_RE.match(body)
+        if long and re.fullmatch(r"C[A-Z]O", long.group("role")):
+            match = long
+    start = end = -1
+    if match and match.group("person_emoji"):
+        offset = len(raw) - len(body)
+        start, end = (offset + i for i in match.span("person_emoji"))
+    # Preserve ZWJ only within the C-level persona; retain filtering everywhere else.
+    s = "".join(" " if unicodedata.category(c) in _BAD_CHARS
+                and not (c == "\u200d" and start <= i < end) else c
+                for i, c in enumerate(raw))
     return re.sub(r" {2,}", " ", s).strip()[:limit].rstrip()
 
 

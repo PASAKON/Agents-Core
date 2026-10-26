@@ -186,8 +186,16 @@ def display_for(role_name: str) -> str:
     return r.get("display") or role_name
 
 
+def persona_emoji_for(role_name: str) -> str:
+    """The configured person emoji, or empty for roles without one."""
+    try:
+        return str(role(role_name).get("persona_emoji") or "")
+    except ValueError:
+        return ""
+
+
 def persona_for(role_name: str) -> str:
-    """The C-level's persona name for its session name, "<ROLE> (<Name>)"
+    """The C-level's persona name, paired with persona_emoji_for by clevel_name.
     (CEO 2026-10-14: CTO Kavin, CMO Ging, COO SomPong). "" when the role has none."""
     try:
         r = role(role_name)
@@ -550,6 +558,4 @@ def _read_dotenv_var(name: str) -> str | None:
                     v = v[:hash_idx].strip()
             return v.strip('"').strip("'")
     return None
-
-
 

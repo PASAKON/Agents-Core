@@ -169,7 +169,7 @@ numbers do not — they move only when `tab-main.sh` is called again, which
 
 `session-rename.sh` never types into a pane (Agents-Core #272). It sends a rename request (the topic and
 the state glyph) to the rename service's socket and prints the name it asked for, e.g.
-`requested: /rename 🌐 CTO (Kavin) — <topic>` or `🌐 PH#7cf (CTO) - OrgRestructure — <topic>`. The rename
+`requested: /rename 🌐 CTO (👨‍💻: Kavin) — <topic>` or `🌐 PH#7cf (CTO) - OrgRestructure — <topic>`. The rename
 service (`tools/rename_service.py`, root on Contabo) builds that name itself with `lib/session_names` and
 types `/rename <name>` into this session's pane once its `❯` line is empty and no permission prompt is up,
 so it never lands on a draft. The service checks the request comes from this session's own process

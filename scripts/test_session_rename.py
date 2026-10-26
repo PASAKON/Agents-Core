@@ -98,7 +98,7 @@ def _no_tmux(run):
 def test_a_request_is_sent_and_tmux_is_never_called(stage):
     r = stage("ดูแล org")
     assert r.returncode == 0, r.stderr
-    assert r.stdout.startswith(f"requested: /rename {CONTABO} CTO (Kavin) — ดูแล org")
+    assert r.stdout.startswith(f"requested: /rename {CONTABO} CTO (\U0001F468\u200d\U0001F4BB: Kavin) — ดูแล org")
     assert _req(stage) == {"role": "cto", "sid": "c34459eb", "topic": "ดูแล org", "prefix": ""}
     assert not (stage.root / "state" / "rename-requests").exists()
     assert (stage.root / "state" / "locks" / "cto-c34459eb.topic").read_text() == "ดูแล org"
@@ -110,7 +110,7 @@ def test_same_topic_twice_is_a_noop_and_force_or_a_new_prefix_asks_again(stage):
     assert stage("x").stdout.strip() == "unchanged: x"
     assert stage("--force", "x").stdout.startswith("requested:")
     r = stage("--prefix", "⏸", "x")
-    assert r.stdout.startswith(f"requested: /rename ⏸ {CONTABO} CTO (Kavin) — x")
+    assert r.stdout.startswith(f"requested: /rename ⏸ {CONTABO} CTO (\U0001F468\u200d\U0001F4BB: Kavin) — x")
     assert stage("--show").stdout.strip() == "recorded: ⏸ x"
     _no_tmux(stage)
 
@@ -118,7 +118,7 @@ def test_same_topic_twice_is_a_noop_and_force_or_a_new_prefix_asks_again(stage):
 @pytest.mark.parametrize("host,lead", [("contabo", CONTABO + " CTO"), ("mac", MAC + " CTO"),
                                        ("winbox", WINBOX + " CTO"), ("bogus", "CTO")])
 def test_the_host_emoji_comes_from_self_host(stage, host, lead):
-    assert stage("t", host=host).stdout.startswith(f"requested: /rename {lead} (Kavin) — t")
+    assert stage("t", host=host).stdout.startswith(f"requested: /rename {lead} (\U0001F468\u200d\U0001F4BB: Kavin) — t")
 
 
 def test_a_ph_name_does_not_repeat_its_project(stage):
@@ -144,6 +144,6 @@ def test_with_no_service_it_says_so_and_records_nothing(stage):
     r = stage("x", extra={"RENAME_SERVICE_SOCK": "/tmp/no-such-rename.sock"})
     assert r.returncode == 0
     assert r.stdout.startswith("not requested (rename service not reachable")
-    assert r.stdout.rstrip().endswith(f"rename by hand: /rename {CONTABO} CTO (Kavin) — x")
+    assert r.stdout.rstrip().endswith(f"rename by hand: /rename {CONTABO} CTO (\U0001F468\u200d\U0001F4BB: Kavin) — x")
     assert not (stage.root / "state" / "locks" / "cto-c34459eb.topic").exists()   # the next call tries again
     _no_tmux(stage)

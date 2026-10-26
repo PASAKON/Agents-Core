@@ -194,12 +194,12 @@ fi
 # Resolve display name + model + effort from policies/agents.yaml so the
 # tab title/log lines and the spawned model match the canonical config —
 # per-role, not hardcoded (decisions/0009-model-routing-policy.md).
-IFS=$'\t' read -r DISPLAY MODEL EFFORT PERSONA <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" ROLE_ARG="$ROLE" python3 -c "
-from lib.config import display_for, is_c_level, persona_for, role as get_role
+IFS=$'\t' read -r DISPLAY MODEL EFFORT CLEVEL_NAME <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" ROLE_ARG="$ROLE" python3 -c "
+from lib.config import display_for, is_c_level, persona_for, clevel_name, role as get_role
 from lib.roles import is_project_head, ph_display
 import os, sys
 role = os.environ['ROLE_ARG']
-persona = ''
+name = ''
 if is_project_head(role):
     display = ph_display(os.environ.get('PH_LANE', ''))
 elif not is_c_level(role):
@@ -207,11 +207,11 @@ elif not is_c_level(role):
     sys.exit(2)
 else:
     display = display_for(role)
-    persona = persona_for(role)
+    name = clevel_name(role, persona_for(role))
 r = get_role(role)
 model = r.get('model') or 'claude-opus-5-5[1m]'
 effort = r.get('effort') or 'medium'
-print(display, model, effort, persona, sep='\t')   # persona last: empty is fine there
+print(display, model, effort, name, sep='\t')   # C-level name last: empty for a PH
 ")"
 [ -n "$DISPLAY" ] || exit 2
 
@@ -817,7 +817,7 @@ fi
 # 2026-10-14; it was the bare "SomPong" until then). The flag takes an optional
 # value, so the name is appended to the array built above.
 if [ "$ROLE" = "coo" ] && [ "${#REMOTE_CONTROL_ARGS[@]}" -gt 0 ]; then
-  REMOTE_CONTROL_ARGS+=("${HOST_EMOJI:+$HOST_EMOJI }COO${PERSONA:+ ($PERSONA)}")
+  REMOTE_CONTROL_ARGS+=("${HOST_EMOJI:+$HOST_EMOJI }$CLEVEL_NAME")
 fi
 
 # Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
@@ -888,7 +888,7 @@ if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
 # in lib/config.ph_session_name. The long form stays if that lookup fails.
 SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
 if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ]; then
-  SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }$DISPLAY${PERSONA:+ ($PERSONA)}"
+  SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }$CLEVEL_NAME"
 elif [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" = "1" ]; then
   _PH_NAME="$(cd "$ROOT" && PH_SID="$CXO_SESSION_ID" PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" \
     PH_HOST="${SELF_HOST:-}" .venv/bin/python -c "

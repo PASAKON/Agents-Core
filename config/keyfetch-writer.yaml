@@ -1,0 +1,3 @@
+# To add a project, open a PR here, then the CEO's card runs the seat script again.
+# Restricted YAML flow-list syntax shared by the stdlib Python and Node loaders.
+projects: [Agents-Core, MoonieX-Bedrock, MoonieX-ClaudeFlow]

@@ -1,0 +1,5 @@
+Replace setup seat with manifest-scoped keyfetch-writer
+
+Add CEO-card seat reconciliation with no-access org role and member access
+only to the three reviewed KeyFetch projects. Limit writer minting to one
+day, guard puts before login, update defaults/docs, and add fake-API tests.

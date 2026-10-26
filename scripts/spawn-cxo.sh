@@ -202,6 +202,8 @@ elif [ "$CAP_RC" -ne 0 ]; then
   echo "session-cap check unavailable (exit $CAP_RC) — spawning anyway." >&2
 fi
 
+# The launcher builds the Claude display name centrally with clevel_name;
+# this tab title is only the terminal's role/id label.
 TAB_TITLE="$DISPLAY #$CXO_SESSION_ID"
 LOG_FILE="$ROOT/state/logs/$ROLE-$CXO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"

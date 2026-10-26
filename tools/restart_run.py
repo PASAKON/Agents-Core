@@ -23,6 +23,7 @@ from tools import live_sessions, restart_plan, session_status, tmux_session
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state/restart"
+STALE_HOURS = 6
 MESSAGE = "ระบบ restart เสร็จแล้ว ทำงานต่อจากเดิม"
 SGR = re.compile(r"\x1b\[([0-9;]*)m")
 
@@ -211,6 +212,17 @@ def launcher(row, host):
     raise ValueError(f'{role}: launcher cannot preserve session id (COO is service_managed)')
 
 
+def pending_since(marker, manifest_path):
+    """When the pending restart began: the marker's timestamp, else the newest file mtime."""
+    try:
+        timestamp = datetime.fromisoformat(json.loads(marker.read_text())['timestamp'])
+    except (OSError, ValueError, KeyError, TypeError):
+        # A legacy or damaged marker still ages out by its file time.
+        path = marker if marker.exists() else manifest_path
+        timestamp = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+    return timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc)
+
+
 def prep(args):
     plan = json.loads(args.plan.read_text()) if args.plan else restart_plan.build_plan(args.host, now(), STATE)
     if plan.get('host') != args.host:
@@ -251,8 +263,20 @@ def prep(args):
                                  mode='lazy' if action == 'resume_lazy' else 'full'))
     # Persist recovery intent before the first destructive operation.
     manifest_path = STATE / f'{args.host}-resume.json'
-    if manifest_path.exists() or (STATE / f'pending-{args.host}.json').exists():
-        raise ValueError('pending resume manifest exists; resume/report it before another prep')
+    marker = STATE / f'pending-{args.host}.json'
+    if manifest_path.exists() or marker.exists():
+        timestamp = pending_since(marker, manifest_path)
+        if (now() - timestamp).total_seconds() <= STALE_HOURS * 3600:
+            raise ValueError('pending resume manifest exists; resume/report it before another prep')
+        stale_path = manifest_path.with_name(f'{args.host}-resume.stale-{stamp()}.json')
+        if args.dry_run:
+            print(f'would retire stale manifest: {manifest_path} -> {stale_path} '
+                  f'(from {timestamp.isoformat()}); unlink {marker}')
+        else:
+            if manifest_path.exists():
+                manifest_path.rename(stale_path)
+            marker.unlink(missing_ok=True)
+            print(f'retired stale manifest: {stale_path} (from {timestamp.isoformat()})')
     write_json(manifest_path, manifest, args.dry_run)
     write_json(STATE / f'pending-{args.host}.json',
                dict(manifest=str(manifest_path.resolve()), timestamp=now().isoformat()), args.dry_run)
