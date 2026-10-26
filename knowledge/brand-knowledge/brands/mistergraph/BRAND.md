@@ -15,7 +15,11 @@ would explain it over a chart. Education only.
 Tall orange quiff swept up-right, orange beard to a soft point, thick black handlebar mustache, round thick black
 glasses with white lenses (no eyes), very light peach face, no mouth, black suit, white collar. Badge: thin white
 ring on dark slate, "Mr. Graph" in a white bold serif. Reference: `/opt/MoonieXHQ/Work/mistergraph/kit/ref/`.
-Hand-built SVG only; no image-gen for the mascot or any brand element.
+Poses: ChatGPT draws them from that reference, with the same structure and colours, by the CEO's order (26 Oct 2026,
+about 20:10 TH: "คุณให้ ChatGPT ออกแบบ เอกลักษณ์ ของ Mr กราฟ มาดีกว่านะ ใช้โครงสร้างเดิมได้เลย"). Every frame is
+colour-snapped to the tokens below and checked by eye. Pose list, method and queue: `POSES.md`. The badge ring and
+the wordmark stay hand-built; an image model never draws them.
+[SUPERSEDED 2026-10-26 by the CEO's order above] Hand-built SVG only; no image-gen for the mascot or any brand element.
 
 ## Colour tokens (LOCKED; measured from his badge and captions; never let a designer pick)
 | Token | Hex | Use |
