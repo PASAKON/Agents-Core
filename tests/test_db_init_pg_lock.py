@@ -66,6 +66,7 @@ def _complete_catalog():
     columns |= {("letters", c) for c, _ in db_mod._LETTERS_MIGRATION}
     columns |= {("live_sessions", c) for c, _ in db_mod._LIVE_SESSIONS_MIGRATION}
     columns |= {("projects", c) for c, _ in db_mod._PROJECTS_MIGRATION}
+    columns |= {("milestones", c) for c, _ in db_mod._MILESTONES_MIGRATION}
     return relations, columns
 
 
@@ -116,7 +117,8 @@ def test_constraint_migration_only_when_needed():
             if "ADD CONSTRAINT project_events_kind_check" in sql:
                 self.current = True
             if "PRAGMA table_info(projects)" in sql:
-                return _Rows([{"name": c} for c in (["id", "tier"] if self.tier else ["id"])])
+                return _Rows([{"name": c} for c in (["id"] + [c for c, _ in db_mod._PROJECTS_MIGRATION]
+                                                    if self.tier else ["id"])])
             if "ALTER TABLE projects ADD" in sql:
                 self.tier = True
             return out
@@ -125,8 +127,8 @@ def test_constraint_migration_only_when_needed():
     db_mod._create_and_migrate(conn, is_pg=True)
     ddl = [s for s in conn.sql if s.startswith("ALTER TABLE project")]
     expected = db_pg._split_statements(
-        (ROOT / "docs/design/projecttrack-p1a-ddl.sql").read_text())
-    assert set(ddl) == {" ".join(s.split()) for s in expected}
+        (ROOT / "docs/design/projecttrack-p1-ddl.sql").read_text())
+    assert set(ddl) == {" ".join(s.split()) for s in expected if s.startswith("ALTER TABLE project")}
     conn.sql.clear()
     db_mod._create_and_migrate(conn, is_pg=True)
     assert not [s for s in conn.sql if s.startswith("ALTER TABLE project")]

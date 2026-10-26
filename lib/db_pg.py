@@ -40,11 +40,26 @@ class HubConnectError(RuntimeError):
 PROJECT_EVENT_KINDS = (
     'opened', 'stage', 'tier', 'milestone', 'blocker', 'unblocked',
     'decided_for_ceo', 'ceo_go', 'spend', 'closed', 'heartbeat_rollup',
+    'order', 'replan', 'beat', 'late', 'escalated', 'plan',
 )
 PROJECT_EVENT_KIND_CHECK = "CHECK (kind IN (" + ", ".join(
     repr(kind) for kind in PROJECT_EVENT_KINDS) + "))"
 
 PG_SCHEMA = """
+CREATE TABLE IF NOT EXISTS orders (
+    id TEXT PRIMARY KEY,
+    words TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    taken_by TEXT,
+    taken_at TIMESTAMPTZ NOT NULL,
+    project_id TEXT,
+    due_at TIMESTAMPTZ,
+    due_set_by TEXT CHECK (due_set_by IN ('ceo', 'clevel', 'ph')),
+    closed_at TIMESTAMPTZ,
+    outcome TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_orders_closed_at ON orders(closed_at);
+CREATE INDEX IF NOT EXISTS idx_orders_project_id ON orders(project_id);
 CREATE TABLE IF NOT EXISTS tasks (
     id              TEXT PRIMARY KEY,
     project         TEXT NOT NULL,

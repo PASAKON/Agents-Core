@@ -114,10 +114,10 @@ def authorize(identity, verb: str, project: dict | None = None, lane: str | None
         return f"{actor_of(identity)} is read-only: workers cannot write the registry"
     if identity.role == "coo":
         return None
-    unowned = project is None and verb in ("lock", "go_add", "go_use")
+    unowned = project is None and verb in ("lock", "go_add", "go_use", "order_take", "order_link", "order_close")
     if identity.role == PH_ROLE:
-        if verb in ("open", "go_add"):
-            return "a Project Head cannot open projects or record CEO GOs"
+        if verb in ("open", "go_add", "order_take", "order_link", "order_close"):
+            return "a Project Head cannot open projects, record CEO GOs, or manage orders"
         if unowned and verb != "go_add":
             return None if verb == "lock" else "a Project Head may use only a GO of its own project"
         if project is not None and _ph_owns(identity, project, locks_dir or LOCKS_DIR):
@@ -200,6 +200,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--repos", help="comma list, e.g. PASAKON/Agents-Core")
     s.add_argument("--relay-accounts", help="comma list of account ids")
     s.add_argument("--hq-row")
+    s.add_argument("--kind", choices=("finite", "loop"), default="finite")
+    s.add_argument("--due")
+    s.add_argument("--cadence", type=int)
 
     s = sub.add_parser("edit", help="change a project's name, goal, repos, done criteria or host")
     s.add_argument("id")
@@ -226,6 +229,8 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("id")
     a.add_argument("title")
     a.add_argument("--n", type=int, help="milestone number (default: next)")
+    a.add_argument("--due")
+    a.add_argument("--order")
     d = ms.add_parser("done")
     d.add_argument("id")
     d.add_argument("n", type=int)
@@ -235,6 +240,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("id")
     s.add_argument("--on", required=True, choices=list(pf.BLOCKERS))
     s.add_argument("--what", required=True)
+    s.add_argument("--ref")
+    s.add_argument("--until")
 
     s = sub.add_parser("unblock")
     s.add_argument("id")
@@ -278,7 +285,37 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("show", help="one project in full, or every project in brief")
     s.add_argument("id", nargs="?")
-    sub.add_parser("monitor", help="print the P3-E v1 JSON")
+    s = sub.add_parser("monitor", help="print the monitor JSON")
+    s.add_argument("--v", type=int, choices=(1, 2), default=1)
+    s = sub.add_parser("report")
+    s.add_argument("--json", action="store_true")
+    sub.add_parser("eta-stats")
+    s = sub.add_parser("replan")
+    s.add_argument("id")
+    s.add_argument("n", type=int)
+    s.add_argument("--due", required=True)
+    s.add_argument("--why", required=True)
+    s = sub.add_parser("beat")
+    s.add_argument("id")
+    s.add_argument("--evidence", required=True)
+    s = sub.add_parser("plan")
+    s.add_argument("id")
+    s.add_argument("--next", required=True)
+    s.add_argument("--owner", required=True)
+    s = sub.add_parser("order")
+    orders = s.add_subparsers(dest="op", required=True)
+    s = orders.add_parser("take")
+    s.add_argument("words")
+    s.add_argument("--project")
+    s.add_argument("--due")
+    s.add_argument("--channel")
+    s = orders.add_parser("link")
+    s.add_argument("order_id")
+    s.add_argument("project")
+    s.add_argument("--due")
+    s = orders.add_parser("close")
+    s.add_argument("order_id")
+    s.add_argument("--outcome", required=True)
     return p
 
 
@@ -327,6 +364,7 @@ def _import_status(args, identity, now: datetime) -> int:
 def _write(args, identity, now: datetime):
     """Run one write verb; its result, or REFUSED when the gate stopped it."""
     actor, v = actor_of(identity), args.verb
+    due_set_by = "ceo" if identity and identity.kind == "ceo" else "ph" if identity and identity.role == PH_ROLE else "clevel"
 
     def ok(verb: str, project: dict | None = None, project_id: str | None = None, lane: str | None = None):
         return gate(identity, verb, project_id or (project or {}).get("id"),
@@ -339,7 +377,28 @@ def _write(args, identity, now: datetime):
                                owner_session=args.owner_session, ph_session=args.ph_session, host=args.host,
                                repos=_csv(args.repos), goal=args.goal, done_criteria=args.done_criteria,
                                budget_usd=args.budget_usd, relay_accounts=_csv(args.relay_accounts),
-                               hq_row=args.hq_row, now=now)
+                               hq_row=args.hq_row, now=now, kind=args.kind,
+                               due_at=parse_when(args.due, now) if args.due else None,
+                               due_set_by=due_set_by if args.due else None, cadence_h=args.cadence)
+    if v == "order":
+        pid = getattr(args, "project", None)
+        if args.op != "take":
+            with pf._tx() as c:
+                existing = pf._order(c, args.order_id)
+            old_pid = existing["project_id"]
+            if old_pid and not ok("order_" + args.op, pf.get_project(old_pid)):
+                return REFUSED
+            pid = pid or old_pid
+        if not ok("order_" + args.op, pf.get_project(pid) if pid else None):
+            return REFUSED
+        due = parse_when(args.due, now) if getattr(args, "due", None) else None
+        if args.op == "take":
+            channel = args.channel or "chat:" + (actor if actor != "ceo" else "ceo-direct")
+            return {"id": pf.order_take(args.words, channel, actor=actor, project_id=pid,
+                                       due_at=due, due_set_by=due_set_by if due else None, now=now)}
+        if args.op == "link":
+            return pf.order_link(args.order_id, args.project, actor=actor, due_at=due, now=now)
+        return pf.order_close(args.order_id, args.outcome, actor=actor, now=now)
     if v == "go":
         if args.op == "add":
             project = pf.get_project(args.project) if args.project else None
@@ -368,6 +427,14 @@ def _write(args, identity, now: datetime):
     project = pf.get_project(args.id)
     if not ok(v, project):
         return REFUSED
+    if v == "replan":
+        role = "ceo" if identity and identity.kind == "ceo" else getattr(identity, "role", "unknown")
+        return pf.replan(args.id, args.n, parse_when(args.due, now), actor=actor,
+                         actor_role=role, why=args.why, now=now)
+    if v == "beat":
+        return pf.beat(args.id, args.evidence, actor=actor, now=now)
+    if v == "plan":
+        return pf.set_plan(args.id, next_step=args.next, next_owner=args.owner, actor=actor, now=now)
     if v == "edit":
         return pf.edit_project(args.id, actor=actor, name=args.name, goal=args.goal, repos=_csv(args.repos),
                                done_criteria=args.done_criteria, host=args.host)
@@ -377,10 +444,12 @@ def _write(args, identity, now: datetime):
         return pf.set_tier(args.id, args.tier, actor=actor, why=args.why, go=args.go, now=now)
     if v == "milestone":
         if args.op == "add":
-            return {"project": args.id, "n": pf.milestone_add(args.id, args.title, actor=actor, n=args.n, now=now)}
+            return {"project": args.id, "n": pf.milestone_add(args.id, args.title, actor=actor, n=args.n, now=now,
+                    due_at=parse_when(args.due, now) if args.due else None, order_id=args.order)}
         return pf.milestone_done(args.id, args.n, args.evidence, actor=actor, now=now)
     if v == "block":
-        return pf.block(args.id, args.on, args.what, actor=actor, now=now)
+        return pf.block(args.id, args.on, args.what, actor=actor, now=now, ref=args.ref,
+                        until=parse_when(args.until, now) if args.until else None)
     if v == "unblock":
         return pf.unblock(args.id, actor=actor, note=args.note, now=now)
     if v == "decided":
@@ -404,7 +473,18 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
         if args.reimport and not args.import_status:
             raise pf.PortfolioError("--reimport goes with --import-status <file> --project <id>")
         if args.verb == "monitor":
-            print(json.dumps(pf.monitor_payload(now), ensure_ascii=False, indent=2))
+            payload = pf.monitor_payload(now) if args.v == 1 else pf.monitor_payload(now, version=2)
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
+        if args.verb == "report":
+            rows = pf.report(now)
+            if args.json:
+                _out(rows)
+            else:
+                print(pf.render_report(rows))
+            return 0
+        if args.verb == "eta-stats":
+            _out(pf.eta_stats())
             return 0
         if args.verb == "show":
             _out(pf.show(args.id, now=now))
@@ -417,6 +497,9 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
             return 1
         _out(result)
         return 0
+    except PermissionError as e:
+        print(f"portfolio: refused: {e}", file=sys.stderr)
+        return 1
     except (pf.PortfolioError, HubConnectError, db.HubUnavailable) as e:
         print(f"portfolio: {e}", file=sys.stderr)
         return 2
