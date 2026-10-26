@@ -372,7 +372,12 @@ else
     # session the phone shows. Two names for one session is what made the
     # Aug-10 orphan invisible (lock cto-4020c182 vs tmux cto-session-mslldjt6).
     # Only <role>-<8 lowercase hex> names are adopted; anything else prints one
-    # stderr line and falls back to a fresh 8-hex uuid.
+    # stderr line and falls back to a fresh 8-hex uuid. Only a <role>-<other>
+    # name (cto-fresh) is then renamed to <role>-<id>. Any other name belongs to
+    # whoever made it: mooniex-sompong.service watches tmux "sompong" and answers
+    # its startup prompts by that name, so renaming it left the COO stuck on the
+    # dev-channels prompt (26 Oct 2026).
+    _RENAME=""
     if [ -n "${TMUX:-}" ]; then
       _SESS="$(tmux display-message -p '#S' 2>/dev/null | tr -d '[:space:]')"
       case "$_SESS" in
@@ -382,16 +387,17 @@ else
             CXO_SESSION_ID="$_CANDIDATE"
           else
             echo "cxo-claude: tmux session name '$_SESS' was not adopted as CXO_SESSION_ID (suffix '$_CANDIDATE' is not 8 lowercase hex); minting a fresh 8-hex id" >&2
+            _RENAME=1
           fi
           ;;
         ?*)
-          echo "cxo-claude: tmux session name '$_SESS' was not adopted as CXO_SESSION_ID (expected '$ROLE-<8 lowercase hex>'); minting a fresh 8-hex id" >&2
+          echo "cxo-claude: tmux session name '$_SESS' was not adopted as CXO_SESSION_ID (expected '$ROLE-<8 lowercase hex>'); minting a fresh 8-hex id and keeping the name" >&2
           ;;
       esac
     fi
     if [ -z "${CXO_SESSION_ID:-}" ]; then
       CXO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
-      if [ -n "${TMUX:-}" ] && [ -n "${_SESS:-}" ]; then
+      if [ -n "$_RENAME" ]; then
         _NEW_SESS="$ROLE-$CXO_SESSION_ID"
         if tmux has-session -t "=$_NEW_SESS" 2>/dev/null; then
           echo "cxo-claude: warning: tmux session '$_NEW_SESS' already exists; keeping '$_SESS'" >&2

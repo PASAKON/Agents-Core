@@ -146,6 +146,16 @@ def test_rename_exclusions(tmp_path):
         assert not log.exists() or "rename-session" not in log.read_text()
 
 
+def test_foreign_tmux_name_is_kept(tmp_path):
+    # mooniex-sompong.service watches tmux "sompong"; renaming it left the COO stuck (26 Oct 2026).
+    proc, cap = _run_launcher(tmp_path, ["--role", "cto"], tmux_session_name="sompong")
+    assert proc.returncode == 0, proc.stderr
+    assert re.fullmatch(r"[0-9a-f]{8}", cap["sid"])
+    log = tmp_path / "tmux.log"
+    assert not log.exists() or "rename-session" not in log.read_text()
+    assert "'sompong' was not adopted" in proc.stderr and "keeping the name" in proc.stderr
+
+
 def test_rename_taken_and_failure_continue(tmp_path):
     for taken in (True, False):
         folder = tmp_path / str(taken)
