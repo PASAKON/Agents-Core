@@ -1,12 +1,23 @@
 ---
 name: CTO_ILAG_LakornTheme
-description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on EP4 «ขายฝากนาแม่». Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
+description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of 2026-10-26 (it replaced the navy + gold approved 2026-09-28 on EP4 'ขายฝากนาแม่'; the tool still draws navy until it moves). Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
 audience: [cto, browser_operator, developer]
 ---
 
-# ILAG lakorn theme — navy + gold
+# ILAG lakorn theme — gold, white, black (CEO 2026-10-26)
+
+> "Theme ILAG ที่อยากได้จริงๆ อยากได้ เป็น ทอง ขาว ดำ / ทองสำหรับ พวก font ขอบ หรือจุด เด่น จุดตัด / ส่วน ขาว ดำ เป็น สี
+> หรือ พื้นหลังต่างๆ ให้อารม์ เหมือน YIN YANG ตัวดี ตัว ร้าย เหมือน ดอกบัว ใน โลโก้ของเราที่มี ส่วนขาวและ ส่วนที่ดำ"
+> — CEO, 2026-10-26 (CMO chat)
+
+**The tool has not moved yet.** `tools/ilag_theme.py` and everything below still draw the navy v1 look. Until the
+tool lands the v2 tokens (owner: PH IlagLakorn, d5e4d1fd), do not fire a new navy poster or Story card: ask the PH.
+The v2 palette, the Page's own logo (never redrawn) and the 20-tile channel kit are in
+`knowledge/brand-knowledge/brands/ilag/BRAND.md`. When the tool moves, this skill's tokens and layout follow it.
+
+[SUPERSEDED 2026-10-26 by the ruling above — kept as history:]
 
 > "โปสเตอร์กับ Story ผ่านแล้ว นะ เราต้อง KEEP Theme ไว้นะ เป็นน้ำเงิน เหลือง แบบที่คุณทำ ทั้งโปสเตอร์ และ Card
 > ที่แสดงบน Video เมื่อ Worker ทำออกมาเราจะได้แบบเดิม รวมถึง Font และการจัดวางด้วย / เขียนลง Skill ได้เลย
@@ -19,7 +30,7 @@ position anywhere else; run the tool. A change to the theme is a CEO decision, a
 
 **Proven on:** ChatGPT **Plus web UI** (gpt-image) through `tools/chatgpt_images.py` on the Mac automation
 Chrome `http://127.0.0.1:9223`, for the poster. Pillow with raqm plus Sukhumvit Set, and ffmpeg, for the Story
-card. One film: EP4 «ขายฝากนาแม่», 2026-09-28. ChatGPT spelled all the Thai correctly in that one poster (n=1).
+card. One film: EP4 "ขายฝากนาแม่", 2026-09-28. ChatGPT spelled all the Thai correctly in that one poster (n=1).
 
 The Story card is local and deterministic: the tool rebuilt the approved clip bit for bit (PSNR inf at 10 s
 and 21 s). The logo step put the logo at the approved position and size (checked by eye). The poster prompt
@@ -65,7 +76,7 @@ Top to bottom:
 5. **Three numbered points**, white, left-aligned, each number in a gold disc with a navy digit.
 6. **Tip box**: full-width rounded gold box, navy bold text, one line of advice.
 7. **Footer** over a dim dusk rice-field strip, under a thin gold line. Two small white lines on the left:
-   `ดูละครสั้น «<title>» ได้ที่เพจ` / `ละครสั้นคุณธรรม by ILAG Studio`. Then a vertical gold divider, then the
+   `ดูละครสั้น "<title>" ได้ที่เพจ` / `ละครสั้นคุณธรรม by ILAG Studio`. Then a vertical gold divider, then the
    Page logo in a circle on the right (ChatGPT draws an empty white circle, `logo` fills it).
 
 ## Story end card (1080x1920, last 5 s)
@@ -74,7 +85,7 @@ Rounded box (60, 1440)–(1020, 1740), radius 28, `CARD_BG`. Three centred lines
 
 | y | text | font | colour |
 |---|---|---|---|
-| 1520 | `ดูเต็มเรื่อง «<title>»` | Bold 60 | `CARD_GOLD` |
+| 1520 | `ดูเต็มเรื่อง "<title>"` | Bold 60 | `CARD_GOLD` |
 | 1610 | `ที่เพจ ละครสั้นคุณธรรม by ILAG Studio` | Semi Bold 44 | `CARD_WHITE` |
 | 1680 | the open question | Semi Bold 40 | `CARD_CREAM` |
 
@@ -97,7 +108,7 @@ Encode: libx264 crf 20, preset medium, yuv420p, AAC 128k, +faststart.
    drifts, see Model scope.
 6. **Post** as the Page (see Rules 5 and 6): the photo with a short caption, then comment 1 and comment 2.
 
-Comment 1: `ดูละครสั้น «<title>» เต็มเรื่องได้ที่นี่เลยครับ 👇 <EP link>`
+Comment 1: `ดูละครสั้น "<title>" เต็มเรื่องได้ที่นี่เลยครับ 👇 <EP link>`
 Comment 2: `อยากฟังเรื่องไหนต่อ คอมเมนต์บอกกันมาได้เลยครับ แอดมินจะหยิบไปทำเป็นละครสั้นตอนต่อไป / แท็กเพื่อนที่ควรรู้เรื่องนี้ไว้ด้วยนะครับ`
 
 ## Workflow — the daily Story
@@ -157,3 +168,4 @@ Comment 2: `อยากฟังเรื่องไหนต่อ คอม�
 - 2026-10-26 [MISSING] §Rules 1 — channel kit v1 (CEO asked 26 Oct: watermark, time cards, fonts, emblem "เพื่อเอาไว้เป็นกฏถาวร") is PROPOSED in knowledge/brand-knowledge/brands/ilag/ (BRAND.md + templates/). It keeps the navy and gold tokens of tools/ilag_theme.py and adds STAMP_RED #B8322A, INK #231F1C and PAPER #F6EEDD. When the CEO passes it tile by tile, the passed values move into tools/ilag_theme.py and this skill · evidence: CEO chat 2026-10-26 (CMO session d55bf0c1), knowledge/brand-knowledge/brands/ilag/BRAND.md · status: pending
 - 2026-10-26 [MISSING] §Model scope — Sukhumvit Set is an Apple system font: nothing rendered on Contabo or winbox may use it, and Contabo had no Thai OFL font at all. Kit v1 ships Taviraj, Anuphan, Chakra Petch and Cinzel (all OFL) in brands/ilag/templates/fonts/. Gold Thai text set with `background-clip:text` cuts off the tone marks unless the line is padded .34em above (and pulled back by the same negative margin) · evidence: kit v1 check crop out/check-v1c.jpg (หนึ่งเดือนต่อมา, ย้อนกลับไปเมื่อเช้านี้, ปัจจุบัน) · status: pending
 - 2026-10-26 [MISSING] §Rules 4 — from Contabo the Page's og:image fetch got no logo; the 1080² profile picture came from `https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=61594116376333` with User-Agent `facebookexternalhit/1.1` · evidence: brands/ilag emblem source, CMO session d55bf0c1 · status: pending
+- 2026-10-26 [SUPERSEDED] §top + description — the CEO replaced navy + gold (2026-09-28) with gold, white and black: gold for type, borders, highlights and cut points; black and white for grounds, good on white, evil on black like the lotus halves in the Page logo. The 09-28 ruling stays as history. `tools/ilag_theme.py` and this skill's tokens and layout move with PH IlagLakorn (d5e4d1fd); no navy poster or Story card meanwhile · evidence: CEO chat 2026-10-26 (CMO session d55bf0c1), brand commit 67ce5bed (BRAND.md §Palette), d159b7c7 · status: promoted

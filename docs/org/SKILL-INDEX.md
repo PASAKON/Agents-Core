@@ -60,7 +60,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_BlackLiquidity_JevEditor` | CMO | cmo, video_editor, cto | Run Jev (TypeSafe's typed-decision model, ALL_Knowledge_Jev SKILL.md) per BLACK LIQUIDITY script line to make the per-line editorial calls… |
 | `CMO_Procedure_Blender_Previz` | CMO | cmo, cto | Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead… |
 | `CMO_Procedure_CharacterSheet` | CMO | cmo, worker | Generate a neutral, reusable AI character reference sheet (white-background emotion grid + one full-body panel) for any film/video project… |
-| `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
+| `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from… |
 | `CMO_Procedure_Colab_DirectRender` | CMO | cmo, cto | Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac: write one take spec (JSON: scenes, refs… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
@@ -190,5 +190,5 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 
 | name | owner | audience | what it is |
 |---|---|---|---|
-| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on… |
+| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of… |
 | `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |
