@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -83,6 +84,12 @@ NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 class Fail(Exception):
     pass
+
+
+def q(d, fps):
+    """Round a length up to whole frames (what ffmpeg's -t does anyway), so every segment is a whole number of frames
+    and the concat offsets stay on the frame grid."""
+    return math.ceil(d * fps - 1e-6) / fps
 
 
 def fmt(x):
@@ -288,6 +295,8 @@ def expand_segment(v, seg, i, fps):
             seg, "dur", where, default={"title": 3.0, "end": 4.5, "blooper_header": 2.2}[kind], gt=0)
         ss = v.num(seg, "in", where, default=0.0, lo=0) if kind in ("clip", "title", "end") else 0.0
         hold = v.num(seg, "freeze_last", where, default=0.0, lo=0) if kind == "clip" else 0.0
+        if None not in (dur, hold):
+            dur, hold = q(dur, fps), (q(hold, fps) if hold else 0.0)
         total = dur + hold if None not in (dur, hold) else None
         cards, subs, sfx = overlays_field(v, seg, where, total)
         if kind in ("clip", "still"):
@@ -354,7 +363,8 @@ def expand_ng(v, seg, sid, where, wm, fps):
         v.err(where, f"freeze_at ({fz}) must be after rewind_in ({rw})")
     if tape is None or fz is None or rw is None or len(v.errors) > n0:
         return None
-    rdur = (fz - rw) / REWIND_SPEED
+    dur1, dur2, rdur = q(dur1, fps), q(dur2, fps), q((fz - rw) / REWIND_SPEED, fps)
+    nfreeze = int(NG_FREEZE * fps) / fps
     c1, s1, f1 = overlays_field(v, t_obj(take), w1, dur1)
     c2, s2, f2 = overlays_field(v, t_obj(take2), w2, dur2)
     key = frames_key(src1, fz, tape, fps)
@@ -363,10 +373,11 @@ def expand_ng(v, seg, sid, where, wm, fps):
     return [
         part(f"{sid}.1take", sid, dur1, media="video", src=src1, ss=in1, gain=g1, wm=wm, cards=c1, subs=s1, sfx=f1,
              note="take"),
-        part(f"{sid}.2freeze", sid, NG_FREEZE, media="frames", note="freeze + NG stamp + tape",
+        part(f"{sid}.2freeze", sid, nfreeze, media="frames", note="freeze + NG stamp + tape",
              sfx=[{"name": "scratch", "at": 0.0, "gain": 0.9}, {"name": "thud", "at": 0.12, "gain": 1.0}],
              frames={"key": key, "src": src1, "freeze_at": fz, "tape": tape}),
-        part(f"{sid}.3rew", sid, rdur, media="video", src=src1, ss=rw, span=fz - rw, speed=REWIND_SPEED, reverse=True,
+        part(f"{sid}.3rew", sid, rdur, media="video", src=src1, ss=rw, span=rdur * REWIND_SPEED, speed=REWIND_SPEED,
+             reverse=True,
              grade="rewind", wm=wm, tags=["rew"], gain=0.0, sfx=[{"name": "rewind", "at": 0.0, "gain": 0.9}],
              note="rewind"),
         part(f"{sid}.4take2", sid, dur2, media="video", src=src2, ss=in2, gain=g2, wm=wm,
@@ -569,15 +580,22 @@ def stage_kit(kit, work):
 
 
 def authored_fit_sizes(html):
-    """Inline font-size the kit authors on a .fit node (the 'now' card): its own fit() must not wipe it."""
-    return {m.group(1): m.group(2) for m in
-            re.finditer(r'class="([^"]*\bfit\b[^"]*)"\s+style="[^"]*?font-size:\s*([\d.]+px)', html)}
+    """{element id: {class attribute: font-size}} for a .fit node the kit gives an inline size (the 'now' card): the
+    fit() re-run must put that size back, not wipe it.  Scoped by element: skip and now share one class string."""
+    out, cur = {}, None
+    for m in re.finditer(r'<div id="(\w+)" class="el"|class="([^"]*\bfit\b[^"]*)"\s+style="[^"]*?font-size:\s*([\d.]+px)',
+                         html):
+        if m.group(1):
+            cur = m.group(1)
+        else:
+            out.setdefault(cur, {})[m.group(2)] = m.group(3)
+    return out
 
 
 SET_TEXT_JS = """async ({el, items, authored}) => {
   const root = document.getElementById(el);
   if (!root) throw new Error('kit has no #' + el);
-  root.querySelectorAll('.fit').forEach(n => { n.style.fontSize = authored[n.getAttribute('class')] || ''; });
+  root.querySelectorAll('.fit').forEach(n => { n.style.fontSize = (authored[el] || {})[n.getAttribute('class')] || ''; });
   for (const [sel, txt] of items) {
     const n = root.querySelector(sel);
     if (!n) throw new Error('kit has no ' + sel + ' in #' + el);
@@ -846,20 +864,21 @@ def preflight(edl, segs, root, work, probes):
     for p in all_parts(segs):
         if p["src"]:
             src = resolve(root, p["src"])
+            info = None
             if not src.exists():
                 errs.append(f"segment '{p['seg']}': source not found: {src}")
-                continue
-            try:
-                info = probe(src, probes)
-            except Fail as e:
-                errs.append(str(e))
-                continue
-            p["_wh"] = (info["w"], info["h"])
-            if p["media"] == "video" and p["ss"] + p["span"] > info["dur"] + 0.1:
-                errs.append(f"segment '{p['seg']}': reads {fmt(p['ss'])}+{fmt(p['span'])} s but {src.name} is only "
-                            f"{info['dur']:.2f} s long")
-            if p["media"] == "freeze" and p["ss"] > info["dur"] + 0.1:
-                errs.append(f"segment '{p['seg']}': freeze_at {fmt(p['ss'])} is past the end of {src.name}")
+            else:
+                try:
+                    info = probe(src, probes)
+                except Fail as e:
+                    errs.append(str(e))
+            if info:
+                p["_wh"] = (info["w"], info["h"])
+                if p["media"] == "video" and p["ss"] + p["span"] > info["dur"] + 0.1:
+                    errs.append(f"segment '{p['seg']}': reads {fmt(p['ss'])}+{fmt(p['span'])} s but {src.name} is only "
+                                f"{info['dur']:.2f} s long")
+                if p["media"] == "freeze" and p["ss"] > info["dur"] + 0.1:
+                    errs.append(f"segment '{p['seg']}': freeze_at {fmt(p['ss'])} is past the end of {src.name}")
         else:
             p["_wh"] = tuple(SIZE)
         if p["frames"]:
