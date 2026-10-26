@@ -76,6 +76,15 @@ def test_proc_match_and_unreadable(monkeypatch, tmp_path):
     assert REAL_PROC_CHECK("cmo", proc) is None
     assert REAL_PROC_CHECK("cgo", proc) is None
     assert not list(proc.glob("*/environ"))
+    # A claude that outlived its launcher: only its --session-id ties it to a role's lock file.
+    orphan_uuid = "0f0e0d0c-0b0a-4908-8706-0504abcdef12"
+    (coo_dispatch.LOCKS_DIR / "cgo-abcdef12.uuid").write_text(orphan_uuid + "\n")
+    orphan = proc / "111"
+    orphan.mkdir()
+    (orphan / "comm").write_bytes(b"claude\n")
+    (orphan / "cmdline").write_bytes(b"claude\0--session-id\0" + orphan_uuid.encode() + b"\0")
+    assert REAL_PROC_CHECK("cgo", proc) == "process_role_alive"
+    assert REAL_PROC_CHECK("cfo", proc) is None
     monkeypatch.setattr(coo_dispatch, "process_role_refusal", lambda role: REAL_PROC_CHECK(role, proc))
     _queue_respawn()
     coo_dispatch.respawn_once()
@@ -341,10 +350,13 @@ def test_dispatch_enforces_three_per_thai_day_limit(monkeypatch):
                 (json.dumps({"role": "cfo", "host": "contabo", "by_session": SID}), ts),
             )
             rid = conn.execute("SELECT MAX(id) AS id FROM events").fetchone()["id"]
-            db_mod.log_event(
-                conn, None, "coo_dispatch", "coo_respawn_done",
-                {"request_id": rid, "role": "cfo", "host": "contabo", "ok": True, "mode": "fresh",
-                 "sid": "aaaaaaaa", "uuid": None, "reason": "ok"},
+            # Stamp the start at the request's time: log_event would use the real clock, which is
+            # after `now` and so counts as a future (recent) event.
+            conn.execute(
+                "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_dispatch', 'coo_respawn_done', ?, ?)",
+                (json.dumps({"request_id": rid, "role": "cfo", "host": "contabo", "ok": True,
+                             "started": True, "mode": "fresh", "sid": "aaaaaaaa", "uuid": None,
+                             "reason": "ok"}), ts),
             )
         conn.execute(
             "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_respawn_request', ?, ?)",
@@ -440,3 +452,12 @@ def test_dispatch_starts_fresh_session_when_no_resume_uuid_resolves(monkeypatch)
     assert done[0]["ok"] is True
     assert done[0]["mode"] == "fresh"
     assert done[0]["uuid"] is None
+
+
+def test_tmux_start_oserror_gives_a_reason_code_not_its_text(monkeypatch):
+    def boom(*a, **kw):
+        raise OSError("password=REVIEW_FAKE")
+    monkeypatch.setattr(coo_dispatch.subprocess, "run", boom)
+    ok, reason = coo_dispatch.start_clevel("cto", mode="fresh", sid="1234abcd")
+    assert ok is False
+    assert reason == "tmux_start_error:OSError"

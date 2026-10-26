@@ -98,16 +98,21 @@ def respawn_rate_limit_reason(
     in_window = 0
     in_thai_day = 0
     events = list(events)
-    started_requests = set()
+    # A request with a done event is settled: it counts once at its start (started: true) or not
+    # at all (refused before launch). A request with no done event yet counts, so a pending or
+    # uncertain launch keeps its slot (fail closed).
+    settled_requests = set()
     for ev in events:
+        if ev.get('kind') != 'coo_respawn_done':
+            continue
         p = ev.get('payload')
         if isinstance(p, str):
             try:
                 p = json.loads(p)
             except ValueError:
                 continue
-        if isinstance(p, Mapping) and p.get('started') is True:
-            started_requests.add(p.get('request_id'))
+        if isinstance(p, Mapping) and p.get('request_id') is not None:
+            settled_requests.add(p.get('request_id'))
     for ev in events:
         if exclude_id is not None and ev.get("id") == exclude_id:
             continue
@@ -123,10 +128,11 @@ def respawn_rate_limit_reason(
             continue
         if not isinstance(payload, Mapping):
             continue
-        if ev.get('kind') == 'coo_respawn_done' and payload.get('started') is not True:
+        # A done event without `started` (written before that key existed) counts when ok.
+        if ev.get('kind') == 'coo_respawn_done' and payload.get('started', payload.get('ok')) is not True:
             continue
-        if ev.get('kind') != 'coo_respawn_done' and ev.get('id') in started_requests:
-            continue  # A completed request is counted once, at its actual start.
+        if ev.get('kind') != 'coo_respawn_done' and ev.get('id') in settled_requests:
+            continue
         ev_dt = _parse_ts(ev.get("ts"))
         uncertain = ev_dt is None or ev_dt > now_dt
         age_s = 0 if uncertain else (now_dt - ev_dt).total_seconds()

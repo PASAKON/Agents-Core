@@ -213,7 +213,9 @@ BEGIN
       RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'forbidden insert accepted';
     EXCEPTION
       WHEN SQLSTATE 'ZX001' THEN accepted := true;
-      WHEN OTHERS THEN NULL;
+      -- Only the guard trigger's RAISE or a missing privilege counts as refused. Any other
+      -- error (the role switch failing, a missing table) is not proof, so it fails this run.
+      WHEN raise_exception OR insufficient_privilege THEN NULL;
     END;
     IF accepted THEN
       RAISE EXCEPTION 'org_coo accepted forbidden insert: %', forbidden_kind;

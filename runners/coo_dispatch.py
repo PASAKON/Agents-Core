@@ -432,7 +432,8 @@ def start_clevel(role: str, *, mode: str, sid: str, resume_uuid: str | None = No
             capture_output=True, text=True,
         )
     except OSError as e:
-        return False, f"tmux could not start {tmux_name}: {e}"
+        log.error("tmux start failed: %s", e)
+        return False, f"tmux_start_error:{type(e).__name__}"
     if done.returncode != 0:
         log.error("tmux start failed: %s", done.stderr)
         return False, "tmux_start_failed"
@@ -486,11 +487,17 @@ def live_host_refusal(host, *, now=None):
     return None
 
 
-def process_role_refusal(role, proc_root=Path("/proc")):
-    """Refuse while any launcher process for `role` runs: argv holds the item `cxo-claude.sh`
-    (any path) followed by `--role <role>`. Reads cmdline only, never environ (secrets), and
-    skips tmux processes: the shared server's own argv names the command it was started with."""
+def process_role_refusal(role, proc_root=Path("/proc"), locks_dir=None):
+    """Refuse while any process of `role` runs. Two argv shapes count:
+    - the launcher: the item `cxo-claude.sh` (any path) followed by `--role <role>`;
+    - a claude that outlived its launcher: `--session-id <uuid>` where <uuid> is in a
+      state/locks/<role>-*.uuid file (the launcher writes one per session).
+    Reads cmdline only, never environ (secrets), and skips tmux processes: the shared server's
+    own argv names the command it was started with."""
+    locks_dir = LOCKS_DIR if locks_dir is None else locks_dir
     try:
+        role_uuids = {p.read_bytes().strip().lower() for p in locks_dir.glob(f"{role}-*.uuid")}
+        role_uuids.discard(b"")
         for pid in proc_root.iterdir():
             if not pid.name.isdigit():
                 continue
@@ -503,6 +510,9 @@ def process_role_refusal(role, proc_root=Path("/proc")):
                 raise
             if comm.startswith(b"tmux"):
                 continue
+            if role_uuids and any(argv[i] == b"--session-id" and argv[i + 1].lower() in role_uuids
+                                  for i in range(len(argv) - 1)):
+                return "process_role_alive"
             launcher = [i for i, a in enumerate(argv) if a.rsplit(b"/", 1)[-1] == b"cxo-claude.sh"]
             if not launcher:
                 continue

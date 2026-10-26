@@ -43,12 +43,16 @@ supply the short ID. The launcher forks into a new UUID ending in that short ID
 and records the destination UUID in the lock file. Without a resolved UUID, the
 dispatcher starts a fresh session. Live rows, the role flock, tmux sessions, and
 rate limits must all permit the launch. A successful Contabo `live_hosts` publication
-no older than three minutes and a readable local `/proc/*/environ` scan are required;
-an existing `CXO_ROLE=<role>` plus `CXO_SESSION=1` process refuses the launch. The
-dispatcher holds `state/locks/coo-respawn-<role>.lock` through the completion event.
-Requests and actual starts (`coo_respawn_done.started = true`) enforce one launch
-per role per ten minutes and three globally per Bangkok day. A completed request
-counts once at its start timestamp; invalid or future timestamps count as recent.
+no older than three minutes and a readable local process scan (`/proc/<pid>/cmdline`
+and `comm` only, never environ) are required. Any non-tmux process whose argv holds
+`cxo-claude.sh` followed by `--role <role>`, or `--session-id <uuid>` for a UUID in a
+`state/locks/<role>-*.uuid` file (a claude that outlived its launcher), refuses the
+launch. The dispatcher holds `state/locks/coo-respawn-<role>.lock` and a global lock
+through the completion event; manual launchers do not take them. Actual starts
+(`coo_respawn_done.started = true`) and requests with no completion event yet enforce
+one launch per role per ten minutes and three globally per Bangkok day. A request
+refused before launch (`started = false`) uses no budget; invalid or future
+timestamps count as recent.
 The SQL guard requires string role/host/by_session values, rejects null roles,
 and its self-proof attempts forbidden done and null-role inserts in rolled-back
 subtransactions. Backend exceptions expose only fixed reason codes and class names.

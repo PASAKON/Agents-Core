@@ -427,6 +427,23 @@ def test_respawn_global_daily_cap_and_start_deduplication():
     assert '10 minutes' in coo_policy.respawn_rate_limit_reason(events, 'cto', now='2026-10-26T04:00:00Z')
 
 
+def test_refused_attempts_do_not_use_the_daily_start_budget():
+    # Three requests the dispatcher refused before launch (started: false) start nothing, so a
+    # fourth role that is really gone can still be started the same day (re-review task-7de606ca).
+    events = []
+    for i, role in enumerate(['cto', 'cmo', 'cgo']):
+        events.append({'id': 2 * i + 1, 'kind': 'coo_respawn_request', 'payload': {'role': role},
+                       'ts': '2026-10-26T01:00:00Z'})
+        events.append({'id': 2 * i + 2, 'kind': 'coo_respawn_done',
+                       'payload': {'role': role, 'started': False, 'request_id': 2 * i + 1},
+                       'ts': '2026-10-26T01:00:05Z'})
+    assert coo_policy.respawn_rate_limit_reason(events, 'cfo', now='2026-10-26T04:00:00Z') is None
+    # A request with no done event yet is unsettled and keeps its slot (fail closed).
+    events.append({'id': 7, 'kind': 'coo_respawn_request', 'payload': {'role': 'cfo'},
+                   'ts': '2026-10-26T03:59:00Z'})
+    assert '10 minutes' in coo_policy.respawn_rate_limit_reason(events, 'cfo', now='2026-10-26T04:00:00Z')
+
+
 def _respawn_events() -> list[dict]:
     with db_mod.get_conn() as conn:
         rows = conn.execute(
