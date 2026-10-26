@@ -335,3 +335,28 @@ def test_queue_write_is_atomic_and_pop_keeps_the_rest(routing):
     budget_queue.pop("task-a")
     assert [e["task_id"] for e in budget_queue.all_entries()] == ["task-b"]
     assert not budget_queue.QUEUE_PATH.with_name(budget_queue.QUEUE_PATH.name + ".tmp").exists()
+
+
+def test_windows_lock_path_keeps_every_task(routing, monkeypatch):
+    # Review task-35ff509d round 2: without fcntl the queue had no lock at all.
+    import threading
+    import types
+    held = threading.Lock()
+    calls = []
+
+    def locking(fd, mode, n):
+        calls.append(mode)
+        if mode == fake.LK_LOCK:
+            held.acquire()
+        else:
+            held.release()
+    fake = types.SimpleNamespace(LK_LOCK=1, LK_UNLCK=0, locking=locking)
+    monkeypatch.setattr(budget_queue, "fcntl", None)
+    monkeypatch.setattr(budget_queue, "msvcrt", fake, raising=False)
+    threads = [threading.Thread(target=budget_queue.enqueue, args=(f"task-{i}", "ph")) for i in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(budget_queue.all_entries()) == 8
+    assert calls.count(fake.LK_LOCK) == calls.count(fake.LK_UNLCK) == 8
