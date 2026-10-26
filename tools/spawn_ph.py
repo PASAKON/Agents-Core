@@ -703,14 +703,13 @@ def card_command(host: str, project: str, brief: str, sha: str, nonce: str | Non
         raise Refused(f"a card brief is one line of at most {CARD_BRIEF_MAX} characters "
                       "(the hub caps script args); send the full brief to the PH once it is up")
     nonce = nonce or uuid.uuid4().hex[:16]
-    args = ["--project", project, "--from-card", nonce, "--sha", sha]
-    if brief:
-        args += ["--brief", brief]
-    args += ["--kind", kind]
+    args = ["--project", project, "--from-card", nonce, "--sha", sha, "--kind", kind]
     if due:
         args += ["--due", due]
     if cadence is not None:
         args += ["--cadence", str(cadence)]
+    if brief:                       # last: the card checks read the brief as the final pair
+        args += ["--brief", brief]
     if len(" ".join(args)) > CARD_ARGS_MAX:
         raise Refused(f"the card's args are over {CARD_ARGS_MAX} characters; shorten the brief")
     script = spawn_script(host)
