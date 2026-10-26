@@ -48,8 +48,10 @@ either). Both units active, NRestarts=0 since 1 Oct; state = drwxrwsr-t, state/l
 (`chmod g+w state/locks && chmod -t state` if ever needed). Follow-up for CTO Main: make the units log errors to
 the journal, or point the check at their own files.
 
-Merge rule since 14 Oct: one Run card per batch, raised by CTO Main (Q-20261014-2310-6d8b); the PH sends the
-ready list (PR, head sha, CI, reviewed).
+Merge rule since 26 Oct: the PH merges its own PRs after CTO_Gate_MergeChecklist, one at a time, with no CEO card;
+the 08:00 digest lists the merges. A merge the classifier refuses goes to CTO Main as a ready list (PR, head sha,
+CI, reviewed), and CTO Main merges it itself (CEO Q-20261026-0814-4870). [SUPERSEDED 2026-10-26] "one Run card per
+batch, raised by CTO Main (Q-20261014-2310-6d8b)".
 
 Decided for CEO: none.
 

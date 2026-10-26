@@ -50,6 +50,16 @@ none of the 22 worktrees had a sparse-checkout: developer ones ~0.93 GB each,
 `worktrees/` 11 GB, the harness's `.claude/worktrees/` 6.5 GB. A merged, clean one
 is Green for its own session; another session's goes to its owner (contract step 6).
 
+`gc_stale_tasks.py --reap` calls a finished worktree dirty when its only changes are the runner's
+own untracked `REPORT.md` and `docs/reports/<task>/.media_allow_raw`. Count such a worktree as clean
+(rule, 2 runs: 22 Oct 25 of 37 = 4.4 GB; 26 Oct all 20 it skipped). A `review` worktree whose
+Project Head is closed or parked has no owner to ask and no reviewer (26 Oct: 18 of them, 4.6 GB).
+Check each one: `git status --porcelain | grep -v media_allow_raw` must print nothing, and
+`git rev-list --count HEAD --not --remotes` must print 0. Then remove it with
+`git worktree remove --force`. Put the whole list on ONE red Run card that re-checks both tests
+per item, skips any worktree that changed, and prints `df` at the end. RUN-20261026-0737-66d7
+removed 26 this way and took the disk from 98% to 84%.
+
 ## Never touch here
 
 - The 2 Docker **volumes** — they are the live databases and state of running services.
