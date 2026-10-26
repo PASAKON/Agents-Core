@@ -25,4 +25,4 @@ SELECT table_name || '.' || column_name FROM information_schema.columns
  ORDER BY 1;
 SQL
 args+=(-f "$tmp/zz-check.sql")
-"$repo/scripts/hub/with-org-db-env.sh" bash -c 'psql "$ORG_DB_URL" -X -q -At -v ON_ERROR_STOP=1 "$@"' _ "${args[@]}"
+"$repo/scripts/hub/with-org-db-env.sh" bash -c ': "${ORG_DB_URL:?ORG_DB_URL is required}"; exec psql "$ORG_DB_URL" -X -q -At -v ON_ERROR_STOP=1 "$@"' _ "${args[@]}"
