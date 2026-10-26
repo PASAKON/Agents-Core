@@ -85,8 +85,15 @@ def test_happy(job, capsys):
 
 
 def test_cap(job):
-    rc, calls, *_ = invoke(job, balances=(100, 100, 97, 97), cap='6')
+    # Take 1 spends 5, more than its 4 + 0.5 reservation, so take 2 no longer fits under 9.
+    rc, calls, *_ = invoke(job, balances=(100, 100, 95, 95), cap='9')
     assert rc == cb.EXIT_CAP and len(calls) == 1
+
+
+def test_overshoot_reserve_refuses_at_zero_cu(job):
+    # Budgets 4 + 4 fit a cap of 8; with 0.5 reserved per take (9) they do not: nothing runs, no balance read.
+    rc, calls, stops, _, events = invoke(job, cap='8')
+    assert rc == cb.EXIT_CAP and not calls and not stops and 'balance' not in events
 
 
 @pytest.mark.parametrize('value', ['', None, 'unreadable', 'nan', 'inf', -1])
@@ -165,7 +172,8 @@ def test_shutdown_unknown_never_counts_spend_or_retries(job):
 
 
 def test_retry_cap(job):
-    result = invoke(job, cap='4', balances=(100, 100, 99, 99), outcomes=(1,), messages='failed vm')
+    # The failed try spent 5, over its 4 + 0.5 reservation, so the retry no longer fits the cap of 9.
+    result = invoke(job, cap='9', balances=(100, 100, 95, 95), outcomes=(1,), messages='failed vm')
     assert result[0] == cb.EXIT_CAP and len(result[1]) == 1
 
 
@@ -311,7 +319,7 @@ def studio(job):
                            'seconds': 5, 'aspect': '16:9', 'quality': 'fast', 'seed': n,
                            'refs': [str(plate)]})
         spec = {'take_id': f'ep02-a{i}', 'studio': True, 'uploads_dir': str(up), 'idle_stop_min': 0,
-                'progress': str(folder / 'progress.json'), 'h3_model': 'studio_bf16', 'gpu': 'G4',
+                'progress': str(folder / 'progress.json'), 'h3_model': 'studio_bf16', 'gpu': 'G4', 'fallback_gpus': [],
                 'budget': {'max_cu': 4, 'max_minutes': 2}, 'scenes': scenes}
         (folder / 'spec.json').write_text(json.dumps(spec, indent=1) + '\n')   # not compact: the child must get these bytes
         takes.append(str(folder))
@@ -642,3 +650,15 @@ def test_studio_a_retry_keeps_its_own_partial_output(studio):
 def test_studio_spends_nothing_on_a_refused_spec_even_with_a_good_first_take(studio):
     edit_spec(studio, lambda spec: spec.update(idle_stop_min=10), i=1)
     refused_at_load(studio, 'idle_stop_min')                    # take 1 is fine; the job still starts nothing
+
+
+@pytest.mark.parametrize('change', [
+    lambda s: s.update(gpu='H100'),
+    lambda s: s.pop('gpu'),
+    lambda s: s.update(fallback_gpus=['H100']),
+    lambda s: s.pop('fallback_gpus'),   # run_take would then fall back to H100 and A100
+])
+def test_studio_refuses_other_gpus(studio, change):
+    edit_spec(studio, change)
+    rc, calls, *_ = invoke(studio.job)
+    assert rc == cb.EXIT_BAD and not calls

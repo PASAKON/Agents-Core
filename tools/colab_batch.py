@@ -1,6 +1,6 @@
 """Run ordered Colab takes from a JSON job, with an admission cap.
 
-Usage: python3 tools/colab_batch.py --job /opt/MoonieXHQ/Work/job.json --max-credits 170
+Usage: python3 tools/colab_batch.py --job /opt/MoonieXHQ/Work/job.json --max-credits 175
 Job: {"takes": [absolute_directory, ...], "checkpoints": [{"after": glob_or_list,
       "scenes": 102, "max_cu_per_scene": 0.52}], "log": absolute_path,
       "run_take": {"root": absolute_ComfyRunpod_root, "python": absolute_venv_python},
@@ -38,10 +38,12 @@ The bootstrap is hashed separately. It uses -I -S (no site startup hooks).
 
 IMPORTANT: admission uses budget.max_cu, not a provider-enforced reservation.
 The pinned upstream guard polls every 30 seconds and stops AT the take cap; billing
-lag and teardown can overshoot. This cannot certify the strict spend-tools header's
-hard spending guarantee. Do not declare this tool cap-checked until upstream has a
-provider-enforced ceiling. The batch also reserves each attempt's full budget to
-avoid admitting extra work against a lagging balance (including retries).
+lag and teardown can overshoot. Colab has no provider-enforced ceiling. Bound: each attempt is admitted
+only if spent-or-reserved + budget.max_cu + OVERSHOOT_CU fits under --max-credits, and that
+sum is reserved (retries included), so a lagging balance cannot admit extra work.
+OVERSHOOT_CU (0.5) covers one guard poll plus stop latency plus the largest late-posting
+charge seen on G4 in EP01 (about 0.4 CU, estimated: no EP01 take reached its cap).
+Studio takes must be gpu G4 with fallback_gpus [] because no other GPU's rate is measured.
 """
 from __future__ import annotations
 
@@ -70,6 +72,8 @@ ENTRY = 'scripts/colab/run_take.py'
 ID_RE = re.compile(r'[A-Za-z0-9_-]{1,40}')
 OUT_MARK = '.colab_batch_take'
 EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_BALANCE, EXIT_CHECKPOINT, EXIT_PIN = range(1, 7)
+# Reserved per attempt on top of budget.max_cu: G4 overshoot estimate (about 0.4 CU), rounded up.
+OVERSHOOT_CU = Decimal('0.5')
 PINNED_FROM = '4144ad1d7a67d28b8715adb5b7e9ba73ab4cea04'
 # Generated from git objects at PINNED_FROM, not from potentially dirty working files.
 PINNED = {'scripts/colab/run_take.py': 'd97ad9e1a7083c101db9e504af24f63877271098d007b8802a3fc34cf0fc349c',
@@ -303,6 +307,8 @@ def studio_spec(directory, spec, raw, uploads):
     idle = spec.get('idle_stop_min')
     if isinstance(idle, bool) or not isinstance(idle, (int, float)) or idle != 0:
         raise JobError('idle_stop_min must be 0')
+    if spec.get('gpu') != 'G4' or spec.get('fallback_gpus') != []:
+        raise JobError('studio takes must be gpu G4 with fallback_gpus []')
     for key in ('lora_dir', 'vm_dir', 'data_dir', 'slot'):
         if spec.get(key) is not None:
             raise JobError(key + ' is refused in studio mode')
@@ -525,6 +531,11 @@ def shutdown(python, root, directory):
 
 def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
     _, run, takes, checkpoints = job
+    need = sum(t.budget + OVERSHOOT_CU for t in takes)
+    if need > cap:
+        # The whole job must fit before anything runs; the tail goes on another card.
+        emit(f'STOP cap job needs {need} CU (budgets + {OVERSHOOT_CU} per take) over cap {cap}; 0 CU spent')
+        return EXIT_CAP
     try:
         validator(run['python'], Path(run['root']))
     except (OSError, subprocess.SubprocessError, ValueError, TypeError):
@@ -542,8 +553,8 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                 current = balance(reader)
                 spent = max(spent, start - current)
                 emit(f'BALANCE {current} spent {spent} CU')
-                if max(spent, reserved) + budget > cap:
-                    emit(f'STOP cap spent {spent} reserved {reserved} next {budget}')
+                if max(spent, reserved) + budget + OVERSHOOT_CU > cap:
+                    emit(f'STOP cap spent {spent} reserved {reserved} next {budget} + {OVERSHOOT_CU}')
                     return EXIT_CAP
                 if take.studio:
                     try:
@@ -552,7 +563,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                         emit(f'REFUSE take {i + 1} spec, reference or output folder changed since load; '
                              f'take not started; spent {spent} CU so far')
                         return EXIT_PIN
-                reserved = max(spent, reserved) + budget
+                reserved = max(spent, reserved) + budget + OVERSHOOT_CU
                 (directory / 'progress.json').unlink(missing_ok=True)
                 log_path = directory / 'run.log'
                 emit(f'TRY {attempt} take {i + 1}')
