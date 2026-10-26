@@ -44,6 +44,9 @@ def have_browser():
 needs_cards = pytest.mark.skipif(not (HAS_FFMPEG and have_browser()), reason="Playwright/chromium/PIL/numpy/ffmpeg missing")
 
 
+REAL_DEFAULT_LOCK = getattr(ilag_cut, "DEFAULT_LOCK", None)       # before the fixture below swaps it
+
+
 @pytest.fixture(autouse=True)
 def private_render_lock(tmp_path, monkeypatch):
     """`encode` takes the box's shared render lock by default (review item 7): a test must never wait on, or hold, the
@@ -878,8 +881,7 @@ def test_pick_lock_without_the_lock_folder_warns_and_goes_on(tmp_path, capsys, m
 
 
 def test_the_default_lock_is_the_black_liquidity_render_lock():
-    src = Path(ilag_cut.__file__).read_text(encoding="utf-8")
-    assert '"/opt/MoonieXHQ/Work/.bl-render.lock"' in src
+    assert REAL_DEFAULT_LOCK == "/opt/MoonieXHQ/Work/.bl-render.lock"
 
 
 @needs_ffmpeg

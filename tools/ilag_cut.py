@@ -12,6 +12,7 @@ card, sticker, sfx and subtitle comes from the EDL.  The kit's look is untouched
   ilag_cut.py encode <edl.json> --out WORK [--root DIR] [--lock FILE]
         encode each segment to WORK/seg/<id>.mp4 (a segment whose inputs are unchanged is skipped), then concat copy +
         loudnorm to WORK/out/<output>.  Stdlib + ffmpeg/ffprobe on PATH only, so it runs on winbox Windows Python.
+        On Linux without --lock it warns once and holds /opt/MoonieXHQ/Work/.bl-render.lock (one render at a time).
 
 EDL (JSON).  Paths are relative to --root (default: the EDL's folder).  Times are seconds; gains are linear.
   top level   fps (24)  size [1080,1920]  sfx "sfx" (folder of <name>.wav)  kit "templates" (default for `cards --kit`)
@@ -55,6 +56,7 @@ NG_SCALES = {3: 1.55, 4: 1.25, 5: 1.06, 6: 0.97}
 NG_SHAKE = {4: (14, -8), 5: (-9, 6), 6: (5, -3)}
 REWIND_SPEED = 1.85
 TAKE2_STICKER = 1.5
+DEFAULT_LOCK = "/opt/MoonieXHQ/Work/.bl-render.lock"    # the BLACK LIQUIDITY render lock: one render at a time on Contabo
 REVERSE_MAX = 8                 # seconds of source a reverse may buffer: every frame sits in RAM
 NUM_MAX = 1e6                   # larger than any EDL number; inf, nan and 1e999 are typos that would overflow
 SIZE = [1080, 1920]
@@ -900,6 +902,22 @@ def build_cmd(p, env):
     return cmd, files
 
 
+def pick_lock(arg, platform=None):
+    """The lock file for `encode`: --lock as given; on Linux without it the box's shared render lock (the BLACK
+    LIQUIDITY renders hold the same file), with one warning; nowhere else (flock is Linux only)."""
+    if arg:
+        return arg
+    if not (platform or sys.platform).startswith("linux"):
+        return None
+    folder = Path(DEFAULT_LOCK).parent
+    if not folder.is_dir():
+        print(f"WARN  no --lock given and {folder} does not exist: encoding with no render lock", file=sys.stderr)
+        return None
+    print(f"WARN  no --lock given: holding the shared render lock {DEFAULT_LOCK} for this encode (one render at a "
+          f"time on this box); pass --lock FILE to use another", file=sys.stderr)
+    return DEFAULT_LOCK
+
+
 def lock_file(path):
     try:
         import fcntl
@@ -969,7 +987,8 @@ def cmd_encode(a):
         for e in errs:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    lk = lock_file(a.lock) if a.lock else None
+    lock = pick_lock(a.lock)
+    lk = lock_file(lock) if lock else None
     try:
         fps = int(edl.get("fps", 24))
         env = {"fps": fps, "root": root, "work": work, "sfx": edl.get("sfx", "sfx"), "probes": probes}
@@ -1034,7 +1053,8 @@ def main(argv=None):
             sp.add_argument("--kit", help="the ILAG templates folder (default: 'kit' in the EDL)")
             sp.add_argument("--force", action="store_true", help="re-render every card")
         if name == "encode":
-            sp.add_argument("--lock", help="hold an exclusive flock on this file for the whole encode (Linux only)")
+            sp.add_argument("--lock", help=f"hold an exclusive flock on this file for the whole encode (Linux only; "
+                                           f"default there: {DEFAULT_LOCK})")
         sp.set_defaults(fn=fn)
     a = ap.parse_args(argv)
     try:
