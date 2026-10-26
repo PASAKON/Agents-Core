@@ -914,7 +914,8 @@ def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=Non
                 raise PermissionError("a Project Head may move a date by at most 2 days")
         elif actor_role != "ceo" and not is_c_level(actor_role):
             raise PermissionError("only a Project Head or C-level may replan")
-        if project["due_set_by"] == "ceo" and old and old != new_due:
+        # "moved from" is the project's own first CEO date; a milestone move never writes it.
+        if n == 0 and project["due_set_by"] == "ceo" and old and old != new_due:
             c.execute("UPDATE projects SET due_first_at = COALESCE(due_first_at, ?) WHERE id = ?",
                       (old, project_id))
         if n == 0:

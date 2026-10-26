@@ -74,7 +74,18 @@ def test_replan_rules(store, days, source, role, allowed, n):
     assert event == {"n": n, "from": pf.iso(T), "to": pf.iso(T + timedelta(days=days)), "why": "dependency"}
     if source == "ceo":
         pf.replan("p", n, T + timedelta(days=5), **args)
-        assert pf.get_project("p")["due_first_at"] == pf.iso(T)
+        assert pf.get_project("p")["due_first_at"] == (pf.iso(T) if n == 0 else None)
+
+
+def test_a_milestone_replan_never_sets_the_projects_first_ceo_date(store):
+    # Review task-85bcdda2: milestone 1's old date became the project's "moved from".
+    project(due_at=T + timedelta(days=3), due_set_by="ceo")
+    pf.milestone_add("p", "ship", due_at=T, actor=ACTOR, now=T)
+    args = dict(actor=ACTOR, actor_role="cto", why="dependency", now=T)
+    pf.replan("p", 1, T + timedelta(days=1), **args)
+    assert pf.get_project("p")["due_first_at"] is None
+    pf.replan("p", 0, T + timedelta(days=5), **args)
+    assert pf.get_project("p")["due_first_at"] == pf.iso(T + timedelta(days=3))
 
 
 def test_loop_beat_and_computed_due(store):
