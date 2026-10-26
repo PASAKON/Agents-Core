@@ -791,7 +791,6 @@ def _monitor_all(now: datetime, conn=None) -> list[dict]:
             state, since = "stalled", hb_last or last_active
         rows.append({
             "id": pid, "name": p["name"], "lane": p["lane"],
-            "tier": p["tier"],
             "pct": pct(done, total), "milestones": {"done": done, "total": total},
             "state": state, "state_since": iso(min(since, now)), "last_active": iso(last_active),
             "active_today_s": _active_seconds(stamps),

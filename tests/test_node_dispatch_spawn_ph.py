@@ -26,6 +26,12 @@ from tools import send_to_cxo as sc
 from tools import spawn_ph
 from tools.agent_transport import Identity
 
+@pytest.fixture(autouse=True)
+def _no_hub_registry(monkeypatch):
+    """spawn/resume bind the PH to its hub registry row; these tests have no hub."""
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: plan.get("tier") or "normal")
+
+
 PH = "project_head"
 OWNER = "c0ffee01"
 OWNER_UUID = f"3c1d9e2a-5b7f-4e01-9a2b-c0de{OWNER}"    # what the hub's live_sessions row says (P8c)
@@ -464,7 +470,7 @@ def test_spawn_still_takes_back_its_files_when_the_launch_fails(box, monkeypatch
     with pytest.raises(spawn_ph.Refused, match="tmux spawn failed"):
         spawn_ph.spawn("LuminaSkies", "a brief")
     assert box.claim_files() == []
-    assert [p.read_text() for p in box.briefs.iterdir()] == ["a brief"]
+    assert [p.read_text() for p in box.briefs.iterdir()] == ["tier: normal\na brief"]
 
 
 # --- the dispatching side: python -m tools.spawn_ph mesh ---

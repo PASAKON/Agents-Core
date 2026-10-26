@@ -463,12 +463,13 @@ def _register_project(plan: dict) -> str:
                 pid = re.sub(r"[^a-z0-9]+", "-", plan["project"].lower()).strip("-")
                 row = pf.open_project(pid, plan["project"], plan["lane"], actor=plan["owner"],
                                       owner_session=plan["owner"], ph_session=plan["session_id"],
-                                      repos=[plan["project"]], conn=conn)
+                                      conn=conn)
             else:
                 conn.execute("UPDATE projects SET ph_session = ? WHERE id = ?",
                              (plan["session_id"], row["id"]))
-            tier = tier or row.get("tier", "normal")
-            pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
+            if tier is not None and tier != row.get("tier"):
+                pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
+            tier = tier or row.get("tier") or "normal"
     except Exception as exc:
         raise Refused(f"project registration failed ({type(exc).__name__})") from exc
     return tier
@@ -482,10 +483,6 @@ def _write_claim(plan: dict, brief_text: str) -> None:
     from tools import send_to_cxo
     from tools.agent_transport import Identity
     name = plan["tmux_session"]
-    tier = _register_project(plan)
-    # A caller-supplied tier line cannot disagree with the registry.
-    brief_text = re.sub(r"(?m)^tier:.*\n?", "", brief_text)
-    brief_text = f"tier: {tier}\n" + brief_text
     try:
         BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
         Path(plan["brief"]).write_text(brief_text, encoding="utf-8")
@@ -505,11 +502,11 @@ def _drop_claim(name: str) -> None:
 
 
 def spawn(project: str, brief: str = "", *, dry_run: bool = False,
-          card: list[str] | None = None, tier: str = "normal") -> dict:
+          card: list[str] | None = None, tier: str | None = None) -> dict:
     """`card`: the argv of a Run Inbox card run (M13b); project and brief must be
     the ones in it."""
     from lib.portfolio import TIERS
-    if tier not in TIERS:
+    if tier is not None and tier not in TIERS:
         raise Refused(f"unknown tier {tier!r}")
     if card is not None:
         a = parse_card_args(card)
@@ -526,7 +523,12 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
         if card is not None:
             use_nonce(parse_card_args(card)["nonce"])
         name = plan["tmux_session"]
-        _write_claim(plan, brief or f"(no brief given — ask {plan['owner']} for one)\n")
+        # The registry row is the hub's: a local spawn opens or binds it (a mesh spawn's
+        # node has no hub route). A caller-supplied tier line cannot disagree with it.
+        tier = _register_project(plan)
+        brief_text = brief or f"(no brief given — ask {plan['owner']} for one)\n"
+        brief_text = f"tier: {tier}\n" + re.sub(r"(?m)^tier:.*\n?", "", brief_text)
+        _write_claim(plan, brief_text)
     cmd = plan.pop("command")
     try:
         if os.name == "nt":
@@ -832,7 +834,8 @@ def main(argv: list[str] | None = None) -> int:
     if argv[:1] == ["mesh"]:
         return _mesh_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
-    ap.add_argument("--tier", choices=("critical", "normal", "low"), default="normal")
+    ap.add_argument("--tier", choices=("critical", "normal", "low"),
+                    help="set the project's tier (default: keep the registry's, normal for a new row)")
     ap.add_argument("--project")
     ap.add_argument("--resume", help="resume a stopped Project Head's 8-hex session id")
     g = ap.add_mutually_exclusive_group()

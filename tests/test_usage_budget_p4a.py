@@ -181,17 +181,51 @@ def test_spawn_registry_and_brief(monkeypatch, tmp_path):
     monkeypatch.setattr(send_to_cxo, "record_spawn", lambda *a: None)
     plan = {"project": "p", "tier": "low", "lane": "cto", "owner": "cto-abcd",
             "session_id": "1234", "tmux_session": "project_head-1234", "brief": str(tmp_path / "brief.md")}
-    spawn_ph._write_claim(plan, "tier: critical\nWork\n\nBody")
-    assert (tmp_path / "brief.md").read_text().startswith("tier: low\nWork")
+    assert spawn_ph._register_project(plan) == "low"
     assert set_tier.call_args.args == ("p", "low")
+    # No --tier: the registry's tier stays, and no tier event is logged.
+    set_tier.reset_mock()
+    conn.execute.return_value.fetchone.return_value = {"id": "p", "tier": "critical"}
+    assert spawn_ph._register_project({**plan, "tier": None}) == "critical"
+    set_tier.assert_not_called()
+
+
+def test_spawn_writes_the_registry_tier_into_the_brief(monkeypatch, tmp_path):
+    from tools import spawn_ph, send_to_cxo, tmux_session
+    monkeypatch.setattr(spawn_ph, "_register_project", lambda plan: "low")
+    monkeypatch.setattr(spawn_ph, "_plan", lambda project, brief, card=None: {
+        "project": "p", "lane": "cto", "owner": "cto-abcd", "session_id": "1234",
+        "tmux_session": "project_head-1234", "brief": str(tmp_path / "brief.md"), "command": "true"})
+    monkeypatch.setattr(spawn_ph, "BRIEFS_DIR", tmp_path)
+    monkeypatch.setattr(spawn_ph, "LOCKS_DIR", tmp_path)
+    monkeypatch.setattr(send_to_cxo, "record_spawn", lambda *a: None)
+    monkeypatch.setattr(tmux_session, "create", lambda *a: None)
+    monkeypatch.setattr(spawn_ph, "dismiss_mcp_screen", lambda name: False)
+    spawn_ph.spawn("p", "tier: critical\nWork\n\nBody")
+    assert (tmp_path / "brief.md").read_text().startswith("tier: low\nWork")
 
 
 @pytest.mark.parametrize("tier", ["normal", "low"])
 def test_handoff_never_creates_claude_successor(monkeypatch, tier):
-    from tools import quota_handoff
+    from tools import quota_handoff, usage_budget
     monkeypatch.setattr(quota_handoff.db, "get_task", lambda t: {"description": f"tier: {tier}"})
+    monkeypatch.setattr(usage_budget, "load_gate_rows", lambda **k: {"claude": {"state": "over"}})
     with pytest.raises(ValueError, match="tier_no_claude"):
         quota_handoff.handoff("task-test")
+
+
+def test_handoff_gate_is_open_while_claude_is_under_target(monkeypatch):
+    from tools import quota_handoff, usage_budget
+    monkeypatch.setattr(quota_handoff.db, "get_task", lambda t: {"description": "tier: low"})
+    monkeypatch.setattr(usage_budget, "load_gate_rows", lambda **k: {"claude": {"state": "under"}})
+    with pytest.raises(ValueError, match="runner must be"):    # past the gate, to the next check
+        quota_handoff.handoff("task-test")
+
+
+def test_a_bucket_without_a_row_does_not_open_the_gate(routing):
+    # agy-claude has no fresh row; the three primary buckets are over: low still defers.
+    snapshot(("over", "over", "over"))
+    assert route.pick_runner("analysis", "test", tier="low", **routing).defer
 
 
 def test_non_routed_low_role_defers(routing):

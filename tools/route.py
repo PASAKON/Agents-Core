@@ -559,11 +559,9 @@ def _tier_plans(plans, tier, *, now=None):
     eligible = [p for p in plans if p.verdict != "cannot" and "exhausted" not in p.choice.reason]
     picked = eligible[0] if eligible else None
     outside = [p for p in plans if p.choice.runner in ("agy", "codex")]
-    # Missing budget information must not turn a possible runner into a refusal.
-    if any(p.choice.bucket not in rows for p in plans):
-        return plans
     def over(p):
-        return rows[p.choice.bucket]["state"] == "over"
+        # A bucket with no fresh row counts as under: missing data never closes the gate.
+        return rows.get(p.choice.bucket, {}).get("state") == "over"
     if tier == "low":
         gate = any(rows.get(b, {}).get("state") == "over"
                    for b in ("agy-gemini", "codex", "claude"))
