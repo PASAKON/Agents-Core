@@ -51,10 +51,10 @@ def _fresh_config_caches():
 # --- the reader --------------------------------------------------------------------------------
 
 
-def test_the_mac_is_windowless_and_every_other_declared_host_keeps_its_window() -> None:
+def test_the_mac_and_contabo_are_windowless_and_winbox_keeps_its_window() -> None:
     assert config.terminal_window("mac") is False
     assert config.terminal_window("winbox") is True
-    assert config.terminal_window("contabo") is True
+    assert config.terminal_window("contabo") is False  # no iTerm on Linux (RUN-20261026-0622-fa27)
 
 
 def test_a_missing_key_means_true(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -78,7 +78,7 @@ def _coo_host(org_host: str) -> subprocess.CompletedProcess:
                           capture_output=True, text=True, timeout=60)
 
 
-@pytest.mark.parametrize("host, answer", [("mac", "0"), ("winbox", "1"), ("contabo", "1")])
+@pytest.mark.parametrize("host, answer", [("mac", "0"), ("winbox", "1"), ("contabo", "0")])
 def test_coo_host_terminal_window_prints_the_flag_of_this_host(host: str, answer: str) -> None:
     r = _coo_host(host)
     assert r.returncode == 0, r.stderr
