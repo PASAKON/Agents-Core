@@ -59,6 +59,10 @@ dismisses it on the phone. Every new request also emails him as a reminder.
   login tab spent ~165k tokens on a login that came the next day, and
   `scripts/infisical/watch_login.sh` (poll every 20 s up to 12 h, run the
   follow-up script, wake the CTO's pane with one line) replaced them (297fa49c).
+  On winbox a Claude Code background shell is not detached: the harness stops
+  it when memory runs low while the session is idle (cto-2c6b9f03 2026-10-01,
+  57ec0d4e 2026-10-26). Start the wait with `Start-Process` writing to a file,
+  and ask the CEO to say เสร็จ in chat, because nothing will wake the session.
 - **CTO:** forward that line to the CEO in chat (or answer the SomPong order),
   read the relay's result, and tell the worker via its mailbox when the
   session is live. If the mirror showed the page badly, you write the pattern (§4).
@@ -253,7 +257,7 @@ never a value, cookie or QR payload.
   - `relay-request.mjs wait rq-6febdfb4 --timeout 21600` ran as a Claude Code background shell.
   - A second CTO session started on the box, and the harness killed the wait "because the system is running low on memory".
   - Nothing told the CEO the wait had stopped.
-  On winbox, start the wait outside the Claude process, or ask the CEO to say Done in chat · evidence: session cto-2c6b9f03, task brwk3wnay · status: pending
+  On winbox, start the wait outside the Claude process, or ask the CEO to say Done in chat · evidence: session cto-2c6b9f03, task brwk3wnay; second run winbox CTO 57ec0d4e 2026-10-26: the `Start-Process` waiter for rq-cef978be survived, the Claude-side watcher (bek39qvvf) was stopped at 0.56 GB free → §0 rule · status: promoted
 - 2026-10-01 [MISSING] §2 — since Console task-0601cec6 (merged 2026-10-01 03:49) the phone lists a Chrome only while it has an open **login request**; a Chrome up on its port with a TikTok login tab (mac:9224) was invisible to the CEO until `node scripts/relay-request.mjs open --port <port> --account "<which>" --why "<clause>" --by <session>` was run from that box's Console checkout (Console docs/relay.md §10). §2 should say: open the request right after the Chrome is up, then name the pill; `relay-request.mjs wait <rq-id>` is the zero-model wait · evidence: session 671f688f, rq-e6e84b4c, CMO c4432bad report "CEO does not see the pill" · status: pending
 - 2026-10-01 [MISSING] §3 "Sign in to Chrome" intercept — on contabo:9284 (Tailscale via Google) `/json/close/<id>` answered "Target is closing" but the `signin-dice-web-intercept.top-chrome` page stayed listed; it cannot be closed over CDP, so pick the real tab by host instead. `/json/close` also needs the FULL target id, the 8-char prefix silently does nothing · evidence: session e6754203, Browser Home `tailscale` · status: pending
 - 2026-10-03 [MISSING] §intro CLI logins — second sighting, new shape: a Colab CLI sign-in rewritten to use a localhost redirect (InstalledAppFlow.run_local_server, the sign-in tab opened in a relay Browser Home over CDP, so no agent would see the code or the token) was still refused by the auto-mode classifier as Auto-Mode Bypass. Every CLI OAuth through the relay is out, whatever the redirect, until the CEO adds a permission rule for it · evidence: session addb58de, Browser Home `colab` mac:9286 (quit, profile kept), task-c99d48d6 · status: pending
