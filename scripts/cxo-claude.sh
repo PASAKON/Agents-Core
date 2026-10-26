@@ -391,6 +391,16 @@ else
     fi
     if [ -z "${CXO_SESSION_ID:-}" ]; then
       CXO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+      if [ -n "${TMUX:-}" ] && [ -n "${_SESS:-}" ]; then
+        _NEW_SESS="$ROLE-$CXO_SESSION_ID"
+        if tmux has-session -t "=$_NEW_SESS" 2>/dev/null; then
+          echo "cxo-claude: warning: tmux session '$_NEW_SESS' already exists; keeping '$_SESS'" >&2
+        elif tmux rename-session -t "$_SESS" -- "$_NEW_SESS"; then
+          echo "cxo-claude: renamed tmux session '$_SESS' -> '$_NEW_SESS'" >&2
+        else
+          echo "cxo-claude: warning: could not rename tmux session '$_SESS' -> '$_NEW_SESS'; continuing" >&2
+        fi
+      fi
     fi
   fi
 fi

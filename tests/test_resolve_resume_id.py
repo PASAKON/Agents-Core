@@ -7,11 +7,26 @@ from __future__ import annotations
 
 import os
 import subprocess
+import pytest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "resolve-resume-id.sh"
 SAMPLE_UUID = "d405e3e2-1111-2222-3333-a6f2f69c4825"
+
+
+@pytest.mark.parametrize('message,category', [
+    ('OperationalError: host=db user=x password=FAKE dbname=y', 'unreachable or refused (OperationalError)'),
+    ('Failure: postgresql://x:FAKE@db/y password=FAKE', 'error'),
+])
+def test_backend_text_never_leaks(tmp_path, message, category):
+    fake = tmp_path / 'hub'
+    fake.write_text(f"#!/bin/sh\necho '{message}' >&2\nexit 1\n")
+    fake.chmod(0o755)
+    result = _run_resolve('cto', '1234abcd', locks_dir=tmp_path, org_python=fake)
+    assert result.returncode == 2
+    assert f'hub: {category}' in result.stderr
+    assert 'FAKE' not in result.stderr and 'password' not in result.stderr
 
 
 def _run_resolve(role: str, value: str, *, locks_dir: Path, org_python: Path | None = None,
@@ -71,7 +86,7 @@ def test_hub_failure_surfaces_last_stderr_line_and_strips_postgres_dsn(tmp_path)
     r = _run_resolve("cto", "f69c4825", locks_dir=tmp_path, org_python=fake_py)
     assert r.returncode == 2
     assert "refuse to resume cto-f69c4825" in r.stderr
-    assert "hub: HubConnectError: failed connecting to (timeout)" in r.stderr
+    assert "hub: unreachable or refused (HubConnectError)" in r.stderr
     assert "SuperSecretPass123" not in r.stderr
     assert "postgresql://" not in r.stderr
     assert "postgres://" not in r.stderr
@@ -87,6 +102,6 @@ def test_hub_failure_strips_postgres_scheme_variants(tmp_path):
     fake_py.chmod(0o755)
     r = _run_resolve("cmo", "1234abcd", locks_dir=tmp_path, org_python=fake_py)
     assert r.returncode == 2
-    assert "hub: OperationalError: dsn refused" in r.stderr
+    assert "hub: unreachable or refused (OperationalError)" in r.stderr
     assert "Hunter2Secret" not in r.stderr
     assert "postgres://" not in r.stderr

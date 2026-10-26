@@ -54,6 +54,9 @@ def _make_fake_root(tmp_path: Path) -> tuple[Path, Path]:
     fake_tmux = bin_dir / "tmux"
     fake_tmux.write_text(
         "#!/usr/bin/env bash\n"
+        "printf '%s\\n' \"$*\" >>\"$FAKE_TMUX_LOG\"\n"
+        "if [ \"$1\" = has-session ]; then exit ${FAKE_TMUX_TAKEN:-1}; fi\n"
+        "if [ \"$1\" = rename-session ]; then exit ${FAKE_TMUX_RENAME:-0}; fi\n"
         "if [ \"${1:-}\" = \"display-message\" ]; then\n"
         "  printf '%s\\n' \"${FAKE_TMUX_SESSION_NAME:-}\"\n"
         "  exit 0\n"
@@ -91,12 +94,17 @@ def _run_launcher(
     args: list[str],
     *,
     tmux_session_name: str | None = None,
+    taken: bool = False,
+    rename_fail: bool = False,
 ) -> tuple[subprocess.CompletedProcess[str], dict]:
     fake_root, bin_dir = _make_fake_root(tmp_path)
     out_file = tmp_path / "claude_out.json"
     env = dict(os.environ)
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
     env["FAKE_CORE_ROOT"] = str(fake_root)
+    env["FAKE_TMUX_LOG"] = str(tmp_path / "tmux.log")
+    env["FAKE_TMUX_TAKEN"] = "0" if taken else "1"
+    env["FAKE_TMUX_RENAME"] = "1" if rename_fail else "0"
     env["FAKE_CLAUDE_OUT"] = str(out_file)
     env["CTO_CLAUDE_TEST_MODE"] = "1"
     env["ORG_HOST"] = "contabo"
@@ -114,6 +122,36 @@ def _run_launcher(
     )
     captured = json.loads(out_file.read_text()) if out_file.exists() else {}
     return proc, captured
+
+
+def test_fresh_tmux_rename(tmp_path):
+    proc, cap = _run_launcher(tmp_path, ["--role", "cto"], tmux_session_name="cto-fresh")
+    assert proc.returncode == 0
+    assert f"rename-session -t cto-fresh -- cto-{cap['sid']}" in (tmp_path / "tmux.log").read_text()
+    assert f"renamed tmux session 'cto-fresh' -> 'cto-{cap['sid']}'" in proc.stderr
+    assert cap['uuid_file_content'].endswith(cap['sid'])
+
+
+def test_rename_exclusions(tmp_path):
+    for i, (name, args) in enumerate([
+        ("cto-1a2b3c4d", []), ("cto-fresh", ["-r", SAMPLE_UUID]),
+        ("cto-fresh", ["--session", "abcdef12"]), (None, []),
+    ]):
+        folder = tmp_path / str(i)
+        proc, _ = _run_launcher(folder, ["--role", "cto", *args], tmux_session_name=name)
+        assert proc.returncode == 0
+        log = folder / "tmux.log"
+        assert not log.exists() or "rename-session" not in log.read_text()
+
+
+def test_rename_taken_and_failure_continue(tmp_path):
+    for taken in (True, False):
+        folder = tmp_path / str(taken)
+        proc, cap = _run_launcher(folder, ["--role", "cto"], tmux_session_name="cto-fresh",
+                                  taken=taken, rename_fail=not taken)
+        assert proc.returncode == 0 and cap['uuid_file_exists']
+        assert 'warning:' in proc.stderr
+        assert ('rename-session' in (folder / 'tmux.log').read_text()) is not taken
 
 
 def test_adopts_tmux_session_suffix_when_8_lowercase_hex(tmp_path):

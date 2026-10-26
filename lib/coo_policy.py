@@ -70,7 +70,10 @@ def _parse_ts(value: object) -> datetime | None:
     if value is None:
         return None
     if isinstance(value, (int, float)):
-        return datetime.fromtimestamp(float(value), tz=timezone.utc)
+        try:
+            return datetime.fromtimestamp(float(value), tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            return None
     if isinstance(value, datetime):
         return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
     try:
@@ -94,6 +97,17 @@ def respawn_rate_limit_reason(
     now_thai_date = now_dt.astimezone(THAI_TZ).date()
     in_window = 0
     in_thai_day = 0
+    events = list(events)
+    started_requests = set()
+    for ev in events:
+        p = ev.get('payload')
+        if isinstance(p, str):
+            try:
+                p = json.loads(p)
+            except ValueError:
+                continue
+        if isinstance(p, Mapping) and p.get('started') is True:
+            started_requests.add(p.get('request_id'))
     for ev in events:
         if exclude_id is not None and ev.get("id") == exclude_id:
             continue
@@ -107,20 +121,23 @@ def respawn_rate_limit_reason(
             payload = raw_payload
         else:
             continue
-        if not isinstance(payload, Mapping) or payload.get("role") != role:
+        if not isinstance(payload, Mapping):
             continue
+        if ev.get('kind') == 'coo_respawn_done' and payload.get('started') is not True:
+            continue
+        if ev.get('kind') != 'coo_respawn_done' and ev.get('id') in started_requests:
+            continue  # A completed request is counted once, at its actual start.
         ev_dt = _parse_ts(ev.get("ts"))
-        if ev_dt is None:
-            continue
-        age_s = (now_dt - ev_dt).total_seconds()
-        if -60 <= age_s < RESPAWN_WINDOW_S:
+        uncertain = ev_dt is None or ev_dt > now_dt
+        age_s = 0 if uncertain else (now_dt - ev_dt).total_seconds()
+        if payload.get('role') == role and age_s < RESPAWN_WINDOW_S:
             in_window += 1
-        if ev_dt.astimezone(THAI_TZ).date() == now_thai_date and ev_dt <= now_dt + timedelta(seconds=60):
+        if uncertain or ev_dt.astimezone(THAI_TZ).date() == now_thai_date:
             in_thai_day += 1
     if in_window >= RESPAWN_MAX_PER_WINDOW:
         return (f"rate limit: role {role!r} already has {in_window} respawn request(s) in the last "
                 f"10 minutes (max {RESPAWN_MAX_PER_WINDOW} per 10 min)")
     if in_thai_day >= RESPAWN_MAX_PER_THAI_DAY:
-        return (f"rate limit: role {role!r} already has {in_thai_day} respawn requests today in "
+        return (f"rate limit: globally already has {in_thai_day} respawns today in "
                 f"Asia/Bangkok (max {RESPAWN_MAX_PER_THAI_DAY} per Thai day)")
     return None

@@ -142,8 +142,11 @@ BEGIN
        OR jsonb_typeof(NEW.payload::jsonb) IS DISTINCT FROM 'object'
        OR ARRAY(SELECT k FROM jsonb_object_keys(NEW.payload::jsonb) AS k ORDER BY k)
           IS DISTINCT FROM ARRAY['by_session', 'host', 'role']
-       OR (NEW.payload::jsonb ->> 'role') NOT IN ('cto', 'cmo', 'cgo', 'cfo')
-       OR (NEW.payload::jsonb ->> 'host') IS DISTINCT FROM 'contabo'
+       OR jsonb_typeof(NEW.payload::jsonb -> 'role') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'role') IN ('cto', 'cmo', 'cgo', 'cfo')) IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'host') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'host') = 'contabo') IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'by_session') IS DISTINCT FROM 'string'
        OR COALESCE(NEW.payload::jsonb ->> 'by_session', '') = '' THEN
       RAISE EXCEPTION 'org_coo coo_respawn_request payload must have keys role (cto/cmo/cgo/cfo), host (contabo), by_session';
     END IF;
@@ -190,6 +193,8 @@ CREATE TRIGGER org_coo_guard BEFORE UPDATE ON c_level_sessions
 DO $check$
 DECLARE
   have text;
+  forbidden_kind text;
+  accepted boolean;
   want text := 'c_level_sessions.charter:UPDATE events.actor:INSERT events.kind:INSERT '
     'events.payload:INSERT events.task_id:INSERT events.ts:INSERT tasks.created_at:INSERT '
     'tasks.depends_on:INSERT tasks.description:INSERT tasks.dispatcher_host:INSERT '
@@ -197,6 +202,23 @@ DECLARE
     'tasks.parent_task:INSERT tasks.project:INSERT tasks.role:INSERT tasks.runner:INSERT '
     'tasks.status:INSERT tasks.title:INSERT tasks.touches:INSERT tasks.updated_at:INSERT';
 BEGIN
+  FOREACH forbidden_kind IN ARRAY ARRAY['coo_respawn_done', 'coo_respawn_request'] LOOP
+    accepted := false;
+    BEGIN
+      SET LOCAL ROLE org_coo;
+      INSERT INTO public.events (task_id, actor, kind, payload, ts)
+        VALUES (NULL, 'coo_gate', forbidden_kind,
+                '{"role":null,"host":"contabo","by_session":"proof"}', now());
+      -- Force rollback even if the forbidden insertion unexpectedly succeeds.
+      RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'forbidden insert accepted';
+    EXCEPTION
+      WHEN SQLSTATE 'ZX001' THEN accepted := true;
+      WHEN OTHERS THEN NULL;
+    END;
+    IF accepted THEN
+      RAISE EXCEPTION 'org_coo accepted forbidden insert: %', forbidden_kind;
+    END IF;
+  END LOOP;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'org_coo' AND (
        rolsuper OR rolcreaterole OR rolcreatedb OR rolreplication OR rolbypassrls
        OR NOT rolcanlogin OR rolconnlimit <> 3)) THEN

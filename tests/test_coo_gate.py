@@ -408,6 +408,25 @@ def _respawn(role="cto", host="contabo", sid=SID, **extra) -> dict:
     )
 
 
+@pytest.mark.parametrize('stamp', ['2026-10-26T04:00:01Z', 'invalid', None])
+def test_respawn_clock_skew_fails_closed(stamp):
+    events = [{'id': 1, 'payload': {'role': 'cto'}, 'ts': stamp}]
+    assert '10 minutes' in coo_policy.respawn_rate_limit_reason(
+        events, 'cto', now='2026-10-26T04:00:00Z')
+
+
+def test_respawn_global_daily_cap_and_start_deduplication():
+    events = [{'id': i, 'kind': 'coo_respawn_request', 'payload': {'role': role},
+               'ts': '2026-10-26T01:00:00Z'} for i, role in enumerate(['cto', 'cmo', 'cto'], 1)]
+    assert 'Thai day' in coo_policy.respawn_rate_limit_reason(
+        events, 'cfo', now='2026-10-26T04:00:00Z')
+    events = events[:2] + [{'id': 4, 'kind': 'coo_respawn_done',
+                           'payload': {'role': 'cto', 'started': True, 'request_id': 1},
+                           'ts': '2026-10-26T03:59:00Z'}]
+    assert coo_policy.respawn_rate_limit_reason(events, 'cfo', now='2026-10-26T04:00:00Z') is None
+    assert '10 minutes' in coo_policy.respawn_rate_limit_reason(events, 'cto', now='2026-10-26T04:00:00Z')
+
+
 def _respawn_events() -> list[dict]:
     with db_mod.get_conn() as conn:
         rows = conn.execute(
@@ -514,10 +533,17 @@ def test_sql_events_guard_allows_only_narrow_coo_respawn_request():
     assert "IF NEW.kind = 'coo_respawn_request' THEN" in sql
     assert "IF NEW.task_id IS NOT NULL THEN" in sql
     assert "ARRAY['by_session', 'host', 'role']" in sql
-    m = re.search(r"\(NEW\.payload::jsonb ->> 'role'\) NOT IN \(([^)]*)\)", sql)
+    m = re.search(r"\(NEW\.payload::jsonb ->> 'role'\) IN \(([^)]*)\)", sql)
     assert m, "coo_respawn_request role allowlist missing in org_coo_events_guard"
     assert tuple(re.findall(r"'([a-z_]+)'", m.group(1))) == coo_policy.COO_RESPAWN_ROLES
-    assert "(NEW.payload::jsonb ->> 'host') IS DISTINCT FROM 'contabo'" in sql
+    assert "((NEW.payload::jsonb ->> 'host') = 'contabo') IS DISTINCT FROM TRUE" in sql
+    for field in ('role', 'host', 'by_session'):
+        assert f"jsonb_typeof(NEW.payload::jsonb -> '{field}') IS DISTINCT FROM 'string'" in sql
+    assert "((NEW.payload::jsonb ->> 'role') IN ('cto', 'cmo', 'cgo', 'cfo')) IS DISTINCT FROM TRUE" in sql
+    assert "SET LOCAL ROLE org_coo" in sql
+    assert "ARRAY['coo_respawn_done', 'coo_respawn_request']" in sql
+    assert '"role":null' in sql
+    assert "WHEN SQLSTATE 'ZX001' THEN accepted := true" in sql
     assert "GRANT INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;" in sql
     assert "CREATE OR REPLACE VIEW coo_respawn_events WITH (security_barrier)" in sql
     assert "GRANT SELECT ON coo_respawn_events TO org_coo;" in sql

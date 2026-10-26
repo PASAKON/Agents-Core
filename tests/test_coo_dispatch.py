@@ -22,6 +22,108 @@ SID = "cootest1"
 SAMPLE_UUID = "d405e3e2-1111-2222-3333-a6f2f69c4825"
 
 
+@pytest.mark.parametrize("rows,reason", [
+    ([], "live_host_missing"),
+    ([{"published_at": "2026-10-26T03:56:59Z", "error": ""}], "live_host_stale"),
+    ([{"published_at": "2026-10-26T04:00:00Z", "error": "failed"}], "live_host_error"),
+    ([{"published_at": "invalid", "error": None}], "live_host_stale"),
+])
+def test_host_health_refuses_empty_snapshot(monkeypatch, rows, reason):
+    monkeypatch.setattr(coo_dispatch, "live_host_refusal", REAL_HOST_CHECK)
+    original = coo_dispatch._rows
+    monkeypatch.setattr(coo_dispatch, "_rows",
+                        lambda sql, args=(): rows if "FROM live_hosts" in sql else original(sql, args))
+    monkeypatch.setattr(coo_dispatch, "start_clevel", lambda *a, **k: pytest.fail("must refuse"))
+    _queue_respawn()
+    coo_dispatch.respawn_once(now="2026-10-26T04:00:00Z")
+    assert _done_events()[-1]["reason"] == reason
+
+
+def test_host_health_fresh_and_unreadable(monkeypatch):
+    monkeypatch.setattr(coo_dispatch, "_rows", lambda *a: [
+        {"published_at": "2026-10-26T03:59:00Z", "error": None}])
+    assert REAL_HOST_CHECK("contabo", now="2026-10-26T04:00:00Z") is None
+    def boom(*a, **kw):
+        raise OSError("password=FAKE")
+    monkeypatch.setattr(coo_dispatch, "live_host_refusal", boom)
+    monkeypatch.setattr(coo_dispatch, "_done_respawn_request_ids", lambda: set())
+    result = coo_dispatch._reserved_respawn(999, "cto", "contabo")
+    assert result["reason"] == "respawn_error:OSError"
+    assert "FAKE" not in json.dumps(result)
+
+
+def test_proc_match_and_unreadable(monkeypatch, tmp_path):
+    proc = tmp_path / "proc"
+    pid = proc / "123"
+    pid.mkdir(parents=True)
+    (pid / "environ").write_bytes(b"CXO_ROLE=cto\0CXO_SESSION=1\0")
+    assert REAL_PROC_CHECK("cto", proc) == "process_role_alive"
+    assert REAL_PROC_CHECK("cmo", proc) is None
+    monkeypatch.setattr(coo_dispatch, "process_role_refusal", lambda role: REAL_PROC_CHECK(role, proc))
+    _queue_respawn()
+    coo_dispatch.respawn_once()
+    assert _done_events()[-1]["reason"] == "process_role_alive"
+    def unreadable(self):
+        raise PermissionError("password=FAKE")
+    monkeypatch.setattr(Path, "read_bytes", unreadable)
+    assert REAL_PROC_CHECK("cto", proc) == "proc_read_error:PermissionError"
+    monkeypatch.setattr(coo_dispatch, "_done_respawn_request_ids", lambda: set())
+    result = coo_dispatch._reserved_respawn(999, "cto", "contabo")
+    assert result["reason"] == "proc_read_error:PermissionError"
+    assert REAL_PROC_CHECK("cto", tmp_path / "missing") == "proc_read_error:FileNotFoundError"
+
+
+def test_reservation_held_and_through_done(monkeypatch):
+    path = coo_dispatch.LOCKS_DIR / "coo-respawn-cto.lock"
+    _queue_respawn()
+    with path.open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        coo_dispatch.respawn_once()
+    assert _done_events()[-1]["reason"].startswith("reservation_busy:")
+    monkeypatch.setattr(coo_dispatch, "_done_respawn_request_ids", lambda: set())
+    monkeypatch.setattr(coo_dispatch, "latest_session_id", lambda *a: None)
+    monkeypatch.setattr(coo_dispatch, "start_clevel", lambda *a, **kw: (True, "ok"))
+    original = coo_dispatch._event
+    def checked_event(*args):
+        with path.open("a") as other:
+            with pytest.raises(BlockingIOError):
+                fcntl.flock(other, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return original(*args)
+    monkeypatch.setattr(coo_dispatch, "_event", checked_event)
+    coo_dispatch._reserved_respawn(999, "cto", "contabo")
+
+
+@pytest.mark.parametrize("secret", ["host=db user=x password=FAKE dbname=y",
+                                  "postgresql://x:FAKE@db/y"])
+def test_dispatch_exception_does_not_leak(monkeypatch, secret):
+    def fail(*a):
+        raise RuntimeError(secret)
+    monkeypatch.setattr(coo_dispatch, "live_hub_rows", fail)
+    _queue_respawn()
+    coo_dispatch.respawn_once()
+    result = _done_events()[-1]
+    assert result["reason"] == "live_sessions_read_error:RuntimeError"
+    assert "FAKE" not in json.dumps(result) and "password" not in json.dumps(result)
+
+
+def test_delayed_request_counts_actual_start(monkeypatch):
+    from lib import coo_policy
+    with db_mod.get_conn() as conn:
+        db_mod.log_event(conn, None, "coo_dispatch", "coo_respawn_done",
+                        {"role": "cto", "request_id": 900, "started": True})
+    now = coo_policy.datetime.now(coo_policy.timezone.utc)
+    with db_mod.get_conn() as conn:
+        conn.execute("INSERT INTO events (actor, kind, payload, ts) VALUES (?, ?, ?, ?)",
+                     ("coo_gate", "coo_respawn_request",
+                      json.dumps({"role": "cto", "host": "contabo", "by_session": SID}),
+                      "2020-01-01T00:00:00Z"))
+    monkeypatch.setattr(coo_dispatch, "start_clevel", lambda *a, **kw: pytest.fail("must refuse"))
+    coo_dispatch.respawn_once(now=now)
+    assert "10 minutes" in _done_events()[-1]["reason"]
+REAL_HOST_CHECK = coo_dispatch.live_host_refusal
+REAL_PROC_CHECK = coo_dispatch.process_role_refusal
+
+
 @pytest.fixture(autouse=True)
 def _isolated_env(monkeypatch, tmp_path):
     monkeypatch.delenv("ORG_DB_URL", raising=False)
@@ -40,6 +142,8 @@ def _isolated_env(monkeypatch, tmp_path):
     locks_dir.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(coo_dispatch, "LOCKS_DIR", locks_dir)
     monkeypatch.setattr(coo_dispatch, "tmux_sessions", lambda: ["sompong"])
+    monkeypatch.setattr(coo_dispatch, "live_host_refusal", lambda host, **kw: None)
+    monkeypatch.setattr(coo_dispatch, "process_role_refusal", lambda role: None)
 
 
 def _queue_respawn(role: str = "cto", host: str = "contabo") -> int:
@@ -115,7 +219,7 @@ def test_dispatch_refuses_when_live_sessions_read_fails(monkeypatch):
     assert len(done) == 1
     assert done[0]["request_id"] == req_id
     assert done[0]["ok"] is False
-    assert "unsure" in done[0]["reason"]
+    assert done[0]["reason"] == "live_sessions_read_error:RuntimeError"
 
 
 def test_dispatch_ignores_live_rows_for_other_roles_ph_or_other_hosts(monkeypatch):
@@ -282,6 +386,7 @@ def test_dispatch_resumes_most_recent_session_in_detached_tmux(monkeypatch):
         "host": "contabo",
         "ok": True,
         "mode": "resume",
+        "started": True,
         "sid": "f69c4825",
         "uuid": SAMPLE_UUID,
         "reason": "resume session started in tmux cto-f69c4825",

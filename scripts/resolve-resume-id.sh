@@ -33,9 +33,8 @@ if ! [[ "$TARGET" =~ $UUID_PATTERN ]]; then
     --role "$ROLE" --session-id "$VALUE" 2>"$HUB_ERR_FILE" || true)"
   TARGET="$(printf '%s' "$TARGET" | tr -d '[:space:]')"
   if [ -s "$HUB_ERR_FILE" ]; then
-    HUB_ERR_LINE="$(grep -v '^[[:space:]]*$' "$HUB_ERR_FILE" | tail -n 1 \
-      | sed -E 's#[pP][oO][sS][tT][gG][rR][eE][sS]([qQ][lL])?://[^[:space:]]+##g' \
-      | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' || true)"
+    HUB_ERR_LINE="$(tail -n 1 "$HUB_ERR_FILE" | sed -nE 's/^([A-Za-z_][A-Za-z0-9_.]*(Error|Exception))\b.*/\1/p')"
+    HUB_FAILED=1
   fi
   rm -f "$HUB_ERR_FILE"
 fi
@@ -44,8 +43,11 @@ if [[ "$TARGET" =~ $UUID_PATTERN ]]; then
   exit 0
 fi
 HUB_SUFFIX=""
+if [ -n "${HUB_FAILED:-}" ]; then
+  HUB_SUFFIX="; hub: error"
+fi
 if [ -n "$HUB_ERR_LINE" ]; then
-  HUB_SUFFIX="; hub: $HUB_ERR_LINE"
+  HUB_SUFFIX="; hub: unreachable or refused ($HUB_ERR_LINE)"
 fi
 echo "refuse to resume $ROLE-$VALUE: no resumable UUID found; checked $UUID_FILE and c_level_sessions.resume_uuid via tools.session_status resume (role=$ROLE, session_id=$VALUE)$HUB_SUFFIX" >&2
 exit 2

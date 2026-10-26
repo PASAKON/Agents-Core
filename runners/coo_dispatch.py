@@ -379,6 +379,7 @@ def _respawn_done(
         "role": role,
         "host": host,
         "ok": bool(ok),
+        "started": bool(ok),
         "mode": mode,
         "sid": sid,
         "uuid": uuid,
@@ -433,7 +434,8 @@ def start_clevel(role: str, *, mode: str, sid: str, resume_uuid: str | None = No
     except OSError as e:
         return False, f"tmux could not start {tmux_name}: {e}"
     if done.returncode != 0:
-        return False, f"tmux could not start {tmux_name}: {(done.stderr or '').strip()[:300]}"
+        log.error("tmux start failed: %s", done.stderr)
+        return False, "tmux_start_failed"
     return True, f"{mode} session started in tmux {tmux_name}"
 
 
@@ -466,94 +468,170 @@ def respawn_once(*, now=None) -> list[dict]:
             results.append(_respawn_done(req_id, role=role, host=host, ok=False, reason=str(e)))
             continue
 
-        # (d) Rate limits: <=1 per role per 10 min, <=3 per role per Thai day (Asia/Bangkok).
-        done_ids = _done_respawn_request_ids()
-        all_reqs = _rows(
-            "SELECT id, payload, ts FROM events WHERE kind = ? ORDER BY id ASC",
-            ("coo_respawn_request",),
-        )
-        prior_reqs = [
-            r for r in all_reqs
-            if int(r["id"]) < req_id or (int(r["id"]) != req_id and int(r["id"]) in done_ids)
-        ]
-        rate_reason = coo_policy.respawn_rate_limit_reason(prior_reqs, role, now=now)
-        if rate_reason:
-            results.append(_respawn_done(req_id, role=role, host=host, ok=False, reason=rate_reason))
-            continue
-
-        # (a) No live hub row (verified OR name-only) whose role is `role` on contabo, and no live
-        #     row's name or tmux session claims `role`. When unsure, refuse.
-        try:
-            hub_rows = live_hub_rows(host)
-        except Exception as e:
-            results.append(_respawn_done(
-                req_id, role=role, host=host, ok=False,
-                reason=f"unsure: could not read live_sessions: {type(e).__name__}: {e}",
-            ))
-            continue
-        if not isinstance(hub_rows, list):
-            results.append(_respawn_done(
-                req_id, role=role, host=host, ok=False,
-                reason="unsure: live_sessions returned non-list data",
-            ))
-            continue
-        claim_reason = None
-        for row in hub_rows:
-            claim_reason = live_row_claims_role(row, role, host)
-            if claim_reason:
-                break
-        if claim_reason:
-            results.append(_respawn_done(req_id, role=role, host=host, ok=False, reason=claim_reason))
-            continue
-
-        # (b) Launcher's single-role flock state/locks/.single-<role>.flock is NOT held.
-        if single_role_flock_held(role):
-            results.append(_respawn_done(
-                req_id, role=role, host=host, ok=False,
-                reason=f"single-role flock state/locks/.single-{role}.flock is held",
-            ))
-            continue
-
-        # (c) Shared tmux server is up and no tmux session `<role>-*` exists in it.
-        sessions = tmux_sessions()
-        if sessions is None:
-            results.append(_respawn_done(
-                req_id, role=role, host=host, ok=False,
-                reason="unsure: shared tmux server is not running or unreachable",
-            ))
-            continue
-        existing_tmux = next(
-            (s for s in sessions if s == role or s.startswith(f"{role}-")),
-            None,
-        )
-        if existing_tmux is not None:
-            results.append(_respawn_done(
-                req_id, role=role, host=host, ok=False,
-                reason=f"tmux session {existing_tmux!r} already exists in the shared server",
-            ))
-            continue
-
-        # Resolve resume UUID for the role's most recent c_level_sessions row, or mint fresh id8.
-        prev_sid = latest_session_id(role, host)
-        resolved_uuid = resolve_resume_uuid(role, prev_sid) if prev_sid else None
-        if resolved_uuid:
-            mode = "resume"
-            sid = resolved_uuid.replace("-", "")[-8:].lower()
-        else:
-            mode = "fresh"
-            sid = uuid.uuid4().hex[:8]
-        ok, reason = start_clevel(role, mode=mode, sid=sid, resume_uuid=resolved_uuid)
-        results.append(_respawn_done(
-            req_id,
-            role=role,
-            host=host,
-            ok=ok,
-            mode=mode if ok else None,
-            sid=sid if ok else None,
-            uuid=resolved_uuid if ok else None,
-            reason=reason,
-        ))
+        results.append(_reserved_respawn(req_id, role, host, now=now))
     return results
+
+
+def live_host_refusal(host, *, now=None):
+    rows = _rows("SELECT published_at, error FROM live_hosts WHERE host = ?", (host,))
+    if len(rows) != 1:
+        return "live_host_missing"
+    row = rows[0]
+    stamp = coo_policy._parse_ts(row.get("published_at"))
+    clock = coo_policy._parse_ts(now) if now is not None else coo_policy.datetime.now(coo_policy.timezone.utc)
+    if row.get("error"):
+        return "live_host_error"
+    if stamp is None or clock is None or not 0 <= (clock - stamp).total_seconds() <= 180:
+        return "live_host_stale"
+    return None
+
+
+def process_role_refusal(role, proc_root=Path("/proc")):
+    try:
+        for pid in proc_root.iterdir():
+            if not pid.name.isdigit():
+                continue
+            try:
+                environ = (pid / "environ").read_bytes().split(b"\0")
+            except OSError:
+                if not pid.exists():
+                    continue
+                raise
+            if f"CXO_ROLE={role}".encode() in environ and b"CXO_SESSION=1" in environ:
+                return "process_role_alive"
+    except OSError as exc:
+        log.exception("Cannot inspect process environment")
+        return f"proc_read_error:{type(exc).__name__}"
+    return None
+
+
+def _reserved_respawn(req_id, role, host, *, now=None):
+    try:
+        LOCKS_DIR.mkdir(parents=True, exist_ok=True)
+        reservation = (LOCKS_DIR / f"coo-respawn-{role}.lock").open("a")
+    except OSError as exc:
+        return _respawn_done(req_id, role=role, host=host, ok=False,
+                             reason=f"reservation_error:{type(exc).__name__}")
+    with reservation:
+        try:
+            fcntl.flock(reservation, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            return _respawn_done(req_id, role=role, host=host, ok=False,
+                                 reason=f"reservation_busy:{type(exc).__name__}")
+        # Serialize across roles as well, so concurrent dispatchers cannot exceed the global cap.
+        try:
+            daily_lock = (LOCKS_DIR / "coo-respawn-global.lock").open("a")
+        except OSError as exc:
+            return _respawn_done(req_id, role=role, host=host, ok=False,
+                                 reason=f"reservation_error:{type(exc).__name__}")
+        with daily_lock:
+            try:
+                fcntl.flock(daily_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as exc:
+                return _respawn_done(req_id, role=role, host=host, ok=False,
+                                     reason=f"reservation_busy:{type(exc).__name__}")
+            # Another dispatcher may have handled this request while we waited to run.
+            if req_id in _done_respawn_request_ids():
+                return {"request_id": req_id, "ok": False, "reason": "already_processed"}
+            try:
+                reason = live_host_refusal(host, now=now) or process_role_refusal(role)
+                if reason:
+                    return _respawn_done(req_id, role=role, host=host, ok=False, reason=reason)
+                return _respawn_checked(req_id, role, host, now=now)
+            except Exception as exc:
+                log.exception("C-level respawn check failed")
+                return _respawn_done(req_id, role=role, host=host, ok=False,
+                                     reason=f"respawn_error:{type(exc).__name__}")
+
+
+def _respawn_checked(req_id, role, host, *, now=None):
+    # Rate limits: one per role per 10 min and three globally per Bangkok day.
+    all_reqs = _rows(
+        "SELECT id, kind, payload, ts FROM events WHERE kind IN (?, ?) ORDER BY id ASC",
+        ("coo_respawn_request", "coo_respawn_done"),
+    )
+    prior_reqs = [
+        r for r in all_reqs
+        if r["kind"] == "coo_respawn_done" or int(r["id"]) < req_id
+    ]
+    rate_reason = coo_policy.respawn_rate_limit_reason(prior_reqs, role, now=now)
+    if rate_reason:
+        return _respawn_done(req_id, role=role, host=host, ok=False, reason=rate_reason)
+
+
+    # (a) No live hub row (verified OR name-only) whose role is `role` on contabo, and no live
+    #     row's name or tmux session claims `role`. When unsure, refuse.
+    try:
+        hub_rows = live_hub_rows(host)
+    except Exception as e:
+        log.exception("Could not read live_sessions")
+        return _respawn_done(
+            req_id, role=role, host=host, ok=False,
+            reason=f"live_sessions_read_error:{type(e).__name__}",
+        )
+
+    if not isinstance(hub_rows, list):
+        return _respawn_done(
+            req_id, role=role, host=host, ok=False,
+            reason="unsure: live_sessions returned non-list data",
+        )
+
+    claim_reason = None
+    for row in hub_rows:
+        claim_reason = live_row_claims_role(row, role, host)
+        if claim_reason:
+            break
+    if claim_reason:
+        return _respawn_done(req_id, role=role, host=host, ok=False, reason=claim_reason)
+
+
+    # (b) Launcher's single-role flock state/locks/.single-<role>.flock is NOT held.
+    if single_role_flock_held(role):
+        return _respawn_done(
+            req_id, role=role, host=host, ok=False,
+            reason=f"single-role flock state/locks/.single-{role}.flock is held",
+        )
+
+
+    # (c) Shared tmux server is up and no tmux session `<role>-*` exists in it.
+    sessions = tmux_sessions()
+    if sessions is None:
+        return _respawn_done(
+            req_id, role=role, host=host, ok=False,
+            reason="unsure: shared tmux server is not running or unreachable",
+        )
+
+    existing_tmux = next(
+        (s for s in sessions if s == role or s.startswith(f"{role}-")),
+        None,
+    )
+    if existing_tmux is not None:
+        return _respawn_done(
+            req_id, role=role, host=host, ok=False,
+            reason=f"tmux session {existing_tmux!r} already exists in the shared server",
+        )
+
+
+    # Resolve resume UUID for the role's most recent c_level_sessions row, or mint fresh id8.
+    prev_sid = latest_session_id(role, host)
+    resolved_uuid = resolve_resume_uuid(role, prev_sid) if prev_sid else None
+    if resolved_uuid:
+        mode = "resume"
+        sid = resolved_uuid.replace("-", "")[-8:].lower()
+    else:
+        mode = "fresh"
+        sid = uuid.uuid4().hex[:8]
+    ok, reason = start_clevel(role, mode=mode, sid=sid, resume_uuid=resolved_uuid)
+    return _respawn_done(
+        req_id,
+        role=role,
+        host=host,
+        ok=ok,
+        mode=mode if ok else None,
+        sid=sid if ok else None,
+        uuid=resolved_uuid if ok else None,
+        reason=reason,
+    )
 
 
 def tick(environ=None) -> None:

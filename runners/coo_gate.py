@@ -233,8 +233,7 @@ def op_respawn_clevel(req: dict, uid: int, *, now=None) -> dict:
     with db.get_conn() as conn:
         rows = [
             dict(r) for r in conn.execute(
-                "SELECT id, payload, ts FROM coo_respawn_events WHERE kind=?",
-                ("coo_respawn_request",),
+                "SELECT id, kind, payload, ts FROM coo_respawn_events",
             ).fetchall()
         ]
         reason = coo_policy.respawn_rate_limit_reason(rows, role, now=now)
