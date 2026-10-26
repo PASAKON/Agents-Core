@@ -242,12 +242,18 @@ def op_respawn_clevel(req: dict, uid: int, *, now=None) -> dict:
             raise Refused(reason)
         payload = {"role": role, "host": host, "by_session": session_id}
         db.log_event(conn, None, "coo_gate", "coo_respawn_request", payload)
-        ev = conn.execute(
-            "SELECT id FROM coo_respawn_events WHERE kind=? "
-            "AND payload->>'by_session'=? AND payload->>'role'=? ORDER BY id DESC LIMIT 1",
-            ("coo_respawn_request", session_id, role),
-        ).fetchone()
-        request_id = int(ev["id"]) if ev else 0
+        # events.payload is text: match by_session and role in Python, so the
+        # same SQL runs on Postgres and the SQLite tests.
+        request_id = 0
+        for ev in conn.execute(
+            "SELECT id, payload FROM coo_respawn_events WHERE kind=? ORDER BY id DESC LIMIT 20",
+            ("coo_respawn_request",),
+        ).fetchall():
+            raw = ev["payload"]
+            p = json.loads(raw) if isinstance(raw, str) else (raw or {})
+            if isinstance(p, dict) and p.get("by_session") == session_id and p.get("role") == role:
+                request_id = int(ev["id"])
+                break
     return {"request_id": request_id, "role": role, "host": host, "queued": True}
 
 
