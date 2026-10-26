@@ -14,10 +14,32 @@ audience: [cmo, cto, browser_operator]
 ## Model scope — read first
 
 **Proven on:** ChatGPT **Plus web UI** (gpt-image, Thai UI, Sep 2026) driven by
-`tools/chatgpt_images.py` on the Mac automation Chrome (`--cdp-url http://127.0.0.1:9223`,
-profile `~/.flow-automation/chrome-profile`, signed in by the CEO 2026-09-24), plus
-`tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). Films: «จุดจบของเจ้าหนี้นอกระบบ» (banchi),
-«ตาชั่งของเสี่ย» (taachang).
+`tools/chatgpt_images.py`, plus `tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). Films:
+"จุดจบของเจ้าหนี้นอกระบบ" (banchi), "ตาชั่งของเสี่ย" (taachang).
+
+**Where the runner runs** (rule since 2026-10-26; CEO 2026-10-08: "ChatGPt ทำใน window นะ"):
+
+The runner uses the winbox ChatGPT Chrome at 127.0.0.1:9224 (task `MooniexRelayChrome9224`, signed in as Plus).
+
+- **When:** only when `scripts/pc-lease.sh status` does not say `PC: CEO`. Take the lease for the run and give
+  it back afterwards.
+- **One driver at a time:** run under `flock /opt/MoonieXHQ/Work/.winbox-chatgpt.lock`.
+- **Getting there from Contabo:** open the tunnel with
+  `ssh -f -N -o ExitOnForwardFailure=yes -L <port>:127.0.0.1:9224 winbox`.
+  - That Chrome holds the CEO's logins, so close the tunnel after the run with `ssh -O cancel -L ...`.
+  - Never pkill it: the ssh mux is shared.
+- **Your own tab:** work in a background tab you open yourself (CDP `Target.createTarget {background: true}`),
+  never call `bring_to_front`, and close the tab by id at the end.
+  - The stock runner takes `pages[0]` and brings it to the front, so on this shared Chrome use a wrapper until
+    the runner gains that mode.
+  - A working wrapper with the runner's own CLI: `/opt/MoonieXHQ/Work/cn-series/chars/chatgpt_bg_tab.py`. Its
+    run script, `ep02_plates_run.sh` beside it, is a template (PH CnDrama, 2026-10-26).
+- **A Cloudflare check:** reload the page once over CDP. If the check is still there, open a relay request on
+  winbox's own Console. Never click it over CDP.
+
+[SUPERSEDED 2026-10-26] the Mac automation Chrome (`--cdp-url http://127.0.0.1:9223`, profile
+`~/.flow-automation/chrome-profile`, signed in by the CEO 2026-09-24). It has been signed out since 2026-10-07.
+Evidence: the Field notes of 2026-09-30 and 2026-10-07, and the CEO's ruling of 2026-10-08.
 
 The ChatGPT UI changed on 2026-09-26 (send button aria-label ส่ง, no `section[data-turn]`, the image in a
 gallery with a `blob:` src) and the runner followed it (38898881). If every image fails with "send did not
@@ -89,7 +111,7 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
    red strike-through (the story's working title was «บัญชี»; the strike is «จุดจบ»),
    cracked antique gold, raw red-and-white brush. Use the prompt template below, one
    JSON item each, and run:
-   `.venv/bin/python tools/chatgpt_images.py --cdp-url http://127.0.0.1:9223 --json <Work>/logos/round1.json --out <Work>/logos`
+   `flock /opt/MoonieXHQ/Work/.winbox-chatgpt.lock .venv/bin/python <background-tab wrapper> --cdp-url http://127.0.0.1:<tunnel port> --json <Work>/logos/round1.json --out <Work>/logos` (see §Where the runner runs)
 3. **Spell-check every logo letter by letter** at full resolution, one line at a time, with a
    crop of every vowel and tone mark (rule 6). Fix with a same-chat edit, no re-attach:
    `… --out <Work>/logos --name logo-b2 --continue logo-b --prompt "Keep everything the same; remove …"`
@@ -210,6 +232,6 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 - 2026-09-27 [COSTLY] §Rules 8 — the runner stopped with "signed_out — composer not present", but the tab was signed in and showed "ไม่สามารถโหลดการสนทนา ChatGPT นี้ได้" (the conversation failed to load). One page reload over Playwright CDP, then the same command, produced the image. Before treating signed_out as real, read the page text and reload once; `--recover` cannot be combined with `--json` · evidence: task-c816fbc0, ep4 plate pa__face2, 2026-09-27 · status: pending
 - 2026-09-28 [WRONG] §runner — `tools/chatgpt_images.py` rejected every multi-line prompt: its paste check read the composer with `textContent`, which drops the `<br>` a pasted single newline becomes, so want-got = the number of line breaks (11 on all 10 items, 0 images). Fixed on main `1675ca27` (innerText). Before that sha, keep prompts on one line or blank-line-separated only · evidence: task-964eddeb, issue #181 · status: pending
 - 2026-09-28 [MISSING] §When NOT to invoke — the daily knowledge poster and the Story end card now have their own skill and theme (CTO_ILAG_LakornTheme, CEO 2026-09-28); point there instead of making a cover-style poster · evidence: 04872b59 · status: pending
-- 2026-09-30 [MISSING] §Model scope — on the winbox ChatGPT Chrome (9224, relaunched by the `MooniexRelayChrome9224` task, signed in as Plus) the runner's navigation to chatgpt.com landed on a Cloudflare "ยืนยันว่าคุณเป็นมนุษย์" checkbox page; the runner saw no composer and ended with only "timed out after 360s waiting for the image" (ledger: failed, chat_url `https://chatgpt.com/`, nothing sent). The first screenshot 6 minutes earlier showed the normal home page. One plain page reload over CDP cleared it at once (no click); if it survives a reload a person must click it — never click it from CDP. Wanted: the runner should detect the challenge and stop at once with "Cloudflare check: a person must click it", and the skill should say so · evidence: `C:\mooniex\khaoniao\out\ledger.json` on winbox, task-faa417d6 session cmo-c7879552 · status: pending
-- 2026-10-07 [MISSING] §Model scope — the Mac automation Chrome (9223, `~/.flow-automation/chrome-profile`) was signed out on 2026-10-07 (runner: "signed_out — composer not present", page showed ลงชื่อเข้าใช้). winbox's Chrome on 9224 was signed in, but another session's chat tab was open in it. Driving it from the Mac through `ssh -f -N -L 9264:127.0.0.1:9224 winbox` in a tab of our own, opened with CDP `Target.createTarget {background: true}` and with `bring_to_front` skipped, made 6 images. The other tab was left alone and the window did not cover the Minecraft shots running on that screen. The wrapper is a scratch script (cto-369faf85 scratchpad pano/gpt_bg.py); the runner could take a `--background-tab` flag · evidence: cto-369faf85, Assets/MoonieX/Bedrock/sky/pano-art-2026-10-07/chatgpt/ledger.json · status: pending
+- 2026-09-30 [MISSING] §Model scope — on the winbox ChatGPT Chrome (9224, relaunched by the `MooniexRelayChrome9224` task, signed in as Plus) the runner's navigation to chatgpt.com landed on a Cloudflare "ยืนยันว่าคุณเป็นมนุษย์" checkbox page; the runner saw no composer and ended with only "timed out after 360s waiting for the image" (ledger: failed, chat_url `https://chatgpt.com/`, nothing sent). The first screenshot 6 minutes earlier showed the normal home page. One plain page reload over CDP cleared it at once (no click); if it survives a reload a person must click it — never click it from CDP. Wanted: the runner should detect the challenge and stop at once with "Cloudflare check: a person must click it", and the skill should say so · evidence: `C:\mooniex\khaoniao\out\ledger.json` on winbox, task-faa417d6 session cmo-c7879552 · → §Model scope, Where the runner runs (2026-10-26) · status: promoted
+- 2026-10-07 [MISSING] §Model scope — the Mac automation Chrome (9223, `~/.flow-automation/chrome-profile`) was signed out on 2026-10-07 (runner: "signed_out — composer not present", page showed ลงชื่อเข้าใช้). winbox's Chrome on 9224 was signed in, but another session's chat tab was open in it. Driving it from the Mac through `ssh -f -N -L 9264:127.0.0.1:9224 winbox` in a tab of our own, opened with CDP `Target.createTarget {background: true}` and with `bring_to_front` skipped, made 6 images. The other tab was left alone and the window did not cover the Minecraft shots running on that screen. The wrapper is a scratch script (cto-369faf85 scratchpad pano/gpt_bg.py); the runner could take a `--background-tab` flag · evidence: cto-369faf85, Assets/MoonieX/Bedrock/sky/pano-art-2026-10-07/chatgpt/ledger.json · → §Model scope, Where the runner runs (2026-10-26) · status: promoted
 - 2026-10-26 [SUPERSEDED] §not-for list, the poster and Story line — the ILAG theme is gold, white and black since the CEO's 2026-10-26 ruling (was navy + gold, 2026-09-28); navy is left only in `tools/ilag_theme.py` until it moves. Cover work follows `knowledge/brand-knowledge/brands/ilag/BRAND.md` §Palette and §Logo (the Page's own logo, never redrawn) · evidence: CEO chat 2026-10-26, 67ce5bed, d159b7c7 · status: promoted
