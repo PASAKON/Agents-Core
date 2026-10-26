@@ -49,7 +49,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
-| `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page «บ้านนี้มีมีมี่»: 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
+| `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |
 
 ## Procedure
@@ -60,7 +60,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_BlackLiquidity_JevEditor` | CMO | cmo, video_editor, cto | Run Jev (TypeSafe's typed-decision model, ALL_Knowledge_Jev SKILL.md) per BLACK LIQUIDITY script line to make the per-line editorial calls… |
 | `CMO_Procedure_Blender_Previz` | CMO | cmo, cto | Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead… |
 | `CMO_Procedure_CharacterSheet` | CMO | cmo, worker | Generate a neutral, reusable AI character reference sheet (white-background emotion grid + one full-body panel) for any film/video project… |
-| `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
+| `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from… |
 | `CMO_Procedure_Colab_DirectRender` | CMO | cmo, cto | Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac: write one take spec (JSON: scenes, refs… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
@@ -77,8 +77,8 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Standard_BlackLiquidity_Script` | CMO | cmo, cto, script_writer, developer | Write the Thai script for a BLACK LIQUIDITY episode — the AI-avatar TikTok channel that exposes Forex and Ponzi scams. Use this whenever… |
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
 | `CMO_Standard_HumanVoice_TH` | CMO | cmo, content_strategist, script_writer, browser_operator | Final pass on Thai text we publish for outsiders (captions, first comments, comment replies, LINE groups, chatbot templates): Thai AI… |
-| `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีมีมี่» — who Mimi the black dog is, the CEO's… |
-| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
+| `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page 'บ้านนี้มีมีมี่' — who Mimi the black dog is, the CEO's… |
+| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page "ละครสั้นคุณธรรม" — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
 | `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
 | `CTO_Standard_Bedrock_WorkLayout` | CTO | cto | How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. |
 
@@ -88,7 +88,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Gate_Champa_Seedance2.0_ShortMovieQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for every clip of a SHORT MOVIE (one continuous story world, creatures, VFX, English dialogue) shot on champa Seedance… |
 | `CMO_Gate_Flow_Omni1.1_Continuity` | CMO | cmo, cto, script_writer, browser_operator | Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1 Flash, องค์ประกอบ mode): one table of time, place, who… |
-| `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of «จุดจบของเจ้าหนี้นอกระบบ»… |
+| `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of "จุดจบของเจ้าหนี้นอกระบบ"… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
 | `CTO_Gate_MergeChecklist` | CTO | cto | Pre-merge verification gate — refuses merge_task if any check fails. |
 | `CXO_Gate_RouteFirst` | CTO | cxo | Before every delegate_task of a worker job: outside runners first (IRON §59 rule 7). What route.check_override v2 and the router enforce… |
@@ -191,5 +191,5 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 
 | name | owner | audience | what it is |
 |---|---|---|---|
-| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on… |
+| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of… |
 | `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |
