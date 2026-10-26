@@ -55,6 +55,8 @@ NG_SCALES = {3: 1.55, 4: 1.25, 5: 1.06, 6: 0.97}
 NG_SHAKE = {4: (14, -8), 5: (-9, 6), 6: (5, -3)}
 REWIND_SPEED = 1.85
 TAKE2_STICKER = 1.5
+REVERSE_MAX = 8                 # seconds of source a reverse may buffer: every frame sits in RAM
+NUM_MAX = 1e6                   # larger than any EDL number; inf, nan and 1e999 are typos that would overflow
 SIZE = [1080, 1920]
 ENC_SALT = "ilag_cut-2"         # bump when the filter graphs change: invalidates every cached segment
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
@@ -132,6 +134,13 @@ class V:
         x = obj[key]
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             self.err(where, f"'{key}' must be a number, got {x!r}")
+            return None
+        shown = repr(x) if len(repr(x)) <= 24 else repr(x)[:21] + "..."
+        if isinstance(x, float) and not math.isfinite(x):           # json.loads takes Infinity, -Infinity, NaN, 1e999
+            self.err(where, f"'{key}' must be a finite number, got {shown}")
+            return None
+        if abs(x) > NUM_MAX:                                         # q() and int() overflow long before this
+            self.err(where, f"'{key}' must be at most {NUM_MAX:g} in size, got {shown}")
             return None
         for ok, bound in ((lo is None or x >= lo, f">= {lo}"), (gt is None or x > gt, f"> {gt}"),
                           (hi is None or x <= hi, f"<= {hi}")):
@@ -323,8 +332,8 @@ def expand_segment(v, seg, i, fps):
                 speed = v.num(seg, "speed", where, default=1.0, lo=0.25, hi=4)
                 gain = v.num(seg, "gain", where, default=1.0, lo=0)
                 rev = v.flag(seg, "reverse", where, False)
-                if rev and dur and speed and dur * speed > 8:
-                    v.err(where, f"reverse buffers every frame in RAM; keep the source span <= 8 s "
+                if rev and dur and speed and dur * speed > REVERSE_MAX:
+                    v.err(where, f"reverse buffers every frame in RAM; keep the source span <= {REVERSE_MAX} s "
                                  f"(got {fmt(dur * speed)})")
                 if len(v.errors) == n0:
                     parts.append(part(sid, sid, total, media="video", ss=ss, span=dur * speed, speed=speed, reverse=rev,
@@ -376,6 +385,9 @@ def expand_ng(v, seg, sid, where, wm, fps):
     if tape is None or fz is None or rw is None or len(v.errors) > n0:
         return None
     dur1, dur2, rdur = q(dur1, fps), q(dur2, fps), q((fz - rw) / REWIND_SPEED, fps)
+    if rdur * REWIND_SPEED > REVERSE_MAX:                               # the rewind is a reversed clip: same RAM guard
+        v.err(where, f"the rewind reverses {fmt(rdur * REWIND_SPEED)} s of the take and reverse buffers every frame in "
+                     f"RAM; keep freeze_at - rewind_in <= {REVERSE_MAX} s (set rewind_in later in the take)")
     nfreeze = int(NG_FREEZE * fps) / fps
     c1, s1, f1 = overlays_field(v, t_obj(take), w1, dur1)
     c2, s2, f2 = overlays_field(v, t_obj(take2), w2, dur2)
@@ -393,7 +405,8 @@ def expand_ng(v, seg, sid, where, wm, fps):
              grade="rewind", wm=wm, tags=["rew"], gain=0.0, sfx=[{"name": "rewind", "at": 0.0, "gain": 0.9}],
              note="rewind"),
         part(f"{sid}.4take2", sid, dur2, media="video", src=src2, ss=in2, gain=g2, wm=wm,
-             cards=[{"el": "take2", "at": 0.0, "dur": TAKE2_STICKER, "texts": {}}] + c2, subs=s2, sfx=f2, note="take 2"),
+             cards=[{"el": "take2", "at": 0.0, "dur": min(TAKE2_STICKER, dur2), "texts": {}}] + c2, subs=s2, sfx=f2,
+             note="take 2"),
     ]
 
 
