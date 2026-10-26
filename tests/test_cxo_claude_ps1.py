@@ -64,6 +64,25 @@ def test_ascii_only():
         assert not bad, f"{p.name} has non-ASCII byte(s): {bad[:5]!r}..."
 
 
+def test_rule_session_name_with_tab_title_override_and_fallback():
+    code = _code_only(CXO_SCRIPT)
+    start = code.index('$sessionName = "$machineLabel $resolvedTabTitle"')
+    end = code.index("$fullArgs = @('-n', $sessionName)", start)
+    block = code[start:end]
+    assert "if (-not $PSBoundParameters.ContainsKey('TabTitle')) {" in block
+    assert "& $venvPy -m lib.session_names name --host winbox --role $Role --sid $sid @nameArgs" in block
+    assert "if ($isPh) { $nameArgs = @('--lane', $Lane, '--project', $Project) }" in block
+    assert "Push-Location -LiteralPath $root -ErrorAction Stop" in block
+    assert "} finally {\n            Pop-Location" in block
+    assert "$LASTEXITCODE -ne 0" in block
+    assert "if (-not $nameJson)" in block
+    assert "$nameJson | ConvertFrom-Json -ErrorAction Stop" in block
+    assert "$sessionName = $ruleName" in block
+    assert '} catch {\n        $sessionName = "$machineLabel $resolvedTabTitle"' in block
+    assert 'if ($TabTitle) { $resolvedTabTitle = $TabTitle }' in code
+    assert '$Host.UI.RawUI.WindowTitle = $resolvedTabTitle' in code
+
+
 def test_param_block_has_the_four_flags():
     text = _text(CXO_SCRIPT)
     m = re.search(r"param\s*\((.*?)\n\)", text, re.S)

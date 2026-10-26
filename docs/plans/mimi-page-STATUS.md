@@ -1,5 +1,9 @@
 # MimiPage — STATUS (Project Head #36c49776, reports to cmo-ef04792e)
 
+> **PARKED 2026-10-26 (CEO: "ตอนนี้พัก Mimi Page ไปก่อนนะ เพราะถุกปิดกั้น").** No shoot, schedule or spend until he
+> resumes it in his own words. Facebook restricts the Page (Recommendations suspended, seen 14 Oct). No Mimi PH
+> is running (live-sessions, 26 Oct). Skill banner: `CMO_Workflow_MimiPage_Weekly`.
+
 Page «บ้านนี้มีมีมี่» (FB id 61594776486312). Brief: `state/ph-briefs/project_head-36c49776.md`.
 Per-slot detail lives in `mimi-weekly-calendar.md`; this file holds milestones, blocker and decisions only.
 
