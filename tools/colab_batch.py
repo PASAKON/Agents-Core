@@ -1,8 +1,8 @@
 """Run ordered Colab takes from a JSON job, with an admission cap.
 
-Usage: python3 tools/colab_batch.py --job /opt/MoonieXHQ/Work/job.json --max-credits 150
+Usage: python3 tools/colab_batch.py --job /opt/MoonieXHQ/Work/job.json --max-credits 170
 Job: {"takes": [absolute_directory, ...], "checkpoints": [{"after": glob_or_list,
-      "scenes": 102, "max_cu_per_scene": 0.44}], "log": absolute_path,
+      "scenes": 102, "max_cu_per_scene": 0.52}], "log": absolute_path,
       "run_take": {"root": absolute_ComfyRunpod_root, "python": absolute_venv_python},
       "uploads_dir": absolute_directory_under_WORK}   # uploads_dir only for studio takes
 Exit: 0 done; 1 take failed; 2 invalid job/arguments (0 CU); 3 admission cap;
