@@ -39,4 +39,3 @@ Shot ids are the script's (S1..); src is the time inside ep5-ep1.mp4. Truth behi
 - cut 14  14.08-14.79  S7  src 52.0  the son wiping his hands, jaw set
 - cut 15  14.79-16.00  S17  src 133.0  a hand of blank cards fanned out
 
-Cuts with no subtitle (the pause between lines): 
