@@ -36,6 +36,7 @@ the CMO; it does not get quietly overridden inside an artifact.
 | `ilag` | ✅ | ละครสั้นคุณธรรม by ILAG Studio (FB). Gold/white/black LOCKED (CEO 2026-10-26, replaces navy/gold of 2026-09-28); the Page's own logo, never redrawn; channel kit v2 PROPOSED (20 tiles, `templates/`), locks tile by tile on the CEO's answer. |
 | `linkreed` | ✅ | New product (not Mooniex). AI link-in-bio builder. Warm ink/watercolor editorial mood, minimal mobile-first product UI. Palette LOCKED. |
 | `jade-tally` | ✅ | Jade Tally (@JadeTally): the CEO's YouTube channel for ลูกคิดประเมินฟ้า (PH CnDrama #351). One channel, Thai main audio, English as an added track (CEO 2026-10-27). No text burned into an episode; hook-first titles. |
+| `khaohom-survival` | ✅ | ข้าวหอม Survival (working name "Survival project"; PH KhaoHomSurvival #b2f): Thai survival lessons as a hand-coded flat-vector cartoon. No channel name or handle until the CEO names it. Palette LOCKED from the kit. |
 
 ## Hard rules
 
