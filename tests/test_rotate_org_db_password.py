@@ -397,4 +397,6 @@ def test_real_postgres_scram_rotation(capsys, tmp_path):
     logs = subprocess.run(["docker", "logs", PG_CONTAINER], capture_output=True, text=True, timeout=30)
     assert "SET log_statement" in logs.stdout + logs.stderr or "statement:" in logs.stdout + logs.stderr
     for text in (out + err, out2 + err2, logs.stdout + logs.stderr):
-        assert pw not in text and "SCRAM-SHA-256$" not in text and "ALTER ROLE" not in text
+        assert pw not in text
+        assert "SCRAM-SHA-256$" not in text
+    assert "ALTER ROLE" not in logs.stdout + logs.stderr     # the statement never reached the log
