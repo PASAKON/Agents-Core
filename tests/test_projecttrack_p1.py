@@ -403,3 +403,123 @@ def test_cli_new_verbs_keep_enforcement_pattern(store, monkeypatch, tmp_path, en
                      identity=Identity("dev", "developer", "task-x"), now=T)
     assert result == (1 if enforced else 0)
     assert pf.get_project("p")["next_step"] == (None if enforced else "next")
+
+
+# --- a Project Head finishes its own row (CTO Main order 27 Oct) ---------------------------------
+
+PH = Identity("cxo", "project_head", "12345678")
+PH_REPLAN = dict(actor="project_head-12345678", actor_role="project_head", why="first date", now=T)
+
+
+def replan_events(store):
+    return store.execute("SELECT count(*) FROM project_events WHERE kind='replan'").fetchone()[0]
+
+
+def test_ph_sets_a_first_milestone_date_but_cannot_move_it_by_three_days(store):
+    project(ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    event = pf.replan("p", 1, T + timedelta(days=30), **PH_REPLAN)     # no date yet: nothing to measure a move from
+    assert event == {"n": 1, "from": None, "to": pf.iso(T + timedelta(days=30)), "why": "first date"}
+    assert pf.get_project("p")["due_set_by"] is None                   # a milestone date says nothing about the project's
+    with pytest.raises(PermissionError, match="at most 2 days"):
+        pf.replan("p", 1, T + timedelta(days=33), **PH_REPLAN)
+    pf.replan("p", 1, T + timedelta(days=32), **PH_REPLAN)              # 2 days is still a small move
+    assert replan_events(store) == 2
+
+
+@pytest.mark.parametrize("role,source", [("project_head", "ph"), ("cto", "clevel"), ("ceo", "ceo")])
+def test_the_first_project_date_records_who_set_it(store, role, source):
+    project()
+    pf.replan("p", 0, T + timedelta(days=5), actor=ACTOR, actor_role=role, why="first date", now=T)
+    row = pf.get_project("p")
+    assert (row["due_at"], row["due_set_by"], row["due_first_at"]) == (pf.iso(T + timedelta(days=5)), source, None)
+    pf.replan("p", 0, T + timedelta(days=6), actor=ACTOR, actor_role="cto", why="move", now=T)
+    assert pf.get_project("p")["due_set_by"] == source                  # a later move does not take the date over
+
+
+def test_a_first_project_date_keeps_a_due_set_by_the_row_already_has(store):
+    project(due_set_by="clevel")                                        # attributed, no date yet
+    pf.replan("p", 0, T + timedelta(days=5), **{**PH_REPLAN, "now": T})
+    assert pf.get_project("p")["due_set_by"] == "clevel"
+
+
+@pytest.mark.parametrize("n", [0, 1])
+def test_ph_cannot_set_or_move_a_date_on_a_ceo_set_project(store, n):
+    project(due_at=T, due_set_by="ceo", ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)                   # milestone 1 has no date: the "first date" case
+    with pytest.raises(PermissionError, match="CEO-set"):
+        pf.replan("p", n, T + timedelta(days=1), **PH_REPLAN)
+    assert replan_events(store) == 0 and pf.get_project("p")["due_at"] == pf.iso(T)
+
+
+def test_a_worker_cannot_set_a_first_date(store):
+    project()
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    with pytest.raises(PermissionError, match="only a Project Head or C-level"):
+        pf.replan("p", 1, T + timedelta(days=1), **{**PH_REPLAN, "actor_role": "developer"})
+    assert replan_events(store) == 0
+
+
+@pytest.fixture
+def cli_as(store, monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, "gate", lambda identity, verb, pid, reason: reason is None)
+    monkeypatch.setattr(cli, "LOCKS_DIR", tmp_path)                     # no owner records on this box count
+
+    def run(*args, who=PH):
+        code = cli.run([a + "T00:00:00Z" if re.fullmatch(r"2026-1[01]-\d\d", a) else a for a in args], identity=who, now=T)
+        out = capsys.readouterr()
+        return code, out.out, out.err
+    return run
+
+
+def test_cli_ph_replans_its_own_milestone_first_date(cli_as, store):
+    project(ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    code, out, _ = cli_as("replan", "p", "1", "--due", "2026-10-30", "--why", "first date")
+    assert code == 0 and json.loads(out)["from"] is None
+    code, _, err = cli_as("replan", "p", "1", "--due", "2026-11-02", "--why", "slip")       # 3 days
+    assert code == 1 and "at most 2 days" in err
+
+
+def test_cli_edit_loop_needs_a_cadence(cli_as, store):
+    project(ph_session="12345678")
+    code, _, err = cli_as("edit", "p", "--kind", "loop")
+    assert code == 2 and "needs a cadence" in err
+    row = pf.get_project("p")
+    assert (row["kind"], row["cadence_h"]) == ("finite", None)
+    code, out, _ = cli_as("edit", "p", "--kind", "loop", "--cadence", "24")
+    assert code == 0
+    assert json.loads(out) == {"project": "p", "changed": {"kind": {"from": "finite", "to": "loop"},
+                                                           "cadence_h": {"from": None, "to": 24}}}
+    row = pf.get_project("p")
+    assert (row["kind"], row["cadence_h"]) == ("loop", 24)
+
+
+def test_cli_edit_kind_and_cadence_edges(cli_as, store):
+    project(ph_session="12345678", kind="loop", cadence_h=24)
+    assert cli_as("edit", "p", "--cadence", "0")[0] == 2                 # not a positive number of hours
+    assert cli_as("edit", "p", "--cadence", "-3")[0] == 2
+    code, out, _ = cli_as("edit", "p", "--kind", "finite")               # finite keeps cadence_h as it is
+    assert code == 0 and json.loads(out)["changed"] == {"kind": {"from": "loop", "to": "finite"}}
+    assert pf.get_project("p")["cadence_h"] == 24
+    code, out, _ = cli_as("edit", "p", "--kind", "loop")                 # the row's own cadence is enough
+    assert code == 0 and json.loads(out)["changed"] == {"kind": {"from": "finite", "to": "loop"}}
+    code, out, _ = cli_as("edit", "p", "--cadence", "12")
+    assert code == 0 and json.loads(out)["changed"] == {"cadence_h": {"from": 24, "to": 12}}
+
+
+def test_cli_unrelated_edit_is_not_blocked_by_a_loop_without_cadence(cli_as, store):
+    project(ph_session="12345678", kind="loop")                          # a loop with no cadence, as opened before this rule
+    code, out, _ = cli_as("edit", "p", "--goal", "new goal")
+    assert code == 0 and list(json.loads(out)["changed"]) == ["goal"]
+
+
+def test_cli_ph_cannot_edit_or_replan_another_projects_row(cli_as, store):
+    project("p", ph_session="12345678")
+    project("q", ph_session="deadbeef")
+    pf.milestone_add("q", "ship", actor=ACTOR, now=T)
+    assert cli_as("edit", "q", "--kind", "loop", "--cadence", "24")[0] == 1
+    assert cli_as("replan", "q", "1", "--due", "2026-10-30", "--why", "x")[0] == 1
+    other = pf.get_project("q")
+    assert (other["kind"], other["cadence_h"]) == ("finite", None) and replan_events(store) == 0
+    assert cli_as("edit", "p", "--kind", "loop", "--cadence", "24")[0] == 0
