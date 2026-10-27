@@ -11,16 +11,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from tools.live_sessions import session_dirs, read_registry, is_alive
 
 UTC = timezone.utc
+RUN_CARDS_TIMEOUT_S = 30
 ACTIONS = {'wait', 'close', 'park', 'resume_lazy', 'resume_full', 'compact_then_resume'}
 OPEN = {'pending', 'in_progress', 'rate_limited'}
 
@@ -162,6 +166,26 @@ def read_hub():
         return result
 
 
+def read_running_cards():
+    """Run cards the Console is executing now, or None when they cannot be read.
+
+    They live in the Console hub, not the org hub: tools/ask_run.py asks
+    /api/run/asks. mooniex-console.service runs them, so a restart kills one.
+    """
+    env = dict(os.environ)
+    env.setdefault('HOME', '/root')
+    try:
+        done = subprocess.run(
+            ['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'list', '--status', 'running', '--json'],
+            cwd=ROOT, env=env, capture_output=True, text=True, timeout=RUN_CARDS_TIMEOUT_S)
+        if done.returncode:
+            return None
+        cards = json.loads(done.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    return cards if isinstance(cards, list) and all(isinstance(c, dict) for c in cards) else None
+
+
 def owned(item, row):
     return any(item.get(k) in (row['session_id'], row['uuid']) for k in
                ('owner_cto', 'creator_session_id', 'owner_session_id', 'from_session_id', 'raised_by', 'creator', 'owner'))
@@ -228,6 +252,11 @@ def build_plan(host, now, out_dir):
                 warnings.append(f"Do not cut: {table} {item.get('id', '?')} ({item['status']})")
     if workers:
         warnings.append('Do not cut: worker processes are still running.')
+    cards = read_running_cards()
+    if cards is None:
+        warnings.append('Run cards unavailable; a running card cannot be ruled out.')
+    for card in cards or []:
+        warnings.append(f"Do not cut: run card {card.get('id', '?')} (running)")
     return {'host': host, 'generated_at': now.isoformat(), 'sessions': rows,
             'running_workers': workers, 'warnings': warnings,
             'extra_cost_M': sum(1.9*(r['C'] or 0)/1e6 for r in rows if recent(r, now))}
