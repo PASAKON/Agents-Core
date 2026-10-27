@@ -1,7 +1,8 @@
 # Jade Tally (@JadeTally) — BRAND truth
 
 Owner: CMO. Written 27 Oct 2026 from PH CnDrama #3511068d's EP01 (v2 26 Oct, v3 27 Oct) and its upload pack
-(`/opt/MoonieXHQ/Work/cn-series/publish/ep01_v3/`). The channel lives on the CEO's own Google account.
+(`/opt/MoonieXHQ/Work/cn-series/publish/ep01_v3/`). Channel: https://www.youtube.com/@JadeTally (id
+`UCR_-P9I4Cyp5iDCltw7fk5w`), created 27 Oct 10:25 TH as a Brand Account under the CEO's own Google account.
 
 ## What it is
 - A YouTube channel, **Jade Tally** (handle `@JadeTally`), for Thai-narrated long-form serials. The first serial is
