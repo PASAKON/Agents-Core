@@ -129,6 +129,10 @@ technical work, CMO-lane PHs on creative work. The comment is `bash scripts/hub/
    blocked.
 4. **Close.** Record the outcome and Skill learning (yours, and fold your workers' lines into the skills they name), close the status, release whatever you said you were using,
    then run `/session-close`.
+   Before that, clear the project's disk (skill ALL_Rules_DiskHygiene §Green): delete the local copy of finished
+   work once every file md5-matches its Drive copy, and delete the samples the CEO did not pick, with no backup,
+   except those you mark keep. The CEO ruled those samples out on 2026-10-27, so deleting them is not the
+   "Delete permanently" above.
 
 ## Report format (to your C-level, only for a conflict above)
 ```

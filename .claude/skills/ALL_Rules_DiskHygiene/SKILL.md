@@ -97,6 +97,12 @@ cto-e106b78b (RUN-20261007-1714-3003).
   without asking. CEO 2026-09-28: "งานเสร็จจบ สำรองแล้ว = ลบได้ Green เพราะถ้า เราต้องการข้อมูลเมื่อไหร่ เข้า Drive มาสำรองเสมอ". Not Green: unfinished work, any file
   without a Drive md5 match, and login state (next section). Deleting ON Drive still waits for him —
   Drive is the backup.
+- **The samples the CEO did not pick** — when the project closes, delete the local copies of every
+  option he was shown and passed over (the other covers, rejected takes, voice tries), with no Drive
+  backup. The PH keeps only what it marks keep, with one line of why in its STATUS; the pick itself is
+  finished work (bullet above). A copy already on Drive stays: deleting on Drive still waits for him.
+  CEO 2026-10-27: "ลบ ตามนั้น", answering the CTO's proposal to delete unpicked samples at project
+  close without a Drive backup, except what the PH keeps.
 - The systemd journal above 500 MB: `journalctl --vacuum-size=500M` (CEO 2026-09-28: "log บน Contabo เอาออกได้เลย")
 
 - Browser and Electron caches (`Cache`, `Code Cache`, `GPUCache`) — those three folders only; the
