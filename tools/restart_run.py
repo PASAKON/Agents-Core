@@ -321,9 +321,9 @@ def win_clear_stale_lock(row, dry_run):
 
 def win_wt_running():
     try:
-        return 'WindowsTerminal.exe' in subprocess.run(
+        return 'WindowsTerminal.exe' in (subprocess.run(
             ['tasklist', '/FI', 'IMAGENAME eq WindowsTerminal.exe', '/NH'],
-            capture_output=True, text=True, timeout=10).stdout
+            capture_output=True, text=True, timeout=10).stdout or '')
     except (OSError, subprocess.SubprocessError):
         return False
 
@@ -341,7 +341,8 @@ def win_launcher(row):
                str(ROOT / 'windows' / 'cxo-claude.ps1'), '-Role', role, '-Session', sid]
     if role == 'project_head':
         if not row.get('lane') or not row.get('project'):
-            raise ValueError('project head resume needs lane and project in the manifest')
+            raise ValueError('no lane, project or owner record (state/locks/project_head-<sid>.spawned_by): '
+                             'not started by windows\\cxo-claude.ps1 or tools.spawn_ph, so it cannot be reopened')
         command += ['-Lane', row['lane'], '-Project', row['project']]
     command += ['--resume', row.get('uuid') or sid]
     wt = str(Path(os.environ.get('LOCALAPPDATA', '')) / 'Microsoft' / 'WindowsApps' / 'wt.exe')
@@ -560,6 +561,17 @@ def prep(args):
                              spawned_by=owner)
             manifest.append(entry)
     if win:
+        # Never save (and so lose) a session that resume could not reopen.
+        unreachable = False
+        for entry in manifest:
+            try:
+                win_launcher(entry)
+            except ValueError as exc:
+                print(f"cannot_resume: {entry['name']}: {exc}")
+                unreachable = True
+        if unreachable:
+            print('nothing was typed, saved or closed: fix the sessions above or leave them out of the restart')
+            return 1
         typed = [r for r in plan['sessions'] if not managed(r) and not worker(r) and r['action'] != 'close']
         if args.dry_run:
             for row in typed:

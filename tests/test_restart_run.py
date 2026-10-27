@@ -863,6 +863,24 @@ def test_winbox_prep_close_records_closed(winbox, tmp_path):
     assert json.loads((rr.STATE / 'winbox-resume.json').read_text()) == []
 
 
+def test_winbox_prep_will_not_save_a_session_it_cannot_reopen(winbox, tmp_path, capsys):
+    # a Project Head started by something other than cxo-claude.ps1: no owner record, no project
+    rows = [wrow(), wrow('resume_full', 'project_head', SID_B)]
+    assert rr.prep(wargs(tmp_path, rows)) == 1
+    out = capsys.readouterr().out
+    assert f'cannot_resume: project_head #{SID_B}' in out and 'cxo-claude.ps1' in out
+    assert typed_texts(winbox) == [] and winbox.call_count == 0
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+    rr.session_status.record_close.assert_not_called()
+
+
+def test_winbox_prep_dry_run_shows_what_it_cannot_reopen(winbox, tmp_path, capsys):
+    a = wargs(tmp_path, [wrow('resume_full', 'project_head', SID_B)])
+    a.dry_run = True
+    assert rr.prep(a) == 1
+    assert 'cannot_resume' in capsys.readouterr().out
+
+
 def test_winbox_prep_dry_run_types_and_writes_nothing(winbox, tmp_path, capsys):
     a = wargs(tmp_path, [wrow('compact_then_resume'), wrow('resume_lazy', 'cmo', SID_B), wrow('close', 'cfo', '0badc0de')])
     a.dry_run = True
@@ -933,6 +951,33 @@ def test_winbox_resume_opens_a_tab_per_session_and_types_once(winbox, tmp_path):
     rr.time.sleep.assert_called_once_with(rr.WIN_SETTLE_S)
     assert not path.exists() and list(rr.STATE.glob('winbox-resume.done-*.json'))
     assert not (rr.STATE / 'pending-winbox.json').exists()
+
+
+def test_winbox_resume_restores_a_project_heads_owner_record_before_launching(winbox, tmp_path):
+    # cxo-claude.ps1 deletes the record when claude exits and refuses a Project Head without it
+    record = tmp_path / 'state' / 'locks' / f'project_head-{SID_B}.spawned_by'
+    wmanifest([wentry('lazy', 'project_head', SID_B, project='Proj', lane='cto',
+                      spawned_by='cxo:cto:c34459eb')])
+    rr.win_live.side_effect = iter([set(), {('project_head', SID_B)}])
+    on_disk_at_launch = []
+    done = rr.subprocess.run.return_value
+    rr.subprocess.run.side_effect = lambda *a, **k: on_disk_at_launch.append(record.exists()) or done
+    assert rr.resume(wargs(tmp_path)) == 0
+    assert on_disk_at_launch == [True]
+    assert record.read_text().strip() == 'cxo:cto:c34459eb'
+    launched = [c for c in commands() if c[0] == wt_path()][0]
+    assert launched[launched.index('-Lane'):launched.index('-Lane') + 4] == ['-Lane', 'cto', '-Project', 'Proj']
+
+
+def test_winbox_resume_never_overwrites_an_existing_owner_record(winbox, tmp_path):
+    record = tmp_path / 'state' / 'locks' / f'project_head-{SID_B}.spawned_by'
+    record.parent.mkdir(parents=True)
+    record.write_text('cxo:cto:5ca1ab1e\n')
+    wmanifest([wentry('lazy', 'project_head', SID_B, project='Proj', lane='cto',
+                      spawned_by='cxo:cto:c34459eb')])
+    rr.win_live.side_effect = iter([set(), {('project_head', SID_B)}])
+    assert rr.resume(wargs(tmp_path)) == 0
+    assert record.read_text().strip() == 'cxo:cto:5ca1ab1e'
 
 
 def test_winbox_resume_skips_a_session_that_is_already_running(winbox, tmp_path, capsys):
