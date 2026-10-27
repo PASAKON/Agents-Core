@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from lib import mailbox, portfolio as pf
-from tests.test_projecttrack_p1 import Store
+from tests.test_projecttrack_p1 import Store, live_sessions
 from tools import live_sessions as ls, portfolio_watch as pw
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -345,6 +345,69 @@ def test_a_hub_that_only_answers_from_its_snapshot_is_never_acted_on(monkeypatch
     with contextlib.redirect_stderr(err):
         assert pw.run(T, nudge=True, out=lambda s: None) == 3
     assert err.getvalue() == "portfolio_watch: no findings (StaleHub), nothing sent\n"
+
+
+def _idea(pid="runmedia", ph="45728c34", **kw):
+    pf.open_project(pid, "Run Media", "cto", actor="cto-abcdef12", stage="idea", owner_session=OWNER,
+                    ph_session=ph, now=T - timedelta(days=1), **kw)
+
+
+def _alive(store, at, sid="45728c34"):
+    """The PH's session as live_sessions shows it at `at`: one row, seen a minute before."""
+    store.execute("DROP TABLE IF EXISTS live_sessions")
+    live_sessions(store, (sid, "🌐 PH#45728c34 (CTO) - Run Media", at - timedelta(minutes=1)))
+
+
+def test_an_idea_with_a_live_ph_writes_its_c_level_once_and_setting_it_active_clears_the_episode(box, store):
+    _idea()
+    _alive(store, T)
+    (found,) = pw.findings(T, store)
+    assert (found["key"], found["kind"], found["owner"], found["ph"]) == ("runmedia:idea_live_ph", "idea_live_ph", OWNER, None)
+    payload = pf.monitor_payload(T, conn=store, version=2)
+    assert payload["attention"] == [] and payload["projects"] == []        # the v2 monitor still knows nothing of it
+    rc, out = go(T, conn=store)
+    assert rc == 0 and any(l.startswith("idea") and "runmedia" in l for l in out)
+    (letter,) = letters(OWNER)
+    assert letter["kind"] == "blocker" and letter["subject"] == "idea: Run Media has a live PH"
+    assert letter["from"] == {"role": "system", "session_id": "portfolio-watch"}
+    assert "portfolio.py stage runmedia active" in letter["body"] and "park runmedia" in letter["body"]
+    assert not (box / "inbox" / "project_head-45728c34").exists()          # the PH itself is not written
+    assert state()["runmedia:idea_live_ph"] == {"start": pw._iso(T), "sent": ["first"], "red": False}
+    for later in (timedelta(minutes=5), timedelta(hours=5), timedelta(hours=30)):   # no 4 h letter, no 24 h red
+        _alive(store, T + later)
+        assert go(T + later, conn=store)[0] == 0
+    assert len(letters(OWNER)) == 1 and state()["runmedia:idea_live_ph"]["red"] is False
+    pf.set_stage("runmedia", "active", actor="cto-abcdef12", now=T + timedelta(hours=30))
+    assert go(T + timedelta(hours=30, minutes=1), conn=store)[0] == 0
+    assert "runmedia:idea_live_ph" not in state() and len(letters(OWNER)) == 1
+    pf.set_stage("runmedia", "idea", actor="cto-abcdef12", now=T + timedelta(hours=31))
+    _alive(store, T + timedelta(hours=31))
+    go(T + timedelta(hours=31), conn=store)
+    assert len(letters(OWNER)) == 2                                         # back to idea with a live PH: a new episode
+
+
+def test_an_idea_whose_ph_is_stale_absent_or_someone_elses_writes_nothing(box, store):
+    _idea()
+    assert go(T, conn=store)[0] == 0 and not (box / "inbox").exists()       # no live_sessions table at all
+    live_sessions(store)                                                    # the table, no rows
+    assert go(T, conn=store)[0] == 0 and not (box / "inbox").exists()
+    _alive(store, T - timedelta(minutes=16))                                # last seen 17 min ago
+    assert go(T, conn=store)[0] == 0 and not (box / "inbox").exists()
+    _alive(store, T, sid="deadbeef")                                        # a live session, not this PH
+    store.execute("UPDATE live_sessions SET name = 'PH#deadbeef (CTO) - Other'")
+    rc, out = go(T, conn=store)
+    assert rc == 0 and not (box / "inbox").exists() and state() == {} and any("nothing late" in l for l in out)
+
+
+def test_the_idea_letter_is_a_dry_run_by_default_and_never_goes_to_the_ceo(box, store):
+    _idea()
+    _alive(store, T)
+    rc, out = go(T, nudge=False, conn=store)
+    assert rc == 0 and f"would send  {OWNER} <- idea: Run Media has a live PH" in out
+    assert not (box / "inbox").exists() and not pw.STATE_PATH.exists()
+    store.execute("UPDATE projects SET lane = 'ceo'")                       # the one box a letter never reaches
+    (found,) = pw.findings(T, store)
+    assert found["owner"] is None and pw.plan(pw.Found([found]), {"episodes": {}}, T) == []
 
 
 # --- the loop wrapper ----------------------------------------------------------------
