@@ -241,8 +241,8 @@ def test_monitor_caps_counts_and_order_age(store):
     assert recent in {o["id"] for o in payload["orders"]}
 
 
-@pytest.mark.parametrize("version,expected", [(None, {}), ("1", {}), ("2", {"version": 2}), ("bad", {})])
-def test_publisher_opt_in(monkeypatch, version, expected):
+@pytest.mark.parametrize("version,expected", [(None, {"version": 2}), ("1", {}), ("2", {"version": 2}), ("bad", {"version": 2})])
+def test_publisher_pushes_v2_unless_pinned_to_v1(monkeypatch, version, expected):
     monkeypatch.delenv("PORTFOLIO_MONITOR_V", raising=False)
     if version is not None:
         monkeypatch.setenv("PORTFOLIO_MONITOR_V", version)

@@ -84,9 +84,11 @@ def endpoint(base: str | None = None) -> str | None:
 
 def build_payload() -> dict:
     from lib import portfolio
-    if os.environ.get("PORTFOLIO_MONITOR_V") == "2":
-        return portfolio.monitor_payload(version=2)
-    return portfolio.monitor_payload()
+    # v2 by default since Console 15399d5 stores v2 and still serves v1 to the old widget;
+    # PORTFOLIO_MONITOR_V=1 pushes the v1 body again (ProjectTrack P4).
+    if os.environ.get("PORTFOLIO_MONITOR_V") == "1":
+        return portfolio.monitor_payload()
+    return portfolio.monitor_payload(version=2)
 
 
 def _post(url: str, token: str, body: bytes) -> int:
