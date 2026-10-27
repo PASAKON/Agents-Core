@@ -761,6 +761,9 @@ class PortfolioPush:
     project's secrets), so ORG_DB_URL reaches portfolio_push.py. Only a line the child prefixed
     with ``portfolio_push: `` is ever forwarded, never the rest of its output."""
 
+    label, prefix, exits = "portfolio push", PUSH_PREFIX, PUSH_EXIT      # PortfolioWatch overrides these
+    period_s, timeout_s = REFRESH_S, PUSH_TIMEOUT_S
+
     def __init__(self, argv, *, cwd=ROOT, report=None, popen=None, clock=time.monotonic):
         self.argv, self.cwd, self.report, self.clock = list(argv), str(cwd), report, clock
         self._popen = popen
@@ -772,7 +775,7 @@ class PortfolioPush:
     def _say(self, what: str) -> None:
         if self.report:
             try:
-                self.report(f"portfolio push {what}")
+                self.report(f"{self.label} {what}")
             except Exception:
                 pass
 
@@ -802,23 +805,23 @@ class PortfolioPush:
             proc.stderr.close()
         except Exception:
             return ""
-        lines = [ln[len(PUSH_PREFIX):] for ln in text.splitlines() if ln.startswith(PUSH_PREFIX)]
+        lines = [ln[len(self.prefix):] for ln in text.splitlines() if ln.startswith(self.prefix)]
         return _clean(lines[-1], 120) if lines else ""
 
     def _reap(self) -> bool:
         """False while a push is still in flight."""
         rc = self.proc.poll()
         if rc is None:
-            if self.clock() - self.started > PUSH_TIMEOUT_S:
+            if self.clock() - self.started > self.timeout_s:
                 self._kill()
                 self.failing = True
-                self._say(f"timed out after {PUSH_TIMEOUT_S}s")
+                self._say(f"timed out after {self.timeout_s}s")
                 return True
             return False
         line, self.proc = self._own_line(self.proc), None
         if rc != 0:
             self.failing = True
-            self._say(f"exit {rc} ({PUSH_EXIT.get(rc, 'failed')})" + (f": {line}" if line else ""))
+            self._say(f"exit {rc} ({self.exits.get(rc, 'failed')})" + (f": {line}" if line else ""))
         elif self.failing:
             self.failing = False
             self._say("ok again")
@@ -831,7 +834,7 @@ class PortfolioPush:
             now = self.clock()
             if now < self.next_at:
                 return
-            self.next_at = now + REFRESH_S      # a failed spawn waits a full period too
+            self.next_at = now + self.period_s  # a failed spawn waits a full period too
             self.proc, self.started = self._spawn(), now
         except Exception as exc:
             self.proc = None
@@ -844,6 +847,32 @@ class PortfolioPush:
 
 def make_push(host: str, report=None) -> PortfolioPush | None:
     return PortfolioPush(push_argv(), report=report) if push_enabled(host) else None
+
+
+# Portfolio watch (ProjectTrack P3): the hub host also runs tools/portfolio_watch.py --nudge every
+# 5 minutes, the push's own runner. No infisical wrap: ORG_DB_URL comes from this loop's environment.
+WATCH_EVERY_S = 300
+WATCH_TIMEOUT_S = 60
+WATCH_PREFIX = "portfolio_watch: "
+WATCH_EXIT = {1: "letter or state not written", 3: "hub unreadable"}
+
+
+def watch_argv(root: Path = ROOT) -> list[str]:
+    venv_python = Path(root) / ".venv" / "bin" / "python"
+    python = str(venv_python) if venv_python.exists() else sys.executable
+    return [python, str(Path(root) / "tools" / "portfolio_watch.py"), "--nudge"]
+
+
+class PortfolioWatch(PortfolioPush):
+    """The push runner on a 5-minute period: one child at a time, never raises, killed past
+    WATCH_TIMEOUT_S, only its ``portfolio_watch: `` line forwarded."""
+
+    label, prefix, exits = "portfolio watch", WATCH_PREFIX, WATCH_EXIT
+    period_s, timeout_s = WATCH_EVERY_S, WATCH_TIMEOUT_S
+
+
+def make_watch(host: str, report=None) -> PortfolioWatch | None:
+    return PortfolioWatch(watch_argv(), report=report) if push_enabled(host) else None
 
 
 def _try_lock(f) -> bool:
@@ -915,11 +944,12 @@ class Publisher:
                  on_error=None, connect=None, code_path=Path(__file__),
                  pull=(), pull_fn=None, fold_fn=None,
                  fold_path=Path(__file__).with_name("heartbeat_fold.py"),
-                 push=None):
+                 push=None, watch=None):
         import threading
         self.url, self.host, self.dirs = url, host, list(dirs)
         self.pull, self._pull_fn = list(pull), pull_fn or pull_remote
         self.push = push        # PortfolioPush on the hub host, else None
+        self.watch = watch      # PortfolioWatch on the hub host, else None
         self._pulled_at: dict[str, float] = {}
         self._pulled_prev: dict[str, set[str]] = {}
         self.stop = stop or threading.Event()
@@ -952,6 +982,8 @@ class Publisher:
         finally:
             if self.push:
                 self.push.close()
+            if self.watch:
+                self.watch.close()
             lock.close()
 
     def _report(self, what: str) -> None:
@@ -1012,6 +1044,8 @@ class Publisher:
                 self._fold_due(conn)
                 if self.push:
                     self.push.tick()
+                if self.watch:
+                    self.watch.tick()
                 self.stop.wait(POLL_S)
         finally:
             try:
@@ -1388,7 +1422,7 @@ def _cmd_publish(args) -> int:
         url = (os.environ.get("ORG_DB_URL") or "").strip()
         try:
             return Publisher(url, host, dirs, on_error=err, pull=pull_targets(host),
-                             push=make_push(host, err)).run()
+                             push=make_push(host, err), watch=make_watch(host, err)).run()
         except KeyboardInterrupt:
             return 0
     except Exception as exc:
