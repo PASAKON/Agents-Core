@@ -20,7 +20,11 @@ const ID = 'tskey-client-TESTID1234';           // synthetic, never a real crede
 const SECRET = 'tskey-client-TESTID1234-SECRETVALUE9876';
 const BASE = ['http://127.0.0.1:1', '--tab', 'tailscale', '--project', 'Agents-Core', '--env', 'prod'];
 const TWO_WIRE = ['--match', '/oauth', '--field', 'id=TAILSCALE_OAUTH_CLIENT_ID', '--field', 'key=TAILSCALE_OAUTH_CLIENT_SECRET'];
-const parse = extra => parseArgs([...BASE, ...extra]);
+// The §4c metadata every planned write must carry (keyfetch_lib checkKeyMeta); fake, far-future values.
+const META_KV = ['provider_name=ag-core-prod-rw-exp2099-01-31', 'console_url=https://example.test/keys',
+                 'scope=fake-scope', 'expires=2099-01-31', 'owner=CTO'];
+const META = ['--comment', 'join_api mints keys', ...META_KV.flatMap(m => ['--meta', m])];
+const parse = extra => parseArgs([...BASE, ...extra, ...META]);
 const usageError = (extra, re) => assert.throws(() => parse(extra), e => e instanceof UsageError && re.test(e.message));
 
 // ------------------------------------------------------------------ argument parsing
@@ -57,8 +61,8 @@ test('page mode takes <css>=<NAME> and a selector may carry its own = signs', ()
 });
 
 test('--meta is repeatable and --new-only is a bare flag', () => {
-  const p = parse([...TWO_WIRE, '--meta', 'owner=ceo', '--meta', 'scope=a b c', '--new-only']);
-  assert.deepEqual(p.opts.meta, ['owner=ceo', 'scope=a b c']);
+  const p = parse([...TWO_WIRE, '--meta', 'spend_cap=5usd', '--meta', 'why_wide=a b c', '--new-only']);
+  assert.deepEqual(p.opts.meta, ['spend_cap=5usd', 'why_wide=a b c', ...META_KV]);
   assert.equal(p.opts['new-only'], true);
 });
 
@@ -119,7 +123,7 @@ function workdir() {
 const calls = out => (existsSync(out) ? readFileSync(out, 'utf8').trim().split('\n').filter(Boolean).map(l => JSON.parse(l)) : []);
 function cfg(extra = {}) {
   return { python: process.execPath, tool: STUB, project: 'Agents-Core', env: 'prod', path: '/org-join', as: 'setup',
-           comment: 'join_api mints keys', meta: ['provider_name=p', 'owner=ceo'], multiline: false, ...extra };
+           comment: 'join_api mints keys', meta: META_KV, multiline: false, ...extra };
 }
 const entries = [{ name: 'TAILSCALE_OAUTH_CLIENT_ID', value: ID }, { name: 'TAILSCALE_OAUTH_CLIENT_SECRET', value: SECRET }];
 
@@ -138,7 +142,7 @@ test('runPuts: each value goes on its own stdin, never in argv, --path and metad
     assert.ok(x.argv.includes('--stdin'));
     assert.equal(x.argv[x.argv.indexOf('--path') + 1], '/org-join');
     assert.equal(x.argv[x.argv.indexOf('--as') + 1], 'setup');
-    assert.deepEqual(x.argv.filter((a, i) => x.argv[i - 1] === '--meta'), ['provider_name=p', 'owner=ceo']);
+    assert.deepEqual(x.argv.filter((a, i) => x.argv[i - 1] === '--meta'), META_KV);
   }
 });
 
@@ -279,7 +283,6 @@ async function runCapture(browser, args, env = {}) {
   assert.ok(!text.includes('SECRETVALUE9876') && !text.includes('TESTID1234-SECRET'), 'a value reached the output');
   return { code, text, calls: calls(out) };
 }
-const META = ['--comment', 'join_api mints keys', '--meta', 'provider_name=p', '--meta', 'owner=ceo'];
 
 test('capture_key wire: both values from one create -> two puts, exit 0, nothing printed', async () => {
   const b = await fakeBrowser({ body: { id: ID, key: SECRET } });
@@ -409,4 +412,35 @@ test('capture_key: a usage error exits 64 before it touches the browser', async 
   const r = await runCapture(b, ['--match', '/o', '--field', 'a=X_CLIENT_ID', '--field', 'b']);
   assert.equal(r.code, 64, r.text);
   assert.match(r.text, /every --field\/--dom must be/);
+});
+
+// ------------------------------------------------------------------ the metadata gate, end to end
+
+const metaWithout = key => ['--comment', 'join_api mints keys', ...META_KV.filter(m => !m.startsWith(`${key}=`)).flatMap(m => ['--meta', m])];
+
+test('capture_key gate: a write without scope exits 64 before the browser is touched', async () => {
+  const b = await fakeBrowser({ body: { id: ID, key: SECRET } });
+  const r = await runCapture(b, [...TWO_WIRE, ...metaWithout('scope')]);
+  assert.equal(r.code, 64, r.text);
+  assert.match(r.text, /missing --meta scope=/);
+  assert.equal(b.log.clicks, 0);
+  assert.equal(r.calls.length, 0);
+});
+
+test('capture_key gate: Org-Infra exits 64, nothing clicked, nothing written', async () => {
+  const b = await fakeBrowser({ body: { id: ID, key: SECRET } });
+  const r = await runCapture(b, [...TWO_WIRE, ...META, '--project', 'org_infra']);
+  assert.equal(r.code, 64, r.text);
+  assert.match(r.text, /Org-Infra values are entered by the CEO only/);
+  assert.equal(b.log.clicks, 0);
+  assert.equal(r.calls.length, 0);
+});
+
+test('capture_key gate: expires=none-offered is accepted and stated in the output', async () => {
+  const b = await fakeBrowser({ body: { key: SECRET } });
+  const r = await runCapture(b, ['--match', '/oauth', '--field', 'key', '--name', 'FAL_API_KEY_RW',
+    ...metaWithout('expires'), '--meta', 'expires=none-offered']);
+  assert.equal(r.code, 0, r.text);
+  assert.match(r.text, /expires=none-offered: the provider sets no expiry; the exp date in provider_name is the rotate-by date/);
+  assert.ok(r.calls[0].argv.includes('expires=none-offered'));
 });

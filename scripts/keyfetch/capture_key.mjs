@@ -4,7 +4,13 @@
 // Generalised from scripts/infisical/capture_client_secret.mjs (proven 2026-09-26).
 //
 //   node scripts/keyfetch/capture_key.mjs <cdp-url> --tab <url regex> --project <P> --env <dev|prod>
-//        [--path /folder] [--comment "<purpose>"] [--meta k=v ...] [--as <identity>] [--multiline]
+//        --comment "<purpose>" --meta provider_name=<§4d page name> --meta console_url=<url> --meta scope=<..>
+//        --meta expires=<YYYY-MM-DD|none-offered> --meta owner=<C-level> [--meta k=v ...]
+//        [--path /folder] [--as <identity>] [--multiline]
+//        The metadata gate (keyfetch_lib checkKeyMeta) refuses with exit 64, before anything is clicked, a run
+//        that plans a write without all of these, a provider_name that is not
+//        <brand>-<project>-<env>-<access>-exp<YYYY-MM-DD>[-<host>] (≤40 chars, env = --env), an expires that
+//        is not that same exp date or `none-offered`, a date not after today, or project Org-Infra.
 //        [--new-only]   refuse (exit 9) when any target secret already exists, BEFORE clicking
 //        one value:   --name <VAR>  with a bare extractor
 //        (wire)  --match <regex of the create request URL> [--method POST] --field <json.path>
@@ -31,11 +37,11 @@
 // Node 22+ (global WebSocket + fetch). Env: INFISICAL_SETUP_PY, PYTHON, CDP_TARGET_ID.
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UsageError, parseArgs, pickFields, describeShape, runPuts, checkAbsent } from './keyfetch_lib.mjs';
+import { UsageError, NO_EXPIRY, parseArgs, metaMap, pickFields, describeShape, runPuts, checkAbsent } from './keyfetch_lib.mjs';
 
 // --- arguments --------------------------------------------------------------------------------
 function usage(msg) {
-  console.error(`capture_key: ${msg}\nusage: capture_key.mjs <cdp-url> --tab <re> --project P --env E [--path /folder] (--name VAR | <src>=<VAR> per value) (--match <re> --field <path> | --dom <css>) [--comment ..] [--meta k=v]... [--click <re>] [--new-only] [--wait] [--check]`);
+  console.error(`capture_key: ${msg}\nusage: capture_key.mjs <cdp-url> --tab <re> --project P --env E [--path /folder] (--name VAR | <src>=<VAR> per value) (--match <re> --field <path> | --dom <css>) --comment .. --meta provider_name=.. --meta console_url=.. --meta scope=.. --meta expires=<YYYY-MM-DD|none-offered> --meta owner=.. [--meta k=v]... [--click <re>] [--new-only] [--wait] [--check]`);
   process.exit(64);
 }
 let parsed;
@@ -57,6 +63,9 @@ const putCfg = {
 };
 const where = `${opts.project}/${opts.env}${opts.path === '/' ? '' : opts.path}`;
 const names = extractors.map(e => e.name);
+if (names.length && metaMap(opts.meta).expires === NO_EXPIRY) {
+  log(`expires=${NO_EXPIRY}: the provider sets no expiry; the exp date in provider_name is the rotate-by date (say so in the report)`);
+}
 
 // --- attach ----------------------------------------------------------------------------------
 let targets;
