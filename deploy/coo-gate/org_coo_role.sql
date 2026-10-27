@@ -22,7 +22,9 @@
 --                                        coo_respawn_done in respawn_status
 --   events           INSERT 5 columns    db.log_event: task_created, the two worker requests the
 --                                        gate files for the root dispatcher (coo_delegate_request,
---                                        coo_close_request), and coo_respawn_request (task_id NULL)
+--                                        coo_close_request), coo_respawn_request (task_id NULL), and
+--                                        the audit log and field notes (coo_audit, coo_field_note,
+--                                        task_id NULL): write-only, org_coo cannot read them back
 --   c_level_sessions SELECT 5 columns    db._require_charter, and the gate's "is this a coo
 --                                        session" check
 --                    UPDATE charter      the gate's set_charter op, coo rows only
@@ -34,8 +36,9 @@
 -- lib/coo_policy.COO_WORKER_ROLES; tests/test_coo_gate.py keeps them equal); an event it writes
 -- either belongs to a coo task and is one of three kinds, or is a taskless coo_respawn_request
 -- whose JSON payload has keys role (in lib/coo_policy.COO_RESPAWN_ROLES), host ('contabo') and
--- by_session; the only session row it may change is a coo one. Every other role passes through the
--- triggers untouched.
+-- by_session, or a taskless coo_audit (keys session_id, tool, input, ok) or coo_field_note (keys
+-- session_id, skill, tag, text) written as actor 'coo_gate'; the only session row it may change is a
+-- coo one. Every other role passes through the triggers untouched.
 
 \set ON_ERROR_STOP on
 
@@ -152,6 +155,47 @@ BEGIN
     END IF;
     RETURN NEW;
   END IF;
+  IF NEW.kind = 'coo_audit' THEN
+    IF NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate' THEN
+      RAISE EXCEPTION 'org_coo coo_audit must have task_id NULL and actor coo_gate';
+    END IF;
+    IF NEW.payload IS NULL
+       OR jsonb_typeof(NEW.payload::jsonb) IS DISTINCT FROM 'object'
+       OR ARRAY(SELECT k FROM jsonb_object_keys(NEW.payload::jsonb) AS k ORDER BY k)
+          IS DISTINCT FROM ARRAY['input', 'ok', 'session_id', 'tool']
+       OR jsonb_typeof(NEW.payload::jsonb -> 'session_id') IS DISTINCT FROM 'string'
+       OR COALESCE(length(NEW.payload::jsonb ->> 'session_id'), 0) NOT BETWEEN 1 AND 64
+       OR jsonb_typeof(NEW.payload::jsonb -> 'tool') IS DISTINCT FROM 'string'
+       OR COALESCE(length(NEW.payload::jsonb ->> 'tool'), 0) NOT BETWEEN 1 AND 100
+       OR jsonb_typeof(NEW.payload::jsonb -> 'input') IS DISTINCT FROM 'string'
+       OR COALESCE(length(NEW.payload::jsonb ->> 'input'), 2001) > 2000
+       OR jsonb_typeof(NEW.payload::jsonb -> 'ok') IS DISTINCT FROM 'boolean' THEN
+      RAISE EXCEPTION 'org_coo coo_audit payload must have keys session_id (1-64 chars), tool (1-100 chars), input (text, at most 2000 chars), ok (boolean)';
+    END IF;
+    RETURN NEW;
+  END IF;
+  IF NEW.kind = 'coo_field_note' THEN
+    IF NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate' THEN
+      RAISE EXCEPTION 'org_coo coo_field_note must have task_id NULL and actor coo_gate';
+    END IF;
+    IF NEW.payload IS NULL
+       OR jsonb_typeof(NEW.payload::jsonb) IS DISTINCT FROM 'object'
+       OR ARRAY(SELECT k FROM jsonb_object_keys(NEW.payload::jsonb) AS k ORDER BY k)
+          IS DISTINCT FROM ARRAY['session_id', 'skill', 'tag', 'text']
+       OR jsonb_typeof(NEW.payload::jsonb -> 'session_id') IS DISTINCT FROM 'string'
+       OR COALESCE(length(NEW.payload::jsonb ->> 'session_id'), 0) NOT BETWEEN 1 AND 64
+       OR jsonb_typeof(NEW.payload::jsonb -> 'skill') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'skill') ~ '^[A-Za-z0-9_.-]{3,80}$') IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'tag') IS DISTINCT FROM 'string'
+       OR ((NEW.payload::jsonb ->> 'tag') IN ('MISSING', 'WRONG', 'COSTLY', 'CONFIRMED')) IS DISTINCT FROM TRUE
+       OR jsonb_typeof(NEW.payload::jsonb -> 'text') IS DISTINCT FROM 'string'
+       OR COALESCE(length(NEW.payload::jsonb ->> 'text'), 0) NOT BETWEEN 1 AND 600
+       OR COALESCE(position(E'\n' IN (NEW.payload::jsonb ->> 'text')), 1) > 0
+       OR COALESCE(position(E'\r' IN (NEW.payload::jsonb ->> 'text')), 1) > 0 THEN
+      RAISE EXCEPTION 'org_coo coo_field_note payload must have keys session_id (1-64 chars), skill (A-Za-z0-9_.- 3-80 chars), tag (MISSING/WRONG/COSTLY/CONFIRMED), text (one line, 1-600 chars)';
+    END IF;
+    RETURN NEW;
+  END IF;
   IF NEW.kind NOT IN ('task_created', 'coo_delegate_request', 'coo_close_request') THEN
     RAISE EXCEPTION 'org_coo may not write event kind %', NEW.kind;
   END IF;
@@ -194,6 +238,10 @@ DO $check$
 DECLARE
   have text;
   forbidden_kind text;
+  proof_kind text;
+  proof_actor text;
+  proof_payload text;
+  proof_accept boolean;
   accepted boolean;
   switched boolean;
   want text := 'c_level_sessions.charter:UPDATE events.actor:INSERT events.kind:INSERT '
@@ -231,6 +279,45 @@ BEGIN
     END;
     IF accepted THEN
       RAISE EXCEPTION 'org_coo accepted forbidden insert: %', forbidden_kind;
+    END IF;
+  END LOOP;
+  -- The audit log and field notes are the two taskless kinds org_coo writes with a payload of its
+  -- own, so prove both directions: a well-formed row is accepted; the same row under another actor,
+  -- and a respawn-shaped payload under either kind, are refused. Each insert runs in a
+  -- subtransaction that is rolled back.
+  FOR proof_kind, proof_actor, proof_payload, proof_accept IN SELECT * FROM (VALUES
+      ('coo_audit', 'coo_gate',
+       '{"session_id":"proof","tool":"Bash","input":"{}","ok":true}', true),
+      ('coo_field_note', 'coo_gate',
+       '{"session_id":"proof","skill":"ALL_Rules_Approvals","tag":"WRONG","text":"proof"}', true),
+      ('coo_audit', 'someone_else',
+       '{"session_id":"proof","tool":"Bash","input":"{}","ok":true}', false),
+      ('coo_field_note', 'someone_else',
+       '{"session_id":"proof","skill":"ALL_Rules_Approvals","tag":"WRONG","text":"proof"}', false),
+      ('coo_audit', 'coo_gate', '{"role":null,"host":"contabo","by_session":"proof"}', false),
+      ('coo_field_note', 'coo_gate', '{"role":null,"host":"contabo","by_session":"proof"}', false)
+    ) AS v(kind, actor, payload, accept) LOOP
+    accepted := false;
+    switched := false;
+    BEGIN
+      SET LOCAL ROLE org_coo;
+      switched := current_user = 'org_coo';
+      IF NOT switched THEN
+        RAISE EXCEPTION USING ERRCODE = 'ZX002', MESSAGE = 'proof could not act as org_coo';
+      END IF;
+      INSERT INTO public.events (task_id, actor, kind, payload, ts)
+        VALUES (NULL, proof_actor, proof_kind, proof_payload, now());
+      RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'insert accepted';
+    EXCEPTION
+      WHEN SQLSTATE 'ZX001' THEN accepted := true;
+      WHEN raise_exception OR insufficient_privilege THEN
+        IF NOT switched THEN
+          RAISE;
+        END IF;
+    END;
+    IF accepted IS DISTINCT FROM proof_accept THEN
+      RAISE EXCEPTION 'org_coo % insert as actor % was %', proof_kind, proof_actor,
+        CASE WHEN accepted THEN 'accepted, expected refused' ELSE 'refused, expected accepted' END;
     END IF;
   END LOOP;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'org_coo' AND (
