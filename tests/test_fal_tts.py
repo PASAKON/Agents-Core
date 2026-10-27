@@ -152,7 +152,8 @@ def test_dry_run_calls_nothing_and_writes_nothing(work, fal, monkeypatch):
 
 
 @pytest.mark.parametrize("args", [["--max", "1"], ["--max-u", "1"], ["--max-usd", "1e3"],
-                                  ["--max-usd", "nan"], ["--max-usd", "-1"], ["--max-usd", "1 "]])
+                                  ["--max-usd", "nan"], ["--max-usd", "-1"], ["--max-usd", "1 "],
+                                  ["--max-usd", "1\n"]])
 def test_only_the_exact_cap_flag_with_a_plain_number(work, fal, args):
     job = make_job(work, n=1)
     with pytest.raises(SystemExit) as e:
@@ -183,6 +184,7 @@ def test_paths_must_stay_under_work(work, fal, tmp_path_factory):
 
 @pytest.mark.parametrize("change", [
     {"model": "fal-ai/some-other-model"},
+    {"model": []},
     {"calls": []},
     {"extra": 1},
 ])
@@ -197,6 +199,7 @@ def test_a_bad_job_spends_nothing(work, fal, change):
 @pytest.mark.parametrize("call_change", [
     {"voice": "Brian; rm -rf /"}, {"stability": 2}, {"stability": True}, {"seed": -1},
     {"language_code": "thai"}, {"timestamps": "yes"}, {"name": "../x"}, {"url": "x"},
+    {"name": "t1\n"}, {"voice": "Brian\n"}, {"language_code": "th\n"},
 ])
 def test_a_bad_call_spends_nothing(work, fal, call_change):
     job = make_job(work, n=1)
@@ -276,7 +279,7 @@ def test_gemini_cap_counts_the_voice_block(work, fal):
     {"voice": "Brian"}, {"voice": "charon"}, {"stability": 0.5}, {"seed": 7}, {"timestamps": True},
     {"language_code": "Thai (Thailand)"}, {"language_code": "xx"}, {"temperature": 3}, {"temperature": True},
     {"style_instructions": "x" * (fal_tts.MAX_STYLE + 1)}, {"style_instructions": "line\rbreak"},
-    {"style_instructions": 7},
+    {"style_instructions": 7}, {"language_code": ["th"]}, {"language_code": {}},
 ])
 def test_a_bad_gemini_call_spends_nothing(work, fal, call_change):
     job = make_gemini_job(work, n=1, **call_change)

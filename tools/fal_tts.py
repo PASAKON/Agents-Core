@@ -108,7 +108,7 @@ def load_job(job_path: Path) -> dict:
     if not isinstance(job, dict) or set(job) - {"model", "out_dir", "calls"}:
         raise JobError("the job file holds one object with model, out_dir and calls")
     model = job.get("model")
-    if model not in PRICES:
+    if not isinstance(model, str) or model not in PRICES:
         raise JobError(f"model must be one of {sorted(PRICES)}")
     out_dir = under_work(job.get("out_dir"), "out_dir")
     calls = job.get("calls")
@@ -121,7 +121,7 @@ def load_job(job_path: Path) -> dict:
         if not isinstance(c, dict) or set(c) - keys:
             raise JobError(f"call {i} must be an object with only {sorted(keys)}")
         name = c.get("name")
-        if not isinstance(name, str) or not NAME_RE.match(name) or name in seen:
+        if not isinstance(name, str) or not NAME_RE.fullmatch(name) or name in seen:
             raise JobError(f"call {i}: name must be unique and match {NAME_RE.pattern}")
         seen.add(name)
         text_path = under_work(c.get("text_file"), f"call {i} text_file")
@@ -132,7 +132,7 @@ def load_job(job_path: Path) -> dict:
         if not 1 <= len(text) <= MAX_CHARS:
             raise JobError(f"call {i}: the text must be 1 to {MAX_CHARS} characters")
         voice = c.get("voice")
-        if not isinstance(voice, str) or not VOICE_RE.match(voice):
+        if not isinstance(voice, str) or not VOICE_RE.fullmatch(voice):
             raise JobError(f"call {i}: voice must match {VOICE_RE.pattern}")
         if model == GEMINI:
             out.append(_gemini_call(c, i, name, text, voice))
@@ -142,7 +142,7 @@ def load_job(job_path: Path) -> dict:
             if k in c:
                 body[k] = _unit(c, k, i)
         if "language_code" in c:
-            if not isinstance(c["language_code"], str) or not LANG_RE.match(c["language_code"]):
+            if not isinstance(c["language_code"], str) or not LANG_RE.fullmatch(c["language_code"]):
                 raise JobError(f"call {i}: language_code must be two small letters")
             body["language_code"] = c["language_code"]
         if "seed" in c:
@@ -169,7 +169,7 @@ def _gemini_call(c: dict, i: int, name: str, text: str, voice: str) -> dict:
     if style.strip():
         body["style_instructions"] = style.strip()
     if "language_code" in c:
-        if c["language_code"] not in GEMINI_LANGS:
+        if not isinstance(c["language_code"], str) or c["language_code"] not in GEMINI_LANGS:
             raise JobError(f"call {i}: language_code must be one of {sorted(GEMINI_LANGS)}")
         body["language_code"] = GEMINI_LANGS[c["language_code"]]
     if "temperature" in c:
@@ -262,7 +262,7 @@ def one_call(model: str, key: str, body: dict) -> tuple[str | None, dict]:
 
 
 def cap_number(s: str) -> float:
-    if not CAP_RE.match(s):
+    if not CAP_RE.fullmatch(s):
         raise argparse.ArgumentTypeError("a plain number such as 0.07")
     return float(s)
 
