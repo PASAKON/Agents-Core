@@ -41,10 +41,20 @@ def job(tmp_path, monkeypatch):
     return path
 
 
+IDLE = (0, [])
+
+
 def invoke(job, balances=(100, 100, 98, 98, 96), cap='10', outcomes=(0, 0), messages=None,
-           stop=True, seen=None, on_balance=None, on_run=None):
+           stop=True, seen=None, on_balance=None, on_run=None, preflights=None, asked=None):
+    """preflights: the account state each preflight read returns, as (active, sessions); the last one repeats.
+    The default is an idle account. asked: a list that gets one entry per preflight read."""
     reads, calls, stops, sleeps = [], [], [], []
     values, results = iter(balances), iter(outcomes)
+    states = list(preflights or [IDLE])
+    def preflight():
+        if asked is not None:
+            asked.append(len(calls))
+        return states.pop(0) if len(states) > 1 else states[0]
     def reader():
         reads.append('balance')
         if on_balance:
@@ -72,7 +82,7 @@ def invoke(job, balances=(100, 100, 98, 98, 96), cap='10', outcomes=(0, 0), mess
         return stop
     rc = cb.main(['--job', str(job), '--max-credits', cap], balance_reader=reader,
                  take_runner=runner, stop_runner=stopper, sleep=sleeps.append,
-                 interpreter_validator=lambda *a: None)
+                 interpreter_validator=lambda *a: None, preflight_reader=preflight)
     assert all(not root.exists() for root in calls)
     return rc, calls, stops, sleeps, reads
 
@@ -266,6 +276,172 @@ def test_usage_parser_is_offline(monkeypatch, text, code, expected):
             cb.read_balance()
     else:
         assert str(cb.read_balance()) == expected
+
+
+BUSY = (2, [('ep02-a', 'gpu-g4-s-euw4a0-44teyhr6oqe9', 'G4'), ('ep02-b', 'gpu-g4-s-euw4a0-o9gv9or1lar', 'G4')])
+
+
+def test_busy_account_refuses_at_zero_cu(job, capsys):
+    # The 27 Oct incident: someone else's two G4s were on the account. Nothing is spent, started or stopped.
+    asked = []
+    rc, calls, stops, sleeps, events = invoke(job, preflights=[BUSY], asked=asked)
+    out = capsys.readouterr().out
+    assert rc == cb.EXIT_BUSY == 8 and not calls and not stops and not sleeps
+    assert events == ['balance', 'balance'] and asked == [0]       # only the two balance reads; no take, no stop
+    assert 'PREFLIGHT active assignments 2, not 0' in out and 'REFUSE take 1' in out
+    assert 'SESSION ep02-a gpu-g4-s-euw4a0-44teyhr6oqe9 G4' in out and 'SESSION ep02-b gpu-g4-s-euw4a0-o9gv9or1lar G4' in out
+    assert 'DONE' not in out
+
+
+@pytest.mark.parametrize('active', [None, 1, 7])
+def test_anything_but_zero_refuses(job, active):
+    # None is "missing, unparsable or the call failed": fail closed, same as a count above 0.
+    rc, calls, *_ = invoke(job, preflights=[(active, [])])
+    assert rc == cb.EXIT_BUSY and not calls
+
+
+def test_unreadable_sessions_alone_do_not_refuse(job, capsys):
+    # The count decides. The listing is for the operator; `colab sessions` was empty while two VMs were active.
+    rc, calls, *_ = invoke(job, preflights=[(0, None)])
+    assert rc == 0 and len(calls) == 2 and 'SESSIONS unreadable' in capsys.readouterr().out
+
+
+def test_preflight_runs_before_every_take(job, capsys):
+    # Idle before take 1, a foreign VM up by take 2: take 2 is refused, take 1's spend stays counted.
+    asked = []
+    rc, calls, stops, sleeps, _ = invoke(job, preflights=[IDLE, BUSY], asked=asked)
+    out = capsys.readouterr().out
+    assert rc == cb.EXIT_BUSY and len(calls) == 1 and len(stops) == 1
+    assert asked[0] == 0 and asked[1] == 1 and set(asked[1:]) == {1}   # first read before any take, then after take 1 only
+    assert sleeps == [10, 10]                                          # re-read twice, 10 s apart, before refusing
+    assert 'REFUSE take 2' in out and 'spent 2 CU so far' in out
+
+
+def test_our_own_vm_still_counted_just_after_take_clears(job):
+    # The count can trail our own shutdown by seconds: a re-read that finds 0 lets the next take go.
+    rc, calls, _, sleeps, _ = invoke(job, preflights=[IDLE, (1, []), IDLE])
+    assert rc == 0 and len(calls) == 2 and sleeps == [10]
+
+
+def test_first_take_is_not_delayed_by_a_busy_account(job):
+    # Nothing of ours has run yet, so a busy count is not ours: refuse at once, no waiting.
+    rc, calls, _, sleeps, _ = invoke(job, preflights=[BUSY])
+    assert rc == cb.EXIT_BUSY and not calls and not sleeps
+
+
+def test_retry_attempts_are_checked_too(job):
+    # A provision-failure retry is a new take attempt: it needs its own idle check.
+    asked = []
+    rc, calls, *_ = invoke(job, balances=(100,) * 7, cap='20', outcomes=(1, 0, 0), messages='failed vm',
+                           preflights=[IDLE, BUSY], asked=asked)
+    assert rc == cb.EXIT_BUSY and len(calls) == 1 and len(asked) >= 2
+
+
+def test_busy_refusal_spends_nothing(job):
+    # Refused at 0 CU: the ledger-visible spend is the two balance reads, no run, no shutdown call.
+    rc, calls, stops, _, events = invoke(job, preflights=[BUSY])
+    assert rc == cb.EXIT_BUSY and not calls and not stops and 'stop' not in events
+
+
+USAGE = 'Current balance: 100.00\nActive assignments: {}\n'
+SESSIONS = ('[ep02-a] gpu-g4-s-euw4a0-44teyhr6oqe9 | Hardware: G4 | Created: x\n'
+            'a line that is not a session row and must never be printed\n')
+
+
+def preflight_calls(monkeypatch, usage, sessions=SESSIONS, usage_code=0, sessions_code=0):
+    seen = []
+    def fake(argv, **kwargs):
+        seen.append((argv, kwargs))
+        assert kwargs['timeout'] == 60 and kwargs['env'] == cb.child_env()
+        if argv == ['/root/.local/bin/colab', 'usage']:
+            return subprocess.CompletedProcess(argv, usage_code, usage, '')
+        assert argv == ['/root/.local/bin/colab', 'sessions']
+        return subprocess.CompletedProcess(argv, sessions_code, sessions, '')
+    monkeypatch.setattr(cb.subprocess, 'run', fake)
+    return seen
+
+
+@pytest.mark.parametrize('usage, code, expected', [
+    (USAGE.format(0), 0, 0),
+    (USAGE.format(2), 0, 2),
+    ('Current balance: 100.00\n', 0, None),                  # no line at all
+    ('Active assignments: none\n', 0, None),                 # not a number
+    ('Active assignments: -1\n', 0, None),
+    ('Active assignments: 0.5\n', 0, None),
+    ('Active assignments: 0\nActive assignments: 3\n', 0, None),   # two lines disagree: do not pick one
+    (USAGE.format(0), 1, None),                               # the call failed
+    ('', 0, None),
+])
+def test_preflight_parser_fails_closed(monkeypatch, usage, code, expected):
+    seen = preflight_calls(monkeypatch, usage, usage_code=code)
+    active, sessions = cb.read_preflight()
+    assert active == expected
+    assert [a for a, _ in seen] == [['/root/.local/bin/colab', 'usage'], ['/root/.local/bin/colab', 'sessions']]
+
+
+def test_preflight_sessions_keep_names_endpoints_hardware_only(monkeypatch):
+    preflight_calls(monkeypatch, USAGE.format(1))
+    active, sessions = cb.read_preflight()
+    assert sessions == [('ep02-a', 'gpu-g4-s-euw4a0-44teyhr6oqe9', 'G4')]     # the non-session line is dropped
+    assert cb.idle_account(lambda: (active, sessions), lambda line: pytest.fail(line) if 'never be printed' in line else None) is False
+
+
+@pytest.mark.parametrize('failure', [OSError('no colab'), subprocess.TimeoutExpired('colab', 60)])
+def test_preflight_survives_a_dead_cli(monkeypatch, failure):
+    def fake(*a, **k):
+        raise failure
+    monkeypatch.setattr(cb.subprocess, 'run', fake)
+    assert cb.read_preflight() == (None, None)
+
+
+def test_preflight_failed_sessions_listing(monkeypatch):
+    preflight_calls(monkeypatch, USAGE.format(0), sessions_code=1)
+    assert cb.read_preflight() == (0, None)
+
+
+def test_take_child_gets_foreign_safe_from_a_constant(job, monkeypatch):
+    # Shared-account mode is switched on by this file, not by the card: a caller value cannot change it.
+    monkeypatch.setenv('COLAB_TAKE_FOREIGN_SAFE', '0')
+    envs = []
+    class Process:
+        pid = 1
+        def wait(self, timeout=None):
+            return 0
+    def popen(argv, **kwargs):
+        envs.append(kwargs['env'])
+        return Process()
+    monkeypatch.setattr(cb.subprocess, 'Popen', popen)
+    assert cb.run_take(sys.executable, job.parent, job, job.parent, None, 1) == 0
+    assert envs == [{'PATH': '/usr/bin:/bin', 'HOME': '/root', 'LANG': 'C.UTF-8',
+                     'COLAB_BIN': '/root/.local/bin/colab', 'COLAB_TAKE_FOREIGN_SAFE': '1'}]
+    assert cb.FOREIGN_SAFE_ENV == {'COLAB_TAKE_FOREIGN_SAFE': '1'}
+
+
+def test_foreign_safe_is_only_for_the_take_child(monkeypatch):
+    # usage / sessions / balance / shutdown keep the plain environment: the switch has no business there.
+    monkeypatch.setenv('COLAB_TAKE_FOREIGN_SAFE', '1')
+    assert 'COLAB_TAKE_FOREIGN_SAFE' not in cb.child_env()
+
+
+def test_card_argv_cannot_reach_the_switch(job):
+    for extra in (['--foreign-safe'], ['--reap-new-orphans'], ['--env', 'COLAB_TAKE_FOREIGN_SAFE=0']):
+        with pytest.raises(SystemExit):
+            cb.main(['--job', str(job), '--max-credits', '10', *extra])
+
+
+def test_outer_cap_still_reads_the_real_balance(job, capsys):
+    # Cap interaction. The guard's per-take cap counts only our VM; the card's --max-credits keeps reading the
+    # account balance, so a foreign VM burning CU while take 1 runs (balance falls 7 against a 4 CU budget)
+    # still stops the card before take 2. The foreign VM is not touched: nothing is stopped for it.
+    rc, calls, stops, _, _ = invoke(job, balances=(100, 100, 93, 93), cap='11')
+    out = capsys.readouterr().out
+    assert rc == cb.EXIT_CAP and len(calls) == 1 and len(stops) == 1
+    assert 'NOTE take 1 balance fell 7 CU, over its 4 CU budget + 0.5' in out
+
+
+def test_balance_inside_budget_has_no_note(job, capsys):
+    invoke(job)
+    assert 'NOTE' not in capsys.readouterr().out
 
 
 def test_progress_deleted_before_each_try(job):

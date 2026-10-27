@@ -7,7 +7,23 @@ Job: {"takes": [absolute_directory, ...], "checkpoints": [{"after": glob_or_list
       "uploads_dir": absolute_directory_under_WORK}   # uploads_dir only for studio takes
 Exit: 0 done; 1 take failed; 2 invalid job/arguments (0 CU); 3 admission cap;
       4 unreadable balance; 5 checkpoint; 6 pin refusal, or a studio take's spec, reference
-      or output folder changed since load (0 CU for that take); 7 shutdown unconfirmed (spend unknown).
+      or output folder changed since load (0 CU for that take); 7 shutdown unconfirmed (spend unknown);
+      8 the Colab account is not idle: `colab usage` "Active assignments" is not 0, or is missing
+      or unreadable (0 CU for that take).
+
+Shared account (CEO 2026-10-27: his own G4s ran next to a card's take). Three rules:
+  * Before every attempt (so before any spend) `colab usage` must say "Active assignments: 0".
+    Anything else, including a missing or unparsable line, refuses at 0 CU with exit 8, and the
+    refusal lists `colab sessions` (name, endpoint, hardware only) so the operator sees what is up.
+  * The take runs with COLAB_TAKE_FOREIGN_SAFE=1 (a constant of this file, never card argv or
+    environment): the pinned guard then stops and unassigns only VMs this take created, by name or
+    recorded endpoint, and never reaps an unnamed `[?]` VM.
+  * If another VM appears while a take runs, the pinned guard's per-take cap (budget.max_cu) counts
+    only the take's own VM (its minutes x the measured G4 rate). This file's --max-credits
+    arithmetic below keeps reading the real account balance, so another VM's spend is charged to
+    the card's cap: an outer bound, deliberately conservative. It can stop the card or the next
+    take early (a NOTE line says when one take's balance drop exceeded its own budget); it never
+    touches the other VM.
 
 Only immutable, verified copies of the listed ComfyRunpod files execute. File-based
 specs and reference images are snapshotted as job data before any balance query.
@@ -72,14 +88,18 @@ ENTRY = 'scripts/colab/run_take.py'
 ID_RE = re.compile(r'[A-Za-z0-9_-]{1,40}')
 OUT_MARK = '.colab_batch_take'
 EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_BALANCE, EXIT_CHECKPOINT, EXIT_PIN = range(1, 7)
+EXIT_BUSY = 8
+# Switches the pinned run_take/guard to --foreign-safe (never reap `[?]` VMs, cap counts the take's own VM).
+# A constant, merged into the take child's environment only; nothing from the card reaches it.
+FOREIGN_SAFE_ENV = {'COLAB_TAKE_FOREIGN_SAFE': '1'}
 # Reserved per attempt on top of budget.max_cu: G4 overshoot estimate (about 0.4 CU), rounded up.
 OVERSHOOT_CU = Decimal('0.5')
-PINNED_FROM = '4144ad1d7a67d28b8715adb5b7e9ba73ab4cea04'
+PINNED_FROM = '2d2481fe6b18372df78c1acb4248018b41b692c4'
 # Generated from git objects at PINNED_FROM, not from potentially dirty working files.
-PINNED = {'scripts/colab/run_take.py': 'd97ad9e1a7083c101db9e504af24f63877271098d007b8802a3fc34cf0fc349c',
+PINNED = {'scripts/colab/run_take.py': 'c0407333f7b76e452b1306b33c1a1ea73e82b5f2c6007d50714965df7f28a7e9',
     'scripts/colab/remote_take.py': 'ed1a63e55e67816b2d8df13fe0b54ea5b0232172d1bd388501da56536dd86967',
     'scripts/colab/colabctl.py': '2146ef0d797d622bcabe724470a0872c756a6c74d91074845bdea0e39095854c',
-    'scripts/colab/guard.py': '2f8afc36e0e7287c63e76ea061d14446a655eddd873062c608f7a818bed26872',
+    'scripts/colab/guard.py': '6937d2a588af3b715feb7889b9a03f390ebcb963b915e466c68c8b429aacdf36',
     'scripts/colab/vm_watchdog.py': '6cf3ba2784787ac0480e0c3e4caef6df2668b680e6287c50a7defc73e83e5c12',
     'scripts/fetch_weights.py': '98370f5d86b6bbcc1d7997fe3da336fd77138cbd8752b02687d732688548fb0c',
     'scripts/render_job.py': '859dfd681aea35d8f765b2c33178e3587ea58071b9cd9b7dcc4cdb6b9c8e987e',
@@ -217,6 +237,32 @@ def read_balance():
         return number(matches[0])
     except (OSError, subprocess.SubprocessError, ValueError):
         raise BalanceError('balance unreadable') from None
+
+
+def read_preflight():
+    """(active, sessions) of the Colab account right now. `active` is the "Active assignments" count of
+    `colab usage`, or None when the call failed or the line is missing, repeated or not a plain number
+    (the caller refuses on anything but 0). `sessions` is [(name, endpoint, hardware)] from `colab sessions`,
+    or None when unreadable. The raw output is never kept or printed: it can carry a runtime proxy token."""
+    active = sessions = None
+    try:
+        result = subprocess.run([COLAB, 'usage'], capture_output=True, text=True,
+                                timeout=60, stdin=subprocess.DEVNULL, env=child_env())
+        found = re.findall(r'Active assignments\s*:?\s*(\S+)', result.stdout)
+        if not result.returncode and len(found) == 1 and re.fullmatch(r'[0-9]+', found[0]):
+            active = int(found[0])
+    except (OSError, subprocess.SubprocessError):
+        pass
+    try:
+        result = subprocess.run([COLAB, 'sessions'], capture_output=True, text=True,
+                                timeout=60, stdin=subprocess.DEVNULL, env=child_env())
+        if not result.returncode:
+            rows = [re.match(r'\[([^\]]+)\] (\S+) \| Hardware: (\S+)', line.strip())
+                    for line in result.stdout.splitlines()]
+            sessions = [row.groups() for row in rows if row]
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return active, sessions
 
 
 def balance(reader):
@@ -500,7 +546,8 @@ def snapshot_studio_spec(root, index, studio):
 def run_take(python, root, spec, directory, output, timeout):
     # Every child argument is a constant or validated job data, never card argv.
     proc = subprocess.Popen([python, '-I', '-S', str(root / 'bootstrap.py'), str(spec),
-                             '--out', str(directory.parent)], cwd=root, env=child_env(),
+                             '--out', str(directory.parent)], cwd=root,
+                            env={**child_env(), **FOREIGN_SAFE_ENV},
                             stdin=subprocess.DEVNULL, stdout=output,
                             stderr=subprocess.STDOUT, start_new_session=True)
     try:
@@ -529,7 +576,29 @@ def shutdown(python, root, directory):
         return False
 
 
-def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
+SETTLE_S = (10, 10)
+
+
+def idle_account(preflight, emit, settle=None):
+    """True when `colab usage` says the account has no active assignment. Anything but a plain 0 is not idle,
+    an unreadable count included. Lists what is up (name, endpoint, hardware) from the last read.
+    `settle` (the sleeper) is passed only after a take of this job ran: the count can trail that take's
+    shutdown by seconds, so a not-idle answer is read again after each SETTLE_S pause before it is final."""
+    for pause in ((*SETTLE_S, None) if settle else (None,)):
+        active, sessions = preflight()
+        if active == 0 or pause is None:
+            break
+        emit(f'PREFLIGHT active assignments {"unreadable" if active is None else active}; reading again in {pause} s')
+        settle(pause)
+    if sessions is None:
+        emit('SESSIONS unreadable')
+    for name, endpoint, hardware in sessions or []:
+        emit(f'SESSION {name} {endpoint} {hardware}')
+    emit(f'PREFLIGHT active assignments {"unreadable" if active is None else active}' + ('' if active == 0 else ', not 0'))
+    return active == 0
+
+
+def execute(job, cap, reader, runner, sleeper, emit, stopper, validator, preflight):
     _, run, takes, checkpoints = job
     need = sum(t.budget + OVERSHOOT_CU for t in takes)
     if need > cap:
@@ -545,6 +614,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                  snapshot_spec(root, i, t.spec, t.assets) for i, t in enumerate(takes)]
         start = balance(reader)
         spent = reserved = Decimal(0)
+        ran = False                   # a take of this job has been started: its VM may still be counted for a moment
         emit(f'BALANCE {start} spent 0 CU cap {cap}')
         for i, take in enumerate(takes):
             directory, spec, budget = take.directory, take.spec, take.budget
@@ -556,6 +626,10 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                 if max(spent, reserved) + budget + OVERSHOOT_CU > cap:
                     emit(f'STOP cap spent {spent} reserved {reserved} next {budget} + {OVERSHOOT_CU}')
                     return EXIT_CAP
+                if not idle_account(preflight, emit, sleeper if ran else None):
+                    emit(f'REFUSE take {i + 1} the Colab account is not idle; take not started; '
+                         f'spent {spent} CU so far')
+                    return EXIT_BUSY
                 if take.studio:
                     try:
                         studio_ready(directory, take.studio, spec['take_id'])
@@ -567,6 +641,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                 (directory / 'progress.json').unlink(missing_ok=True)
                 log_path = directory / 'run.log'
                 emit(f'TRY {attempt} take {i + 1}')
+                ran = True
                 with log_path.open('ab') as output:
                     offset = output.tell()
                     timeout = float(number(spec['budget']['max_minutes']) * 60) + TIMEOUT_MARGIN_S
@@ -585,8 +660,12 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                         return EXIT_SHUTDOWN
                 emit(f'EXIT {rc} take {i + 1} try {attempt}')
                 current = balance(reader)
+                before = spent
                 spent = max(spent, start - current)
                 emit(f'BALANCE {current} spent {spent} CU')
+                if spent - before > budget + OVERSHOOT_CU:
+                    emit(f'NOTE take {i + 1} balance fell {spent - before} CU, over its {budget} CU budget + '
+                         f'{OVERSHOOT_CU}: another VM on the account, or an overshoot; it counts against the cap')
                 if spent > cap:
                     emit('STOP cap exceeded by upstream take')
                     return EXIT_CAP
@@ -608,7 +687,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
 
 
 def main(argv=None, *, balance_reader=None, take_runner=None, sleep=None,
-         stop_runner=None, interpreter_validator=None):
+         stop_runner=None, interpreter_validator=None, preflight_reader=None):
     parser = argparse.ArgumentParser(description=__doc__.split('\n\n')[0], allow_abbrev=False)
     parser.add_argument('--job', required=True)
     parser.add_argument('--max-credits', required=True, type=cap_number)
@@ -633,7 +712,8 @@ def main(argv=None, *, balance_reader=None, take_runner=None, sleep=None,
             try:
                 return execute(job, args.max_credits, balance_reader or read_balance,
                                take_runner or run_take, sleep or time.sleep, emit,
-                               stop_runner or shutdown, interpreter_validator or trusted_interpreter)
+                               stop_runner or shutdown, interpreter_validator or trusted_interpreter,
+                               preflight_reader or read_preflight)
             except PinError as exc:
                 emit(f'REFUSE {exc}; spent 0 CU')
                 return EXIT_PIN
