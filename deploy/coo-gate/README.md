@@ -25,7 +25,7 @@ SomPong session (uid sompong)
 |---|---|
 | `runners/coo_gate.py` `op_create_task`, `op_delegate_task`, `op_respawn_clevel` | `lib/coo_policy.check_role` for worker tasks (`check_respawn` + strict key set `{op, session_id, role, host}` + rate limits for `respawn_clevel`) before any hub write; the dispatcher checks again before starting a worker or C-level |
 | `lib/db.create_task` (every Python path that inserts a task) | `coo_policy.check_role(owner_role, role)` right after the owner is resolved |
-| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three worker roles, three task-bound event kinds (`task_created`, `coo_delegate_request`, `coo_close_request`), taskless `coo_respawn_request` (`task_id IS NULL`, JSON payload keys `role` in `{cto, cmo, cgo, cfo}`, `host = 'contabo'`, non-empty `by_session`), and its own charter |
+| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three worker roles, three task-bound event kinds (`task_created`, `coo_delegate_request`, `coo_close_request`), taskless `coo_respawn_request` (`task_id IS NULL`, JSON payload keys `role` in `{cto, cmo, cgo, cfo}`, `host = 'contabo'`, non-empty `by_session`), taskless `coo_audit` and `coo_field_note` (`actor = 'coo_gate'`, exact payload keys and types, see below), and its own charter |
 
 `org_coo` holds INSERT on the create columns of `tasks`, INSERT on `events`, SELECT on the
 owner-owned security-barrier view `coo_respawn_events` (only respawn request/done events),
@@ -56,6 +56,56 @@ timestamps count as recent.
 The SQL guard requires string role/host/by_session values, rejects null roles,
 and its self-proof attempts forbidden done and null-role inserts in rolled-back
 subtransactions. Backend exceptions expose only fixed reason codes and class names.
+
+## Audit log and field notes (#38, #24b)
+
+Two more taskless event kinds, both written by the gate as actor `coo_gate`, both append-only for
+`org_coo` (INSERT; it holds no SELECT on them, so the COO cannot read them back either).
+
+**Audit.** `scripts/coo-audit-hook.py` is a Claude Code PostToolUse hook. After a tool call it sends
+`audit_append {session_id, tool, input, ok}` to the gate and exits 0 with no output, whatever happens:
+2 s in total, then it gives up (fail open, it never blocks the COO). The gate checks the session is a
+coo session, redacts the input by shape (token formats, `key=value` for secret-named keys, URL
+passwords, private keys, long key-like runs), cuts it to 2000 characters and writes `coo_audit
+{session_id, tool, input, ok}`. At most 600 rows per session per hour; past that the gate refuses with a
+fixed reason and the row is not written. The session id is `CXO_SESSION_ID`, else the hook's own
+`session_id` (which is not a hub session, so the gate refuses it: the launcher must export
+`CXO_SESSION_ID`). Read it as the hub owner:
+`SELECT ts, payload FROM events WHERE kind = 'coo_audit' ORDER BY id DESC LIMIT 50`.
+
+The repo does not register the hook. The PH adds `python3 <root>/scripts/coo-audit-hook.py` under
+`hooks.PostToolUse` in SomPong's settings (and under `PostToolUseFailure` if failed calls should show
+`ok: false`).
+
+Limits, stated plainly:
+- **The hook is fed from SomPong's own settings.** The COO can stop feeding it: edit those settings,
+  start a Claude with other ones, or unset the socket path. Nothing is logged that does not pass
+  through the hook, and a gate that is down or full costs rows silently (the gate's journal shows
+  `refused op=audit_append`). A run of missing rows against the transcript is the signal.
+- **What was written, the COO cannot change or delete:** `org_coo` has INSERT only on `events`, no
+  UPDATE, no DELETE, no SELECT of these rows. That holds for `org_coo`, not for root on the box.
+- Redaction is by shape, not a guarantee: a secret in a shape none of the rules match (a bare
+  password, `curl -u user:pass`) is stored. A git SHA is masked like a key. Inputs are cut at 2000
+  characters, so a long command is partial. `ok` is only what the hook saw in the event.
+- The hourly counter lives in the gate's memory: a gate restart starts it again from zero, and the hub
+  trigger cannot count rows it may not read.
+
+**Field notes.** The MCP tool `field_note(skill, tag, text)` (gate op `field_note`) files `coo_field_note
+{session_id, skill, tag, text}`. `skill` must be a directory under `.claude/skills/` of the checkout the
+gate runs from; `tag` is MISSING, WRONG, COSTLY or CONFIRMED; `text` is one line of at most 600
+characters, redacted the same way (a note ends up in a skill file in a public repo); at most 30 per
+session per hour. The COO never changes a skill. A CTO or PH reads the notes and folds them in by
+hand, under the skill learning loop's rule that one sighting is a note, not a rule:
+
+    bash scripts/hub/org-python.sh tools/coo_field_notes.py list [--since ISO]
+
+prints `skill · tag · ts · text`, oldest first, as root. A note has no folded flag (events are
+append-only): keep the `ts` of the last one you folded and pass it as `--since` next time.
+
+Roll-out order after the merge: the grants step (1) first, because it installs the trigger that lets
+`org_coo` write these two kinds and runs section 6's proof of both; then restart `org-coo-gate` (read the
+tmux warning in CLAUDE.md first); until then the running gate answers `unknown op`. Then the PH wires the
+hook.
 
 ## The research box (`runners/coo_worker.py`)
 

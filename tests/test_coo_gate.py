@@ -17,6 +17,8 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -25,6 +27,7 @@ from lib import coo_policy
 from lib import db as db_mod
 from runners import coo_dispatch, coo_gate, coo_mcp_server, coo_worker
 from scripts.lib import cxo_mcp_config
+from tools import coo_field_notes
 
 ROOT = Path(__file__).resolve().parents[1]
 SID = "cootest1"
@@ -43,6 +46,7 @@ def _isolated_db(monkeypatch, tmp_path):
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setenv("ORG_HOST", "contabo")
     db_mod.register_cxo_session("coo", SID, "contabo")
+    coo_gate._recent.clear()
 
 
 def _events(tid: str, kind: str) -> list[dict]:
@@ -648,3 +652,474 @@ def _respawn_at(now, role):
             994, now=now)}
     except coo_gate.Refused as exc:
         return {"ok": False, "error": str(exc)}
+
+
+# --------------------------------------------------------------------------- audit log (#38)
+
+SQL = ROOT / "deploy" / "coo-gate" / "org_coo_role.sql"
+HOOK = ROOT / "scripts" / "coo-audit-hook.py"
+
+
+def _audit(**over) -> dict:
+    req = {"op": "audit_append", "session_id": SID, "tool": "Bash", "input": '{"command": "ls"}', "ok": True}
+    req.update(over)
+    return coo_gate.handle(req, 994)
+
+
+def _rows(kind: str) -> list[dict]:
+    with db_mod.get_conn() as conn:
+        rows = conn.execute("SELECT task_id, actor, payload, ts FROM events WHERE kind=? ORDER BY id", (kind,)).fetchall()
+    return [{"task_id": r["task_id"], "actor": r["actor"], "ts": r["ts"], "payload": json.loads(r["payload"])}
+            for r in rows]
+
+
+def test_audit_appends_one_taskless_row_with_exactly_four_keys():
+    out = _audit(tool="mcp__org__ask_run", input='{"host": "contabo"}', ok=False)
+    assert out == {"ok": True, "recorded": True}
+    (row,) = _rows("coo_audit")
+    assert row["task_id"] is None and row["actor"] == "coo_gate"
+    assert row["payload"] == {"session_id": SID, "tool": "mcp__org__ask_run",
+                              "input": '{"host": "contabo"}', "ok": False}
+
+
+def _fake(*parts: str) -> str:
+    """A credential-shaped value built at run time, so no token-shaped literal sits in the repo."""
+    return "".join(parts)
+
+
+REDACT_CASES = [
+    (_fake("ghp_", "Ab1" * 13), 'git push https://x:{s}@github.com/o/r'),
+    (_fake("sk-", "Zz9" * 15), 'export OPENAI_API_KEY={s} && run'),
+    (_fake("sk-ant-", "Qq7" * 15), '{{"env": {{"ANTHROPIC_API_KEY": "{s}"}}}}'),
+    ("hunter2 hunter3", '{{"password": "{s}", "user": "u"}}'),
+    ("Xq9" * 8, 'curl -H \\"Authorization: Bearer {s}\\" https://api.example/v1'),
+    ("Sup3rS3cretPw", 'psql postgresql://org:{s}@db.example:5432/org'),
+    ("abc123def456", 'curl "https://api.example/x?access_token={s}&b=1"'),
+    (_fake("eyJhbGciOiJI", "UzI1NiJ9.eyJzdWIiOiIx", "MjM0NTY3ODkw.SflKxwRJSMeKKF2QT4"), 'jwt {s} sent'),
+    ("dXNlcjpwYXNzd29yZDEyMw==", 'curl -H "Authorization: Basic {s}"'),
+    ("Ab3dE5gH7jK9mN1pQ3sT5vW7yZ9bC1dE3fG5", 'key is {s} here'),
+    ("MIIEvQIBADANBgkqhkiG9w0BAQEFAASC", '-----BEGIN PRIVATE KEY-----\\n{s}\\n-----END PRIVATE KEY----- after'),
+]
+
+
+def test_audit_redacts_what_looks_like_a_credential():
+    for secret, text in REDACT_CASES:
+        assert _audit(input=text.format(s=secret))["ok"]
+        stored = _rows("coo_audit")[-1]["payload"]["input"]
+        for piece in secret.split():
+            assert piece not in stored, (text, stored)
+        assert "<redacted>" in stored or "***" in stored, (text, stored)
+
+
+def test_audit_keeps_paths_uuids_and_env_references():
+    text = ('{"command": "cd /opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-503505d8 '
+            '&& GH_TOKEN=\\"$GH_TOKEN\\" gh pr view d405e3e2-1111-2222-3333-a6f2f69c4825"}')
+    assert _audit(input=text)["ok"]
+    assert _rows("coo_audit")[0]["payload"]["input"] == text
+
+
+def test_audit_cuts_to_2000_and_a_secret_on_the_cut_does_not_leak():
+    key = _fake("sk-", "Q9" * 20)
+    assert _audit(input="a " * 995 + key + " tail")["ok"]
+    stored = _rows("coo_audit")[0]["payload"]["input"]
+    assert len(stored) == 2000 and "Q9Q9Q9" not in stored
+    assert _audit(input="y" * 5000)["ok"] and len(_rows("coo_audit")[1]["payload"]["input"]) == 2000
+
+
+def test_audit_survives_a_nul_and_a_lone_surrogate():
+    """Postgres refuses both in a jsonb string, which would otherwise be a way to skip the log."""
+    assert _audit(input="a\x00b \ud800 c")["ok"]
+    stored = _rows("coo_audit")[0]["payload"]["input"]
+    assert stored == "ab ? c"
+    stored.encode("utf-8")
+
+
+def test_audit_cuts_a_long_tool_name_instead_of_losing_the_row():
+    assert _audit(tool="t" * 150)["ok"]
+    assert _rows("coo_audit")[0]["payload"]["tool"] == "t" * 100
+
+
+AUDIT_REFUSALS = [
+    ({"extra": 1}, "unexpected: extra"),
+    ({"input": {"command": "ls"}}, "input must be a string"),
+    ({"input": None}, "input must be a string"),
+    ({"ok": "yes"}, "ok must be true or false"),
+    ({"ok": 1}, "ok must be true or false"),
+    ({"tool": ""}, "tool is required"),
+    ({"tool": "\x00"}, "tool is required"),
+    ({"tool": 5}, "tool is required"),
+    ({"session_id": "nosuchsession"}, "not a coo session"),
+    ({"session_id": ""}, "session_id is required"),
+]
+
+
+def test_audit_refuses_a_bad_request_and_writes_nothing():
+    for over, why in AUDIT_REFUSALS:
+        out = _audit(**over)
+        assert out["ok"] is False and why in out["error"], (over, out)
+    assert _rows("coo_audit") == []
+
+
+def test_audit_refuses_a_session_that_is_not_coo():
+    db_mod.register_cxo_session("cto", "ctoabc12", "contabo")
+    assert "not a coo session" in _audit(session_id="ctoabc12")["error"]
+    assert _rows("coo_audit") == []
+
+
+def test_audit_cap_is_600_per_session_per_hour(monkeypatch):
+    assert coo_gate.AUDIT_MAX_PER_HOUR == 600 and coo_gate.RATE_WINDOW_S == 3600
+    monkeypatch.setattr(coo_gate, "AUDIT_MAX_PER_HOUR", 5)   # same code path, without 600 writes
+    db_mod.register_cxo_session("coo", "coo-other", "contabo")
+    req = {"op": "audit_append", "session_id": SID, "tool": "Bash", "input": "{}", "ok": True}
+    t0 = time.time() - 60       # handle() below reads the real clock: stay inside the same hour
+    for i in range(5):
+        coo_gate.op_audit_append(req, 994, now=t0 + i)
+    with pytest.raises(coo_gate.Refused) as refused:
+        coo_gate.op_audit_append(req, 994, now=t0 + 10)
+    assert str(refused.value) == "audit rate cap: at most 5 rows per session per hour"
+    handled = coo_gate.handle(req, 994)
+    assert handled["ok"] is False and "audit rate cap" in handled["error"]
+    coo_gate.op_audit_append({**req, "session_id": "coo-other"}, 994, now=t0 + 10)   # another session
+    coo_gate.op_audit_append(req, 994, now=t0 + 3600)   # the first row has aged out
+    assert len(_rows("coo_audit")) == 7
+
+
+def test_audit_refusals_do_not_use_up_the_cap(monkeypatch):
+    monkeypatch.setattr(coo_gate, "AUDIT_MAX_PER_HOUR", 2)
+    for _ in range(5):
+        assert _audit(ok="maybe")["ok"] is False
+    assert _audit()["ok"] and _audit()["ok"] and _audit()["ok"] is False
+
+
+# --------------------------------------------------------------------------- the PostToolUse hook
+
+@pytest.fixture
+def gate_sock(tmp_path):
+    """A real unix socket served by coo_gate.serve_one on this test's ledger."""
+    path = str(tmp_path / "g.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(path)
+    srv.listen(8)
+    srv.settimeout(0.2)
+    stop = threading.Event()
+
+    def loop():
+        while not stop.is_set():
+            try:
+                conn, _ = srv.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            with conn:
+                conn.settimeout(5)
+                try:
+                    coo_gate.serve_one(conn, frozenset({os.getuid()}))
+                except OSError:
+                    pass
+
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+    yield path
+    stop.set()
+    t.join(2)
+    srv.close()
+
+
+def _hook(stdin: str, sock: str, session: str | None = None, timeout: float = 15):
+    env = {"PATH": os.environ.get("PATH", ""), "COO_GATE_SOCKET": sock}
+    if session:
+        env["CXO_SESSION_ID"] = session
+    t0 = time.monotonic()
+    done = subprocess.run([sys.executable, "-I", str(HOOK)], input=stdin, env=env,
+                          capture_output=True, text=True, timeout=timeout)
+    return done, time.monotonic() - t0
+
+
+def _event(**over) -> str:
+    ev = {"session_id": "claude-uuid-1", "hook_event_name": "PostToolUse", "tool_name": "Bash",
+          "tool_input": {"command": "ls /tmp"}, "tool_response": {"stdout": "x", "interrupted": False}}
+    ev.update(over)
+    return json.dumps(ev)
+
+
+def test_hook_writes_the_audit_row_through_the_gate(gate_sock):
+    done, _ = _hook(_event(), gate_sock, session=SID)
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    (row,) = _rows("coo_audit")
+    assert row["payload"] == {"session_id": SID, "tool": "Bash", "input": '{"command": "ls /tmp"}', "ok": True}
+
+
+def test_hook_takes_the_hook_session_id_when_the_env_has_none(gate_sock):
+    done, _ = _hook(_event(session_id=SID), gate_sock)
+    assert done.returncode == 0
+    assert _rows("coo_audit")[0]["payload"]["session_id"] == SID
+
+
+def test_hook_env_session_wins_over_the_hook_session_id(gate_sock):
+    _hook(_event(session_id="somebody-else"), gate_sock, session=SID)
+    assert [r["payload"]["session_id"] for r in _rows("coo_audit")] == [SID]
+
+
+@pytest.mark.parametrize("over", [
+    {"hook_event_name": "PostToolUseFailure"},
+    {"tool_response": {"is_error": True}},
+    {"tool_response": {"error": "boom"}},
+    {"tool_response": {"success": False}},
+])
+def test_hook_records_a_failed_call_as_ok_false(gate_sock, over):
+    _hook(_event(**over), gate_sock, session=SID)
+    assert _rows("coo_audit")[0]["payload"]["ok"] is False
+
+
+def test_hook_cuts_a_huge_input_to_fit_one_request(gate_sock):
+    big = {"file_path": "/tmp/x", "content": "z" * 500_000}
+    done, _ = _hook(_event(tool_name="Write", tool_input=big), gate_sock, session=SID)
+    assert done.returncode == 0
+    (row,) = _rows("coo_audit")
+    assert row["payload"]["tool"] == "Write" and len(row["payload"]["input"]) == 2000
+
+
+def test_hook_fails_open_on_junk_input(gate_sock):
+    for stdin in ("", "not json", "[]", "null", '{"tool_input": {}}', '{"tool_name": 5}'):
+        done, _ = _hook(stdin, gate_sock, session=SID)
+        assert (done.returncode, done.stdout, done.stderr) == (0, "", ""), stdin
+    assert _rows("coo_audit") == []
+
+
+def test_hook_fails_open_with_no_gate(tmp_path):
+    done, took = _hook(_event(), str(tmp_path / "missing.sock"), session=SID)
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert took < 5
+
+
+def test_hook_fails_open_when_the_gate_refuses(gate_sock):
+    done, _ = _hook(_event(), gate_sock, session="nosuchsession")
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert _rows("coo_audit") == []
+
+
+def test_hook_gives_up_after_two_seconds_on_a_gate_that_never_answers(tmp_path):
+    path = str(tmp_path / "hung.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(path)
+    srv.listen(1)       # accepts the connection in the kernel and never reads or answers
+    try:
+        done, took = _hook(_event(), path, session=SID)
+    finally:
+        srv.close()
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert 1.5 < took < 4.5, took
+
+
+def test_hook_and_gate_agree_on_the_limits():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("coo_audit_hook", HOOK)
+    hook = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook)
+    assert hook.MAX_AUDIT_TOOL == coo_gate.MAX_AUDIT_TOOL
+    assert coo_gate.MAX_AUDIT_INPUT <= hook.SEND_INPUT_CHARS < coo_gate.MAX_REQUEST_BYTES // 4
+    assert hook.DEFAULT_SOCKET == coo_gate.DEFAULT_SOCKET
+
+
+# --------------------------------------------------------------------------- field notes (#24b)
+
+@pytest.fixture
+def skills(tmp_path, monkeypatch):
+    d = tmp_path / "skills"
+    for name in ("ALL_Rules_Approvals", "CTO_Gate_MergeChecklist", "abc"):
+        (d / name).mkdir(parents=True)
+    (d / "a_file").write_text("not a skill")
+    monkeypatch.setattr(coo_gate, "SKILLS_DIR", d)
+    return d
+
+
+def _note(**over) -> dict:
+    req = {"op": "field_note", "session_id": SID, "skill": "ALL_Rules_Approvals", "tag": "MISSING",
+           "text": "it never says a card expires after 24 h"}
+    req.update(over)
+    return coo_gate.handle(req, 994)
+
+
+def test_field_note_default_skills_dir_is_this_repos():
+    assert coo_gate.SKILLS_DIR == ROOT / ".claude" / "skills" and coo_gate.SKILLS_DIR.is_dir()
+
+
+def test_field_note_writes_one_taskless_row_per_tag(skills):
+    for tag in ("MISSING", "WRONG", "COSTLY", "CONFIRMED"):
+        out = _note(tag=tag)
+        assert out == {"ok": True, "recorded": True, "skill": "ALL_Rules_Approvals", "tag": tag}
+    rows = _rows("coo_field_note")
+    assert [r["payload"]["tag"] for r in rows] == ["MISSING", "WRONG", "COSTLY", "CONFIRMED"]
+    assert all(r["task_id"] is None and r["actor"] == "coo_gate" for r in rows)
+    assert rows[0]["payload"] == {"session_id": SID, "skill": "ALL_Rules_Approvals", "tag": "MISSING",
+                                  "text": "it never says a card expires after 24 h"}
+
+
+NOTE_REFUSALS = [
+    ({"skill": "../etc"}, "skill must match"),
+    ({"skill": "ab"}, "skill must match"),
+    ({"skill": "a" * 81}, "skill must match"),
+    ({"skill": "ALL_Rules_Approvals\n"}, "skill must match"),
+    ({"skill": "ALL Rules"}, "skill must match"),
+    ({"skill": "..."}, "skill must match"),
+    ({"skill": ".hidden-dir"}, "skill must match"),
+    ({"skill": None}, "skill must match"),
+    ({"skill": "Nonexistent_Skill"}, "not a directory under .claude/skills"),
+    ({"skill": "a_file"}, "not a directory under .claude/skills"),
+    ({"tag": "OTHER"}, "tag must be one of"),
+    ({"tag": "missing"}, "tag must be one of"),
+    ({"tag": None}, "tag must be one of"),
+    ({"text": "two\nlines"}, "single line"),
+    ({"text": "carriage\rreturn inside"}, "single line"),
+    ({"text": "x" * 601}, "longer than 600"),
+    ({"text": ""}, "text is required"),
+    ({"text": "\x00"}, "single line"),
+    ({"text": 5}, "text is required"),
+    ({"extra": "x"}, "unexpected: extra"),
+    ({"session_id": "nosuchsession"}, "not a coo session"),
+]
+
+
+def test_field_note_refuses_a_bad_request_and_writes_nothing(skills):
+    for over, why in NOTE_REFUSALS:
+        out = _note(**over)
+        assert out["ok"] is False and why in out["error"], (over, out)
+    assert _rows("coo_field_note") == []
+
+
+def test_field_note_takes_a_600_character_line(skills):
+    assert _note(text="y" * 600)["ok"]
+    assert len(_rows("coo_field_note")[0]["payload"]["text"]) == 600
+
+
+def test_field_note_masks_a_credential_in_the_text(skills):
+    key = _fake("ghp_", "Ab1" * 13)
+    assert _note(text=f"the skill told me to put {key} in the card")["ok"]
+    assert key not in _rows("coo_field_note")[0]["payload"]["text"]
+
+
+def test_field_note_cap_is_per_session_per_hour(skills, monkeypatch):
+    assert coo_gate.FIELD_NOTE_MAX_PER_HOUR == 30
+    req = {"op": "field_note", "session_id": SID, "skill": "abc", "tag": "WRONG", "text": "t"}
+    monkeypatch.setattr(coo_gate, "FIELD_NOTE_MAX_PER_HOUR", 2)
+    coo_gate.op_field_note(req, 994, now=10.0)
+    coo_gate.op_field_note(req, 994, now=11.0)
+    with pytest.raises(coo_gate.Refused, match="field note rate cap: at most 2 per session per hour"):
+        coo_gate.op_field_note(req, 994, now=12.0)
+    # the audit cap and the note cap do not share a counter
+    assert _audit()["ok"]
+
+
+def test_gate_serves_the_two_new_ops_and_no_others_were_added():
+    assert {"audit_append", "field_note"} <= set(coo_gate.OPS)
+    assert set(coo_gate.OPS) == {"ping", "set_charter", "create_task", "delegate_task", "get_task",
+                                 "list_tasks", "close_task", "live_sessions", "respawn_clevel",
+                                 "respawn_status", "audit_append", "field_note"}
+
+
+# --------------------------------------------------------------------------- the reader
+
+def _put_note(ts: str, text: str, skill="ALL_Rules_Approvals", tag="WRONG") -> None:
+    with db_mod.get_conn() as conn:
+        conn.execute("INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_field_note', ?, ?)",
+                     (json.dumps({"session_id": SID, "skill": skill, "tag": tag, "text": text}), ts))
+
+
+def test_reader_prints_skill_tag_ts_text_oldest_first(capsys):
+    _put_note("2026-10-26T10:00:00+00:00", "first")
+    _put_note("2026-10-27T10:00:00+00:00", "second", skill="CTO_Gate_MergeChecklist", tag="COSTLY")
+    assert coo_field_notes.main(["list"]) == 0
+    cap = capsys.readouterr()
+    assert cap.out.splitlines() == [
+        "ALL_Rules_Approvals · WRONG · 2026-10-26T10:00:00+00:00 · first",
+        "CTO_Gate_MergeChecklist · COSTLY · 2026-10-27T10:00:00+00:00 · second"]
+    assert cap.err.strip() == "2 field note(s)"
+
+
+@pytest.mark.parametrize("since,lines", [
+    ("2026-10-27", ["second"]),
+    ("2026-10-27T10:00:00Z", ["second"]),
+    ("2026-10-27T17:00:00+07:00", ["second"]),      # the same instant, written in Thai time
+    ("2026-10-27T10:00:01Z", []),
+    ("2026-01-01", ["first", "second"]),
+])
+def test_reader_since_filters_on_the_instant(capsys, since, lines):
+    _put_note("2026-10-26T10:00:00+00:00", "first")
+    _put_note("2026-10-27T10:00:00+00:00", "second")
+    assert coo_field_notes.main(["list", "--since", since]) == 0
+    assert [l.rsplit(" · ", 1)[1] for l in capsys.readouterr().out.splitlines()] == lines
+
+
+def test_reader_rejects_a_bad_since():
+    with pytest.raises(SystemExit):
+        coo_field_notes.main(["list", "--since", "yesterday"])
+
+
+def test_reader_strips_control_characters_from_what_the_coo_wrote(capsys):
+    _put_note("2026-10-27T10:00:00+00:00", "a\x1b[31mred\x1b[0m\nfake   line\x07")
+    coo_field_notes.main(["list"])
+    out = capsys.readouterr().out
+    assert "\x1b" not in out and "\x07" not in out and " " not in out
+    assert len(out.splitlines()) == 1
+
+
+def test_reader_tolerates_a_row_it_cannot_parse(capsys):
+    with db_mod.get_conn() as conn:
+        conn.execute("INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'x', 'coo_field_note', 'not json', '2026-10-27T10:00:00+00:00')")
+    assert coo_field_notes.main(["list"]) == 0
+    assert capsys.readouterr().out.strip() == "·  · 2026-10-27T10:00:00+00:00 ·"
+
+
+def test_a_note_filed_through_the_gate_is_readable(skills, capsys):
+    assert _note(tag="COSTLY", text="lost 20 minutes to the cwd guard")["ok"]
+    coo_field_notes.main(["list"])
+    line = capsys.readouterr().out.strip()
+    assert line.startswith("ALL_Rules_Approvals · COSTLY · 20") and line.endswith(" · lost 20 minutes to the cwd guard")
+
+
+# --------------------------------------------------------------------------- the SQL guard for both kinds
+
+def _sql_block(kind: str) -> str:
+    sql = SQL.read_text()
+    start = sql.index(f"IF NEW.kind = '{kind}' THEN")
+    return sql[start:sql.index("RETURN NEW;", start)]
+
+
+def test_sql_audit_block_matches_the_gate():
+    b = _sql_block("coo_audit")
+    assert "NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate'" in b
+    assert "ARRAY['input', 'ok', 'session_id', 'tool']" in b
+    for field, kind in (("session_id", "string"), ("tool", "string"), ("input", "string"), ("ok", "boolean")):
+        assert f"jsonb_typeof(NEW.payload::jsonb -> '{field}') IS DISTINCT FROM '{kind}'" in b
+    assert f"->> 'input'), 2001) > {coo_gate.MAX_AUDIT_INPUT}" in b
+    assert f"->> 'tool'), 0) NOT BETWEEN 1 AND {coo_gate.MAX_AUDIT_TOOL}" in b
+    assert "->> 'session_id'), 0) NOT BETWEEN 1 AND 64" in b
+
+
+def test_sql_field_note_block_matches_the_gate():
+    b = _sql_block("coo_field_note")
+    assert "NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate'" in b
+    assert "ARRAY['session_id', 'skill', 'tag', 'text']" in b
+    for field in ("session_id", "skill", "tag", "text"):
+        assert f"jsonb_typeof(NEW.payload::jsonb -> '{field}') IS DISTINCT FROM 'string'" in b
+    m = re.search(r"\(NEW\.payload::jsonb ->> 'tag'\) IN \(([^)]*)\)", b)
+    assert m and tuple(re.findall(r"'([A-Z]+)'", m.group(1))) == coo_gate.FIELD_NOTE_TAGS
+    m = re.search(r"'\^(\[[^']*\]\{3,80\})\$'", b)
+    assert m and m.group(1).replace("\\", "") == coo_gate.SKILL_NAME.pattern.replace("\\", "")
+    assert f"->> 'text'), 0) NOT BETWEEN 1 AND {coo_gate.MAX_FIELD_NOTE}" in b
+    assert "position(E'\\n' IN" in b and "position(E'\\r' IN" in b
+
+
+def test_sql_grants_and_privilege_list_are_unchanged_by_the_two_kinds():
+    sql = SQL.read_text()
+    assert sql.count("ON events TO org_coo") == 1                      # the one INSERT grant, no SELECT
+    assert "GRANT INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;" in sql
+    assert "coo_audit" not in sql.split("CREATE OR REPLACE VIEW coo_respawn_events")[1].split("GRANT SELECT ON coo_respawn_events")[0]
+    assert "('coo_audit'" not in sql.split("-- 5. Row guards")[0]
+    assert "events.payload:INSERT" in sql and "events.id" not in sql.split("want text :=")[1].split(";")[0]
+    # section 6 proves both directions for both kinds
+    proof = sql.split("FOR proof_kind")[1].split("END LOOP")[0]
+    for kind in ("coo_audit", "coo_field_note"):
+        assert proof.count(f"('{kind}', 'coo_gate',") == 2 and proof.count(f"('{kind}', 'someone_else',") == 1
+    assert "true)" in proof and "false)" in proof

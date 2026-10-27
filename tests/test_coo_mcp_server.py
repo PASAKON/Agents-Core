@@ -133,3 +133,29 @@ def test_mcp_registration_and_fields(monkeypatch):
     assert out["ok"] and out["kind"] == "done"
     monkeypatch.setattr(server, "quota", lambda: {"ok": True, "buckets": {}})
     assert json.loads(registered["quota"]()) == {"ok": True, "buckets": {}}
+
+
+def test_field_note_sends_the_gate_op_with_this_session(monkeypatch):
+    monkeypatch.setenv("CXO_SESSION_ID", "coo-test1234")
+    sent = {}
+    monkeypatch.setattr(server, "call", lambda op, **fields: sent.update(op=op, **fields) or {"ok": True})
+    assert server.field_note("ALL_Rules_Approvals", "WRONG", "one line") == {"ok": True}
+    assert sent == {"op": "field_note", "session_id": "coo-test1234", "skill": "ALL_Rules_Approvals",
+                    "tag": "WRONG", "text": "one line"}
+
+
+def test_field_note_needs_a_session(monkeypatch):
+    monkeypatch.delenv("CXO_SESSION_ID", raising=False)
+    monkeypatch.delenv("COO_SESSION_ID", raising=False)
+    monkeypatch.setattr(server, "call", lambda *a, **k: pytest.fail("sent without a session"))
+    out = server.field_note("ALL_Rules_Approvals", "WRONG", "x")
+    assert out["ok"] is False and "CXO_SESSION_ID" in out["error"]
+
+
+def test_field_note_is_a_cli_and_an_mcp_tool(monkeypatch, capsys):
+    assert "field_note" in server.TOOL_NAMES and server.TOOL_NAMES[-1] == "respawn_clevel"
+    monkeypatch.setenv("CXO_SESSION_ID", "coo-test1234")
+    monkeypatch.setattr(server, "call", lambda op, **fields: {"ok": True, "op": op, "tag": fields["tag"]})
+    args = {"skill": "ALL_Rules_Approvals", "tag": "COSTLY", "text": "t"}
+    assert server._cli(["field_note", json.dumps(args)]) == 0
+    assert json.loads(capsys.readouterr().out) == {"ok": True, "op": "field_note", "tag": "COSTLY"}
