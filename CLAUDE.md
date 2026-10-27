@@ -33,6 +33,7 @@ Plan + record: `docs/ops/contabo-hq-migration-plan-2026-09-23.md`.
 | LungNote-MCP | `/opt/MoonieXHQ/Projects/LungNote/Mcp` | `/opt/lungnote-mcp` |
 | MoonieX-Scriptable (cloned 2026-10-22) | `/opt/MoonieXHQ/Projects/MoonieX/Scriptable` | — |
 | MoonieX-ComfyRunpod (cloned 2026-10-23, Colab renders only; the H3 studio stays on the Mac) | `/opt/MoonieXHQ/Projects/MoonieX/ComfyRunpod` | — |
+| MoonieX-ExpertAdvisor (created 2026-10-27, private; MT5 itself runs on winbox) | `/opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor` | — |
 | claude-usage-monitor (tool, stays outside) | `/opt/claude-usage-monitor` | — |
 
 Compose projects keep their old names (`COMPOSE_PROJECT_NAME` pinned in each `.env`), so
