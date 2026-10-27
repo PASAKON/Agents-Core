@@ -30,12 +30,22 @@ table) takes `is_local_row` rows; 1b and 3 take local rows plus remote rows
 this box dispatched (`_alive_for_gc` asks over ssh, and reads None -- never
 act -- for any other row); 2 takes rows this box dispatched. A row that is
 not ours is skipped, never cancelled.
+
+`--reap` is a separate mode (dry run unless `--go`): it removes the worktrees
+of finished tasks. It is the standing op behind deploy/systemd/
+org-worktree-reap.timer on Contabo, so every condition it needs before it
+removes anything is listed in reap_worktrees().
 """
 from __future__ import annotations
 
 import argparse
+import errno
+import hashlib
 import json
 import os
+import re
+import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -48,6 +58,7 @@ from lib import db
 from lib.config import host as get_host, self_host
 from runners.branch_poller import remote_pid_alive
 from tools import disk_queue, budget_queue
+from tools import worktree as worktree_mod
 from tools.worker_reap import (_pid_alive, is_dispatched_here, is_local_row,
                                is_remote_row, row_host)
 from tools.worktree import remove_worktree
@@ -79,9 +90,29 @@ TERMINAL_STATUSES = {"done", "cancelled", "stalled", "failed", "merged"}
 # duplicated here rather than reused).
 LOCK_RELEASE_STATUSES = TERMINAL_STATUSES | {"review"}
 
-# 'review' worktrees older than this are flagged (print-only) — never
-# auto-removed, since a human may still be about to look at them.
+# 'review' worktrees older than this are flagged (print-only) unless their
+# HEAD is already in origin/<base> (--reap then removes them: the PR is merged
+# and only the row is stale) — an unmerged one is never auto-removed, since a
+# human may still be about to look at it.
 REVIEW_STALE_DAYS = 21
+
+# --reap (CEO 2026-10-27, task-3a803be1). Untracked files the runner itself
+# leaves in a finished worktree: at the worktree root, plus anything under
+# docs/reports/<task-id>/. They do not make a worktree dirty. Anything else,
+# tracked or untracked, does.
+RUNNER_ROOT_FILES = frozenset({
+    "REPORT.md", "BLOCKER.md", "PR_BODY.md", "WORKER.md", "TASK.md",
+    "CTO-FEEDBACK.md", ".org-task.json", ".media_blockers",
+})
+RUNNER_HASH_LIMIT = 1024 * 1024     # bytes of each runner file that get hashed
+GIT_TIMEOUT_S = 120
+FETCH_TIMEOUT_S = 180
+# A /proc/<pid>/cwd this process may not read (another uid, so not root) means
+# "cannot say nobody is in there": fail closed. Only the tests relax it, for a
+# non-root CI user.
+CWD_UNREADABLE_BLOCKS = True
+_TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_MB = 1024 * 1024
 
 
 def _now() -> datetime:
@@ -506,86 +537,392 @@ def _last_commit_date(wt: Path) -> str:
     return "unknown"
 
 
+def _git(cwd: str | Path, *args: str, timeout: int = GIT_TIMEOUT_S) -> tuple[int, bytes]:
+    """Run git in `cwd`: (returncode, stdout). (-1, b"") when git cannot be
+    run or does not finish in time — callers treat that as 'cannot verify'."""
+    try:
+        r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True,
+                           timeout=timeout)
+    except (OSError, subprocess.SubprocessError):
+        return -1, b""
+    return r.returncode, r.stdout
+
+
+def _is_runner_file(path: str, task_id: str) -> bool:
+    """True for a path (as `git status` prints it) the runner itself leaves
+    behind: the fixed names at the worktree root, or anything under
+    docs/reports/<task-id>/ (never a `..` or empty component)."""
+    if path in RUNNER_ROOT_FILES:
+        return True
+    prefix = f"docs/reports/{task_id}/"
+    if not path.startswith(prefix):
+        return False
+    return all(part not in ("", ".", "..") for part in path[len(prefix):].split("/"))
+
+
+def _status_entries(wt: Path) -> list[tuple[str, str]] | None:
+    """[(XY, path)] from `git status`, one per untracked FILE (not per
+    directory), or None when git cannot say. --no-optional-locks: reading a
+    worktree must not write its index, a dry run included."""
+    rc, out = _git(wt, "--no-optional-locks", "status", "--porcelain=v1", "-z",
+                   "--untracked-files=all")
+    if rc != 0:
+        return None
+    entries: list[tuple[str, str]] = []
+    records = iter(out.split(b"\0"))
+    for rec in records:
+        if not rec:
+            continue
+        xy = rec[:2].decode("ascii", "replace")
+        entries.append((xy, os.fsdecode(rec[3:])))
+        if "R" in xy or "C" in xy:
+            next(records, None)     # a rename/copy source follows as its own record
+    return entries
+
+
+def _runner_file_digest(wt: Path, rel: str) -> tuple[int, str]:
+    """(size, sha256 of the first RUNNER_HASH_LIMIT bytes) of wt/rel.
+
+    Root-run code over a tree another account may write (CTO_Gate_MergeChecklist
+    §2b): every component is opened with O_NOFOLLOW relative to the parent's
+    dir_fd, the file with O_NONBLOCK too (a planted FIFO cannot hang the open),
+    and fstat must say regular file. Raises OSError / ValueError otherwise."""
+    dir_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    file_flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC
+    parts = rel.split("/")
+    fd = os.open(str(wt), dir_flags)
+    try:
+        for name in parts[:-1]:
+            nfd = os.open(name, dir_flags, dir_fd=fd)
+            os.close(fd)
+            fd = nfd
+        ffd = os.open(parts[-1], file_flags, dir_fd=fd)
+    finally:
+        os.close(fd)
+    try:
+        st = os.fstat(ffd)
+        if not stat.S_ISREG(st.st_mode):
+            raise ValueError("not a regular file")
+        h = hashlib.sha256()
+        left = RUNNER_HASH_LIMIT
+        while left > 0:
+            chunk = os.read(ffd, min(65536, left))
+            if not chunk:
+                break
+            h.update(chunk)
+            left -= len(chunk)
+        return st.st_size, h.hexdigest()
+    finally:
+        os.close(ffd)
+
+
+def _cwd_holders(wt: Path, proc_dir: str = "/proc") -> list[str] | None:
+    """'pid N (comm)' for every process whose cwd is `wt` or inside it, or
+    None when that cannot be established (no /proc, or a cwd link this process
+    may not read while CWD_UNREADABLE_BLOCKS is set)."""
+    try:
+        names = [n for n in os.listdir(proc_dir) if n.isdigit()]
+        real = os.path.realpath(wt)
+    except (OSError, ValueError):
+        return None
+    prefix = real.rstrip(os.sep) + os.sep
+    holders: list[str] = []
+    unreadable = 0
+    for pid in names:
+        try:
+            cwd = os.readlink(os.path.join(proc_dir, pid, "cwd"))
+        except FileNotFoundError:
+            continue                    # the process exited meanwhile
+        except OSError as e:
+            if e.errno != errno.ESRCH:  # ESRCH: also gone
+                unreadable += 1
+            continue
+        if cwd.endswith(" (deleted)"):
+            cwd = cwd[:-len(" (deleted)")]
+        if cwd == real or cwd.startswith(prefix):
+            try:
+                with open(os.path.join(proc_dir, pid, "comm"), "rb") as f:
+                    comm = os.fsdecode(f.read(64)).strip()
+            except OSError:
+                comm = "?"
+            holders.append(f"pid {pid} ({comm})")
+    if unreadable and CWD_UNREADABLE_BLOCKS:
+        return None
+    return holders
+
+
+def _verified_path(t: dict) -> tuple[Path | None, str | None]:
+    """The directory remove_worktree() will act on, or why it must not.
+
+    remove_worktree() recomputes its own path from (project, role, id) and,
+    when `git worktree remove` fails, falls back to rmtree. So the row's
+    recorded path has to be that very directory, reached without a symlink in
+    the last component — otherwise we would delete a folder nobody checked."""
+    if not _TASK_ID_RE.match(str(t["id"])):
+        return None, f"unsafe task id {t['id']!r}"
+    try:
+        expected = worktree_mod.worktree_path(t["project"], t["role"], t["id"])
+        if os.path.realpath(t["worktree"]) != os.path.realpath(expected):
+            return None, f"row path is not the task's worktree {str(expected)!r}"
+    except (OSError, ValueError, TypeError) as e:
+        return None, f"cannot resolve the worktree path ({type(e).__name__})"
+    if os.path.islink(expected):
+        return None, f"{str(expected)!r} is a symlink"
+    if not os.path.isdir(expected):
+        return None, f"{str(expected)!r} is not a directory"
+    return Path(expected), None
+
+
+def _repo_problem(wt: Path, repo: Path) -> str | None:
+    """Why `git worktree remove` run from `repo` would not be the one that
+    removes `wt` (so remove_worktree()'s rmtree fallback would), or None."""
+    rc, out = _git(wt, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if rc != 0:
+        return "cannot read the worktree's git dir"
+    common = os.path.realpath(os.fsdecode(out).rstrip("\n"))
+    if common != os.path.realpath(repo / ".git"):
+        return f"worktree belongs to git dir {common!r}, not to {str(repo)!r}"
+    return None
+
+
+def _inspect_worktree(wt: Path, task_id: str) -> tuple[str, str | None, dict]:
+    """(action, reason, snapshot). action is 'ok' only when every removal
+    condition on the worktree itself holds: clean (runner-only files aside),
+    every commit on some remote, no process with its cwd inside."""
+    entries = _status_entries(wt)
+    if entries is None:
+        return "skipped_unverifiable", "cannot read git status", {}
+    runner: list[str] = []
+    for xy, path in entries:
+        if xy == "??" and _is_runner_file(path, task_id):
+            runner.append(path)
+            continue
+        return "skipped_dirty", f"not clean: {xy!r} {path!r}", {}
+    files = []
+    for rel in runner:
+        try:
+            size, digest = _runner_file_digest(wt, rel)
+        except (OSError, ValueError) as e:
+            return "skipped_dirty", (f"runner file {rel!r} is not a plain regular "
+                                     f"file ({type(e).__name__})"), {}
+        files.append((rel, size, digest))
+    rc, head = _git(wt, "rev-parse", "--verify", "HEAD")
+    if rc != 0:
+        return "skipped_unverifiable", "cannot read HEAD", {}
+    rc, ahead = _git(wt, "rev-list", "--count", "HEAD", "--not", "--remotes")
+    if rc != 0 or not ahead.strip().isdigit():
+        return "skipped_unverifiable", "cannot count commits that are on no remote", {}
+    if int(ahead) != 0:
+        return "skipped_unpushed", f"{int(ahead)} commit(s) on no remote", {}
+    holders = _cwd_holders(wt)
+    if holders is None:
+        return "skipped_unverifiable", "cannot read /proc/*/cwd for every process", {}
+    if holders:
+        return "skipped_in_use", f"cwd inside the worktree: {', '.join(holders)}", {}
+    return "ok", None, {"status": tuple(entries), "head": head.strip(),
+                        "runner": tuple(files)}
+
+
+def _fetch_origin(repo: Path) -> bool:
+    env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    env.setdefault("GIT_SSH_COMMAND", "ssh -o BatchMode=yes")
+    try:
+        r = subprocess.run(["git", "fetch", "--quiet", "origin"], cwd=str(repo),
+                           env=env, capture_output=True, timeout=FETCH_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return r.returncode == 0
+
+
+def _head_is_merged(wt: Path, base: str) -> bool:
+    rc, _ = _git(wt, "merge-base", "--is-ancestor", "HEAD",
+                 f"refs/remotes/origin/{base}")
+    return rc == 0
+
+
+def _print_runner_files(task_id: str, files) -> None:
+    for rel, size, digest in files:
+        note = f" (first {RUNNER_HASH_LIMIT} B hashed)" if size > RUNNER_HASH_LIMIT else ""
+        print(f"  runner-file {task_id} {rel!r} {size} B sha256={digest}{note}")
+
+
+def _reap_line(verb: str, entry: dict, note: str = "") -> None:
+    size = entry.get("size_bytes")
+    size_s = f"{size / _MB:9.1f} MB" if size is not None else "      n/a MB"
+    tail = f"  -- {note}" if note else ""
+    print(f"  {verb:<13} {entry['task_id']:<14} {entry['status']:<11} {size_s}  "
+          f"{entry['worktree']!r}{tail}")
+
+
+def _removal_check(t: dict, repo: Path) -> tuple[str, str | None, dict]:
+    """Every condition on one worktree, from the path to the processes. Run
+    once to decide and again right before removal."""
+    wt, problem = _verified_path(t)
+    if wt is None:
+        return "skipped_path_mismatch", problem, {}
+    problem = _repo_problem(wt, repo)
+    if problem:
+        return "skipped_unverifiable", problem, {}
+    return _inspect_worktree(wt, t["id"])
+
+
+def _reap_one(t: dict, wt: Path, repo: Path, entry: dict, *, dry_run: bool,
+              why: str) -> dict:
+    action, reason, snap = _removal_check(t, repo)
+    if action != "ok":
+        return {**entry, "action": action, "reason": reason}
+    if dry_run:
+        _print_runner_files(t["id"], snap["runner"])
+        return {**entry, "action": "would_remove", "reason": why}
+
+    # Second look right before removal: anything that moved since the first
+    # one (a process started, a file written, HEAD advanced) aborts this one.
+    action, reason, again = _removal_check(t, repo)
+    if action != "ok":
+        return {**entry, "action": "skipped_changed",
+                "reason": f"changed before removal: {reason}"}
+    if again != snap:
+        return {**entry, "action": "skipped_changed",
+                "reason": "status, HEAD or a runner file changed between the two checks"}
+    _print_runner_files(t["id"], again["runner"])
+    try:
+        remove_worktree(t["project"], t["role"], t["id"], delete_branch=False)
+        if wt.exists():
+            raise RuntimeError(f"worktree still exists after removal: {wt}")
+        if t["status"] in TERMINAL_STATUSES:
+            db.set_fields(t["id"], worktree=None, actor="gc_stale_tasks")
+    except Exception as e:  # noqa: BLE001 - one worktree must not stop the sweep
+        return {**entry, "action": "error", "reason": f"{type(e).__name__}: {e}"}
+    return {**entry, "action": "removed", "reason": why}
+
+
 def reap_worktrees(*, dry_run: bool = True,
                    review_stale_days: int = REVIEW_STALE_DAYS) -> dict:
     """Cross-reference every tasks.db row that has a worktree against its
-    current status.
+    current status and remove the ones that are dead weight.
 
-    Terminal-status rows (done/cancelled/stalled/failed) whose worktree still
-    exists on disk get removed via tools.worktree.remove_worktree — skipped +
-    logged instead of forced when the worktree has uncommitted changes.
-    'review' rows whose worktree mtime is older than review_stale_days are
-    flagged only (print-only; never auto-removed — a human may still be
-    about to look at them).
+    A worktree is removed only when ALL of these hold:
+      * the row is terminal (TERMINAL_STATUSES), or it is 'review' and its HEAD
+        is an ancestor of origin/<base> (the PR merged, only the row is stale).
+        pending / in_progress / rate_limited / conflict rows are never looked at.
+      * it is clean — apart from the runner's own untracked files
+        (RUNNER_ROOT_FILES, docs/reports/<task-id>/*), which are hashed and
+        printed, not copied;
+      * `git rev-list --count HEAD --not --remotes` is 0;
+      * no process has its cwd inside it;
+      * the row's path IS tools.worktree.worktree_path(project, role, id);
+      * the status and cwd checks still pass on a second look right before.
+    The branch is never deleted. A folder with no task row is never touched.
+    Each project's origin is fetched once per run; if that fails, the 'review'
+    ancestry rule is off for that repo and terminal rows still qualify.
 
-    Returns {"removed": [...], "skipped": [...], "flagged_review": [...]}.
+    Unmerged 'review' worktrees older than review_stale_days are flagged only.
+
+    Returns {"removed", "skipped", "flagged_review", "kept_review"}; `removed`
+    holds 'would_remove' entries under dry_run.
     """
     removed: list[dict] = []
     skipped: list[dict] = []
     flagged_review: list[dict] = []
+    kept_review: list[dict] = []
+    fetched: dict[str, bool] = {}
+
+    def fetch_once(repo: Path) -> bool:
+        key = os.path.realpath(repo)
+        if key not in fetched:
+            fetched[key] = _fetch_origin(repo)
+            print(f"reap: fetch origin in {str(repo)!r}: "
+                  + ("ok" if fetched[key] else "FAILED, ancestry rule off for this repo"))
+        return fetched[key]
 
     for t in _all_tasks_with_worktree():
         status = t["status"]
+        if status not in TERMINAL_STATUSES and status != "review":
+            continue
         wt = Path(t["worktree"])
+        if not wt.exists():
+            continue
+        entry = {"task_id": t["id"], "project": t["project"], "status": status,
+                 "worktree": t["worktree"], "size_bytes": None}
 
-        if status in TERMINAL_STATUSES:
-            if not wt.exists():
-                continue
-            size_bytes = _dir_size_bytes(wt)
-            last_commit = _last_commit_date(wt)
-            result = _reclaim_worktree(t, dry_run=dry_run)
-            if result is None:
-                continue
-            result["status"] = status
-            result["project"] = t["project"]
-            if result["action"] in ("removed", "would_remove"):
-                result["size_bytes"] = size_bytes
-                result["size_human"] = _human_size(size_bytes)
-                result["last_commit"] = last_commit
-                removed.append(result)
-            else:
-                skipped.append(result)
+        checked, problem = _verified_path(t)
+        if checked is None:
+            # Not sized, not opened: the recorded path is not a directory we own.
+            skipped.append({**entry, "action": "skipped_path_mismatch", "reason": problem})
+            _reap_line("skipped", skipped[-1], problem)
+            continue
+        try:
+            repo = worktree_mod._repo_path(t["project"])
+        except Exception as e:  # noqa: BLE001 - a project not cloned on this host
+            skipped.append({**entry, "action": "skipped_unverifiable",
+                            "reason": f"no checkout of {t['project']!r} on this host "
+                                      f"({type(e).__name__})"})
+            _reap_line("skipped", skipped[-1], skipped[-1]["reason"])
+            continue
 
-        elif status == "review":
-            if not wt.exists():
-                continue
+        entry["size_bytes"] = _dir_size_bytes(checked)
+        entry["size_human"] = _human_size(entry["size_bytes"])
+        entry["last_commit"] = _last_commit_date(checked)
+        fetch_ok = fetch_once(repo)
+
+        why = status
+        if status == "review":
             try:
-                mtime = wt.stat().st_mtime
-            except OSError:
+                base = worktree_mod.get_project(t["project"])["default_branch"]
+            except Exception:  # noqa: BLE001 - no base branch, no ancestry rule
+                base = None
+            if not (fetch_ok and base and _head_is_merged(checked, base)):
+                try:
+                    age_days = (time.time() - checked.stat().st_mtime) / 86400
+                except OSError:
+                    continue
+                if age_days > review_stale_days:
+                    flagged_review.append({"task_id": t["id"], "worktree": t["worktree"],
+                                           "age_days": round(age_days, 1)})
+                    _reap_line("flagged", entry, f"review, not merged, {age_days:.0f} days old")
+                else:
+                    kept_review.append(entry)
+                    _reap_line("kept", entry, "review, HEAD not in origin/" + (base or "?"))
                 continue
-            age_days = (time.time() - mtime) / 86400
-            if age_days > review_stale_days:
-                flagged_review.append({
-                    "task_id": t["id"], "worktree": t["worktree"],
-                    "age_days": round(age_days, 1),
-                })
+            why = f"review, HEAD merged into origin/{base}"
+
+        result = _reap_one(t, checked, repo, entry, dry_run=dry_run, why=why)
+        if result["action"] in ("removed", "would_remove"):
+            removed.append(result)
+            _reap_line("would remove" if dry_run else "removed", result, why)
+        else:
+            skipped.append(result)
+            _reap_line("skipped", result, result["reason"])
 
     return {"removed": removed, "skipped": skipped,
-            "flagged_review": flagged_review}
+            "flagged_review": flagged_review, "kept_review": kept_review}
 
 
 def _print_reap_report(result: dict, *, dry_run: bool) -> None:
     tag = "[dry-run] " if dry_run else ""
     verb = "would remove" if dry_run else "removed"
-    print(f"{tag}reap: {verb} {len(result['removed'])} worktree(s), "
-          f"skipped {len(result['skipped'])}, "
-          f"flagged {len(result['flagged_review'])} stale 'review' worktree(s)")
+    total = sum(r.get("size_bytes") or 0 for r in result["removed"])
+    print(f"{tag}reap: {verb} {len(result['removed'])} worktree(s) "
+          f"({total / _MB:.1f} MB), skipped {len(result['skipped'])}, "
+          f"flagged {len(result['flagged_review'])} stale 'review' worktree(s) "
+          f"(>{REVIEW_STALE_DAYS}d, not merged), "
+          f"kept {len(result['kept_review'])} other 'review' worktree(s)")
 
-    if result["removed"]:
-        print("\n-- terminal-status worktrees --")
-        for r in result["removed"]:
-            print(f"  {r['task_id']:16s} {r['status']:10s} {r['size_human']:>9s}  "
-                  f"last_commit={r['last_commit']}  {r['worktree']}")
 
-    if result["skipped"]:
-        print("\n-- skipped (not touched) --")
-        for r in result["skipped"]:
-            print(f"  {r['task_id']:16s} {r['status']:10s} {r['action']:22s} {r['worktree']}")
-
-    if result["flagged_review"]:
-        print(f"\n-- stale 'review' worktrees (>{REVIEW_STALE_DAYS}d, flagged only, NOT removed) --")
-        for r in result["flagged_review"]:
-            print(f"  {r['task_id']:16s} age={r['age_days']:>6.1f}d  {r['worktree']}")
+def _print_df(label: str) -> None:
+    target = worktree_mod.WORKTREE_DIR if worktree_mod.WORKTREE_DIR.exists() else Path("/")
+    out = ""
+    try:
+        r = subprocess.run(["df", "-h", "-P", str(target)], capture_output=True,
+                           text=True, timeout=30)
+        out = r.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    if not out:
+        u = shutil.disk_usage(target)
+        out = (f"{u.used / 2**30:.1f}G used of {u.total / 2**30:.1f}G, "
+               f"{u.free / 2**30:.1f}G free")
+    print(f"df {label}:\n{out}")
 
 
 def main() -> int:
@@ -601,21 +938,25 @@ def main() -> int:
     ap.add_argument("--ratelimit", type=int, default=STALE_RATELIMIT_MINUTES,
                     help=f"rate_limited threshold minutes (default {STALE_RATELIMIT_MINUTES})")
     ap.add_argument("--reap", action="store_true",
-                    help="switch modes: reap worktrees for terminal-status "
-                         "tasks instead of running the stale-task sweep")
+                    help="switch modes: reap the worktrees of finished tasks "
+                         "(terminal rows, and 'review' rows whose HEAD is in "
+                         "origin/<base>) instead of running the stale-task "
+                         "sweep; see reap_worktrees() for every condition")
     ap.add_argument("--go", action="store_true",
                     help="[--reap only] actually remove worktrees; default is dry-run")
     ap.add_argument("--review-stale-days", type=int, default=REVIEW_STALE_DAYS,
-                    help=f"[--reap only] flag 'review' worktrees older than this "
-                         f"many days (default {REVIEW_STALE_DAYS})")
+                    help=f"[--reap only] flag unmerged 'review' worktrees older "
+                         f"than this many days (default {REVIEW_STALE_DAYS})")
     args = ap.parse_args()
 
     db.init()
 
     if args.reap:
+        _print_df("before")
         result = reap_worktrees(dry_run=not args.go,
                                 review_stale_days=args.review_stale_days)
         _print_reap_report(result, dry_run=not args.go)
+        _print_df("after")
         return 0
 
     cancelled = gc_stale_tasks(

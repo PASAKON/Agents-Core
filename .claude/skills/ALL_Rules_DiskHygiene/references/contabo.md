@@ -56,9 +56,24 @@ own untracked `REPORT.md` and `docs/reports/<task>/.media_allow_raw`. Count such
 Project Head is closed or parked has no owner to ask and no reviewer (26 Oct: 18 of them, 4.6 GB).
 Check each one: `git status --porcelain | grep -v media_allow_raw` must print nothing, and
 `git rev-list --count HEAD --not --remotes` must print 0. Then remove it with
-`git worktree remove --force`. Put the whole list on ONE red Run card that re-checks both tests
-per item, skips any worktree that changed, and prints `df` at the end. RUN-20261026-0737-66d7
-removed 26 this way and took the disk from 98% to 84%.
+`git worktree remove --force`. [SUPERSEDED 2026-10-27, for finished worktrees: "Put the whole list
+on ONE red Run card that re-checks both tests per item, skips any worktree that changed, and prints
+`df` at the end. RUN-20261026-0737-66d7 removed 26 this way and took the disk from 98% to 84%."]
+
+**Finished worktrees are a standing op, no card (2026-10-27, task-3a803be1).**
+`org-worktree-reap.timer` runs `tools/gc_stale_tasks.py --reap --go` as root every 6 h (00:30, 06:30,
+12:30, 18:30 Bangkok; `journalctl -u org-worktree-reap` has one line per worktree and `df` before and
+after). It removes a worktree only when ALL hold: the task row is terminal, or is `review` and HEAD is
+an ancestor of `origin/<base>` (each origin fetched once per run); `git status` shows nothing but the
+runner's own untracked files (`REPORT.md BLOCKER.md PR_BODY.md WORKER.md TASK.md CTO-FEEDBACK.md
+.org-task.json .media_blockers` at the root, anything under `docs/reports/<task-id>/`; each printed
+with size and sha256, never copied); `git rev-list --count HEAD --not --remotes` is 0; no process has
+its cwd inside; the row's path is the one `tools.worktree.worktree_path()` computes; and a second look
+right before removal agrees. A `review` row not yet merged is only flagged after 21 days. It never
+deletes a branch and never touches a folder with no task row (`spend-guard-deploy`, `tool-value-deploy`).
+Install it once with `scripts/install-org-worktree-reap.sh` from the main checkout (CTO raises the
+card after merge); until the timer exists, run `--reap` by hand and put only that on a card.
+Anything the reap skips (dirty with a foreign file, unpushed commit, live cwd) is still the owner's call.
 
 ## Never touch here
 
