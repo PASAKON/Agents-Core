@@ -47,6 +47,7 @@ if str(ROOT) not in sys.path:
 
 from lib import coo_policy, db, portfolio  # noqa: E402
 from tools import ask_run  # noqa: E402  (secret shapes only: one list of them, not a second copy)
+from tools import portfolio_push  # noqa: E402  (build_payload: the one call Console's feed is built with)
 
 DEFAULT_SOCKET = "/run/org-coo-gate/gate.sock"
 DEFAULT_PROJECT = "mooniex-agents"
@@ -61,6 +62,7 @@ TASK_FIELDS = ("id", "role", "title", "status", "runner", "runner_model", "repor
                "delegate_log", "created_at", "updated_at", "owner_cto")
 RESPAWN_FIELDS = frozenset({"op", "session_id", "role", "host"})
 RESPAWN_STATUS_FIELDS = frozenset({"op", "session_id", "request_id"})
+PORTFOLIO_FIELDS = frozenset({"op", "session_id"})
 # Audit log (#38) and field notes (#24b). The caps here are mirrored in org_coo_role.sql, which
 # checks the same shapes again; tests/test_coo_gate.py reads both and keeps them equal.
 AUDIT_FIELDS = frozenset({"op", "session_id", "tool", "input", "ok"})
@@ -312,6 +314,41 @@ def op_live_sessions(req: dict, uid: int) -> dict:
         return {"text": live_sessions.render(conn, all_roles=bool(req.get("all")))}
 
 
+def _portfolio_line(row: dict) -> str:
+    """name · lane · % · state · next · due for one Project Monitor row. A loop project also shows its
+    round, and its due is its next beat (its due_at is None). One line: whitespace is collapsed."""
+    beat = row.get("beat")
+    progress = f"{row.get('pct')}%" + (f" (รอบที่ {beat.get('n')})" if beat else "")
+    due = row.get("due_at") or (beat or {}).get("next_due")
+    cells = (row.get("name"), row.get("lane"), progress, row.get("state"), row.get("next"), due)
+    return " · ".join(" ".join(str(c).split()) if c not in (None, "") else "—" for c in cells)
+
+
+def op_portfolio(req: dict, uid: int) -> dict:
+    """The Project Monitor rows the CEO sees on Console /portfolio and in the Scriptable widget (CEO
+    2026-10-27), so SomPong reports portfolio progress from one source. Read-only: it calls
+    portfolio.monitor_payload through tools/portfolio_push.build_payload, the same call (and version)
+    that feeds Console, so the numbers match at the same minute. org_coo holds SELECT, and nothing
+    else, on the tables that call reads (deploy/coo-gate/org_coo_role.sql section 4). Accepts ONLY
+    {op, session_id}. Returns the payload and `text`, one line per project. A hub error comes back as
+    its class name only: a psycopg message can name the hub's host."""
+    extra = sorted(set(req) - PORTFOLIO_FIELDS)
+    if extra:
+        raise Refused(f"portfolio accepts only session_id (unexpected: {', '.join(extra)})")
+    session_id = _text(req, "session_id", 64)
+    try:
+        _coo_session(session_id)
+        payload = portfolio_push.build_payload()
+    except Refused:
+        raise
+    except Exception as e:
+        cls = type(e.__cause__ or e).__name__
+        log.warning("portfolio: hub read failed: %s", cls)
+        raise Refused(f"the portfolio could not be read from the hub ({cls})") from None
+    payload = json.loads(json.dumps(payload, ensure_ascii=False, default=str))
+    return {"payload": payload, "text": [_portfolio_line(r) for r in payload.get("projects", [])]}
+
+
 def op_respawn_clevel(req: dict, uid: int, *, now=None) -> dict:
     """Queue a C-level respawn request on Contabo (CEO pick #18, 2026-10-26).
 
@@ -553,6 +590,7 @@ OPS: dict[str, Callable[[dict, int], dict]] = {
     "list_tasks": op_list_tasks,
     "close_task": op_close_task,
     "live_sessions": op_live_sessions,
+    "portfolio": op_portfolio,
     "respawn_clevel": op_respawn_clevel,
     "respawn_status": op_respawn_status,
     "audit_append": op_audit_append,

@@ -10,6 +10,7 @@ Run:  .venv/bin/python -m pytest tests/test_coo_gate.py
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -19,6 +20,7 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -29,7 +31,7 @@ from lib import portfolio as pf
 from runners import coo_dispatch, coo_gate, coo_mcp_server, coo_worker
 from scripts.lib import cxo_mcp_config
 from test_projecttrack_p1 import ACTOR, T, project, store  # noqa: F401 -- `store`: p1's in-memory hub
-from tools import coo_field_notes
+from tools import coo_field_notes, portfolio_push
 
 ROOT = Path(__file__).resolve().parents[1]
 SID = "cootest1"
@@ -324,6 +326,7 @@ def test_cxo_config_gives_coo_the_gate_server_and_only_its_tools(tmp_path):
     assert "with-org-db-env" not in json.dumps(entry)
     allowed = cxo_mcp_config._allowed_for(["org"], str(tmp_path), False, "coo")
     assert allowed == [f"mcp__org__{n}" for n in coo_mcp_server.TOOL_NAMES]
+    assert "mcp__org__portfolio" in allowed          # the coo session may call it, nothing else is added
     assert "mcp__org__merge_task" not in allowed
 
 
@@ -602,7 +605,8 @@ def test_sql_grants_the_order_mirror_exactly_what_order_take_and_order_close_use
     assert ("GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by), "
             "UPDATE (closed_at, outcome) ON orders TO org_coo;") in flat
     assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in flat
-    assert flat.count("ON orders TO org_coo") == 1 and flat.count("ON project_events TO org_coo") == 1
+    # orders: the one grant. project_events: that INSERT and the portfolio read's SELECT (below).
+    assert flat.count("ON orders TO org_coo") == 1 and flat.count("ON project_events TO org_coo") == 2
     # The grants are the columns lib/portfolio actually writes: a changed INSERT there fails here first.
     src = (ROOT / "lib" / "portfolio.py").read_text()
     take = re.search(r"INSERT INTO orders \(([^)]*)\)", src)
@@ -610,9 +614,13 @@ def test_sql_grants_the_order_mirror_exactly_what_order_take_and_order_close_use
     assert "UPDATE orders SET closed_at = ?, outcome = ? WHERE id = ?" in src
     event = re.search(r"INSERT INTO project_events \(([^)]*)\)", src)
     assert tuple(c.strip() for c in event.group(1).split(",")) == EVENT_INSERT_COLS
-    # Nothing destructive, nothing on the other portfolio tables.
-    for table in ("projects", "milestones", "ceo_gos", "resource_locks", "post_ledger", "session_heartbeats"):
+    # Nothing destructive, nothing on the portfolio tables the Project Monitor does not read, and the
+    # ones it does read are SELECT only (test_sql_grants_select_only_on_the_tables_monitor_payload_reads).
+    for table in ("ceo_gos", "resource_locks", "post_ledger"):
         assert f"ON {table} TO org_coo" not in flat
+    for table in ("projects", "milestones", "session_heartbeats"):
+        (privs,) = re.findall(rf"GRANT ([^;]*?) ON {table} TO org_coo;", flat)
+        assert privs.startswith("SELECT") and not re.search(r"INSERT|UPDATE", privs), table
     assert not re.search(r"GRANT [^;]*\b(DELETE|TRUNCATE|TRIGGER|ALL)\b", flat)
 
 
@@ -678,8 +686,9 @@ def test_sql_order_mirror_proof_cases_and_privilege_lists():
     assert {f"orders.{c}:UPDATE" for c in ORDER_UPDATE_COLS} <= tokens
     assert {f"project_events.{c}:INSERT" for c in EVENT_INSERT_COLS} <= tokens
     assert not {t for t in tokens if t.startswith(("orders.", "project_events.")) and t.endswith(":REFERENCES")}
-    assert ("'tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders')") in flat
-    assert "live_hosts, live_sessions and orders, nothing destructive" in flat
+    assert ("'tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders', "
+            "'projects', 'milestones', 'session_heartbeats', 'project_events')") in flat
+    assert "session_heartbeats and project_events, nothing destructive" in flat
     # The behavioural proof: a separate block, so the audit / field-note proof above it is untouched.
     proof = sql.split("DO $orders_proof$")[1].split("$orders_proof$;")[0]
     for case in (
@@ -1164,7 +1173,7 @@ def test_gate_serves_the_two_new_ops_and_no_others_were_added():
     assert set(coo_gate.OPS) == {"ping", "set_charter", "create_task", "delegate_task", "get_task",
                                  "list_tasks", "close_task", "live_sessions", "respawn_clevel",
                                  "respawn_status", "audit_append", "field_note",
-                                 "order_open", "order_close"}
+                                 "order_open", "order_close", "portfolio"}
 
 
 # --------------------------------------------------------------------------- the reader
@@ -1461,3 +1470,202 @@ def test_order_ops_roundtrip_through_the_mcp_tools(orders, monkeypatch):
     assert coo_mcp_server.order_open(7, "ship the film")["existing"] is True
     assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"]
     assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"] is False
+
+
+# --------------------------------------------------------------------------- portfolio (the Project Monitor read)
+# CEO 2026-10-27: SomPong reads the rows Console /portfolio shows. The real lib/portfolio runs against p1's
+# in-memory hub with the clock frozen, so no Postgres is needed. The grants it needs are read from the role
+# file below, and on a real Postgres, as org_coo, in tests/test_coo_orders_pg.py.
+
+NOW = T + timedelta(hours=1)               # T is p1's 2026-10-26 12:00Z
+LEAKS = ("db.internal", "100.64", "s3cret", "postgresql://", "org_coo", "5432", "ORG_DB_URL")
+
+
+@pytest.fixture
+def board(store, monkeypatch):
+    """Three projects at a frozen clock: a finite one at 50%, a loop on its first round, a parked one."""
+    orig = pf._utc
+    monkeypatch.setattr(pf, "_utc", lambda now=None: orig(now) if now is not None else NOW)
+    kw = {"actor": ACTOR, "now": T}
+    pf.open_project("alpha", "Alpha film", "cmo", stage="active", due_at=T + timedelta(days=3), due_set_by="ceo", **kw)
+    pf.milestone_add("alpha", "script", due_at=T + timedelta(days=1), **kw)
+    pf.milestone_add("alpha", "cut", due_at=T + timedelta(days=2), **kw)
+    pf.milestone_done("alpha", 1, "sha abc1234", **kw)
+    pf.set_plan("alpha", next_step="record  the\nvoice", next_owner="cmo", **kw)
+    pf.open_project("beta", "Beta loop", "cgo", stage="active", kind="loop", cadence_h=24, **kw)
+    pf.beat("beta", "episode 1", **kw)
+    pf.open_project("gamma", "Gamma shelf", "cto", stage="active", **kw)
+    pf.park("gamma", **kw)
+    return store
+
+
+def _portfolio(sid=SID, **extra) -> dict:
+    return coo_gate.handle({"op": "portfolio", "session_id": sid, **extra}, 994)
+
+
+def test_portfolio_op_is_served_and_listed():
+    assert "portfolio" in coo_gate.OPS and "portfolio" in coo_mcp_server.TOOL_NAMES
+    assert "portfolio" in coo_gate.handle({"op": "nope"}, 994)["error"]          # the unknown-op answer lists it
+
+
+def test_portfolio_returns_the_payload_console_gets_and_one_line_per_project(board):
+    out = _portfolio()
+    assert out["ok"] is True and set(out) == {"ok", "payload", "text"}
+    # The same call that feeds Console (tools/portfolio_push), so the same rows and the same %.
+    assert out["payload"] == json.loads(json.dumps(portfolio_push.build_payload()))
+    assert [(r["id"], r["pct"], r["state"]) for r in out["payload"]["projects"]] == [
+        ("alpha", 50, "stalled"), ("beta", 0, "stalled"), ("gamma", 0, "parked")]
+    assert out["text"] == [
+        "Alpha film · cmo · 50% · stalled · record the voice · 2026-10-28T12:00:00Z",
+        "Beta loop · cgo · 0% (รอบที่ 1) · stalled · — · 2026-10-27T12:00:00Z",
+        "Gamma shelf · cto · 0% · parked · — · —",
+    ]
+    assert all("\n" not in line for line in out["text"])
+
+
+def test_portfolio_with_no_projects_is_an_empty_list_not_an_error(store):
+    out = _portfolio()
+    assert out["ok"] is True and out["text"] == [] and out["payload"]["projects"] == []
+
+
+def test_portfolio_refuses_a_session_that_is_not_coo_and_builds_nothing(board, monkeypatch):
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: pytest.fail("built for a non-coo session"))
+    db_mod.register_cxo_session("cto", "ctoabc12", "contabo")
+    for sid in ("ctoabc12", "deadbeef"):
+        out = _portfolio(sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+
+
+@pytest.mark.parametrize("fields", [{"session_id": None}, {"session_id": ""}, {"session_id": "x" * 65},
+                                    {"all": True}, {"limit": 5}, {"project": "alpha"}])
+def test_portfolio_refuses_a_bad_request_and_builds_nothing(board, monkeypatch, fields):
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: pytest.fail("built for a bad request"))
+    out = coo_gate.handle({"op": "portfolio", "session_id": SID, **fields}, 994)
+    assert out["ok"] is False and out["error"]
+    assert coo_gate.handle({"op": "portfolio"}, 994)["ok"] is False             # no session_id at all
+
+
+def test_portfolio_is_read_only_it_issues_only_selects_and_changes_no_row(board, monkeypatch):
+    seen = []
+
+    class Spy:
+        def execute(self, sql, params=()):
+            seen.append(sql)
+            return board.execute(sql, params)
+
+    @contextlib.contextmanager
+    def tx(conn=None):
+        yield conn or Spy()
+
+    tables = ("projects", "milestones", "project_events", "orders", "session_heartbeats", "tasks")
+
+    def counts():
+        return [board.execute(f"SELECT count(*) FROM {t}").fetchone()[0] for t in tables]
+
+    before = counts()
+    monkeypatch.setattr(pf, "_tx", tx)
+    assert _portfolio()["ok"] is True
+    assert seen and all(q.lstrip().upper().startswith("SELECT") for q in seen), seen
+    assert not [q for q in seen if "FOR UPDATE" in q.upper()]
+    assert counts() == before
+
+
+@pytest.mark.parametrize("exc", [
+    RuntimeError('connection to server at "db.internal.example" (100.64.0.9), port 5432 failed: FATAL: password '
+                 'authentication failed for user "org_coo" ' + _fake("postgresql", "://org_coo:", "s3cret", "@db.internal.example:5432/org")),
+    OSError("[Errno 111] Connection refused 100.64.0.9:5432"),
+    pf.PortfolioError("the portfolio lives in the hub: ORG_DB_URL is unset"),
+])
+@pytest.mark.parametrize("where", ["session check", "payload"])
+def test_portfolio_hub_down_is_a_plain_error_without_host_url_or_secret(board, monkeypatch, caplog, exc, where):
+    def boom(*args):
+        raise exc
+
+    if where == "session check":                       # the first hub touch of the op
+        monkeypatch.setattr(coo_gate, "_coo_session", boom)
+    else:
+        monkeypatch.setattr(portfolio_push, "build_payload", boom)
+    with caplog.at_level("DEBUG", logger="coo_gate"):
+        out = _portfolio()
+    assert out == {"ok": False, "error": f"the portfolio could not be read from the hub ({type(exc).__name__})"}
+    blob = json.dumps(out) + caplog.text
+    assert not [leak for leak in LEAKS if leak in blob], blob
+
+
+def test_portfolio_hub_error_names_the_cause_class_only(board, monkeypatch):
+    err = RuntimeError("wrapper at db.internal.example")
+    err.__cause__ = OSError("100.64.0.9 refused")
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: (_ for _ in ()).throw(err))
+    assert _portfolio() == {"ok": False, "error": "the portfolio could not be read from the hub (OSError)"}
+
+
+def test_portfolio_round_trips_through_the_socket_and_the_cli(board, gate_sock, monkeypatch, capsys):
+    """The done-when: `coo_mcp_server --cli portfolio` over the real socket prints the rows the gate built.
+    The payload is built here, on this thread (p1's in-memory hub is single-thread); the socket, the uid
+    check, the session check, the op and the CLI are all real."""
+    payload = portfolio_push.build_payload()
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: payload)
+    monkeypatch.setattr(coo_mcp_server, "SOCKET_PATH", gate_sock)
+    monkeypatch.setenv("CXO_SESSION_ID", SID)
+    assert coo_mcp_server._cli(["portfolio"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 3 and lines[0].startswith("Alpha film · cmo · 50% · ")
+    assert coo_mcp_server._cli(["portfolio", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["payload"] == json.loads(json.dumps(payload))
+    monkeypatch.setenv("CXO_SESSION_ID", "deadbeef")                              # not a coo session: refused
+    assert coo_mcp_server._cli(["portfolio"]) == 1
+    assert "not a coo session" in json.loads(capsys.readouterr().out)["error"]
+
+
+# The grants the op needs (deploy/coo-gate/org_coo_role.sql section 4) and the proof of them (section 6).
+
+PORTFOLIO_TABLES_READ = {"projects", "milestones", "session_heartbeats", "project_events", "tasks", "orders"}
+
+
+def test_sql_grants_select_only_on_the_tables_monitor_payload_reads():
+    import inspect
+    # The tables the monitor path reads, taken from lib/portfolio.py itself: a table added to (or dropped
+    # from) any of these functions fails here, before the gate meets a permission error on the hub.
+    src = "".join(inspect.getsource(getattr(pf, name)) for name in
+                  ("monitor_payload", "_monitor_all", "_v2_rows", "_monitor_v2", "_order_progress"))
+    assert set(re.findall(r"\b(?:FROM|JOIN)\s+(\w+)", src)) == PORTFOLIO_TABLES_READ
+    flat = _sql_flat()
+    for grant in ("GRANT SELECT ON projects TO org_coo;", "GRANT SELECT ON milestones TO org_coo;",
+                  "GRANT SELECT (project_id, at) ON session_heartbeats TO org_coo;",
+                  "GRANT SELECT (id, project_id, at, kind, actor, body) ON project_events TO org_coo;"):
+        assert flat.count(grant) == 1, grant
+    # tasks and orders were granted before this op; neither grant was touched or doubled.
+    assert flat.count("GRANT SELECT ON tasks TO org_coo;") == 1 and flat.count("ON orders TO org_coo") == 1
+    assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in flat
+    # Not read by monitor_payload, so not granted.
+    for table in ("ceo_gos", "resource_locks", "post_ledger"):
+        assert f"ON {table} TO org_coo" not in flat
+    # No write privilege came with it: every grant the portfolio read added is SELECT alone.
+    for table in ("projects", "milestones", "session_heartbeats"):
+        (privs,) = re.findall(rf"GRANT ([^;]*?) ON {table} TO org_coo;", flat)
+        assert re.fullmatch(r"SELECT( \([a-z_, ]+\))?", privs), privs
+    # The INSERT/UPDATE list of section 6 did not move: no new `:INSERT` / `:UPDATE` token for these tables.
+    want = re.search(r"want text := (.*?);\s*BEGIN", SQL.read_text(), re.S).group(1)
+    assert not re.findall(r"\b(?:projects|milestones|session_heartbeats)\.[a-z_]+:", want)
+    assert sorted(re.findall(r"\bproject_events\.([a-z_]+):INSERT", want)) == sorted(EVENT_INSERT_COLS)
+    assert not re.findall(r"\bproject_events\.[a-z_]+:UPDATE", want)
+
+
+def test_sql_portfolio_proof_reads_each_table_and_refuses_every_write():
+    sql = SQL.read_text()
+    proof = sql.split("DO $portfolio_proof$")[1].split("$portfolio_proof$;")[0]
+    assert "SET LOCAL ROLE org_coo" in proof
+    assert "WHEN SQLSTATE 'ZX001' THEN accepted := true" in proof
+    assert "WHEN insufficient_privilege THEN" in proof and "raise_exception" not in proof   # only a missing privilege refuses
+    assert "RAISE EXCEPTION USING ERRCODE = 'ZX001'" in proof and "COMMIT" not in proof     # rolled back, no proof row stays
+    for table in ("projects", "milestones", "session_heartbeats", "project_events", "tasks", "orders"):
+        assert re.search(rf"\('SELECT {table}[^']*', \$q\$SELECT .*?\$q\$, true\)", proof, re.S), table
+    for table in ("projects", "milestones", "session_heartbeats"):
+        for verb in ("INSERT", "UPDATE", "DELETE"):
+            assert re.search(rf"\('{verb} {table}', \$q\$.*?\$q\$, false\)", proof, re.S), (verb, table)
+    for verb in ("UPDATE", "DELETE"):                       # INSERT on project_events is order_close's guarded grant
+        assert f"('{verb} project_events'" in proof
+    assert "SELECT id FROM public.projects FOR UPDATE" in proof                             # the row lock is closed too
+    # The blocks that were here before are as they were: the audit / field-note loop and the orders proof.
+    assert "DO $orders_proof$" in sql and sql.index("DO $orders_proof$") < sql.index("DO $portfolio_proof$")
+    assert sql.index("$portfolio_proof$;") < sql.index("\\echo org_coo: role, grants and row guards are in place")
