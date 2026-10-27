@@ -34,6 +34,7 @@ import hashlib
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 
@@ -235,13 +236,51 @@ def _listdir(path: str) -> list[str]:
         return []
 
 
-def scan_file(path: str, basename: str, kind: str) -> list[dict]:
+def _read_regular(path: str) -> bytes | None:
+    """Root walks dirs other accounts can write (CTO_Gate_MergeChecklist §2b): never follow a
+    final symlink, never block on a FIFO, read regular files only, and re-check the deny list on
+    the file actually opened, so a parent dir swapped for a symlink after the walk is caught."""
+    flags = (os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+             | getattr(os, "O_BINARY", 0))
     try:
-        if os.path.getsize(path) > MAX_BYTES:
-            return []
-        with open(path, "rb") as fh:
-            data = fh.read()
+        fd = os.open(path, flags)
     except OSError:
+        return None
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode) or st.st_size > MAX_BYTES:
+            return None
+        if os.name != "nt":
+            opened = os.readlink(f"/proc/self/fd/{fd}") if os.path.isdir("/proc/self/fd") else path
+            if denied(opened):
+                return None
+        chunks, left = [], MAX_BYTES + 1
+        while left > 0:
+            b = os.read(fd, min(left, 1 << 16))
+            if not b:
+                break
+            chunks.append(b)
+            left -= len(b)
+        data = b"".join(chunks)
+        return None if len(data) > MAX_BYTES else data
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+
+
+def _write_private(path: str, text: str) -> None:
+    """The report maps where every key lives: 0600, never through a symlink."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        if hasattr(os, "fchmod"):
+            os.fchmod(fh.fileno(), 0o600)
+        fh.write(text)
+
+
+def scan_file(path: str, basename: str, kind: str) -> list[dict]:
+    data = _read_regular(path)
+    if data is None:
         return []
     if kind == "keyfile":
         row = keyfile_row(data, basename)
@@ -848,11 +887,8 @@ def main(argv: list[str] | None = None) -> int:
         md, js = build_report(docs, hq_status(a.hq))
         base = a.out[:-3] if a.out.endswith(".md") else a.out
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-        with open(base + ".md", "w") as fh:
-            fh.write(md)
-        with open(base + ".json", "w") as fh:
-            json.dump(js, fh, indent=1, ensure_ascii=False)
-            fh.write("\n")
+        _write_private(base + ".md", md)
+        _write_private(base + ".json", json.dumps(js, indent=1, ensure_ascii=False) + "\n")
         print(f"wrote {base}.md and {base}.json: {len(js['rows'])} rows", file=sys.stderr)
         return 0
     json.dump(out, sys.stdout, ensure_ascii=True)

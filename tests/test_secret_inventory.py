@@ -92,7 +92,14 @@ def test_denied_paths_are_never_opened(tmp_path, monkeypatch):
         opened.append(str(path))
         return real_open(path, *a, **k)
 
+    real_os_open = os.open
+
+    def os_spy(path, *a, **k):
+        opened.append(str(path))
+        return real_os_open(path, *a, **k)
+
     monkeypatch.setattr("builtins.open", spy)
+    monkeypatch.setattr(si.os, "open", os_spy)
     monkeypatch.setattr(si, "DENY_POSIX", si.DENY_POSIX + (str(tmp_path / "etc-infisical"),))
     deny = tmp_path / "etc-infisical"
     deny.mkdir()
@@ -102,6 +109,47 @@ def test_denied_paths_are_never_opened(tmp_path, monkeypatch):
     assert not any("etc-infisical" in p for p in opened)
     for real in ("/etc/infisical/contabo.env", "/proc/1/environ", "/run/sompong-coo/org-db.url"):
         assert si.denied(real)
+
+
+def _deny_dir(tmp_path, monkeypatch):
+    deny = tmp_path / "etc-infisical"
+    deny.mkdir()
+    (deny / "contabo.env").write_text("INFISICAL_UNIVERSAL_AUTH_CLIENT_" + "SECRET=" + "Q9" * 10 + "\n")
+    monkeypatch.setattr(si, "DENY_POSIX", si.DENY_POSIX + (str(deny),))
+    return deny
+
+
+def test_symlinked_file_into_a_denied_dir_is_not_read(tmp_path, monkeypatch):
+    deny = _deny_dir(tmp_path, monkeypatch)
+    home = tmp_path / "home" / "secretary"
+    home.mkdir(parents=True)
+    (home / ".env").symlink_to(deny / "contabo.env")          # planted by the account that owns home
+    assert si.scan([str(home)], "h")["files"] == []
+    assert si.scan_file(str(home / ".env"), ".env", "text") == []   # O_NOFOLLOW, even past the walk
+
+
+def test_parent_dir_swapped_for_a_symlink_is_caught_after_open(tmp_path, monkeypatch):
+    deny = _deny_dir(tmp_path, monkeypatch)
+    (tmp_path / "proj").symlink_to(deny)                       # the swap a race would make after the walk
+    assert si.scan_file(str(tmp_path / "proj" / "contabo.env"), "contabo.env", "text") == []
+
+
+def test_fifo_named_like_a_key_file_does_not_hang_the_scan(tmp_path):
+    os.mkfifo(tmp_path / ".env")
+    assert si.scan([str(tmp_path)], "h")["files"] == []
+
+
+def test_report_files_are_private(tmp_path):
+    md = tmp_path / "out" / "inv.md"
+    md.parent.mkdir()
+    md.write_text("old\n")
+    os.chmod(md, 0o644)
+    si._write_private(str(md), "new\n")
+    assert md.read_text() == "new\n" and (md.stat().st_mode & 0o777) == 0o600
+    (tmp_path / "out" / "inv.json").symlink_to(tmp_path / "elsewhere.json")
+    with pytest.raises(OSError):
+        si._write_private(str(tmp_path / "out" / "inv.json"), "{}\n")
+    assert not (tmp_path / "elsewhere.json").exists()
 
 
 def test_symlinked_copy_counted_once(tmp_path):
