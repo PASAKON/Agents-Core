@@ -6,8 +6,13 @@ Anything else, or a phrase that cannot be found in it, exits non-zero and says w
 matched by character offset: spaces and punctuation are ignored on both sides (narration.txt has "เก็บแปดหมื่น!" where
 phrases.json has "เก็บแปดหมื่น"), phrases are searched in order, each after the end of the one before.
 
+Also accepts fal's ElevenLabs v4 file, {"audio": {...}, "timestamps": [chunk, ...]}, where every chunk is the shape above with
+times already absolute (load_fal / load_alignment): the chunks are joined in order into one alignment.  It fails when a chunk lacks
+a key, a time goes backwards, or the joined characters differ from narration.txt (whitespace and "..." ignored).
+
 library:  phrase_times(align_dict, phrases) -> [[(start, end), ...] per line]   raises AlignError(message)
-cli:      align.py <align.json> <phrases.json> [--out times.json]     prints one row per phrase
+          load_alignment(path, narration_path) -> plain alignment dict (plain or fal file)
+cli:      align.py <align.json> <phrases.json> [--narration narration.txt] [--out times.json]     prints one row per phrase
 """
 import json
 import sys
@@ -90,18 +95,72 @@ def load(path):
         raise AlignError(f"{path}: cannot read as JSON: {e}")
 
 
+def squeeze(text):
+    """Text as compared against the narration: no whitespace, no "..." or the one-character ellipsis."""
+    return "".join(text.replace("...", "").replace("\u2026", "").split())
+
+
+def join_fal(doc, narration):
+    """fal's {"audio", "timestamps": [chunk...]} -> one plain alignment, chunks in order.  narration is the TTS input text."""
+    if not isinstance(doc, dict) or "timestamps" not in doc:
+        raise AlignError("not a fal file: no 'timestamps' key")
+    chunks = doc["timestamps"]
+    if not isinstance(chunks, list) or not chunks:
+        raise AlignError("fal 'timestamps' must be a non-empty list of chunks")
+    ch, st, en = [], [], []
+    for n, c in enumerate(chunks):
+        if not isinstance(c, dict):
+            raise AlignError(f"fal chunk {n} is {type(c).__name__}, expected an object")
+        for k in KEYS:
+            if k not in c:
+                raise AlignError(f"fal chunk {n} lacks '{k}' (has {sorted(c)})")
+        try:
+            check_shape({k: c[k] for k in KEYS})
+        except AlignError as e:
+            raise AlignError(f"fal chunk {n}: {e}")
+        ch += c[KEYS[0]]
+        st += c[KEYS[1]]
+        en += c[KEYS[2]]
+    for i in range(1, len(st)):
+        if st[i] < st[i - 1] - 1e-9:
+            raise AlignError(f"time goes backwards at character {i} {ch[i]!r}: starts {st[i]} after {ch[i - 1]!r} started {st[i - 1]}")
+    got, want = squeeze("".join(ch)), squeeze(narration)
+    if got != want:
+        k = next((i for i, (x, y) in enumerate(zip(got, want)) if x != y), min(len(got), len(want)))
+        raise AlignError(f"the fal characters do not match the narration (whitespace and '...' ignored) at offset {k}: "
+                         f"alignment has {got[max(0, k - 8):k + 8]!r}, narration has {want[max(0, k - 8):k + 8]!r} "
+                         f"(lengths {len(got)} vs {len(want)})")
+    return {KEYS[0]: ch, KEYS[1]: st, KEYS[2]: en}
+
+
+def load_alignment(path, narration_path=None):
+    """A plain ElevenLabs alignment file, or a fal file (then narration_path is required and checked)."""
+    doc = load(path)
+    if isinstance(doc, dict) and "timestamps" in doc:
+        if not narration_path:
+            raise AlignError(f"{path} is a fal file: pass the narration text to check it against")
+        try:
+            narration = Path(narration_path).read_text(encoding="utf-8")
+        except OSError as e:
+            raise AlignError(f"cannot read the narration {narration_path}: {e}")
+        return join_fal(doc, narration)
+    return doc
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
-    out = None
-    if "--out" in args:
-        k = args.index("--out")
-        out = args[k + 1]
-        del args[k:k + 2]
+    out = narr = None
+    for flag in ("--out", "--narration"):
+        if flag in args:
+            k = args.index(flag)
+            val = args[k + 1]
+            del args[k:k + 2]
+            out, narr = (val, narr) if flag == "--out" else (out, val)
     if len(args) != 2:
         sys.exit(__doc__)
     try:
         ph = load(args[1])
-        times = phrase_times(load(args[0]), ph)
+        times = phrase_times(load_alignment(args[0], narr), ph)
     except AlignError as e:
         print(f"align.py ERROR: {e}", file=sys.stderr)
         sys.exit(2)

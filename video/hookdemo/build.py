@@ -3,8 +3,10 @@
   one audio file + alignment -> align.py phrase times -> make_edl.py (edl.json, timing.json) -> ilag_cut cards + encode
   -> mix.py (narration + clip bed, -16 LUFS) -> 720p H.264 -> 2 fps contact sheet.
 
-usage: build.py <hookdemo dir> --audio take.mp3 --align take.json --out out/rehearsal --name hook-rehearsal
-         [--ilag-cut tools/ilag_cut.py] [--kit .../brands/ilag/templates] [--py CORE_VENV_PYTHON]
+usage: build.py <hookdemo dir> --audio take.mp3 --align take.json --out out/v4/t1 --name hook-t1
+         [--narration narration.txt] [--ilag-cut tools/ilag_cut.py] [--kit .../brands/ilag/templates] [--py CORE_VENV_PYTHON]
+--align is a plain ElevenLabs alignment or a fal file ({"audio","timestamps":[...]}).  Each --name gets its own work/<name>/.
+make_hook.sh <take-name> runs this under the lock with the take's paths filled in.
 Run it under the render lock, after free -m:   flock /opt/MoonieXHQ/Work/.bl-render.lock nice -n 19 python3 build.py ...
 (ilag_cut's own --lock is not used: flock on the same file from a child would wait for its parent forever.)
 Result in <out>: <name>-720p.mp4, <name>-master-1080.mp4, <name>-contact-2fps.jpg, timing.json.
@@ -25,16 +27,23 @@ ap.add_argument("--audio", required=True)
 ap.add_argument("--align", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--name", default="hook-rehearsal")
-ap.add_argument("--ilag-cut", default=f"{CORE}/worktrees/mooniex-agents__developer__task-b7e13b61/tools/ilag_cut.py")
-# the only copy whose render_kit.py has build_kit() (PR #468); main's script-style render_kit.py crashes ilag_cut
-ap.add_argument("--kit", default=f"{CORE}/worktrees/mooniex-agents__developer__task-b7e13b61/knowledge/brand-knowledge/brands/ilag/templates")
+ap.add_argument("--narration", default=str(HERE / "narration.txt"))
+# tools/ilag_cut.py + the kit as of branch agent/developer-task-b7e13b61 (PR #468), unpacked by make_hook.sh into hookdemo/_tool
+# (main's script-style render_kit.py has no build_kit() and crashes ilag_cut; a task worktree may be removed any day)
+ap.add_argument("--ilag-cut", default=None)
+ap.add_argument("--kit", default=None)
 ap.add_argument("--py", default=f"{CORE}/.venv/bin/python")
 a = ap.parse_args()
 H, OUT = Path(a.hookdemo).resolve(), Path(a.out)
+a.ilag_cut = a.ilag_cut or str(H / "_tool/tools/ilag_cut.py")
+a.kit = a.kit or str(H / "_tool/knowledge/brand-knowledge/brands/ilag/templates")
 if not OUT.is_absolute():
     OUT = H / OUT
 OUT.mkdir(parents=True, exist_ok=True)
-WORK, B = H / "work", H / "work/build"
+SHARED = H / "work"                      # sfx, shared by every take
+WORK = SHARED / a.name
+B = WORK / "build"
+WORK.mkdir(parents=True, exist_ok=True)
 
 
 SFX = {  # synthesised, $0: the kit has no sfx files yet (thud on every cut, whoosh on the rewcard, boom on the title)
@@ -52,11 +61,12 @@ def run(cmd, label):
         sys.exit(f"build.py: {label} failed with exit {r.returncode}")
 
 
-(WORK / "sfx").mkdir(parents=True, exist_ok=True)
+(SHARED / "sfx").mkdir(parents=True, exist_ok=True)
 for name, args in SFX.items():
-    if not (WORK / "sfx" / f"{name}.wav").exists():
-        run(["ffmpeg", "-v", "error", "-y", *args, "-ac", "2", WORK / "sfx" / f"{name}.wav"], f"sfx {name}")
-run(["python3", HERE / "make_edl.py", WORK, "--audio", a.audio, "--align", a.align], "alignment -> edl.json + timing.json")
+    if not (SHARED / "sfx" / f"{name}.wav").exists():
+        run(["ffmpeg", "-v", "error", "-y", *args, "-ac", "2", SHARED / "sfx" / f"{name}.wav"], f"sfx {name}")
+run(["python3", HERE / "make_edl.py", WORK, "--audio", a.audio, "--align", a.align, "--narration", a.narration],
+    "alignment -> edl.json + timing.json")
 run([a.py, a.ilag_cut, "cards", WORK / "edl.json", "--out", B, "--kit", a.kit, "--root", H], "kit cards")
 run(["python3", a.ilag_cut, "encode", WORK / "edl.json", "--out", B, "--root", H], "encode segments")
 master = OUT / f"{a.name}-master-1080.mp4"

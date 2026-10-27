@@ -1,6 +1,7 @@
 """Build edl.json + timing.json for the ILAG hook demo (task-ee1dbcf0) from ONE narration file and its alignment.
 
-usage: make_edl.py <work dir> --audio take.mp3 --align take.json [--phrases phrases.json] [--lines lines.txt]
+usage: make_edl.py <work dir> --audio take.mp3 --align take.json [--narration narration.txt] [--phrases phrases.json] [--lines lines.txt]
+  --align takes a plain ElevenLabs alignment or a fal file ({"audio", "timestamps": [...]}, checked against --narration)
 
 Chain: alignment -> phrase start/end (align.py, by character offset) -> cut times and subtitle times -> work/edl.json
 (for ilag_cut.py) + work/timing.json.  Nothing is sped up: the voice plays at the speed it was made.
@@ -62,6 +63,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("work")
 ap.add_argument("--audio", required=True)
 ap.add_argument("--align", required=True)
+ap.add_argument("--narration", default=str(Path(__file__).resolve().parent / "narration.txt"))
 ap.add_argument("--phrases", default=str(Path(__file__).resolve().parent / "phrases.json"))
 ap.add_argument("--lines", default=str(Path(__file__).resolve().parent / "lines.txt"))
 a = ap.parse_args()
@@ -69,7 +71,7 @@ W = Path(a.work)
 
 try:
     phrases = align.load(a.phrases)
-    times = align.phrase_times(align.load(a.align), phrases)
+    times = align.phrase_times(align.load_alignment(a.align, a.narration), phrases)
 except align.AlignError as e:
     fail(str(e))
 lines = [x.strip() for x in Path(a.lines).read_text(encoding="utf-8").splitlines() if x.strip()]
