@@ -4,13 +4,6 @@ import shutil
 import sys
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
-
-K = Path(sys.argv[1]).resolve()
-FONTS = K / "fonts"
-for src, dst in (("Cinzel[wght].ttf", "Cinzel-VF.ttf"), ("Anuphan[wght].ttf", "Anuphan-VF.ttf")):
-    if (FONTS / src).exists() and not (FONTS / dst).exists():
-        shutil.copy(FONTS / src, FONTS / dst)
 
 # The Page's own logo, lifted off its black square; never redrawn (CEO 2026-10-26: "ILAG เรามี Logo อยู่แลวนะ ไม่ต้องทำใหม่").
 LOGO = '<img class="logo" src="logo.png" alt="">'
@@ -63,29 +56,49 @@ def ng(sfx):
             '</g></svg>')
 
 
-html = (K / "kit.tpl.html").read_text()
-html = html.replace("{{LOGO}}", LOGO)
-html = re.sub(r"\{\{SPLIT:(\w+):(\d+):([\d.]+)\}\}", lambda m: split(*m.groups()), html)
-html = re.sub(r"\{\{ORN:(\w+):(\w+)\}\}", lambda m: orn(m.group(1), m.group(2)), html)
-html = re.sub(r"\{\{NG:(\w+)\}\}", lambda m: ng(m.group(1)), html)
-assert "{{" not in html, "unfilled placeholder in kit.tpl.html"
-(K / "kit.html").write_text(html)
+def build_kit(K):
+    """Write K/kit.html from kit.tpl.html (logo, split, ornament and NG-stamp placeholders filled) and return its text."""
+    K = Path(K)
+    FONTS = K / "fonts"
+    for src, dst in (("Cinzel[wght].ttf", "Cinzel-VF.ttf"), ("Anuphan[wght].ttf", "Anuphan-VF.ttf")):
+        if (FONTS / src).exists() and not (FONTS / dst).exists():
+            shutil.copy(FONTS / src, FONTS / dst)
+    html = (K / "kit.tpl.html").read_text()
+    html = html.replace("{{LOGO}}", LOGO)
+    html = re.sub(r"\{\{SPLIT:(\w+):(\d+):([\d.]+)\}\}", lambda m: split(*m.groups()), html)
+    html = re.sub(r"\{\{ORN:(\w+):(\w+)\}\}", lambda m: orn(m.group(1), m.group(2)), html)
+    html = re.sub(r"\{\{NG:(\w+)\}\}", lambda m: ng(m.group(1)), html)
+    assert "{{" not in html, "unfilled placeholder in kit.tpl.html"
+    (K / "kit.html").write_text(html)
+    return html
+
 
 ALL = [
     "wm", "skip", "rewcard", "flash", "ftag", "now", "place", "name", "namegood", "title", "fact", "ng", "ngs", "ngt",
     "rew", "take2", "lesson", "bltag", "blooper", "end", "sub", "safe", "fonts", "emblem"]
-NAMES =sys.argv[2].split(",") if len(sys.argv) > 2 else ALL
-if unknown := [n for n in NAMES if n not in ALL]:
-    sys.exit(f"unknown element: {','.join(unknown)} (known: {','.join(ALL)})")
-out = K / "overlays"
-out.mkdir(exist_ok=True)
-with sync_playwright() as p:
-    b = p.chromium.launch()
-    pg = b.new_page(viewport={"width": 1080, "height": 1920})
-    for name in NAMES:
-        pg.goto((K / "kit.html").as_uri() + f"?el={name}")
-        pg.wait_for_function('document.body.dataset.ready === "1"')
-        pg.wait_for_timeout(120)
-        pg.screenshot(path=str(out / f"{name}.png"), omit_background=True)
-    b.close()
-print("rendered", len(NAMES), "overlays")
+
+
+def main():
+    from playwright.sync_api import sync_playwright
+
+    K = Path(sys.argv[1]).resolve()
+    build_kit(K)
+    NAMES = sys.argv[2].split(",") if len(sys.argv) > 2 else ALL
+    if unknown := [n for n in NAMES if n not in ALL]:
+        sys.exit(f"unknown element: {','.join(unknown)} (known: {','.join(ALL)})")
+    out = K / "overlays"
+    out.mkdir(exist_ok=True)
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        pg = b.new_page(viewport={"width": 1080, "height": 1920})
+        for name in NAMES:
+            pg.goto((K / "kit.html").as_uri() + f"?el={name}")
+            pg.wait_for_function('document.body.dataset.ready === "1"')
+            pg.wait_for_timeout(120)
+            pg.screenshot(path=str(out / f"{name}.png"), omit_background=True)
+        b.close()
+    print("rendered", len(NAMES), "overlays")
+
+
+if __name__ == "__main__":
+    main()

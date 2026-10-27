@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""The ILAG lakorn channel theme: navy + gold, approved by the CEO on 2026-09-28 for the Page
-"ละครสั้นคุณธรรม by ILAG Studio" ("KEEP Theme ไว้ … ทั้งโปสเตอร์และ Card ที่แสดงบน Video … รวมถึง Font
-และการจัดวางด้วย"). Everything that decides the look lives in this file, so a worker cannot drift from it.
-Skill: .claude/skills/CTO_ILAG_LakornTheme/SKILL.md
+"""The ILAG lakorn channel theme: gold, white and black, ruled by the CEO on 2026-10-26 for the Page
+"ละครสั้นคุณธรรม by ILAG Studio" (gold for type, borders and cut points; black and white for the grounds, the
+good side on white and the evil side on black, like the two halves of the lotus in the Page logo). It replaced
+the navy + gold of 2026-09-28. Everything that decides the look lives in this file, so a worker cannot drift
+from it. Skill: .claude/skills/CTO_ILAG_LakornTheme/SKILL.md, palette: knowledge/brand-knowledge/brands/ilag/BRAND.md
 
   ilag_theme.py poster-job <spec.json> <job.json>   write the ChatGPT job for one "รู้หรือไม่?" poster
   ilag_theme.py logo <chatgpt.png> <out.png>         paste the Page logo into the poster's empty circle, 1080x1350
@@ -18,44 +19,50 @@ from pathlib import Path
 PAGE_NAME = "ละครสั้นคุณธรรม by ILAG Studio"
 PAGE_URL = "https://www.facebook.com/61594116376333"
 
-# Colours measured off the approved poster (know-ep4-full.png) and the approved Story card, 2026-09-28.
-NAVY = "#0A1A38"                                  # poster panel (#061835 top, #0E1B3C at the edges)
-GOLD = "#F7C64E"                                  # tip box and number discs (#F6C048..#F9CD57)
-GOLD_METAL = ("#E49C1D", "#F7C440", "#FDE165")    # headline gradient: shadow, body, highlight
-CARD_BG = (12, 13, 30, 225)                       # Story card box, #0C0D1E at 88 %
-CARD_GOLD = (246, 196, 83)                        # #F6C453, card line 1
-CARD_WHITE = (255, 255, 255)                      # card line 2, the Page name
-CARD_CREAM = (255, 244, 214)                      # #FFF4D6, card line 3, the question
+# Palette v2, CEO 2026-10-26 (BRAND.md, Palette v2).
+# v1 (2026-09-28, navy + gold) drew NAVY #0A1A38, CARD_CREAM #FFF4D6, CARD_BG #0C0D1E at 88 %, CARD_GOLD #F6C453 and
+# STAMP_RED #B8322A. None of them is drawn any more; they are named here only so an old render can be traced.
+BLACK = "#0A0A0A"                                 # LOCKED. the evil side: card grounds, plates, the poster panel
+WHITE = "#FFFFFF"                                 # LOCKED. the good side: the good character's card, the lesson plate
+GOLD = "#F7C64E"                                  # LOCKED. flat gold: borders, rules, tags, pills, small text, number badges
+GOLD_METAL = ("#FDE165", "#F7C440", "#E49C1D")    # LOCKED. gold display type, top to bottom (v1 listed it bottom to top)
+STAMP_GOLD = "#E8B230"                            # PROPOSED. stamp ink on black; no render path of this tool draws a stamp
+INK = "#111111"                                   # PROPOSED. text on white and on gold
+MIST = "#C9C9C9"                                  # PROPOSED. second lines on black
 SUK = "/System/Library/Fonts/SukhumvitSet.ttc"    # face 5 Bold, face 4 Semi Bold. The Kanit woff2 in the repo is a
                                                   # Thai subset with no "?", digits or Latin: it prints boxes.
+KIT_FONTS = Path(__file__).resolve().parent.parent / "knowledge/brand-knowledge/brands/ilag/templates/fonts"
 
 # The approved prompt (round1.json know-ep4-full, 2026-09-28) with the parts of the approved output that the
-# prompt left to chance written in: navy panel, rice-ear ornaments, gold rule, gold number discs, full-width
-# tip box, dusk rice-field footer, vertical divider. The rest is word for word.
+# prompt left to chance written in: rice-ear ornaments, gold rule, gold number discs, full-width tip box,
+# rice-field footer, vertical divider. The colours are the v2 tokens above. The rest is word for word.
+# The v2 version has not been fired yet (n=0).
 POSTER_PROMPT = """Design a complete Thai public-education poster for Facebook, vertical 4:5, in a warm premium style (like a Thai TV-drama key-art card crossed with a clean infographic).
 
 Image: use ONLY {column} of the attached reference sheet, {character}. Keep the face exactly as in the sheet. {scene} Place the character in the top 40% of the poster.
 
-Below, a clean dark-indigo navy panel (#0A1A38) with thin golden rice-ear ornaments at its left and right edges, and this Thai text, EXACTLY as written, character for character, every vowel and tone mark included. Use a bold modern Thai sans-serif typeface.
+Below, a clean pure black panel ({black}) with thin golden ({gold}) rice-ear ornaments at its left and right edges, and this Thai text, EXACTLY as written, character for character, every vowel and tone mark included. Use a bold modern Thai sans-serif typeface.
 
-Headline, very large, metallic gold, centred:
+Headline, very large, metallic gold gradient running top to bottom from {metal_top} through {metal_mid} to {metal_low}, centred:
 รู้หรือไม่?
 
-Sub-headline, white, centred, with a thin gold line under it:
+Sub-headline, white ({white}), centred, with a thin flat gold ({gold}) line under it:
 {sub}
 
-Three numbered points, white, medium size, left-aligned, each number in a gold circle:
+Three numbered points, white, medium size, left-aligned, each number a near-black ({ink}) digit in a flat gold ({gold}) circle:
 1. {p1}
 2. {p2}
 3. {p3}
 
-One highlighted tip line, navy text in a rounded gold box across the full width:
+One highlighted tip line, near-black ({ink}) text in a rounded flat gold ({gold}) box across the full width:
 {tip}
 
-Footer strip at the very bottom, under a thin gold line, over a dim dusk rice-field silhouette (dark trees, last orange light), small white text on the left, two lines:
+Footer strip at the very bottom, under a thin gold line, over a dim rice-field silhouette in black and charcoal (dark trees, a last thin line of gold light), small white text on the left, two lines:
 ดูละครสั้น "{title}" ได้ที่เพจ
 {page}
 then a thin vertical gold divider, and on the right an EMPTY plain white circle (no drawing inside) about 12% of the poster width, reserved for a logo.
+
+Colours: only black, white and gold.
 
 No other words at all: no English except the page name, no signature, no watermark. No banknotes, no coins, no documents, no government emblems, no Garuda, no children."""
 
@@ -66,7 +73,9 @@ def poster_job(spec_path, job_path):
         sys.exit("the theme has exactly 3 points")
     prompt = POSTER_PROMPT.format(column=s.get("column", "column 1"), character=s["character"], scene=s["scene"],
                                   sub=s["sub"], p1=s["points"][0], p2=s["points"][1], p3=s["points"][2],
-                                  tip=s["tip"], title=s["title"], page=PAGE_NAME)
+                                  tip=s["tip"], title=s["title"], page=PAGE_NAME,
+                                  black=BLACK, white=WHITE, gold=GOLD, ink=INK,
+                                  metal_top=GOLD_METAL[0], metal_mid=GOLD_METAL[1], metal_low=GOLD_METAL[2])
     job = {"name": s["name"], "prompt": prompt}
     if s.get("attach"):
         job["attach"] = s["attach"]
@@ -84,7 +93,7 @@ def page_logo(cache=Path.home() / ".cache/ilag/page-logo.jpg"):
         data = urllib.request.urlopen(url, timeout=20).read()
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_bytes(data)
-    except Exception as e:  # noqa: BLE001 — fall back to the last good copy, and say so
+    except Exception as e:  # noqa: BLE001 (fall back to the last good copy, and say so)
         if not cache.exists():
             sys.exit(f"cannot fetch the Page logo ({e}) and no cached copy at {cache}")
         print(f"WARNING: Page logo fetch failed ({e}); using the cached {cache}")
@@ -130,23 +139,40 @@ def logo(src, out):
     print(f"saved {out} 1080x1350, logo circle {bw}x{bh} centred at ({cx},{cy}) of {w}x{h}")
 
 
-def story(a):
-    from PIL import Image, ImageDraw, ImageFont
-    if not 15 <= a.dur <= 30:
-        sys.exit("a Story is 15-30 s")
-    f = lambda size, face=5: ImageFont.truetype(SUK, size, index=face, layout_engine=ImageFont.Layout.RAQM)
+def _font(size, face=5):
+    """Sukhumvit Set where it exists (the Mac). Contabo and winbox have none, so the kit's OFL Taviraj stands in,
+    Bold for face 5 and Semi Bold for face 4."""
+    from PIL import ImageFont
+    if Path(SUK).exists():
+        return ImageFont.truetype(SUK, size, index=face, layout_engine=ImageFont.Layout.RAQM)
+    taviraj = KIT_FONTS / ("Taviraj-Bold.ttf" if face == 5 else "Taviraj-SemiBold.ttf")
+    return ImageFont.truetype(str(taviraj), size, layout_engine=ImageFont.Layout.RAQM)
+
+
+def card_image(title, question):
+    """The Story end card, 1080x1920 RGBA, transparent outside the plate: BLACK ground, GOLD line 1, WHITE line 2,
+    MIST line 3."""
+    from PIL import Image, ImageDraw
     W, H, y = 1080, 1920, 1440
     card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(card)
-    d.rounded_rectangle((60, y, W - 60, y + 300), radius=28, fill=CARD_BG)
-    d.text((W // 2, y + 80), f'ดูเต็มเรื่อง "{a.title}"', font=f(60), fill=CARD_GOLD, anchor="mm")
-    d.text((W // 2, y + 170), f"ที่เพจ {PAGE_NAME}", font=f(44, 4), fill=CARD_WHITE, anchor="mm")
-    d.text((W // 2, y + 240), a.question, font=f(40, 4), fill=CARD_CREAM, anchor="mm")
-    for text, font in ((f'ดูเต็มเรื่อง "{a.title}"', f(60)), (a.question, f(40, 4))):
+    d.rounded_rectangle((60, y, W - 60, y + 300), radius=28, fill=BLACK)
+    line1 = f'ดูเต็มเรื่อง "{title}"'
+    d.text((W // 2, y + 80), line1, font=_font(60), fill=GOLD, anchor="mm")
+    d.text((W // 2, y + 170), f"ที่เพจ {PAGE_NAME}", font=_font(44, 4), fill=WHITE, anchor="mm")
+    d.text((W // 2, y + 240), question, font=_font(40, 4), fill=MIST, anchor="mm")
+    for text, font in ((line1, _font(60)), (question, _font(40, 4))):
         if d.textlength(text, font=font) > W - 160:
             sys.exit(f"card line too long for the box, shorten it: {text}")
+    return card
+
+
+def story(a):
+    if not 15 <= a.dur <= 30:
+        sys.exit("a Story is 15-30 s")
+    W, H = 1080, 1920
     png = Path(a.out).with_suffix(".card.png")
-    card.save(png)
+    card_image(a.title, a.question).save(png)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(a.start), "-t", str(a.dur), "-i", a.film, "-i", str(png),
                     "-filter_complex", f"[0:v]scale={W}:{H},setsar=1[b];[b][1:v]overlay=0:0:enable='gte(t,{a.dur - 5})'[v]",
                     "-map", "[v]", "-map", "0:a", "-c:v", "libx264", "-crf", "20", "-preset", "medium",

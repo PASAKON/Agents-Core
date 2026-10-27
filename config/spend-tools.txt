@@ -7,7 +7,21 @@
 # One line per tool:  <repo path> <--max-usd | --max-credits>
 #
 # Add a line only after review shows the tool:
-#   - stops before it spends more than that flag (it reads the flag itself, no wrapper);
+#   - stops before it spends more than that flag (it reads the flag itself, no wrapper). A tool
+#     billed by time stops by killing what it started: it reserves that kill's latency before each
+#     start, and its line's comment names the worst case if the kill never comes;
 #   - parses it with argparse allow_abbrev=False, with no short alias and no second cap flag;
-#   - passes no argv on to another program.
+#   - passes none of the card's argv on to another program, and any program it starts runs only
+#     code pinned by hash (a wrapper that forwards argv passes the flag check but spends what it likes).
 # Candidates and what they still lack: state/handoff/2026-10-14/spend-cap-flag-gaps.md.
+
+# PR #469 (CTO review 27 Oct 2026): prices each call from its text before sending it and stops when the
+# job total, ledger included, would pass the cap.
+tools/fal_tts.py --max-usd
+
+# PR #476 (CTO review 27 Oct 2026): admits a Colab take only when spent-or-reserved + its max_cu
+# + 0.5 CU fits the cap, and reserves that sum (retries too). The pinned guard runs in its own
+# process group and stops the VM at max_cu (30 s polls). If every Contabo process dies mid-take,
+# the VM's own watchdog releases it 15 min after the last heartbeat: about 2.3 CU more on a G4
+# (8.9 CU/h). Studio takes run on G4 only; no other GPU's rate is measured.
+tools/colab_batch.py --max-credits

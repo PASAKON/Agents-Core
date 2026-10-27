@@ -12,6 +12,7 @@ import pytest
 from tools import restart_run as rr
 
 REAL_RUN = subprocess.run
+REAL_BUILD_PLAN = rr.restart_plan.build_plan  # `isolated` swaps it out for every test
 REPO = Path(__file__).resolve().parents[1]
 
 
@@ -549,3 +550,40 @@ def test_prep_odd_marker_ages_out(tmp_path, monkeypatch, body):
 
 def test_resume_unit_sets_home():
     assert 'Environment=HOME=/root' in (REPO / 'deploy/systemd/org-resume.service').read_text()
+
+
+@pytest.fixture
+def real_planner(monkeypatch):
+    """The real build_plan on an empty host; only the `ask_run.py list` subprocess is faked."""
+    from lib import config
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(rr.restart_plan, 'build_plan', REAL_BUILD_PLAN)
+    monkeypatch.setattr(rr.restart_plan, 'session_dirs', lambda host: [])
+    monkeypatch.setattr(rr.restart_plan, 'read_registry', lambda dirs: [])
+    monkeypatch.setattr(rr.restart_plan, 'read_hub', lambda: {'c_level_sessions': [], 'tasks': []})
+
+
+def prep_fresh_plan(stdout, returncode=0):
+    rr.subprocess.run.return_value = subprocess.CompletedProcess([], returncode, stdout, '')
+    return rr.prep(argparse.Namespace(host='contabo', plan=None, dry_run=False, wait_max=0,
+                                      force=False, json=False))
+
+
+def test_prep_stops_for_a_running_card(real_planner, capsys):
+    assert prep_fresh_plan('[{"id": "RUN-20261027-0001", "status": "running"}]') == 3
+    assert 'ยังทำอยู่: Do not cut: run card RUN-20261027-0001 (running)' in capsys.readouterr().out
+    assert not [c for c in commands() if c[:2] != ['bash', 'scripts/hub/org-python.sh']]
+
+
+@pytest.mark.parametrize('stdout,returncode', [('[]', 1), ('not json', 0), ('{"asks": []}', 0)])
+def test_prep_stops_when_run_cards_are_unreadable(real_planner, capsys, stdout, returncode):
+    assert prep_fresh_plan(stdout, returncode) == 3
+    assert ('ยังทำอยู่: Run cards unavailable; a running card cannot be ruled out.'
+            in capsys.readouterr().out)
+
+
+def test_prep_says_nothing_about_cards_when_none_run(real_planner, capsys):
+    prep_fresh_plan('[]')  # still 3: an empty registry is its own warning
+    out = capsys.readouterr().out
+    assert 'run card' not in out.lower()
+    assert 'Run cards unavailable' not in out
