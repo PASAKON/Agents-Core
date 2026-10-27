@@ -10,8 +10,9 @@ audio file already exists is skipped and costs nothing.
 
 The fal key comes from FAL_MEDIA_API_KEY_RW in the environment, or, on a Run card, from Infisical
 (Agents-Core prod /cmo-media) as this host's machine identity. It is never printed, and it goes only to
-queue.fal.run, never to the file host the audio comes from. Standard library only: a script card runs
-this file with the system python3.
+queue.fal.run, never to the file host the audio comes from, and never through a redirect. A key holding
+anything but printable ASCII is refused unseen. fal's answers are read up to MAX_ANSWER bytes and the audio up
+to MAX_AUDIO. Standard library only: a script card runs this file with the system python3.
 
 Job file (JSON). Every path is absolute and under /opt/MoonieXHQ/Work/:
   {"model": "elevenlabs/tts/eleven-v4", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
@@ -64,6 +65,9 @@ PRICES = {ELEVEN: 0.08 / 1000,     # "$0.08 per 1000 character", read 2026-10-26
 QUEUE = "https://queue.fal.run/"
 KEY_NAME = "FAL_MEDIA_API_KEY_RW"
 KEY_PROJECT, KEY_ENV, KEY_PATH = "Agents-Core", "prod", "/cmo-media"
+# Printable ASCII only: http.client puts a header value holding CR or LF in its error text, which redact misses.
+KEY_RE = re.compile(r"^[!-~]{8,1024}$")
+MAX_ANSWER, MAX_AUDIO = 1 << 20, 64 << 20  # bytes read from a fal answer and from an audio file
 MAX_CALLS = 60
 MAX_CHARS = 5000
 POLL_S, POLL_N = 2, 150
@@ -232,40 +236,56 @@ def write_row(lf, row: dict) -> None:
 
 def fetch_key() -> str | None:
     key = os.environ.get(KEY_NAME)
-    if key:
-        return key
-    try:
-        if str(ROOT) not in sys.path:
-            sys.path.insert(0, str(ROOT))
-        from tools import infisical_setup as inf
-        org = inf.Org(inf.self_host())
-        secret = inf._get_secret(org, inf._project(org, KEY_PROJECT)["id"], KEY_ENV, KEY_NAME, KEY_PATH)
-    except (Exception, SystemExit) as e:  # _project() exits when the project is missing
-        print(f"no key: Infisical lookup failed ({e.__class__.__name__})", file=sys.stderr)
+    if not key:
+        try:
+            if str(ROOT) not in sys.path:
+                sys.path.insert(0, str(ROOT))
+            from tools import infisical_setup as inf
+            org = inf.Org(inf.self_host())
+            secret = inf._get_secret(org, inf._project(org, KEY_PROJECT)["id"], KEY_ENV, KEY_NAME, KEY_PATH)
+        except (Exception, SystemExit) as e:  # _project() exits when the project is missing
+            print(f"no key: Infisical lookup failed ({e.__class__.__name__})", file=sys.stderr)
+            return None
+        key = (secret or {}).get("secretValue")
+    key = key.strip() if isinstance(key, str) else ""
+    if key and not KEY_RE.fullmatch(key):
+        print("no key: the stored key is not one line of printable ASCII", file=sys.stderr)
         return None
-    return (secret or {}).get("secretValue") or None
+    return key or None
 
 
-def http_json(url: str, key: str, body: dict | None = None) -> dict:
-    if not url.startswith(QUEUE):
+def http_json(url: object, key: str, body: dict | None = None) -> dict:
+    if not isinstance(url, str) or not url.startswith(QUEUE):
         raise FalError(0, "refusing to send the key off queue.fal.run")
     req = urllib.request.Request(url, data=None if body is None else json.dumps(body).encode(),
-                                 headers={"Authorization": f"Key {key}", "Content-Type": "application/json"},
+                                 headers={"Content-Type": "application/json"},
                                  method="GET" if body is None else "POST")
+    # urllib copies ordinary headers to a redirect's target, which may be another host; this one stays behind.
+    req.add_unredirected_header("Authorization", f"Key {key}")
     try:
         with urllib.request.urlopen(req, timeout=120) as f:
-            return json.loads(f.read())
+            raw = f.read(MAX_ANSWER + 1)
     except urllib.error.HTTPError as e:
-        raise FalError(e.code, e.read()[:300].decode(errors="replace")) from None
+        text = e.read(MAX_ANSWER).decode(errors="replace").replace(key, "<redacted>")
+        raise FalError(e.code, text[:300]) from None
+    if len(raw) > MAX_ANSWER:
+        raise FalError(0, f"the answer is larger than {MAX_ANSWER} bytes")
+    res = json.loads(raw)
+    if not isinstance(res, dict):
+        raise FalError(0, "the answer is not a JSON object")
+    return res
 
 
-def download(url: str, dest: Path) -> None:
+def download(url: object, dest: Path) -> None:
     """The audio file, fetched with no key, written whole or not at all."""
-    if not url.startswith("https://"):
+    if not isinstance(url, str) or not url.startswith("https://"):
         raise FalError(0, "the audio URL is not https")
-    tmp = dest.with_name(dest.name + ".part")
     with urllib.request.urlopen(url, timeout=120) as f:
-        tmp.write_bytes(f.read())
+        data = f.read(MAX_AUDIO + 1)
+    if len(data) > MAX_AUDIO:
+        raise FalError(0, f"the audio file is larger than {MAX_AUDIO} bytes")
+    tmp = dest.with_name(dest.name + ".part")
+    tmp.write_bytes(data)
     tmp.replace(dest)
 
 
@@ -362,7 +382,7 @@ def main(argv: list[str] | None = None) -> int:
                     out_dir.mkdir(parents=True, exist_ok=True)
                     (out_dir / f"{name}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1),
                                                           encoding="utf-8")
-                    audio = out_dir / f"{name}.{audio_ext(res.get('audio'))}"
+                    audio = out_dir / f"{name}.{audio_ext(res.get('audio') if isinstance(res, dict) else None)}"
                     download(res["audio"]["url"], audio)
                 except FalError as e:
                     write_row(lf, {"what": "result", "name": name, "ok": False, "code": e.code})
