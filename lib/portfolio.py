@@ -254,19 +254,27 @@ def park(project_id: str, *, actor: str, reason: str | None = None,
     return set_stage(project_id, "parked", actor=actor, reason=reason, now=now, conn=conn)
 
 
-EDITABLE = ("name", "goal", "repos", "done_criteria", "host")
+EDITABLE = ("name", "goal", "repos", "done_criteria", "host", "kind", "cadence_h")
+_EDIT_FLAG = {"cadence_h": "--cadence"}         # every other field's flag is "--" + its name with dashes
 
 
 def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list[str] | None = None,
-                done_criteria: str | None = None, host: str | None = None) -> dict:
+                done_criteria: str | None = None, host: str | None = None,
+                kind: str | None = None, cadence_h: int | None = None) -> dict:
     """The fields of an edit that were given (not None), checked and cleaned; PortfolioError when
-    none was given or a value is bad. Needs no hub, so a caller can refuse before it connects."""
+    none was given or a value is bad. Needs no hub, so a caller can refuse before it connects.
+    Whether a loop ends up with a cadence depends on the row, so edit_project checks that."""
     given = {k: v for k, v in (("name", name), ("goal", goal), ("repos", repos),
-                               ("done_criteria", done_criteria), ("host", host)) if v is not None}
+                               ("done_criteria", done_criteria), ("host", host),
+                               ("kind", kind), ("cadence_h", cadence_h)) if v is not None}
     if not given:
-        flags = ", ".join("--" + f.replace("_", "-") for f in EDITABLE)
+        flags = ", ".join(_EDIT_FLAG.get(f, "--" + f.replace("_", "-")) for f in EDITABLE)
         raise PortfolioError(f"nothing to edit: give at least one of {flags}")
+    if "kind" in given or "cadence_h" in given:
+        _schedule(kind or "finite", None, None, cadence_h)      # `or "finite"`: _schedule wants a kind
     for field, value in given.items():
+        if field in ("kind", "cadence_h"):
+            continue
         if field == "repos":
             if not isinstance(value, list) or not value or not all(isinstance(x, str) and x.strip() for x in value):
                 raise PortfolioError("repos must be a list of one or more non-empty strings")
@@ -278,14 +286,23 @@ def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list
 
 def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: str | None = None,
                  repos: list[str] | None = None, done_criteria: str | None = None,
-                 host: str | None = None, conn=None) -> dict:
+                 host: str | None = None, kind: str | None = None, cadence_h: int | None = None,
+                 conn=None) -> dict:
     """Change the descriptive fields of a project: only the ones given (not None), and at least
     one. A value equal to the current one is left alone. Returns {project, changed: {field:
-    {from, to}}}; no event row is written (project_events.kind has no value for it)."""
+    {from, to}}}; no event row is written (project_events.kind has no value for it).
+
+    `kind` (finite|loop) and `cadence_h` (positive hours) are the schedule: a loop must end up with
+    a cadence, the given one or the row's own, else PortfolioError; switching to finite leaves
+    cadence_h as it is."""
     _actor(actor)
-    new = edit_fields(name=name, goal=goal, repos=repos, done_criteria=done_criteria, host=host)
+    new = edit_fields(name=name, goal=goal, repos=repos, done_criteria=done_criteria, host=host,
+                      kind=kind, cadence_h=cadence_h)
     with _tx(conn) as c:
         row = _project(c, project_id, lock=True)
+        if ("kind" in new or "cadence_h" in new) and new.get("kind", row["kind"]) == "loop" \
+                and new.get("cadence_h", row["cadence_h"]) is None:
+            raise PortfolioError("a loop needs a cadence: give --cadence HOURS with --kind loop")
         changed = {f: {"from": row[f], "to": v} for f, v in new.items() if row[f] != v}
         if changed:
             sets = ", ".join(f"{f} = ?" + ("::jsonb" if f == "repos" else "") for f in changed)
@@ -910,7 +927,8 @@ def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=Non
         if actor_role == "project_head":
             if project["due_set_by"] == "ceo":
                 raise PermissionError("a Project Head cannot move a CEO-set date")
-            if old is None or abs(new_due - old) > timedelta(days=2):
+            # No date yet: setting the first one is not a move, so the 2-day limit has nothing to measure.
+            if old is not None and abs(new_due - old) > timedelta(days=2):
                 raise PermissionError("a Project Head may move a date by at most 2 days")
         elif actor_role != "ceo" and not is_c_level(actor_role):
             raise PermissionError("only a Project Head or C-level may replan")
@@ -919,7 +937,10 @@ def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=Non
             c.execute("UPDATE projects SET due_first_at = COALESCE(due_first_at, ?) WHERE id = ?",
                       (old, project_id))
         if n == 0:
-            c.execute("UPDATE projects SET due_at = ? WHERE id = ?", (new_due, project_id))
+            # The first project date records who set it, unless the row already says.
+            set_by = {"ceo": "ceo", "project_head": "ph"}.get(actor_role, "clevel") if old is None else None
+            c.execute("UPDATE projects SET due_at = ?, due_set_by = COALESCE(due_set_by, ?) WHERE id = ?",
+                      (new_due, set_by, project_id))
         else:
             c.execute("UPDATE milestones SET due_at = ? WHERE project_id = ? AND n = ?",
                       (new_due, project_id, n))
