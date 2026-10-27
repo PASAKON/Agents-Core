@@ -58,6 +58,12 @@ fi
 repo_root="$(dirname "$common_dir")"
 hook="$common_dir/hooks/pre-commit"
 
+# A pre-commit written by scripts/security/leak-guards.sh is a wrapper that runs <hook>.local
+# first and ends in `exit`. Stanzas appended after it would be dead code, so they go to .local.
+if grep -q 'leak-guards:v1' "$hook" 2>/dev/null; then
+  hook="$hook.local"
+fi
+
 mkdir -p "$common_dir/hooks"
 [ -f "$hook" ] || printf '#!/bin/sh\n' > "$hook"
 
