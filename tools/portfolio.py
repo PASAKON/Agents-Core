@@ -487,6 +487,8 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
                 _out(rows)
             else:
                 print(pf.render_report(rows))
+                for p in pf.idea_with_live_ph(now):      # stage idea is outside the monitor: say it here
+                    print(f"idea · {p['name']} ({p['project_id']}) · PH {p['ph_session']} live: set stage or park")
             return 0
         if args.verb == "eta-stats":
             _out(pf.eta_stats())

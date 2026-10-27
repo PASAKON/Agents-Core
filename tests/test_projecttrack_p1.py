@@ -55,6 +55,15 @@ def project(pid="p", **kwargs):
     return pf.open_project(pid, pid, "cto", actor=ACTOR, now=T, stage="active", **kwargs)
 
 
+def live_sessions(store, *rows):
+    """live_sessions is Postgres only, so Store has no such table: make it, with (sid, name, seen_at) rows."""
+    store.execute("CREATE TABLE IF NOT EXISTS live_sessions"
+                  " (host TEXT, uuid TEXT, sid TEXT, role TEXT, name TEXT, seen_at TEXT)")
+    for i, (sid, name, seen) in enumerate(rows):
+        store.execute("INSERT INTO live_sessions (host, uuid, sid, role, name, seen_at)"
+                      " VALUES ('h', ?, ?, 'project_head', ?, ?)", (f"u{i}", sid, name, pf.iso(seen)))
+
+
 @pytest.mark.parametrize("days,source,role,allowed", [
     (2, "ph", "project_head", True), (3, "ph", "project_head", False),
     (1, "ceo", "project_head", False), (3, "ceo", "cto", True),
@@ -397,6 +406,56 @@ def test_authorization_rows(verb, tmp_path):
     allowed = cli.authorize(ph, verb, p, locks_dir=tmp_path) is None
     assert allowed == (not verb.startswith("order_"))
     assert cli.authorize(ph, verb, {**p, "ph_session": "deadbeef"}, locks_dir=tmp_path)
+
+
+def _idea(pid, ph, stage="idea", name=None):
+    pf.open_project(pid, name or pid, "cto", actor=ACTOR, now=T, stage=stage, owner_session="cto-fresh", ph_session=ph)
+
+
+def test_idea_with_live_ph_needs_a_fresh_live_session_that_carries_the_ph_session(store):
+    _idea("by-sid", "45728c34")
+    _idea("prefixed", "project_head-1a2b3c4d")
+    _idea("by-name", "9f8e7d6c")
+    _idea("stale", "aaaa1111")
+    _idea("absent", "bbbb2222")
+    _idea("no-ph", None)
+    _idea("short", "ab")
+    _idea("running", "cccc3333", stage="active")                     # live, but the monitor already lists it
+    fresh, old = T - timedelta(minutes=14), T - timedelta(minutes=16)
+    live_sessions(store, ("45728c34", "x", fresh), ("1a2b3c4d", "x", fresh),
+                  ("none", "🌐 PH#9F8E7D6C (CTO) - Name", fresh), ("aaaa1111", "x", old),
+                  ("cccc3333", "x", fresh), ("zz", "PH#ab", fresh))
+    got = pf.idea_with_live_ph(T, conn=store)
+    assert [p["project_id"] for p in got] == ["by-name", "by-sid", "prefixed"]       # "short" never matches by name
+    assert got[1] == {"project_id": "by-sid", "name": "by-sid", "lane": "cto",
+                      "owner_session": "cto-fresh", "ph_session": "45728c34"}
+    assert len(pf.idea_with_live_ph(T + timedelta(minutes=1), conn=store)) == 3      # seen 15 min ago still counts
+    assert pf.idea_with_live_ph(T + timedelta(minutes=2), conn=store) == []          # 16 min ago does not
+    assert [r["id"] for r in pf._monitor_all(T, store)] == ["running"]               # the monitor is unchanged
+
+
+def test_idea_with_live_ph_is_empty_when_live_sessions_cannot_be_read(store):
+    _idea("idea-one", "45728c34")
+    assert pf.idea_with_live_ph(T, conn=store) == []                 # Store has no live_sessions table
+
+    class Broken:
+        def execute(self, *a, **k):
+            raise RuntimeError("permission denied for table live_sessions")
+    assert pf.idea_with_live_ph(T, conn=Broken()) == []
+
+
+def test_report_prints_one_line_per_idea_with_a_live_ph_and_none_without(store, capsys):
+    identity = Identity("cxo", "cto", "abcdef12")
+    _idea("idea-one", "45728c34", name="Idea One")
+    live_sessions(store, ("45728c34", "x", T - timedelta(minutes=1)))
+    assert cli.run(["report"], identity=identity, now=T) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0].startswith("สาย") and lines[1:] == ["idea · Idea One (idea-one) · PH 45728c34 live: set stage or park"]
+    assert cli.run(["report", "--json"], identity=identity, now=T) == 0
+    assert json.loads(capsys.readouterr().out) == []                 # the JSON stays the monitor's rows only
+    store.execute("UPDATE live_sessions SET seen_at = ?", (T - timedelta(minutes=20),))
+    assert cli.run(["report"], identity=identity, now=T) == 0
+    assert "idea ·" not in capsys.readouterr().out
 
 
 def test_cli_verbs(store, monkeypatch, capsys):

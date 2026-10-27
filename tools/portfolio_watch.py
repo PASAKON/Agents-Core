@@ -13,6 +13,10 @@ its state lives in state/portfolio_watch.json. The ladder, one letter per step p
                                      date, change the PH or park.
   unlinked_order     30 min old   -> the C-level that took it (orders.taken_by).
   waiting_ceo        never a letter: the CEO already sees that band on the monitor.
+  idea_live_ph       first seen   -> the owner C-level (kind blocker): a project at stage idea
+                                     whose PH session is live (lib/portfolio.idea_with_live_ph;
+                                     the monitor never lists stage idea): set the stage or park.
+                                     One letter, no 4 h step, no red mark.
   any episode        +24 h        -> `red: true` in the state file, no letter.
   episode gone                    -> removed from the state, no letter.
 
@@ -65,7 +69,7 @@ _SID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]{0,63}")
 _WHEN = "%Y-%m-%dT%H:%M:%SZ"
 
 LABEL = {"late": "late", "no_plan": "no plan", "waiting_ceo": "waiting on CEO",
-         "unlinked_order": "unlinked order"}
+         "unlinked_order": "unlinked order", "idea_live_ph": "idea"}
 SAY = {"late": "is late", "no_plan": "has no plan"}      # the verb phrase in a letter about a project
 CLI = "bash scripts/hub/org-python.sh tools/portfolio.py"
 
@@ -184,6 +188,10 @@ def findings(now: datetime, conn=None) -> Found:
         out.append({"key": f"{a['project_id']}:{kind}", "kind": kind, "id": a["project_id"],
                     "name": _line(p["name"], 40), "what": what, "since": since,
                     "ph": _ph_box(p["ph_session"]), "owner": _owner_box(p["lane"], p["owner_session"])})
+    for p in portfolio.idea_with_live_ph(now, conn=conn):   # last: a failed read aborts a PG transaction
+        out.append({"key": f"{p['project_id']}:idea_live_ph", "kind": "idea_live_ph", "id": p["project_id"],
+                    "name": _line(p["name"], 40), "what": f"PH {_line(p['ph_session'], 40)} live", "since": now,
+                    "ph": None, "owner": _owner_box(p["lane"], p["owner_session"])})
     return out
 
 
@@ -242,6 +250,11 @@ def _letter(f: dict, step: str, box: str, now: datetime) -> dict:
     """The subject (at most 80 characters) and body of one letter. The body opens
     `blocker · urgent ·` so its kind reads the same with the mail envelope on or off."""
     label, ref = LABEL[f["kind"]], f"{f['name']} ({f['id']})"
+    if f["kind"] == "idea_live_ph":
+        return {"box": box, "subject": f"idea: {f['name']} has a live PH"[:SUBJECT_MAX],
+                "body": (f"blocker · urgent · portfolio watch: project {ref} is still at stage idea, so the "
+                         f"monitor does not list it, but its Project Head is running ({f['what']}). Run "
+                         f"`{CLI} stage {f['id']} active`, or park it with `{CLI} park {f['id']}`.")}
     say = SAY.get(f["kind"], "is " + label)
     subject = (("still " if step == "owner" else "") + f"{label}: {f['name']} {f['what']}")[:SUBJECT_MAX]
     late = f"since {_iso(f['since'])[:16]}Z, {_ago(now - f['since'])} ago"
@@ -280,10 +293,12 @@ def plan(found, state: dict, now: datetime) -> list[dict]:
             continue                                    # the cap never drops a running episode
         ep = eps.setdefault(f["key"], {"start": _iso(now), "sent": [], "red": False})
         age = now - _at(ep["start"], now)
-        if age >= RED_AFTER:
+        if age >= RED_AFTER and f["kind"] != "idea_live_ph":
             ep["red"] = True
         steps = []
-        if f["kind"] == "unlinked_order":
+        if f["kind"] == "idea_live_ph":
+            steps = [("first", f["owner"])]
+        elif f["kind"] == "unlinked_order":
             if now - f["since"] >= ORDER_AFTER:
                 steps = [("first", f["owner"])]
         elif f["kind"] != "waiting_ceo":

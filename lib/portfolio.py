@@ -43,6 +43,7 @@ WORKING_S = 5 * 60                           # a heartbeat this fresh is "workin
 IDLE_S = 24 * 3600                           # a heartbeat this fresh is "idle", else "stalled"
 MAX_ROWS = 20
 GENERATING_MAX_AGE_S = IDLE_S                # a task row untouched this long is not "generating"
+LIVE_PH_S = 15 * 60                          # a live_sessions row seen this recently is a live session
 
 ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,62}")
 LANE_RE = re.compile(r"[a-z]{2,12}")
@@ -1173,6 +1174,36 @@ def render_report(rows):
         lines.append(" · ".join(str(x or "—") for x in (r["lane"], r["name"], r["kind"], progress, due,
                      r["state"], (r["blocker"] or {}).get("what"), r["next"])))
     return "\n".join(lines)
+
+
+def idea_with_live_ph(now=None, *, conn=None) -> list[dict]:
+    """Projects still at stage 'idea' whose Project Head is running: the monitor selects only
+    active, review and parked, so such a project shows nowhere else. Live = a live_sessions row
+    seen in the last LIVE_PH_S whose sid is the ph_session (with or without its `project_head-`
+    prefix) or whose name carries it (names read `PH#45728c34 (CTO) - Project`; 6+ characters, so
+    a short ph_session cannot match every name). Returns [] and never raises when the hub or
+    live_sessions cannot be read. Pass the caller's connection last: a failed read aborts a
+    PostgreSQL transaction."""
+    try:
+        since = _utc(now) - timedelta(seconds=LIVE_PH_S)
+        with _tx(conn) as c:
+            ideas = [dict(r) for r in c.execute(
+                "SELECT id, name, lane, owner_session, ph_session FROM projects"
+                " WHERE stage = 'idea' AND ph_session IS NOT NULL ORDER BY id").fetchall()]
+            if not ideas:
+                return []
+            seen = [(str(r["sid"] or "").lower(), str(r["name"] or "").lower()) for r in c.execute(
+                "SELECT sid, name FROM live_sessions WHERE seen_at >= ?", (since,)).fetchall()]
+    except Exception:
+        return []
+    out = []
+    for p in ideas:
+        ph = p["ph_session"].strip().lower()
+        token = ph[len("project_head-"):] if ph.startswith("project_head-") else ph
+        if token and any(sid in (token, ph) or (len(token) >= 6 and token in name) for sid, name in seen):
+            out.append({"project_id": p["id"], "name": p["name"], "lane": p["lane"],
+                        "owner_session": p["owner_session"], "ph_session": p["ph_session"].strip()})
+    return out
 
 
 def eta_stats(*, conn=None):
