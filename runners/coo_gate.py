@@ -37,6 +37,7 @@ import socket
 import struct
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -44,7 +45,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lib import coo_policy, db  # noqa: E402
+from lib import coo_policy, db, portfolio  # noqa: E402
 from tools import ask_run  # noqa: E402  (secret shapes only: one list of them, not a second copy)
 
 DEFAULT_SOCKET = "/run/org-coo-gate/gate.sock"
@@ -73,6 +74,16 @@ SKILLS_DIR = ROOT / ".claude" / "skills"
 RATE_WINDOW_S = 3600
 AUDIT_MAX_PER_HOUR = 600
 FIELD_NOTE_MAX_PER_HOUR = 30
+# CEO orders the COO relays (ProjectTrack P6): one hub `orders` row per row of the COO's OPEN.md.
+# The shapes are the ones org_coo_orders_guard checks again in org_coo_role.sql.
+ORDER_OPEN_FIELDS = frozenset({"op", "session_id", "n", "words", "due_at"})
+ORDER_CLOSE_FIELDS = frozenset({"op", "session_id", "order_id", "outcome"})
+MAX_ORDER_WORDS = 2000
+MAX_ORDER_OUTCOME = 500
+MAX_ORDER_N = 999_999
+ORDER_ID = re.compile(r"O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}")        # fullmatch, like SKILL_NAME
+COO_SESSION_ID = re.compile(r"[0-9a-f]{8}")
+COO_TAKEN_BY = re.compile(r"COO#[0-9a-f]{8}")                     # an order a COO session took
 
 log = logging.getLogger("coo_gate")
 
@@ -461,6 +472,78 @@ def op_field_note(req: dict, uid: int, *, now: float | None = None) -> dict:
     return {"recorded": True, "skill": skill, "tag": tag}
 
 
+def _order_session(req: dict) -> str:
+    """The COO session id of an order op: 8 lowercase hex, because it becomes `taken_by` = COO#<sid>."""
+    sid = _text(req, "session_id", 64)
+    if not COO_SESSION_ID.fullmatch(sid):
+        raise Refused("session_id must be 8 lowercase hex digits")
+    return sid
+
+
+def _order_due(value: Any) -> datetime | None:
+    """due_at: absent/null, or an ISO-8601 instant that names its zone (a naive one is a guess)."""
+    if value is None:
+        return None
+    try:
+        due = datetime.fromisoformat(value.replace("Z", "+00:00")) if isinstance(value, str) else None
+    except ValueError:
+        due = None
+    if due is None or due.tzinfo is None:
+        raise Refused("due_at must be an ISO-8601 time with a timezone, e.g. 2026-10-30T17:00:00+07:00")
+    return due
+
+
+def op_order_open(req: dict, uid: int) -> dict:
+    """Record one CEO order the COO relays, as a hub `orders` row with channel coo:<n> (n = the row in
+    the COO's OPEN.md). Idempotent per n: while a COO-taken order for coo:<n> is open, the same call
+    returns its id and writes nothing. project_id stays NULL; a C-level links it later. Accepts ONLY
+    {op, session_id, n, words, due_at}; a given due_at is the CEO's date (due_set_by 'ceo')."""
+    extra = sorted(set(req) - ORDER_OPEN_FIELDS)
+    if extra:
+        raise Refused(f"order_open accepts only session_id, n, words, due_at (unexpected: {', '.join(extra)})")
+    session_id = _order_session(req)
+    n = req.get("n")
+    if isinstance(n, bool) or not isinstance(n, int) or not 1 <= n <= MAX_ORDER_N:
+        raise Refused(f"n must be an integer from 1 to {MAX_ORDER_N} (the row number in OPEN.md)")
+    words = _clean(_text(req, "words", MAX_ORDER_WORDS))
+    due = _order_due(req.get("due_at"))
+    _coo_session(session_id)
+    channel = f"coo:{n}"
+    # One transaction for the lookup and the insert; the gate serves one request at a time.
+    with portfolio._tx() as c:
+        row = c.execute("SELECT id FROM orders WHERE channel=? AND closed_at IS NULL AND taken_by LIKE ? "
+                        "ORDER BY taken_at, id LIMIT 1", (channel, "COO#%")).fetchone()
+        if row is not None:
+            return {"order_id": row["id"], "existing": True}
+        oid = portfolio.order_take(words, channel, actor=f"COO#{session_id}", due_at=due,
+                                   due_set_by="ceo" if due else None, conn=c)
+    return {"order_id": oid, "existing": False}
+
+
+def op_order_close(req: dict, uid: int) -> dict:
+    """Close one open order a COO session opened, with a one-line outcome. A missing order and one a
+    COO did not take get the same answer, so the gate does not confirm other orders exist. Accepts
+    ONLY {op, session_id, order_id, outcome}."""
+    extra = sorted(set(req) - ORDER_CLOSE_FIELDS)
+    if extra:
+        raise Refused(f"order_close accepts only session_id, order_id, outcome (unexpected: {', '.join(extra)})")
+    session_id = _order_session(req)
+    order_id = req.get("order_id")
+    if not isinstance(order_id, str) or not ORDER_ID.fullmatch(order_id):
+        raise Refused("order_id must look like O-YYYYMMDD-HHMM-xxxx")
+    outcome = _clean(_text(req, "outcome", MAX_ORDER_OUTCOME))
+    _coo_session(session_id)
+    now = datetime.now(timezone.utc)
+    with portfolio._tx() as c:
+        row = c.execute("SELECT taken_by, closed_at FROM orders WHERE id=?", (order_id,)).fetchone()
+        if row is None or not COO_TAKEN_BY.fullmatch(row["taken_by"] or ""):
+            raise Refused(f"no open COO order {order_id}")
+        if row["closed_at"] is not None:
+            raise Refused(f"order {order_id} is already closed")
+        portfolio.order_close(order_id, outcome, actor=f"COO#{session_id}", now=now, conn=c)
+    return {"order_id": order_id, "closed_at": portfolio.iso(now)}
+
+
 OPS: dict[str, Callable[[dict, int], dict]] = {
     "ping": op_ping,
     "set_charter": op_set_charter,
@@ -474,6 +557,8 @@ OPS: dict[str, Callable[[dict, int], dict]] = {
     "respawn_status": op_respawn_status,
     "audit_append": op_audit_append,
     "field_note": op_field_note,
+    "order_open": op_order_open,
+    "order_close": op_order_close,
 }
 
 

@@ -988,8 +988,8 @@ def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_b
                order_id=None):
     now, actor = _utc(now), _actor(actor)
     words, channel = _text(words, "words"), _text(channel, "channel", limit=120)
-    if not re.fullmatch(r"(?:sompong:\d+|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
-        raise PortfolioError("channel must be sompong:<n> or chat:<role>-<session>")
+    if not re.fullmatch(r"(?:sompong:\d+|coo:[0-9]{1,6}|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
+        raise PortfolioError("channel must be sompong:<n>, coo:<n> or chat:<role>-<session>")
     _schedule("finite", due_at, due_set_by, None)
     oid = order_id or "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
     with _tx(conn) as c:
