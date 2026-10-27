@@ -96,3 +96,9 @@ Failed-without-the-change checks: the 8 new `test_coo_gate.py` tests fail on `HE
 ## Environment used for the real-engine runs (all deleted)
 
 No Postgres server ships on this box (client tools only). I ran the server binary that already sits in a container image layer under `/var/lib/containerd/...`, as a mapped non-root uid (`unshare -U --map-user=65534`, because Postgres refuses root and the scratchpad is mode 0700), data dir in the scratchpad, unix socket only (`listen_addresses=''`, socket via a short `/tmp/cpg` symlink for the 107-char socket-path limit). Never the hub, never TCP. Stopped, data dir and symlink removed afterwards.
+
+## Not checked / risk (added by PH#40fefb4e)
+- Not applied to the hub. The first real run is the `--grants-only` Run card. It REVOKEs everything first and runs ON_ERROR_STOP, so a proof failure leaves org_coo with no grants until it is fixed or re-run. Today that would stop SomPong's coo-gate ops, not just the mirror.
+- The real-engine module (tests/test_coo_orders_pg.py) ran on a local throwaway Postgres 16 and in CI. It has not run against the hub's actual data, for example orders rows that already exist.
+- The COO# pin covers only a close made by SomPong's own process. Today report_to_ceo closes as the C-level (role org), which the guards do not apply to. The sid is not checked against c_level_sessions.
+- PH#d87 adds a SELECT grant to the same file after 18:00 TH and builds on this one.
