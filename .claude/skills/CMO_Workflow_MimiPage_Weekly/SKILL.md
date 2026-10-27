@@ -6,6 +6,8 @@ description: >-
   WORKFLOW — Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and scheduled ahead, then supervised. Trigger on /CMO_Workflow_MimiPage_Weekly, "มีมี่ สัปดาห์นี้", "ตารางโพสต์มีมี่", "คุมงานเพจมีมี่". Not for story rules, the engine, QC or the cut recipe.
 created_by: agent
 author: {role: cmo, date: "2026-10-02"}
+improved_by:
+  - {role: developer, date: "2026-10-27", what: "wake lines: deadline one-shots only, clock checks back off under budget pressure, Contabo offset after 25 Oct (IRON-RULES §64, task-375ec9e9)"}
 audience: [cmo, script_writer, content_strategist, browser_operator, video_editor]
 ---
 
@@ -40,7 +42,7 @@ The story is `CMO_Standard_Story_FamilyDogSeries`; the shoot is `CMO_Knowledge_F
   no links (a link goes in the first comment), never ask for likes or shares.
 - **The weekly calendar lives in `docs/plans/mimi-weekly-calendar.md`** (one row per slot: kind, title, files, status,
   scheduled yes/no, first comment, numbers). Update the row the same turn the state changes.
-- Contabo's clock is CEST: **cron hour = Thai hour − 5** (`TZ=Asia/Bangkok date` first, always).
+- Contabo's clock follows Berlin time: **cron hour = Thai hour − 6** since 25 Oct (CET), − 5 in summer (CEST) (`TZ=Asia/Bangkok date` first, always).
 
 ## The steps
 
@@ -86,8 +88,8 @@ D−1. Caption through `CMO_Standard_HumanVoice_TH` first (`check-post-text.sh` 
 the attach: check `tools/flow_tabs_health.py --port 9281` first.
 
 ### Step 10 · First comments armed [node: comment]
-D−1. One one-shot cron per episode at D 19:33 (§5) and one at D 19:45 for the live check; `CronList` shows them. Re-arm at every session
-start; recurring jobs die after 7 days.
+D−1. One one-shot cron per episode at D 19:33 (§5) and one at D 19:45 for the live check, deadline wakes only, no recurring poll; `CronList`
+shows them. Re-arm at every session start.
 
 ### Step 11 · Live check and numbers [node: watch]
 D 19:35 and onward (§6). Done when the post is public, the first comment is up, the calendar row and the ledger row are written.
@@ -140,9 +142,12 @@ and the **promise of the next episode computed from the calendar, never copied f
 
 - The comment text takes the same last pass (`CMO_Standard_HumanVoice_TH`) before it is armed, and stays ONE paragraph (a newline may send it early).
 - Thursday's teaser says "พรุ่งนี้ 19:30"; Monday–Wednesday posts say "ศุกร์นี้".
-- **Mechanism today = a session-only one-shot cron** (`CronCreate recurring:false`, Contabo local time = Thai − 5 h). It dies with the session
-  and `durable` has no effect; recurring jobs expire after 7 days. So: re-arm at every session start (`CronList` first), and every Friday
-  re-create the week's crons. **The durable fix is a Graph API path** (Page token → scheduled posts + timed comments from a Contabo timer,
+- **Mechanism today = a deadline wake, never a poll** (IRON-RULES §64): one session-only one-shot (`CronCreate recurring:false`) per post time,
+  19:33 for the first comment and 19:45 for the live check (Contabo local time = Thai − 6 h since 25 Oct, − 5 h in summer). It dies with the session
+  and `durable` has no effect; recurring jobs expire after 7 days and are not used. So: re-arm at every session start (`CronList` first), and every
+  Friday re-create the week's one-shots. Any other timed check (a late post, a numbers pull) is a background script that exits on a change, never a
+  model turn on a clock, and its interval is multiplied by `lib/wake_backoff.backoff_factor()` (×2 while one provider is over today's target, ×4 while
+  all three are; never stopped; a real event still wakes at once). **The durable fix is a Graph API path** (Page token → scheduled posts + timed comments from a Contabo timer,
   token in Infisical) — it needs the CEO's Facebook app/token step; propose it, do not start it unasked (`project_meta_page_api_plan`).
 - The comment is posted as the **Page**, not the personal profile: the composer's identity name must read "บ้านนี้มีมีมี่"; if it shows a personal name,
   stop and hand the CEO the text (`tools/fb_reel_post.py` exit 7 logic).

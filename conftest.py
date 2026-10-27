@@ -34,6 +34,17 @@ def _pin_tmux_bin(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_real_usage_budget(tmp_path_factory, monkeypatch):
+    """The wake factors (lib/wake_backoff) read the live state/usage-budget json by
+    default; a test run on a host whose budget is over would then see slower debounce
+    and timed-wake intervals. Every test starts with no budget file (= factor 1) and
+    sets its own with monkeypatch.setattr(wake_backoff, "BUDGET_PATH", ...)."""
+    from lib import wake_backoff
+    monkeypatch.setattr(wake_backoff, "BUDGET_PATH",
+                        tmp_path_factory.getbasetemp() / "no-usage-budget.json")
+
+
+@pytest.fixture(autouse=True)
 def _clean_session_env(monkeypatch):
     """Strip C-level session identity out of every test's environment
     (task-78586938). pytest inherits whatever shell it was launched from --
