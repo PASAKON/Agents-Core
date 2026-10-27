@@ -1,4 +1,5 @@
 import json
+import subprocess
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -6,6 +7,15 @@ import pytest
 from tools import restart_plan as rp
 
 NOW = datetime(2026, 10, 15, 12, tzinfo=timezone.utc)
+READ_RUNNING_CARDS = rp.read_running_cards
+CARD_LIST = ['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'list', '--status', 'running', '--json']
+CARDS_UNAVAILABLE = 'Run cards unavailable; a running card cannot be ruled out.'
+
+
+@pytest.fixture(autouse=True)
+def _no_console(monkeypatch):
+    """build_plan asks the Console for running run cards; no test here reaches it."""
+    monkeypatch.setattr(rp, 'read_running_cards', lambda: [])
 
 
 def entry(kind='assistant', minutes=0, **message):
@@ -108,3 +118,74 @@ def test_unavailable_hub(tmp_path, monkeypatch):
     plan = rp.build_plan('contabo', NOW, tmp_path)
     assert 'private' not in json.dumps(plan)
     assert plan['warnings']
+
+
+def card_list(monkeypatch, stdout='[]', returncode=0, error=None):
+    calls = []
+    def run(argv, **kwargs):
+        calls.append((argv, kwargs))
+        if error:
+            raise error
+        return subprocess.CompletedProcess(argv, returncode, stdout, 'stderr is never reported')
+    monkeypatch.setattr(rp.subprocess, 'run', run)
+    return calls
+
+
+def test_running_cards_call(monkeypatch):
+    monkeypatch.delenv('HOME', raising=False)
+    monkeypatch.setenv('KEEP_ME', '1')
+    calls = card_list(monkeypatch, '[{"id": "RUN-1", "status": "running"}]')
+    assert READ_RUNNING_CARDS() == [{'id': 'RUN-1', 'status': 'running'}]
+    (argv, kwargs), = calls
+    assert argv == CARD_LIST
+    assert kwargs['cwd'] == rp.ROOT
+    assert kwargs['timeout'] == 30
+    assert kwargs['env']['HOME'] == '/root'
+    assert kwargs['env']['KEEP_ME'] == '1'
+
+
+def test_running_cards_keep_an_existing_home(monkeypatch):
+    monkeypatch.setenv('HOME', '/home/operator')
+    calls = card_list(monkeypatch)
+    assert READ_RUNNING_CARDS() == []
+    assert calls[0][1]['env']['HOME'] == '/home/operator'
+
+
+@pytest.mark.parametrize('failure', [
+    dict(returncode=1, stdout='[]'),
+    dict(stdout='not json'),
+    dict(stdout=''),
+    dict(stdout='{"asks": []}'),
+    dict(stdout='[1]'),
+    dict(error=subprocess.TimeoutExpired(CARD_LIST, 30)),
+    dict(error=FileNotFoundError('bash')),
+])
+def test_running_cards_unreadable(monkeypatch, failure):
+    card_list(monkeypatch, **failure)
+    assert READ_RUNNING_CARDS() is None
+
+
+def cards_warnings(tmp_path, monkeypatch, cards):
+    from lib import config
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(rp, 'session_dirs', lambda host: [])
+    monkeypatch.setattr(rp, 'read_registry', lambda dirs: [])
+    monkeypatch.setattr(rp, 'read_hub', lambda: {'c_level_sessions': [], 'tasks': []})
+    monkeypatch.setattr(rp, 'read_running_cards', lambda: cards)
+    return rp.build_plan('contabo', NOW, tmp_path)['warnings']
+
+
+def test_running_card_is_a_warning(tmp_path, monkeypatch):
+    warnings = cards_warnings(tmp_path, monkeypatch, [{'id': 'RUN-20261027-0001'}, {'status': 'running'}])
+    assert 'Do not cut: run card RUN-20261027-0001 (running)' in warnings
+    assert 'Do not cut: run card ? (running)' in warnings
+    assert CARDS_UNAVAILABLE not in warnings
+
+
+def test_no_running_card_no_warning(tmp_path, monkeypatch):
+    warnings = cards_warnings(tmp_path, monkeypatch, [])
+    assert not [w for w in warnings if 'run card' in w.lower()]
+
+
+def test_unreadable_cards_fail_closed(tmp_path, monkeypatch):
+    assert CARDS_UNAVAILABLE in cards_warnings(tmp_path, monkeypatch, None)
