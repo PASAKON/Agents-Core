@@ -136,8 +136,17 @@ field note 2026-10-26). PROPOSED until the pilot's 72 h numbers are in.
   and cards passed; its voice did not (edge-tts NiwatNeural sped up 32% to fit). The narrator is ElevenLabs v4 on fal,
   one call for all six lines so the rise and fall carries across them, never sped up afterwards; edge-tts is a $0
   stand-in for drafts only. Measured v4 Thai pace: 10.9 characters a second with pauses, 13.2 speech only (CnDrama EP1,
-  13,855 characters, 25 Oct), so six lines that fit 15 s run about 160-175 characters, spaces not counted. Which v4 voice
-  is the CEO's pick by ear (takes in `/opt/MoonieXHQ/Work/task-e58b9235/voice-v4/`): PENDING.
+  13,855 characters, 25 Oct), so six lines that fit 15 s run about 160-175 characters, spaces not counted. The voice is
+  LOCKED in the next bullet.
+- **The narrator voice, LOCKED (CEO 2026-10-27):** ElevenLabs v4 on fal (`elevenlabs/tts/eleven-v4`), voice `George`,
+  `stability` 0.3, `seed` 7, `language_code` `th`, the tag `[rushed] ` in front of every line, all six lines in one call.
+  At 08:40 TH he picked George at stability 0.3 by ear (take t3) but said "พูดช้าไปหน่อย"; the re-make kept the
+  never-sped-up rule and changed only the tag. Take f3 (15.15 s for the six lines; t3 ran 19.4 s) passed at 09:45 TH:
+  "f3_rushed_every_line_George_s0.3.mp3 อันนี้ผ่านแล้ว ทำ Hook เริ่มต้น มาให้ดูได้เลย". The pace comes from the tag,
+  because v4 on fal has no speed field and t3 held only 2.9 s of silence. The tag is not spoken (about 0.05 s in the
+  alignment), but any loader that reads the alignment must drop `[...]` tags. It holds from EP1 "ตบผิดคน" on ("ใน EP
+  ต่อๆ ไป"). The job that made it: call `f3_rushed_every_line_George_s0.3` in `voice-v4-fast/job.json` of the ILAG work
+  folder (`/opt/MoonieXHQ/Work/task-e58b9235/`, moving to `/opt/MoonieXHQ/Work/ilag-lakorn/` before 9 Nov).
 - **The pictures:** a new shot on every line, often two: 10-14 hard cuts in the first 12 s (about 0.7-1.5 s each), no
   transitions, a music bed under the voice. Each shot shows what its line says.
 - **Where the shots come from:** moments from later in the same EP (a flash-forward), plus inserts that prove a fact
@@ -169,6 +178,9 @@ field note 2026-10-26). PROPOSED until the pilot's 72 h numbers are in.
    fact, the gag. A "รู้ไว้" fact that is not checked does not air.
 8. **Colour:** gold, white and black only. Good on white, evil on black. No navy, cream, red or sepia in a new piece.
 9. **The logo is the Page's own** (§Logo). Never redrawn.
+10. **Nothing already on the Page goes up again** (CEO 2026-10-27: "ห้ามโพสซ็ำ นะทำ EP ถัดไป"). A demo or test cut
+    from a posted EP, such as the hook demo from "ขายชื่อ" EP1, stays internal; a new post is a new EP. Read the
+    Page's latest posts before every post.
 
 ## Files
 
