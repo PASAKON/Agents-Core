@@ -859,11 +859,11 @@ def monitor_rows(now: datetime | None = None, *, conn=None) -> list[dict]:
     return _monitor_all(_utc(now), conn)[:MAX_ROWS]
 
 
-def monitor_payload(now: datetime | None = None, *, conn=None, version=1) -> dict:
+def monitor_payload(now: datetime | None = None, *, conn=None, version=1, attention_cap=10) -> dict:
     """The whole P3-E v1 response body. `counts` are before the row cap."""
     now = _utc(now)
     if version == 2:
-        return _monitor_v2(now, conn=conn)
+        return _monitor_v2(now, conn=conn, attention_cap=attention_cap)
     if version != 1:
         raise PortfolioError("monitor version must be 1 or 2")
     rows = _monitor_all(now, conn)
@@ -1080,7 +1080,8 @@ def _v2_rows(now, c):
     return rows, projects, milestones
 
 
-def _monitor_v2(now, *, conn=None):
+def _monitor_v2(now, *, conn=None, attention_cap=10):
+    # attention_cap: the wire contract's 10; tools/portfolio_watch.py asks for every item.
     with _tx(conn) as c:
         rows, projects, milestones = _v2_rows(now, c)
         attention = []
@@ -1125,7 +1126,7 @@ def _monitor_v2(now, *, conn=None):
             row["id"] = _cut(row["id"], 40)
         for row in attention + orders:
             row["project_id"] = _cut(row["project_id"], 40)
-        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:10],
+        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:attention_cap],
                 "projects": rows[:20], "orders": orders[:20]}
 
 
