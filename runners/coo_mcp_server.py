@@ -27,6 +27,9 @@ Tools (mcp__org__<name> inside the session):
   quota()                                      read the local runner quota snapshot
   field_note(skill, tag, text)                 one line about an org skill: MISSING | WRONG | COSTLY |
                                                 CONFIRMED. A CTO or PH reads it and folds it in by hand.
+  order_open(n, words, due_at)                  record a CEO order you relay (n = OPEN.md row); the
+                                                same n while open returns the same O- id
+  order_close(order_id, outcome)                close an order you opened, with a one-line outcome
 
 The three Run Inbox tools do not go through the gate and touch no hub database: they are
 tools/ask_run.py (the same code as every other C-level's org server), plain HTTPS to the Run Inbox
@@ -58,7 +61,7 @@ RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote"
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
               "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait",
-              "email_ceo", "quota", "field_note", "respawn_clevel")
+              "email_ceo", "quota", "field_note", "respawn_clevel", "order_open", "order_close")
 
 
 def session_id() -> str:
@@ -151,6 +154,14 @@ def respawn_clevel(role: str = "", host: str = "contabo", request_id: int | None
     if request_id is not None:
         return respawn_status(request_id)
     return _with_session("respawn_clevel", role=role, host=host)
+
+
+def order_open(n: int, words: str, due_at: str | None = None) -> dict:
+    return _with_session("order_open", n=n, words=words, due_at=due_at or None)
+
+
+def order_close(order_id: str, outcome: str) -> dict:
+    return _with_session("order_close", order_id=order_id, outcome=outcome)
 
 
 # Run Inbox. tools.ask_run is imported here, not at the top: cxo_mcp_config loads this module under
@@ -352,6 +363,21 @@ def _serve() -> None:
         dispatcher's coo_respawn_done result."""
         return json.dumps(respawn_clevel(role=role, host=host, request_id=request_id),
                           ensure_ascii=False)
+
+    @mcp.tool(name="order_open")
+    def _order_open(n: int, words: str, due_at: str | None = None) -> str:
+        """Record one CEO order you relay, once per row of your OPEN.md. n: the row number in
+        OPEN.md (1-999999); words: the order in the CEO's words (at most 2000 characters); due_at:
+        the CEO's date as ISO-8601 with a timezone, e.g. 2026-10-30T17:00:00+07:00, or leave it out.
+        Returns {order_id, existing}; the same n again while that order is open returns its id with
+        existing=true and writes nothing."""
+        return json.dumps(order_open(n, words, due_at), ensure_ascii=False)
+
+    @mcp.tool(name="order_close")
+    def _order_close(order_id: str, outcome: str) -> str:
+        """Close an order you opened with order_open (order_id looks like O-20261027-1403-ab12).
+        outcome: one line, at most 500 characters. Returns {order_id, closed_at}."""
+        return json.dumps(order_close(order_id, outcome), ensure_ascii=False)
 
     mcp.run()
 
