@@ -80,23 +80,26 @@ DRIVE_SHARE_BROKER_SOCKET_PATH (fixed by contract: /run/mooniex-share-broker/bro
     response: {"ok": true, "id": "...", "link": "<webViewLink>"}
            or {"ok": false, "error": "<reason>"}
 
-Config, all via environment (set by scripts/install-share-broker.sh's
-systemd unit, never by this code):
-    DRIVE_SHARE_BROKER_ENV             path to a file holding GOOGLE_OAUTH_
-                                        CLIENT_ID/SECRET/REFRESH_TOKEN
-                                        (required). UNLIKE the two sibling
-                                        brokers' broker-owned credential
-                                        files, this one is ROOT-owned,
-                                        readable only by the broker user
-                                        (`shareup`) -- task instruction, on
-                                        the record here rather than left
-                                        implicit: it changes nothing about
-                                        who can list/upload through the
-                                        broker (that is still the uid
-                                        allowlist below), it only means a
-                                        compromise of the broker's own
-                                        unprivileged account cannot also
-                                        rewrite its own credential file.
+Config, all via environment (set by the systemd unit
+deploy/share-broker/mooniex-share-broker.service, never by this code):
+    GOOGLE_OAUTH_CLIENT_ID / _CLIENT_SECRET / _REFRESH_TOKEN
+                                        the Drive OAuth credential. In the
+                                        installed unit `infisical_setup.py
+                                        run MoonieX-SomPong prod --path
+                                        /drive-share` puts them in the
+                                        process environment and no file holds
+                                        them (CEO rule: every secret lives in
+                                        Infisical, never in a .env). They are
+                                        read once at startup into memory and
+                                        removed from os.environ.
+    DRIVE_SHARE_BROKER_ENV             OPTIONAL, legacy: path to a file holding
+                                        the same three keys. When set it wins
+                                        and the process environment is not
+                                        consulted for them. When unset and
+                                        the three keys are not all in the
+                                        environment, startup fails with a
+                                        ConfigError naming the missing KEYS
+                                        (never values).
     DRIVE_SHARE_BROKER_STAGING_ROOT    the only directory tree shareable
                                         paths may resolve into (required) --
                                         contract fixes this to
@@ -104,9 +107,9 @@ systemd unit, never by this code):
                                         (group `shareup`, mode 2770; files
                                         the runner stages there are 0640).
     DRIVE_SHARE_BROKER_ALLOWED_UIDS    comma-separated uid(s) permitted to
-                                        call in (required) -- resolved by
-                                        the installer as `id -u sompong` at
-                                        deploy time, never hard-coded here.
+                                        call in (required) -- set by the unit
+                                        (0: SomPong's inbox calls as root),
+                                        never hard-coded here.
     DRIVE_SHARE_BROKER_SOCKET_PATH     unix socket to listen on (default:
                                         /run/mooniex-share-broker/broker.sock,
                                         the contract's fixed path)
@@ -144,7 +147,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, MutableMapping
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts" / "gdrive-bridge"))
 import ilag_sync  # noqa: E402 -- module object, so ENV_CANDIDATES can be overridden (same idiom as the sibling brokers)
@@ -169,6 +172,10 @@ _MIN_REDACTABLE_SECRET_LEN = 8
 
 _PERMISSION_BODY = {"type": "anyone", "role": "reader"}
 
+# The Drive OAuth triple ilag_sync needs. Names only -- a value never appears
+# in this module's messages.
+OAUTH_KEYS = ("GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_OAUTH_REFRESH_TOKEN")
+
 
 class ConfigError(RuntimeError):
     pass
@@ -176,7 +183,7 @@ class ConfigError(RuntimeError):
 
 @dataclass(frozen=True)
 class BrokerConfig:
-    env_path: Path
+    env_path: Path | None          # None: the OAuth triple is in the process environment, no file
     socket_path: Path
     allowed_uids: frozenset[int]
     staging_root: Path
@@ -197,7 +204,15 @@ def load_config(env: Mapping[str, str] | None = None) -> BrokerConfig:
             raise ConfigError(f"{key} is required (unset or empty)")
         return value
 
-    env_path = Path(require("DRIVE_SHARE_BROKER_ENV"))
+    env_path_raw = env.get("DRIVE_SHARE_BROKER_ENV")
+    if env_path_raw:
+        env_path: Path | None = Path(env_path_raw)
+    else:
+        missing = _missing_oauth_keys(env)
+        if missing:
+            raise ConfigError("DRIVE_SHARE_BROKER_ENV is unset and the process environment lacks: "
+                              + ", ".join(missing))
+        env_path = None
 
     staging_root_raw = Path(require("DRIVE_SHARE_BROKER_STAGING_ROOT"))
     try:
@@ -240,6 +255,11 @@ def load_config(env: Mapping[str, str] | None = None) -> BrokerConfig:
     )
 
 
+def _missing_oauth_keys(env: Mapping[str, str]) -> list[str]:
+    """Which of OAUTH_KEYS are absent or blank in `env`. Names only."""
+    return [k for k in OAUTH_KEYS if not (env.get(k) or "").strip()]
+
+
 def apply_oauth_env_override(env_path: Path) -> None:
     """Point ilag_sync's OAuth loader at DRIVE_SHARE_BROKER_ENV. Same override
     idiom the sibling brokers use -- ilag_sync is shared, general-purpose
@@ -248,12 +268,37 @@ def apply_oauth_env_override(env_path: Path) -> None:
     ilag_sync.ENV_CANDIDATES = [env_path]
 
 
+def apply_oauth_from_environ(env: MutableMapping[str, str] | None = None) -> None:
+    """Give ilag_sync the OAuth triple from the process environment instead of
+    a file: snapshot it, remove it from `env` (so nothing later in this
+    process can read it back out of os.environ), and replace
+    ilag_sync._load_oauth with a loader that returns the snapshot. No file is
+    read. Raises ConfigError naming the missing KEYS when the triple is not
+    complete."""
+    env = os.environ if env is None else env
+    missing = _missing_oauth_keys(env)
+    if missing:
+        raise ConfigError("the process environment lacks: " + ", ".join(missing))
+    triple = {k: env[k].strip() for k in OAUTH_KEYS}
+    for k in OAUTH_KEYS:
+        env.pop(k, None)
+    ilag_sync._load_oauth = lambda: dict(triple)
+
+
+def apply_oauth_source(cfg: BrokerConfig) -> None:
+    """Wire ilag_sync to whichever credential source `cfg` selected."""
+    if cfg.env_path is not None:
+        apply_oauth_env_override(cfg.env_path)
+    else:
+        apply_oauth_from_environ()
+
+
 # --------------------------------------------------------------------------- secret redaction
 
 def load_secret_values() -> frozenset[str]:
     """The current OAuth triple's values, for redaction -- never for
-    forwarding anywhere. Call once at startup, after
-    apply_oauth_env_override()."""
+    forwarding anywhere. Call once at startup, after apply_oauth_source()
+    (works for both the file and the environment source)."""
     try:
         values = ilag_sync._load_oauth()
     except SystemExit:
@@ -634,7 +679,11 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     logger = get_logger("drive_share_broker")
-    apply_oauth_env_override(cfg.env_path)
+    try:
+        apply_oauth_source(cfg)
+    except ConfigError as e:
+        print(f"config error: {e}", file=sys.stderr)
+        return 1
     startup_secrets = load_secret_values()
 
     try:

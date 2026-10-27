@@ -29,9 +29,11 @@ def test_no_compat_paths(script):
         assert old not in text
 
 
-def test_share_broker_example_target():
+def test_share_broker_names_no_env_file_example():
+    # install-share-broker.sh used to show `install <ClaudeFlow>/.env`; it now takes no
+    # credential file (the secret comes from Infisical), so no .env example may come back.
     text = (ROOT / SCRIPTS[0]).read_text()
-    assert '/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env' in text
+    assert 'ClaudeFlow/.env' not in text
 
 
 def test_fetch_paths():
