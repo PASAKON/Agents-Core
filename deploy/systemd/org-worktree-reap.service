@@ -1,0 +1,29 @@
+[Unit]
+Description=MoonieX worktree reap: remove finished tasks' worktrees (tools/gc_stale_tasks.py --reap --go)
+# The standing op that replaces the red Run card for this class (CEO 2026-10-27;
+# .claude/skills/ALL_Rules_DiskHygiene/references/contabo.md). It removes a worktree
+# only when its task row is terminal (or 'review' with HEAD already in origin/<base>),
+# the tree is clean apart from the runner's own untracked files, every commit is on
+# some remote, no process has its cwd inside, and the row's path is the one
+# tools.worktree.worktree_path() computes. It never deletes a branch and never touches
+# a folder that has no task row (spend-guard-deploy, tool-value-deploy ...).
+# Started by org-worktree-reap.timer, not directly. One line per worktree, `df` before
+# and after, go to the journal: journalctl -u org-worktree-reap.
+#
+# ORG_DB_URL comes from scripts/hub/with-org-db-env.sh (this host's Infisical identity).
+# Without it lib.db lands on the archived state/tasks.db and raises ArchivedDB.
+# @ROOT@ is the Agents-Core checkout; scripts/install-org-worktree-reap.sh fills it in
+# and refuses a checkout that sits under worktrees/ (this unit would delete its own code).
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=ORG_ROOT=@ROOT@
+WorkingDirectory=@ROOT@
+Nice=10
+IOSchedulingClass=idle
+MemoryMax=1G
+TimeoutStartSec=30min
+ExecStart=/bin/bash @ROOT@/scripts/hub/with-org-db-env.sh @ROOT@/.venv/bin/python @ROOT@/tools/gc_stale_tasks.py --reap --go
