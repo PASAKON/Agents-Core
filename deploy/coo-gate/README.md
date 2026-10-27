@@ -35,6 +35,8 @@ else: no UPDATE of a task, no DELETE, no other table than the one in the next li
 
 CEO-order mirror (CEO 2026-10-27): SELECT on `orders`, INSERT of its 8 `order_take` columns and UPDATE of `closed_at`, `outcome`, and INSERT of the 5 `project_events` columns `order_close` writes; the triggers `org_coo_orders_guard` / `org_coo_project_events_guard` (§5) hold that to `CO-<n>` rows taken by `sompong` with no project, closed once, and a close event written as `COO#<8 hex>` for a closed order of that project.
 
+Project Monitor read (CEO 2026-10-27, the gate's `portfolio` op): SELECT only, on `projects`, `milestones`, `session_heartbeats` (`project_id`, `at`) and `project_events` (all six columns), added to the `tasks` and `orders` SELECT above. These are exactly the tables `lib.portfolio.monitor_payload(version=2)` reads, the call that feeds Console `/portfolio` (`tests/test_coo_gate.py` re-derives the list from `lib/portfolio.py`, so a new read there fails the test before it fails on the hub). Nothing was added that can write: no INSERT, UPDATE, DELETE or row lock on any of them (the INSERT on `project_events` is the `order_close` grant above, unchanged). `ceo_gos` and `resource_locks` are not read by the monitor and stay closed. `project_events.body` is readable now, because the monitor reads it for the `decided_for_ceo` text and the parked stage and a column grant cannot limit rows; `events` (the audit log) stays write-only. §6's `$portfolio_proof$` runs the monitor's own SELECTs as `org_coo` on each table and tries the writes.
+
 ## C-level respawn
 
 The dispatcher selects the role's most recently started Contabo session from
@@ -128,7 +130,7 @@ Order (`config/plans.yaml` class `research`): codex, Argon, Sonnet. A run with n
 
 ## Install, rotate, remove (each a Run card, red risk)
 
-1. Grants (applied 2026-10-14, re-run after any change to the SQL):
+1. Grants (applied 2026-10-14, re-run after any change to the SQL; the `portfolio` op needs this re-run, then a restart of `org-coo-gate.service` to load the op):
    `python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only`
 2. Rotation (the old org_coo password leaked: `/run/sompong-coo/org-db.url` is readable by `sompong`,
    and commit a60f1744 holds a literal). Needs contabo write on Infisical Org-Coo (card
