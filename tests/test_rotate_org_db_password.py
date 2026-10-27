@@ -166,6 +166,30 @@ def test_refuses_any_url_but_the_hubs_org_role(url_fmt, secret, capsys, env_file
     assert secret["old"] in env_file.read_text()
 
 
+@pytest.mark.parametrize("raw", ["#", "%2", "/", "?"])
+def test_refuses_a_password_libpq_reads_differently(raw, secret, capsys, env_file, unit_dir):
+    """An unencoded # / ? or a broken %-escape: the verifier and the login would use different
+    passwords, and the lockout would surface only after ALTER ROLE."""
+    pw = secret["pw"][:10] + raw + "g" + secret["pw"][10:]     # "%2g": never a valid escape
+    url = f"postgresql://org:{pw}@hub.test:5432/org"
+    connect, runner = Connect(), Runner()
+    code = rot.main(["apply"], environ={"ORG_DB_URL": url}, hub=HUB, connect=connect, runner=runner,
+                    env_file=env_file, unit_dir=unit_dir)
+    out, err = capsys.readouterr()
+    assert code == 2 and "use letters and digits only" in out
+    assert connect.urls == [] and runner.calls == []
+    _assert_no_leak(out + err, secret, pw, secret["pw"][10:])
+
+
+def test_accepts_a_percent_encoded_password_both_parsers_agree_on(secret, capsys, env_file, unit_dir):
+    url = secret["url"].replace(secret["pw"], secret["pw"] + "%21")      # "!" encoded
+    code = rot.main(["check"], environ={"ORG_DB_URL": url}, hub=HUB, connect=Connect(AuthFailed()),
+                    runner=Runner(), env_file=env_file, unit_dir=unit_dir)
+    out, err = capsys.readouterr()
+    assert code == 0, out
+    _assert_no_leak(out + err, secret)
+
+
 def test_hub_address_comes_from_config():
     data = yaml.safe_load((ROOT / "config" / "hosts.yaml").read_text())
     expected = data["hosts"]["contabo"]["mesh_ssh"].rpartition("@")[2]

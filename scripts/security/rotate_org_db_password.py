@@ -12,7 +12,8 @@ process's environment:
 
 1. Parse ORG_DB_URL. Refuse unless the user is `org` and host, port and database are the hub's:
    the host is Contabo's tailnet address from config/hosts.yaml (hosts.contabo.mesh_ssh), the
-   port and database the ones scripts/hub/contabo-postgres-up.sh publishes.
+   port and database the ones scripts/hub/contabo-postgres-up.sh publishes. libpq's own reading
+   of the URL (psycopg.conninfo) must agree on user, password, host, port and database.
 2. Connect with that URL. If it already logs in, Infisical still holds a working password (or the
    rotation already ran): refuse, exit 3, nothing changed. Anything but a password failure (hub
    down, timeout) refuses too, exit 4: then nothing proves the old password is gone.
@@ -50,6 +51,7 @@ ROLE = "org"
 SCRAM_ITERATIONS = 4096            # Postgres's own default for scram_iterations
 SCRAM_SALT_BYTES = 16
 MIN_PASSWORD_LEN = 16
+PLAIN_PASSWORD = "use letters and digits only in the new password"
 CONNECT_TIMEOUT = 3
 VERIFIER_ENV = "NEWVERIFIER"
 ENV_FILE_DEFAULT = Path.home() / ".config" / "mooniex" / "org-db.env"
@@ -115,7 +117,19 @@ def parse_url(url: str, hub: dict) -> dict:
         host = parts.hostname or ""
         database = unquote(parts.path.lstrip("/"))
     except Exception:  # noqa: BLE001 - a ValueError's text may quote the URL
-        raise Refused("ORG_DB_URL is not a URL") from None
+        raise Refused(f"ORG_DB_URL is not a URL; {PLAIN_PASSWORD}") from None
+    # The verifier is made from the password read here, the login from the one libpq reads. An
+    # unencoded # / ? @ or % can split the two: the role would get a password the URL cannot log
+    # in with, found only after the ALTER (PH review of #523). Both parsers must agree.
+    try:
+        from psycopg.conninfo import conninfo_to_dict
+
+        libpq = conninfo_to_dict(url)
+    except Exception:  # noqa: BLE001 - libpq's message may quote the URL
+        raise Refused(f"libpq cannot read ORG_DB_URL; {PLAIN_PASSWORD}") from None
+    if (libpq.get("user") != ROLE or libpq.get("password") != password or libpq.get("host") != host
+            or str(libpq.get("port") or 5432) != str(port) or libpq.get("dbname") != database):
+        raise Refused(f"libpq reads ORG_DB_URL differently from this check; {PLAIN_PASSWORD}")
     if parts.scheme not in ("postgresql", "postgres"):
         raise Refused("ORG_DB_URL must start postgresql://")
     if user != ROLE:
