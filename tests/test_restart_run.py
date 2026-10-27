@@ -1,10 +1,11 @@
 """No real tmux, launchers, sleeps, or hub access."""
 import argparse
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 from unittest.mock import Mock
 
 import pytest
@@ -187,11 +188,6 @@ def test_linux_launcher(tmp_path, host, role):
 def test_ph_launcher_per_host(host):
     assert rr.launcher(entry(role='project_head'), host) == [
         'bash', 'scripts/spawn-ph.sh', '--resume', '1234abcd']
-
-
-def test_windows_clevel_unsupported():
-    with pytest.raises(ValueError, match='Linux'):
-        rr.launcher(entry(), 'winbox')
 
 
 @pytest.mark.parametrize('mode,count', [('lazy', 0), ('full', 1)])
@@ -587,3 +583,404 @@ def test_prep_says_nothing_about_cards_when_none_run(real_planner, capsys):
     out = capsys.readouterr().out
     assert 'run card' not in out.lower()
     assert 'Run cards unavailable' not in out
+
+
+# ---- winbox (SafeRestart on Windows Terminal tabs) ------------------------------------
+# No real wake.ps1, wt, pc_lease or Windows API: every win_* edge is replaced or mocked.
+WUUID = '0f0e0d0c-aaaa-bbbb-cccc-1234567890ab'
+SID_A, SID_B = '1234abcd', 'abcd1234'
+
+
+@pytest.fixture
+def winbox(monkeypatch, tmp_path):
+    """The console session, the lease free, every tab found: returns the wake mock."""
+    wake = Mock(return_value=(0, 'ok'))
+    monkeypatch.setattr(rr, 'win_session_id', lambda: 1)
+    monkeypatch.setattr(rr, 'win_gate', Mock(return_value=True))
+    monkeypatch.setattr(rr, 'win_wake', wake)
+    monkeypatch.setattr(rr, 'win_live', Mock(return_value=set()))
+    monkeypatch.setattr(rr, 'win_wt_running', lambda: False)
+    monkeypatch.setattr(rr, 'win_boot_time', lambda: None)
+    monkeypatch.setattr(rr.session_status, 'record_close', Mock())
+    monkeypatch.setenv('LOCALAPPDATA', r'C:\Users\x\AppData\Local')
+    return wake
+
+
+def wrow(action='resume_full', role='cto', sid=SID_A):
+    return dict(row(action, role, sid), uuid=WUUID)
+
+
+def wargs(tmp_path, rows=(), **kwargs):
+    plan = tmp_path / 'plan.json'
+    plan.write_text(json.dumps(dict(host='winbox', sessions=list(rows), warnings=kwargs.pop('warnings', []))))
+    return argparse.Namespace(host='winbox', plan=plan, dry_run=False, wait_max=0,
+                              force=False, json=False, **kwargs)
+
+
+def wentry(mode='full', role='cto', sid=SID_A, **extra):
+    return {**entry(mode, role, sid), 'uuid': WUUID, 'lane': None, **extra}
+
+
+def wmanifest(entries):
+    rr.STATE.mkdir(exist_ok=True)
+    path = rr.STATE / 'winbox-resume.json'
+    path.write_text(json.dumps(entries))
+    (rr.STATE / 'pending-winbox.json').write_text(json.dumps(dict(manifest=str(path))))
+    return path
+
+
+def wt_path():
+    return str(Path(os.environ['LOCALAPPDATA']) / 'Microsoft/WindowsApps/wt.exe')
+
+
+def typed_texts(wake):
+    return [c.args[1] for c in wake.call_args_list if not c.args[2]]
+
+
+@pytest.mark.parametrize('running,window', [(False, 'new'), (True, '0')])
+def test_winbox_launcher_clevel(winbox, monkeypatch, tmp_path, running, window):
+    monkeypatch.setattr(rr, 'win_wt_running', lambda: running)
+    assert rr.launcher(wentry(), 'winbox') == [
+        wt_path(), '-w', window, 'nt', '--title', f'cto #{SID_A}', '-d', str(tmp_path),
+        'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+        str(tmp_path / 'windows' / 'cxo-claude.ps1'), '-Role', 'cto', '-Session', SID_A,
+        '--resume', WUUID]
+
+
+def test_winbox_launcher_without_uuid_resumes_by_session_id(winbox):
+    assert rr.launcher(dict(entry(), lane=None), 'winbox')[-2:] == ['--resume', SID_A]
+
+
+def test_winbox_launcher_project_head(winbox):
+    command = rr.launcher(wentry(role='project_head', lane='cto'), 'winbox')
+    assert command[command.index('-Role'):] == [
+        '-Role', 'project_head', '-Session', SID_A, '-Lane', 'cto', '-Project', 'demo', '--resume', WUUID]
+
+
+def test_winbox_launcher_project_head_needs_its_lane(winbox):
+    with pytest.raises(ValueError, match='lane'):
+        rr.launcher(wentry(role='project_head'), 'winbox')
+
+
+def test_winbox_launcher_coo_has_none(winbox):
+    with pytest.raises(ValueError, match='cannot preserve'):
+        rr.launcher(wentry(role='coo'), 'winbox')
+
+
+def test_winbox_send_types_through_wake_not_tmux(winbox):
+    assert rr.send(entry(), '/session-save', False, 'winbox') is True
+    assert [c.args for c in winbox.call_args_list] == [(entry(), '/session-save', False)]
+    rr.win_gate.assert_called_once()
+    rr.tmux_session.capture.assert_not_called()
+    assert not commands()
+
+
+def test_winbox_send_dry_run_types_nothing(winbox, capsys):
+    assert rr.send(entry(), '/session-save', True, 'winbox') is True
+    assert f'type into tab #{SID_A}: /session-save' in capsys.readouterr().out
+    winbox.assert_not_called()
+    rr.win_gate.assert_not_called()
+
+
+@pytest.mark.parametrize('gate,wake,text', [
+    (False, (0, 'ok'), '/session-save'),                 # the CEO holds the PC, or the farm is on
+    (True, (3, 'foreground check refused'), '/x'),       # wake.ps1 withheld Enter
+    (True, (2, 'no tab'), '/x'),
+    (True, (4, 'session 0'), '/x'),
+    (True, (0, 'ok'), 'ระบบ restart เสร็จแล้ว'),         # wake.ps1 types printable ASCII only
+])
+def test_winbox_send_refusals_return_false(winbox, capsys, gate, wake, text):
+    rr.win_gate.return_value = gate
+    winbox.return_value = wake
+    assert rr.send(entry(), text, False, 'winbox') is False
+    assert 'draft_or_not_ready' in capsys.readouterr().out or not gate
+    if not text.isascii():
+        rr.win_gate.assert_not_called()
+        winbox.assert_not_called()
+
+
+def test_win_wake_argv(monkeypatch, tmp_path):
+    rr.subprocess.run.return_value = subprocess.CompletedProcess([], 0, 'sent\n', '')
+    assert rr.win_wake(entry(), '/session-save', False) == (0, 'sent')
+    assert rr.subprocess.run.call_args.args[0] == [
+        'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+        str(tmp_path / 'windows' / 'wake.ps1'), '-Title', f'#{SID_A}', '-Marker', '/session-save', '-Contains']
+    rr.win_wake(entry(), 'preflight', True)
+    assert rr.subprocess.run.call_args.args[0][-1] == '-DryRun'
+
+
+@pytest.mark.parametrize('code,expected', [(0, True), (3, False)])
+def test_win_gate_asks_the_lease(code, expected):
+    rr.subprocess.run.return_value = subprocess.CompletedProcess([], code, '', 'REFUSED')
+    assert rr.win_gate() is expected
+    assert rr.subprocess.run.call_args.args[0] == [*rr.WIN_LEASE, 'gate', '--as', rr.WIN_LEASE_WHO]
+
+
+NOW = datetime(2026, 10, 27, 9, 0, tzinfo=timezone.utc)
+
+
+@pytest.mark.parametrize('record,since,expected', [
+    ({'status': 'saved', 'closed_at': '2026-10-27T09:05:00+00:00'}, NOW, True),
+    ({'status': 'saved', 'closed_at': NOW + timedelta(minutes=1)}, NOW, True),
+    ({'status': 'saved', 'closed_at': '2026-10-27T08:00:00+00:00'}, NOW, False),   # an old save
+    ({'status': 'saved', 'closed_at': 'garbage'}, NOW, False),
+    ({'status': 'saved', 'closed_at': None}, NOW, False),
+    ({'status': 'active', 'closed_at': '2026-10-27T09:05:00+00:00'}, NOW, False),
+    ({'status': 'saved'}, None, True),
+    (None, NOW, False),
+])
+def test_winbox_saved_needs_a_record_newer_than_the_command(record, since, expected):
+    rr.session_status.get.return_value = record
+    assert rr.saved(entry(), 'winbox', since) is expected
+
+
+def test_winbox_saved_ignores_tmux():
+    rr.session_status.get.return_value = {'status': 'saved'}
+    rr.tmux_session.has_session.return_value = True
+    assert rr.saved(entry(), 'winbox') is True    # contabo would wait for the pane to go
+    rr.tmux_session.has_session.assert_not_called()
+
+
+def test_winbox_gone_never_kills(winbox, capsys):
+    winbox_live = {('cto', SID_A)}
+    rr.win_live.return_value = winbox_live
+    assert rr.gone(entry(), 'winbox') is False
+    assert 'live_until_reboot: cto' in capsys.readouterr().out
+    assert not commands()
+    rr.win_live.return_value = set()
+    assert rr.gone(entry(), 'winbox') is True
+
+
+def test_win_live_rejects_a_reused_pid(tmp_path, monkeypatch):
+    sessions = tmp_path / 'sessions'
+    sessions.mkdir()
+    (sessions / '4242.json').write_text('{"procStart": 111}')
+    monkeypatch.setattr(rr.live_sessions, 'session_dirs', lambda host: [sessions])
+    monkeypatch.setattr(rr.live_sessions, 'read_registry',
+                        lambda dirs: [dict(role='cto', sid=SID_A, pid=4242)])
+    for actual, expected in [(111, {('cto', SID_A)}), (222, set()), (None, {('cto', SID_A)})]:
+        monkeypatch.setattr(rr, 'win_started', lambda pid, actual=actual: actual)
+        assert rr.win_live() == expected
+
+
+def test_win_lane_comes_from_the_owner_record(tmp_path):
+    locks = tmp_path / 'state/locks'
+    locks.mkdir(parents=True)
+    (locks / f'project_head-{SID_A}.spawned_by').write_text('cxo:cmo:cmo-08d5df68\n')
+    assert rr.win_lane(SID_A) == 'cmo'
+    assert rr.win_lane(SID_B) is None
+
+
+@pytest.mark.parametrize('boot_after_lock,removed', [(True, True), (False, False), (None, False)])
+def test_win_clear_stale_lock(tmp_path, monkeypatch, boot_after_lock, removed):
+    lock = tmp_path / 'state/locks' / f'cto-{SID_A}.lock'
+    lock.parent.mkdir(parents=True)
+    lock.write_text('4242')
+    os.utime(lock, (1000, 1000))
+    monkeypatch.setattr(rr, 'win_boot_time', lambda: None if boot_after_lock is None else
+                        (2000 if boot_after_lock else 500))
+    rr.win_clear_stale_lock(entry(), False)
+    assert (not lock.exists()) is removed
+
+
+def test_win_clear_stale_lock_dry_run_keeps_it(tmp_path, monkeypatch):
+    lock = tmp_path / 'state/locks' / f'cto-{SID_A}.lock'
+    lock.parent.mkdir(parents=True)
+    lock.write_text('4242')
+    os.utime(lock, (1000, 1000))
+    monkeypatch.setattr(rr, 'win_boot_time', lambda: 2000)
+    rr.win_clear_stale_lock(entry(), True)
+    assert lock.exists()
+
+
+def test_winbox_prep_saves_and_records_what_resume_needs(winbox, tmp_path):
+    locks = tmp_path / 'state/locks'
+    locks.mkdir(parents=True)
+    (locks / f'project_head-{SID_B}.spawned_by').write_text('cxo:cto:cto-08d5df68')
+    (locks / f'project_head-{SID_B}.project').write_text('LuminaSkies\n')
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    rows = [wrow('resume_full'), wrow('resume_lazy', 'project_head', SID_B), wrow('park', 'cmo', '0badc0de')]
+    assert rr.prep(wargs(tmp_path, rows)) == 0
+    # preflight on every tab (dry), then one /session-save per session
+    assert [c.args[2] for c in winbox.call_args_list] == [True, True, True, False, False, False]
+    assert typed_texts(winbox) == ['/session-save'] * 3
+    data = json.loads((rr.STATE / 'winbox-resume.json').read_text())
+    assert data == [
+        dict(sid=SID_A, role='cto', name=f'cto #{SID_A}', project='demo', mode='full', uuid=WUUID, lane=None),
+        dict(sid=SID_B, role='project_head', name=f'project_head #{SID_B}', project='demo', mode='lazy',
+             uuid=WUUID, lane='cto')]
+    assert (rr.STATE / 'pending-winbox.json').exists()
+    rr.session_status.record_close.assert_not_called()    # /session-save wrote 'saved' itself
+    assert not commands()                                 # no bash, no session-kill.sh
+
+
+def test_winbox_prep_records_force_saved_without_killing(winbox, tmp_path, capsys):
+    rr.session_status.get.return_value = {'status': 'active'}
+    assert rr.prep(wargs(tmp_path, [wrow()])) == 0
+    rr.session_status.record_close.assert_called_once_with(
+        'cto', SID_A, 'force_saved', locks_dir=tmp_path / 'state/locks')
+    out = capsys.readouterr().out
+    assert f'force_saved: cto #{SID_A}' in out
+    assert not commands()
+
+
+def test_winbox_prep_ignores_a_saved_record_from_before_the_command(winbox, tmp_path):
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW - timedelta(days=30)}
+    assert rr.prep(wargs(tmp_path, [wrow()])) == 0
+    rr.session_status.record_close.assert_called_once()
+    assert rr.session_status.record_close.call_args.args[2] == 'force_saved'
+
+
+def test_winbox_prep_close_records_closed(winbox, tmp_path):
+    assert rr.prep(wargs(tmp_path, [wrow('close')])) == 0
+    rr.session_status.record_close.assert_called_once_with(
+        'cto', SID_A, 'closed', locks_dir=tmp_path / 'state/locks')
+    assert typed_texts(winbox) == []
+    assert json.loads((rr.STATE / 'winbox-resume.json').read_text()) == []
+
+
+def test_winbox_prep_dry_run_types_and_writes_nothing(winbox, tmp_path, capsys):
+    a = wargs(tmp_path, [wrow('compact_then_resume'), wrow('resume_lazy', 'cmo', SID_B), wrow('close', 'cfo', '0badc0de')])
+    a.dry_run = True
+    assert rr.prep(a) == 0
+    out = capsys.readouterr().out
+    assert f'type into tab #{SID_A}: /compact' in out
+    assert f'type into tab #{SID_B}: /session-save' in out
+    assert out.count('would preflight tab') == 2
+    assert 'record force_saved in c_level_sessions' in out
+    winbox.assert_not_called()
+    rr.session_status.record_close.assert_not_called()
+    assert not commands() and not rr.STATE.exists()
+
+
+def test_winbox_prep_stops_before_saving_when_a_tab_is_missing(winbox, tmp_path, capsys):
+    winbox.side_effect = lambda row_, text, dry: (2, 'no tab') if row_['session_id'] == SID_B else (0, 'ok')
+    assert rr.prep(wargs(tmp_path, [wrow(), wrow('resume_full', 'cmo', SID_B)])) == 1
+    assert typed_texts(winbox) == []                 # nothing was typed anywhere
+    assert not (rr.STATE / 'pending-winbox.json').exists() and not (rr.STATE / 'winbox-resume.json').exists()
+    assert f'tab_not_found: cmo #{SID_B}' in capsys.readouterr().out
+    rr.session_status.record_close.assert_not_called()
+
+
+def test_winbox_prep_stops_when_the_pc_is_not_ours(winbox, tmp_path):
+    rr.win_gate.return_value = False
+    assert rr.prep(wargs(tmp_path, [wrow()])) == 3
+    winbox.assert_not_called()
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+
+
+def test_winbox_prep_refuses_session_zero(winbox, monkeypatch, tmp_path):
+    monkeypatch.setattr(rr, 'win_session_id', lambda: 0)
+    with pytest.raises(ValueError, match='console session'):
+        rr.prep(wargs(tmp_path, [wrow()]))
+    winbox.assert_not_called()
+
+
+def test_winbox_prep_failed_gate_during_typing_fails_the_prep(winbox, tmp_path):
+    winbox.side_effect = lambda row_, text, dry: (0, 'ok') if dry else (3, 'Enter withheld')
+    assert rr.prep(wargs(tmp_path, [wrow()])) == 1
+    rr.session_status.record_close.assert_not_called()
+
+
+def test_cards_checked_drops_only_the_run_card_warnings(monkeypatch):
+    warnings = [rr.CARDS_UNAVAILABLE, f'{rr.CARD_RUNNING}RUN-1 (running)', 'Do not cut: tasks t1 (running)']
+    monkeypatch.setattr(rr.restart_plan, 'build_plan',
+                        lambda *a: dict(host='winbox', sessions=[], warnings=list(warnings)))
+    assert rr.plan_for(argparse.Namespace(host='winbox'))['warnings'] == warnings
+    assert rr.plan_for(argparse.Namespace(host='winbox', cards_checked=True))['warnings'] == [warnings[2]]
+
+
+def test_card_warning_words_match_the_planner(real_planner):
+    rr.subprocess.run.return_value = subprocess.CompletedProcess([], 1, '', '')
+    assert rr.CARDS_UNAVAILABLE in REAL_BUILD_PLAN('contabo', rr.now(), rr.STATE)['warnings']
+    rr.subprocess.run.return_value = subprocess.CompletedProcess([], 0, '[{"id": "RUN-1"}]', '')
+    assert f'{rr.CARD_RUNNING}RUN-1 (running)' in REAL_BUILD_PLAN('contabo', rr.now(), rr.STATE)['warnings']
+
+
+def test_winbox_resume_opens_a_tab_per_session_and_types_once(winbox, tmp_path):
+    path = wmanifest([wentry('full'), wentry('lazy', 'cmo', SID_B)])
+    both = {('cto', SID_A), ('cmo', SID_B)}
+    rr.win_live.side_effect = iter([set(), {('cto', SID_A)}, both])
+    assert rr.resume(wargs(tmp_path)) == 0
+    launched = [c for c in commands() if c[0] == wt_path()]
+    assert [c[c.index('-Role') + 1] for c in launched] == ['cto', 'cmo']
+    assert launched[0][-2:] == ['--resume', WUUID]
+    assert typed_texts(winbox) == [rr.WIN_MESSAGE]       # the lazy session gets none
+    rr.time.sleep.assert_called_once_with(rr.WIN_SETTLE_S)
+    assert not path.exists() and list(rr.STATE.glob('winbox-resume.done-*.json'))
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+
+
+def test_winbox_resume_skips_a_session_that_is_already_running(winbox, tmp_path, capsys):
+    wmanifest([wentry('full')])
+    rr.win_live.return_value = {('cto', SID_A)}
+    assert rr.resume(wargs(tmp_path)) == 0
+    assert 'already_live: cto' in capsys.readouterr().out
+    assert not commands()
+    winbox.assert_not_called()
+
+
+def test_winbox_resume_keeps_the_manifest_when_the_message_is_refused(winbox, tmp_path):
+    path = wmanifest([wentry('full')])
+    rr.win_live.side_effect = iter([set(), {('cto', SID_A)}])
+    winbox.return_value = (3, 'the CEO holds the PC')
+    assert rr.resume(wargs(tmp_path)) == 1
+    assert path.exists() and (rr.STATE / 'pending-winbox.json').exists()
+
+
+def test_winbox_resume_reports_a_session_that_never_registers(winbox, tmp_path, capsys):
+    wmanifest([wentry('full')])
+    assert rr.resume(wargs(tmp_path)) == 1
+    assert 'session did not become live' in capsys.readouterr().out
+    winbox.assert_not_called()
+
+
+def test_winbox_resume_refuses_session_zero(winbox, monkeypatch, tmp_path):
+    monkeypatch.setattr(rr, 'win_session_id', lambda: 0)
+    wmanifest([wentry('full')])
+    with pytest.raises(ValueError, match='console session'):
+        rr.resume(wargs(tmp_path))
+    assert not commands()
+
+
+def test_winbox_resume_dry_run_prints_the_tabs_and_changes_nothing(winbox, monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(rr, 'win_session_id', lambda: 0)    # a dry run may come over ssh
+    path = wmanifest([wentry('full')])
+    a = wargs(tmp_path)
+    a.dry_run = True
+    assert rr.resume(a) == 0
+    out = capsys.readouterr().out
+    assert wt_path() in out and f'type into tab #{SID_A}: {rr.WIN_MESSAGE}' in out
+    assert not commands() and path.exists()
+    winbox.assert_not_called()
+
+
+def test_winbox_report_counts_registered_sessions_not_panes(winbox, tmp_path, capsys):
+    wmanifest([wentry('full'), wentry('lazy', 'cmo', SID_B)])
+    rr.win_live.return_value = {('cto', SID_A)}
+    rr.tmux_session.has_session.return_value = True    # must not rescue the missing one
+    a = wargs(tmp_path, notify=False)
+    assert rr.report(a) == 1
+    assert 'กลับมา 1/2\ncmo' in capsys.readouterr().out
+
+
+def test_winbox_report_notify_uses_this_python_and_survives_no_token(winbox, tmp_path, capsys):
+    wmanifest([wentry('full'), wentry('lazy', 'cmo', SID_B)])
+    rr.win_live.return_value = {('cmo', SID_B)}
+    rr.subprocess.run.side_effect = subprocess.CalledProcessError(3, ['ask_run.py'])
+    assert rr.report(wargs(tmp_path, notify=True)) == 1
+    out = capsys.readouterr().out
+    assert 'notify_failed' in out
+    first = rr.subprocess.run.call_args_list[0].args[0]
+    assert first[:3] == [sys.executable, 'tools/ask_run.py', 'create'] and '--host' in first
+    assert first[first.index('--command') + 1].endswith(r'windows\org-resume-logon.ps1')
+    assert first[first.index('--cwd') + 1] == str(tmp_path)
+
+
+def test_winbox_report_notify_all_back_asks_a_question(winbox, tmp_path):
+    wmanifest([wentry('full')])
+    rr.win_live.return_value = {('cto', SID_A)}
+    assert rr.report(wargs(tmp_path, notify=True)) == 0
+    first = commands()[0]
+    assert first[:3] == [sys.executable, 'tools/ask_run.py', 'ask']
+    assert first[first.index('--question') + 1].startswith('Restart winbox: ')

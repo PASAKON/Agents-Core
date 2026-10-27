@@ -2,12 +2,19 @@
 
 Exit 3 means the safety gate is still blocked; exit 1 means partial failure.
 Run prep outside the sessions it closes (for example from the Run card worker).
+
+winbox (docs/ops/safe-restart.md §winbox): the sessions are claude.exe in Windows
+Terminal tabs, not tmux panes. Typing goes through windows/wake.ps1 (console
+session only, behind the PC lease gate), "saved" is the c_level_sessions record,
+and resume opens one new tab per session with windows/cxo-claude.ps1. Every
+winbox branch is below a `host == 'winbox'` test; the Contabo paths are untouched.
 """
 from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shlex
@@ -107,7 +114,227 @@ def run(command, dry=False):
         subprocess.run(command, cwd=ROOT, check=True, timeout=300)
 
 
-def send(row, text, dry=False):
+# ---- winbox: the Windows twin of the tmux helpers ---------------------------------
+# ASCII only: windows/wake.ps1 refuses any other byte in the text it types.
+WIN_MESSAGE = 'System restart finished. Continue from where you stopped.'
+# The tenant's lease lives where windows/pc_lease.py is deployed on the box.
+WIN_LEASE = (r'C:\Users\passg\cookierun-bot\.venv\Scripts\python.exe', r'C:\mooniex\pclease\pc_lease.py')
+# The same string the PowerShell callers pass to `pc_lease.py take --who`: gate --as
+# stays quiet only for the holder's own name.
+WIN_LEASE_WHO = 'SafeRestart winbox'
+WIN_GONE_WAIT_S = 15      # a winbox session cannot end itself; the reboot does, so do not wait long
+WIN_SETTLE_S = 15         # a registered session may not be reading its input yet
+WIN_TYPE_TIMEOUT_S = 120
+_ASCII_TEXT = re.compile(r'[\x20-\x7e]{1,300}')
+
+
+def win_session_id():
+    """This process's Windows session id (0 = ssh/service, no desktop), None if unknown."""
+    try:
+        import ctypes
+        out = ctypes.c_ulong()
+        k32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        if k32.ProcessIdToSessionId(k32.GetCurrentProcessId(), ctypes.byref(out)):
+            return int(out.value)
+    except (OSError, AttributeError, ImportError):
+        pass
+    return None
+
+
+def win_started(pid):
+    """The process creation time as a FILETIME (what the registry's procStart holds), or None."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        k32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        k32.OpenProcess.restype = wintypes.HANDLE
+        handle = k32.OpenProcess(0x1000, False, int(pid))   # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return None
+        try:
+            times = [wintypes.FILETIME() for _ in range(4)]
+            if not k32.GetProcessTimes(handle, *[ctypes.byref(t) for t in times]):
+                return None
+            return (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+        finally:
+            k32.CloseHandle(handle)
+    except (OSError, AttributeError, ImportError, ValueError):
+        return None
+
+
+def win_live():
+    """(role, sid) of every winbox session that is really running.
+
+    Windows reuses pids at once, so after a reboot a leftover ~/.claude/sessions/<pid>.json
+    can name a pid that now belongs to another program; is_alive() would call that session
+    live and resume would skip it. The record's procStart is the process creation FILETIME:
+    a pid whose creation time differs is not the session."""
+    dirs = live_sessions.session_dirs('winbox')
+    out = set()
+    for row in live_sessions.read_registry(dirs):
+        recorded = None
+        for directory in dirs:
+            try:
+                recorded = json.loads((Path(directory) / f"{row['pid']}.json").read_text(encoding='utf-8')).get('procStart')
+                break
+            except (OSError, ValueError, AttributeError):
+                continue
+        actual = win_started(row['pid'])
+        try:
+            if recorded is not None and actual is not None and int(recorded) != actual:
+                continue
+        except (TypeError, ValueError):
+            pass
+        out.add((row['role'], row['sid']))
+    return out
+
+
+def win_tab_token(row):
+    """windows/cxo-claude.ps1 titles the tab "<display> #<sid>" and stops claude renaming it."""
+    return '#' + identity(row)[1]
+
+
+def win_gate():
+    """pc_lease.py gate: True when the desktop may be touched (not the CEO's hold, and the
+    farm is parked or we hold the lease). Run before every stage, never cached."""
+    python, script = WIN_LEASE
+    done = subprocess.run([python, script, 'gate', '--as', WIN_LEASE_WHO],
+                          capture_output=True, text=True, errors='replace', timeout=60)
+    if done.returncode != 0:
+        print(f'pc_lease_refused: gate exit {done.returncode}: {(done.stderr or "").strip()[:200]}')
+        return False
+    return True
+
+
+def win_wake(row, text, dry_run):
+    """windows/wake.ps1 against this row's tab: (exit code, one-line output)."""
+    command = ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+               str(ROOT / 'windows' / 'wake.ps1'), '-Title', win_tab_token(row),
+               '-Marker', text, '-Contains']
+    if dry_run:
+        command.append('-DryRun')
+    done = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                          errors='replace', timeout=WIN_TYPE_TIMEOUT_S)
+    return done.returncode, ' '.join((done.stdout or '').split())[:200]
+
+
+def win_send(row, text):
+    """Type `text` + Enter into the row's tab. False (nothing typed, or Enter withheld)
+    unless the lease gate and wake.ps1's own foreground check both pass."""
+    print(f"type into tab {win_tab_token(row)}: {text}")
+    if not _ASCII_TEXT.fullmatch(text):
+        print(f"draft_or_not_ready: {row['name']}: wake.ps1 types printable ASCII only")
+        return False
+    if not win_gate():
+        return False
+    code, out = win_wake(row, text, False)
+    if code != 0:
+        print(f"draft_or_not_ready: {row['name']}: wake exit {code}: {out}")
+        return False
+    return True
+
+
+def win_preflight(rows):
+    """Before the first real keystroke: this is the console session, the desktop is ours,
+    and every tab we will type into is found exactly once and in front (wake.ps1 -DryRun
+    types nothing). One missing tab must stop the restart before any session is saved."""
+    if win_session_id() in (None, 0):
+        raise ValueError('winbox prep types into Windows Terminal tabs: run it in the console '
+                         'session (scripts/winbox-restart.sh does), not over plain ssh')
+    if not win_gate():
+        return 3
+    bad = False
+    for row in rows:
+        code, out = win_wake(row, 'preflight', True)
+        if code != 0:
+            print(f"tab_not_found: {row['name']} {win_tab_token(row)}: wake exit {code}: {out}")
+            bad = True
+    return 1 if bad else 0
+
+
+def win_record(row, status, dry_run):
+    """winbox has no session-kill: /session-save cannot end a claude.exe here. Record why the
+    session is going down and leave the process to the reboot, so its .uuid, .lock and (for a
+    Project Head) .project/.spawned_by files, which cxo-claude.ps1 deletes on a clean exit,
+    are still there for resume."""
+    role, sid = identity(row)
+    print(f'record {status} in c_level_sessions: {role}-{sid} (process left running; the reboot ends it)')
+    if not dry_run:
+        session_status.record_close(role, sid, status, locks_dir=ROOT / 'state' / 'locks')
+
+
+def win_lane(sid):
+    """A Project Head's lane, from the owner record spawn_ph wrote ("cxo:<lane>:<owner>")."""
+    path = ROOT / 'state/locks' / f'project_head-{sid}.spawned_by'
+    try:
+        return path.read_text(encoding='utf-8').strip().split(':', 2)[1]
+    except (OSError, IndexError):
+        return None
+
+
+def win_boot_time():
+    """Epoch seconds of the last boot, or None."""
+    try:
+        import ctypes
+        k32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        k32.GetTickCount64.restype = ctypes.c_ulonglong
+        return time.time() - k32.GetTickCount64() / 1000
+    except (OSError, AttributeError, ImportError):
+        return None
+
+
+def win_clear_stale_lock(row, dry_run):
+    """cxo-claude.ps1 refuses to start when <role>-<sid>.lock names a live pid, and after a
+    reboot that pid may belong to anything. A lock written before the boot cannot be live."""
+    role, sid = identity(row)
+    lock = ROOT / 'state/locks' / f'{role}-{sid}.lock'
+    boot = win_boot_time()
+    try:
+        if boot is None or lock.stat().st_mtime >= boot:
+            return
+    except OSError:
+        return
+    print(f'remove stale lock (written before the boot): {lock}')
+    if not dry_run:
+        lock.unlink(missing_ok=True)
+
+
+def win_wt_running():
+    try:
+        return 'WindowsTerminal.exe' in subprocess.run(
+            ['tasklist', '/FI', 'IMAGENAME eq WindowsTerminal.exe', '/NH'],
+            capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def win_launcher(row):
+    """argv that opens the session in a new Windows Terminal tab (windows/cxo-claude.ps1).
+
+    -Session keeps the 8-hex id; --resume takes the full conversation uuid recorded at prep
+    (the launcher also accepts the 8 hex and looks the uuid up, but that lookup needs the
+    hub, which a bare launcher has no URL for). A Project Head needs its lane and project:
+    the launcher rebuilds owner and first-prompt from the owner record, and does not
+    re-submit the first prompt on --resume."""
+    role, sid = identity(row)
+    command = ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+               str(ROOT / 'windows' / 'cxo-claude.ps1'), '-Role', role, '-Session', sid]
+    if role == 'project_head':
+        if not row.get('lane') or not row.get('project'):
+            raise ValueError('project head resume needs lane and project in the manifest')
+        command += ['-Lane', row['lane'], '-Project', row['project']]
+    command += ['--resume', row.get('uuid') or sid]
+    wt = str(Path(os.environ.get('LOCALAPPDATA', '')) / 'Microsoft' / 'WindowsApps' / 'wt.exe')
+    return [wt, '-w', '0' if win_wt_running() else 'new', 'nt', '--title', f'{role} #{sid}',
+            '-d', str(ROOT)] + command
+
+
+def send(row, text, dry=False, host='contabo'):
+    if host == 'winbox':
+        if dry:
+            print(f"type into tab {win_tab_token(row)}: {text}")
+            return True
+        return win_send(row, text)
     target = pane(row)
     if not dry and not empty_input(tmux_session.capture(target + ':0.0', escapes=True)):
         print(f"draft_or_not_ready: {row['name']}")
@@ -136,7 +363,7 @@ def write_json(path, value, dry=False):
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
 
 
@@ -169,10 +396,27 @@ def boundary(row):
     return None
 
 
-def saved(row):
+def when(value):
+    """closed_at as an aware datetime (the hub returns a string or a datetime), else None."""
+    try:
+        stamp_ = value if isinstance(value, datetime) else datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return None
+    return stamp_ if stamp_.tzinfo else stamp_.replace(tzinfo=timezone.utc)
+
+
+def saved(row, host='contabo', since=None):
+    role, sid = identity(row)
+    if host == 'winbox':
+        # No tmux pane to disappear: only the hub record says /session-save finished, and
+        # an old "saved" row of a session that is running again must not count, so the
+        # record has to be newer than the moment we typed the command.
+        record = session_status.get(role, sid)
+        closed = when(record.get('closed_at')) if record else None
+        return bool(record and record.get('status') == 'saved'
+                    and (since is None or (closed is not None and closed >= since)))
     if not tmux_session.has_session(pane(row)):
         return True
-    role, sid = identity(row)
     record = session_status.get(role, sid)
     return bool(record and record.get('status') == 'saved')
 
@@ -180,11 +424,21 @@ def saved(row):
 GONE_WAIT_S = 60
 
 
-def gone(row):
+def gone(row, host='contabo'):
     """Wait until the saved pane is really closed. session-kill records 'saved'
     first and kills tmux a few seconds later; a resume that runs inside that gap
     sees the old pane, calls it already_live and never relaunches it (17 Oct 2026:
-    0/6 came back)."""
+    0/6 came back).
+
+    winbox: nothing here ends a claude.exe (cxo-claude.ps1 would delete the session's
+    lock, .uuid and .project files on a clean exit, and resume needs them), so give it
+    a moment, then say it stays up until the reboot."""
+    if host == 'winbox':
+        role, sid = identity(row)
+        if until(lambda: (role, sid) not in win_live(), WIN_GONE_WAIT_S):
+            return True
+        print(f"live_until_reboot: {row['name']}")
+        return False
     if until(lambda: not tmux_session.has_session(pane(row)), GONE_WAIT_S):
         return True
     subprocess.run([tmux_session.tmux_bin(), 'kill-session', '-t', pane(row)],
@@ -196,11 +450,11 @@ def gone(row):
 
 def launcher(row, host):
     role, sid = identity(row)
+    if host == 'winbox' and (role == roles.PH_ROLE or (role in roles.c_level_roles() and role != 'coo')):
+        return win_launcher(row)
     if role == 'project_head':
         return ['bash', 'scripts/spawn-ph.sh', '--resume', sid]
     if host != 'mac' and role in roles.c_level_roles() and role != 'coo':
-        if host == 'winbox':
-            raise ValueError('C-level tmux resume requires a Linux host')
         variable = 'CTO_SESSION_ID' if role == 'cto' else 'CXO_SESSION_ID'
         command = (['bash', 'scripts/cto-claude.sh'] if role == 'cto' else
                    ['bash', 'scripts/cxo-claude.sh', '--role', role])
@@ -223,8 +477,25 @@ def pending_since(marker, manifest_path):
     return timestamp if timestamp.tzinfo else timestamp.replace(tzinfo=timezone.utc)
 
 
+# The words restart_plan.build_plan puts in its warnings about Run cards (pinned by a test).
+CARDS_UNAVAILABLE = 'Run cards unavailable; a running card cannot be ruled out.'
+CARD_RUNNING = 'Do not cut: run card '
+
+
+def plan_for(args):
+    plan = restart_plan.build_plan(args.host, now(), STATE)
+    if getattr(args, 'cards_checked', False):
+        # winbox has no Run Inbox token, and the restart card itself is a running card on
+        # Contabo. The caller (scripts/winbox-restart.sh) listed the cards running on
+        # this host from Contabo and found none; the warnings below are about every host.
+        plan['warnings'] = [w for w in plan.get('warnings', [])
+                            if w != CARDS_UNAVAILABLE and not w.startswith(CARD_RUNNING)]
+    return plan
+
+
 def prep(args):
-    plan = json.loads(args.plan.read_text()) if args.plan else restart_plan.build_plan(args.host, now(), STATE)
+    win = args.host == 'winbox'
+    plan = json.loads(args.plan.read_text(encoding='utf-8')) if args.plan else plan_for(args)
     if plan.get('host') != args.host:
         raise ValueError('plan host does not match --host')
     for row in plan['sessions']:
@@ -238,7 +509,7 @@ def prep(args):
                 nonlocal plan
                 remeasure(plan)
                 if not args.plan:
-                    plan = restart_plan.build_plan(args.host, now(), STATE)
+                    plan = plan_for(args)
                 return not blockers(plan)
             until(ready, args.wait_max)
         if blockers(plan):
@@ -258,9 +529,24 @@ def prep(args):
             project = row.get('project')
             if role == 'project_head' and not project:
                 path = ROOT / 'state/locks' / f'{pane(row)}.project'
-                project = path.read_text().strip() if path.exists() else None
-            manifest.append(dict(sid=sid, role=role, name=row['name'], project=project,
-                                 mode='lazy' if action == 'resume_lazy' else 'full'))
+                project = path.read_text(encoding='utf-8').strip() if path.exists() else None
+            entry = dict(sid=sid, role=role, name=row['name'], project=project,
+                         mode='lazy' if action == 'resume_lazy' else 'full')
+            if win:
+                # cxo-claude.ps1 --resume takes the full conversation id, and a Project Head
+                # needs its lane back: both are known now and gone with the session's files.
+                entry.update(uuid=row.get('uuid'), lane=win_lane(sid) if role == 'project_head' else None)
+            manifest.append(entry)
+    if win:
+        typed = [r for r in plan['sessions'] if not managed(r) and not worker(r) and r['action'] != 'close']
+        if args.dry_run:
+            for row in typed:
+                print(f"would preflight tab {win_tab_token(row)}: wake.ps1 -DryRun (types nothing)")
+        elif typed:
+            code = win_preflight(typed)
+            if code:
+                print('preflight failed: nothing was saved or closed and no marker was written')
+                return code
     # Persist recovery intent before the first destructive operation.
     manifest_path = STATE / f'{args.host}-resume.json'
     marker = STATE / f'pending-{args.host}.json'
@@ -291,31 +577,40 @@ def prep(args):
         action = row['action']
         try:
             if action == 'close':
-                run(['bash', 'scripts/session-kill.sh', '--status', 'closed', pane(row)], args.dry_run)
+                if win:
+                    win_record(row, 'closed', args.dry_run)
+                else:
+                    run(['bash', 'scripts/session-kill.sh', '--status', 'closed', pane(row)], args.dry_run)
                 continue
             compact_ok = True
             if action == 'compact_then_resume':
                 before = None if args.dry_run else boundary(row)
-                if not send(row, '/compact', args.dry_run):
+                if not send(row, '/compact', args.dry_run, args.host):
                     failed = True
                     continue
                 compact_ok = args.dry_run or until(lambda: boundary(row) not in (None, before), args.wait_max)
                 if args.dry_run:
                     print(f"wait compact_boundary: {row['name']}")
             if compact_ok:
-                if not send(row, '/session-save', args.dry_run):
+                typed_at = now()
+                if not send(row, '/session-save', args.dry_run, args.host):
                     failed = True
                     continue
                 if args.dry_run:
-                    print(f"wait saved; on timeout: bash scripts/session-kill.sh --status force_saved {pane(row)}")
+                    print('wait saved; on timeout: ' + (
+                        f'record force_saved in c_level_sessions ({pane(row)})' if win else
+                        f"bash scripts/session-kill.sh --status force_saved {pane(row)}"))
                     continue
-                if until(lambda: saved(row), args.wait_max):
-                    gone(row)
+                if until(lambda: saved(row, args.host, typed_at) if win else saved(row), args.wait_max):
+                    gone(row, args.host)
                     continue
-            run(['bash', 'scripts/session-kill.sh', '--status', 'force_saved', pane(row)], args.dry_run)
+            if win:
+                win_record(row, 'force_saved', args.dry_run)
+            else:
+                run(['bash', 'scripts/session-kill.sh', '--status', 'force_saved', pane(row)], args.dry_run)
             print(f"force_saved: {row['name']}")
             if not args.dry_run:
-                gone(row)
+                gone(row, args.host)
         except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
             print(f"failed: {row['name']}: {exc}")
             failed = True
@@ -333,6 +628,8 @@ def manifest_file(host):
 
 
 def live(host):
+    if host == 'winbox':
+        return win_live()
     return {(r['role'], r['sid']) for r in live_sessions.read_registry(live_sessions.session_dirs(host))}
 
 
@@ -341,13 +638,17 @@ def resume(args):
     if not marker.exists():
         print('no pending restart marker; nothing to resume')
         return 0
-    path = Path(json.loads(marker.read_text())['manifest'])
+    win = args.host == 'winbox'
+    if win and not args.dry_run and win_session_id() in (None, 0):
+        raise ValueError('winbox resume opens Windows Terminal tabs: run it in the console session')
+    path = Path(json.loads(marker.read_text(encoding='utf-8'))['manifest'])
     if path.resolve() != (STATE / f'{args.host}-resume.json').resolve():
         raise ValueError('unexpected resume manifest path')
-    entries = json.loads(path.read_text())
+    entries = json.loads(path.read_text(encoding='utf-8'))
     # Only the dry run trusts the published registry: it can be minutes stale
     # and still list a session that was just saved and closed.
-    existing = live(args.host) if args.dry_run else set()
+    # winbox has no panes to ask, and win_live() checks the process behind each record.
+    existing = live(args.host) if args.dry_run or win else set()
     failed = False
     for row in entries:
         try:
@@ -356,9 +657,11 @@ def resume(args):
                 failed = True
                 continue
             command = launcher(row, args.host)
-            if identity(row) in existing or tmux_session.has_session(pane(row)):
+            if identity(row) in existing or (not win and tmux_session.has_session(pane(row))):
                 print(f"already_live: {row['name']}")
                 continue
+            if win:
+                win_clear_stale_lock(row, args.dry_run)
             if isinstance(command, str):
                 role, sid = identity(row)
                 unit = f'org-{role}-{sid}.scope'
@@ -376,6 +679,15 @@ def resume(args):
                     tmux_session.create(pane(row), str(ROOT), command)
             else:
                 run(command, args.dry_run)
+            if win:
+                if not args.dry_run and not until(lambda: identity(row) in win_live(), args.wait_max):
+                    raise RuntimeError('session did not become live')
+                if row['mode'] == 'full':
+                    if not args.dry_run:
+                        time.sleep(WIN_SETTLE_S)   # registered is not yet reading its input
+                    if not send(row, WIN_MESSAGE, args.dry_run, args.host):
+                        failed = True
+                continue
             if not args.dry_run and not until(lambda: tmux_session.has_session(pane(row)), args.wait_max):
                 raise RuntimeError('session did not become live')
             if row['mode'] == 'full':
@@ -463,12 +775,25 @@ def clean(args):
     return int(failed)
 
 
+def ask_run(host, argv, dry):
+    """tools/ask_run.py <argv>. On winbox: this interpreter (bash there is the WSL stub), and a
+    card that cannot be raised (no Run Inbox token yet) is logged, never a failed report."""
+    if host != 'winbox':
+        run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', *argv], dry)
+        return
+    try:
+        run([sys.executable, 'tools/ask_run.py', *argv], dry)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f'notify_failed: {exc}')
+
+
 def report(args):
-    entries = json.loads(manifest_file(args.host).read_text())
+    win = args.host == 'winbox'
+    entries = json.loads(manifest_file(args.host).read_text(encoding='utf-8'))
     existing = live(args.host)
     # A pane that exists on this host counts; the registry alone lags by minutes.
     missing_rows = [r for r in entries
-               if identity(r) not in existing and not tmux_session.has_session(pane(r))]
+               if identity(r) not in existing and (win or not tmux_session.has_session(pane(r)))]
     missing = [r['name'] for r in missing_rows]
     result = dict(back=len(entries) - len(missing), total=len(entries), missing=missing)
     if args.json:
@@ -489,17 +814,21 @@ def report(args):
             why = 'Restart: ' + name[:max(0, 90 - len('Restart: ') - len(suffix))] + suffix
             command = shlex.join(['bash', 'scripts/hub/org-python.sh', 'tools/restart_run.py',
                                   '--host', args.host, 'resume'])
-            run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'create',
+            cwd = '/opt/MoonieXHQ/Agents/Core'
+            if win:
+                command = r'powershell -NoProfile -ExecutionPolicy Bypass -File windows\org-resume-logon.ps1'
+                cwd = str(ROOT)
+            ask_run(args.host, ['create',
                  '--host', args.host, *requester, '--command', command,
-                 '--cwd', '/opt/MoonieXHQ/Agents/Core', '--risk', 'amber',
+                 '--cwd', cwd, '--risk', 'amber',
                  '--why', why, '--expected', f"กลับมา {result['total']}/{result['total']}"],
                 args.dry_run)
             return 1
-        question = f"Restart Contabo: กลับมา {result['back']}/{result['total']}"
+        question = f"Restart {'winbox' if win else 'Contabo'}: กลับมา {result['back']}/{result['total']}"
         details = ['ยังไม่กลับมา: ' + str(name).replace('\n', ' ')[:70] for name in missing[:3]]
         if len(missing) > 3:
             details.append(f'อีก {len(missing) - 3} รายชื่ออยู่ในรายงานบนเครื่อง')
-        run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'ask',
+        ask_run(args.host, ['ask',
              '--host', args.host, *requester,
              '--question', question, '--why', '\n'.join(details) or 'ทุก session ในรายการกลับมาแล้ว',
              '--option', 'รับทราบ', '--option', 'ดูรายชื่อที่ขาด' if missing else 'ดูรายงาน'], args.dry_run)
@@ -517,7 +846,12 @@ def main(argv=None):
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--chrome', action='store_true', help='allow Chrome restart when relay state is unknown')
     parser.add_argument('--notify', action='store_true', help='send report as a Run Inbox question')
+    parser.add_argument('--cards-checked', action='store_true',
+                        help='winbox: the caller already found no running Run card for this host')
     args = parser.parse_args(argv)
+    if sys.platform == 'win32':   # a Windows console writes cp1252; the names are Thai
+        for stream in (sys.stdout, sys.stderr):
+            stream.reconfigure(encoding='utf-8', errors='replace')
     if args.wait_max < 0:
         parser.error('--wait-max must be nonnegative')
     try:
