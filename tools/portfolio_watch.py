@@ -59,6 +59,7 @@ RED_AFTER = timedelta(hours=24)         # an episode this old is marked red
 LIVE_STAGES = ("active", "review")      # a parked or closed project is never chased
 SUBJECT_MAX = 80
 CAP = 500                               # items asked of the monitor (its wire cap is 10); hitting this = incomplete
+_LATE_MILESTONE = re.compile(r"เลยกำหนด: M(\d+)\b")   # the text lib/portfolio.py gives a late milestone
 _ROLE_RE = re.compile(r"[a-z][a-z_]{0,31}")
 _SID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]{0,63}")
 _WHEN = "%Y-%m-%dT%H:%M:%SZ"
@@ -177,7 +178,8 @@ def findings(now: datetime, conn=None) -> Found:
         p = projects.get(str(a["project_id"]))
         if p is None or p["stage"] not in LIVE_STAGES or str(a["project_id"]) in clash:
             continue
-        what = {"late": f"due {_iso(since)[:10]}", "no_plan": "no dated milestone",
+        late = _LATE_MILESTONE.match(a.get("text") or "")      # late because of a milestone: name it
+        what = {"late": f"M{late[1]}" if late else f"due {_iso(since)[:10]}", "no_plan": "no dated milestone",
                 "waiting_ceo": "waiting on CEO"}[kind]
         out.append({"key": f"{a['project_id']}:{kind}", "kind": kind, "id": a["project_id"],
                     "name": _line(p["name"], 40), "what": what, "since": since,
