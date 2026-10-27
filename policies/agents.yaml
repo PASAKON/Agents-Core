@@ -133,7 +133,7 @@ roles:
     can_push: true            # feature branches; main is the CTO's (plan §3.2)
     can_delete_branch: false
     can_ask_ceo: false        # plan §4.1: questions go to its C-level as kind=ask
-    max_workers: 2            # plan §3.2: at most 2 live workers at once
+    max_workers: 4            # plan §3.2; CEO 2026-10-27 13:5x TH "ยิ่ง Parallel ... เร็วสุดๆ": 4 live workers; the host caps (config/hosts.yaml) still bound each box
     skills_profile: all
 
   developer:

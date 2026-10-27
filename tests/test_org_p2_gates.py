@@ -196,7 +196,7 @@ def test_router_off_actor_and_reason_cannot_carry_control_text(temp_db, monkeypa
 
 
 def test_ph_max_workers_comes_from_the_policy_row():
-    assert delegate._ph_max_workers() == 2
+    assert delegate._ph_max_workers() == 4
 
 
 # --- the gates on delegate_task's own path -----------------------------------
