@@ -14,7 +14,9 @@ Covers (task's required list for this file):
   6. the staged file is deleted on success and on failure
   7. verify failure gives ok:false
 
-Plus: load_config() validation (including DRIVE_SHARE_MAX_MB), the
+Plus: the credential source (the OAuth triple from the process environment with
+no file, the legacy DRIVE_SHARE_BROKER_ENV file still working, missing KEYS named
+and never values, env secrets redacted), load_config() validation (including DRIVE_SHARE_MAX_MB), the
 credential-redaction / verify-before-trust coverage the sibling brokers
 have, the client-supplied-folder-id-is-ignored guard, and a grep-style
 source guard confirming no delete/trash/move/list/read code path exists.
@@ -815,10 +817,13 @@ def test_log_never_contains_the_display_name_or_staged_path(monkeypatch, tmp_pat
 
 # --------------------------------------------------------------------------- config validation
 
-def test_load_config_requires_env_var(tmp_path):
+def test_load_config_requires_a_credential_source(tmp_path):
+    """Neither DRIVE_SHARE_BROKER_ENV nor the GOOGLE_OAUTH_* triple in the environment."""
     env = {"DRIVE_SHARE_BROKER_STAGING_ROOT": str(tmp_path), "DRIVE_SHARE_BROKER_ALLOWED_UIDS": "1001"}
-    with pytest.raises(broker.ConfigError, match="DRIVE_SHARE_BROKER_ENV"):
+    with pytest.raises(broker.ConfigError, match="DRIVE_SHARE_BROKER_ENV") as excinfo:
         broker.load_config(env)
+    for key in broker.OAUTH_KEYS:
+        assert key in str(excinfo.value)
 
 
 def test_load_config_requires_staging_root(tmp_path):
@@ -869,6 +874,214 @@ def test_load_config_rejects_non_positive_max_mb(tmp_path):
     }
     with pytest.raises(broker.ConfigError, match="DRIVE_SHARE_MAX_MB"):
         broker.load_config(env)
+
+
+# --------------------------------------------------------------------------- credential source: process environment (no file)
+
+# Distinct, >= 8 chars (redaction threshold) and recognisable if one ever leaks into text.
+ENV_ID = "ENV-CLIENT-ID-1111111111"
+ENV_SECRET = "ENV-CLIENT-SECRET-2222222222"
+ENV_TOKEN = "ENV-REFRESH-TOKEN-3333333333"
+OAUTH_ENV = {
+    "GOOGLE_OAUTH_CLIENT_ID": ENV_ID,
+    "GOOGLE_OAUTH_CLIENT_SECRET": ENV_SECRET,
+    "GOOGLE_OAUTH_REFRESH_TOKEN": ENV_TOKEN,
+}
+
+
+def _env_only(tmp_path, **extra) -> dict:
+    """A complete broker environment with NO DRIVE_SHARE_BROKER_ENV: the credential
+    triple comes from the process environment, as under `infisical_setup.py run`."""
+    return {
+        "DRIVE_SHARE_BROKER_STAGING_ROOT": str(tmp_path),
+        "DRIVE_SHARE_BROKER_ALLOWED_UIDS": "0",
+        **OAUTH_ENV,
+        **extra,
+    }
+
+
+def _restore_ilag_oauth(monkeypatch):
+    """apply_oauth_* replace ilag_sync._load_oauth / ENV_CANDIDATES for the whole process;
+    register the originals so monkeypatch puts them back after the test."""
+    monkeypatch.setattr(ilag_sync, "_load_oauth", ilag_sync._load_oauth)
+    monkeypatch.setattr(ilag_sync, "ENV_CANDIDATES", ilag_sync.ENV_CANDIDATES)
+
+
+def test_env_only_config_loads_without_a_credential_file(tmp_path):
+    cfg = broker.load_config(_env_only(tmp_path))
+    assert cfg.env_path is None
+    assert cfg.allowed_uids == frozenset({0})
+
+
+def test_legacy_env_file_path_still_works_and_needs_no_environment_triple(tmp_path):
+    env = {
+        "DRIVE_SHARE_BROKER_ENV": str(tmp_path / "creds.env"),
+        "DRIVE_SHARE_BROKER_STAGING_ROOT": str(tmp_path),
+        "DRIVE_SHARE_BROKER_ALLOWED_UIDS": "1001",
+    }
+    cfg = broker.load_config(env)
+    assert cfg.env_path == tmp_path / "creds.env"
+
+
+def test_env_file_wins_when_both_sources_are_present(tmp_path, monkeypatch):
+    _restore_ilag_oauth(monkeypatch)
+    env = _env_only(tmp_path, DRIVE_SHARE_BROKER_ENV=str(tmp_path / "creds.env"))
+    cfg = broker.load_config(env)
+    assert cfg.env_path == tmp_path / "creds.env"
+    broker.apply_oauth_source(cfg)
+    assert ilag_sync.ENV_CANDIDATES == [tmp_path / "creds.env"]
+
+
+@pytest.mark.parametrize("present", [
+    (),                                                             # nothing
+    ("GOOGLE_OAUTH_CLIENT_ID",),                                    # one of three
+    ("GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET"),       # token missing
+])
+def test_missing_oauth_keys_raise_naming_keys_only_never_values(tmp_path, present):
+    env = {
+        "DRIVE_SHARE_BROKER_STAGING_ROOT": str(tmp_path),
+        "DRIVE_SHARE_BROKER_ALLOWED_UIDS": "0",
+        **{k: OAUTH_ENV[k] for k in present},
+    }
+    with pytest.raises(broker.ConfigError) as excinfo:
+        broker.load_config(env)
+    message = str(excinfo.value)
+    for key in broker.OAUTH_KEYS:
+        assert (key in message) == (key not in present), (key, message)
+    for value in OAUTH_ENV.values():
+        assert value not in message
+
+
+def test_blank_oauth_value_counts_as_missing(tmp_path):
+    with pytest.raises(broker.ConfigError, match="GOOGLE_OAUTH_REFRESH_TOKEN"):
+        broker.load_config(_env_only(tmp_path, GOOGLE_OAUTH_REFRESH_TOKEN="   "))
+
+
+def test_apply_oauth_from_environ_feeds_ilag_sync_without_reading_any_file(tmp_path, monkeypatch):
+    _restore_ilag_oauth(monkeypatch)
+    # If anything fell back to the file loader, it would raise SystemExit("missing Drive OAuth vars").
+    monkeypatch.setattr(ilag_sync, "ENV_CANDIDATES", [tmp_path / "does-not-exist.env"])
+    env = dict(OAUTH_ENV)
+    broker.apply_oauth_from_environ(env)
+    assert ilag_sync._load_oauth() == OAUTH_ENV
+    assert env == {}, "the triple must be removed from the environment after the snapshot"
+
+
+def test_apply_oauth_from_environ_names_missing_keys_only(monkeypatch):
+    _restore_ilag_oauth(monkeypatch)
+    env = {"GOOGLE_OAUTH_CLIENT_ID": ENV_ID}
+    with pytest.raises(broker.ConfigError) as excinfo:
+        broker.apply_oauth_from_environ(env)
+    message = str(excinfo.value)
+    assert "GOOGLE_OAUTH_CLIENT_SECRET" in message and "GOOGLE_OAUTH_REFRESH_TOKEN" in message
+    assert ENV_ID not in message
+    assert env == {"GOOGLE_OAUTH_CLIENT_ID": ENV_ID}, "a refused apply must not consume the environment"
+
+
+def test_secrets_from_the_environment_feed_redaction(tmp_path, monkeypatch):
+    _restore_ilag_oauth(monkeypatch)
+    broker.apply_oauth_from_environ(dict(OAUTH_ENV))
+    secrets = broker.load_secret_values()
+    assert secrets == frozenset(OAUTH_ENV.values())
+    text = f"Bearer {ENV_TOKEN} for client {ENV_ID} / {ENV_SECRET}"
+    redacted = broker.redact(text, secrets)
+    for value in OAUTH_ENV.values():
+        assert value not in redacted
+
+
+def test_env_secret_in_a_handler_error_is_redacted_before_it_leaves_the_socket(monkeypatch, tmp_path):
+    """do_share() maps every Drive failure to a fixed message, so nothing leaks today; this
+    pins the second layer: if a handler ever did echo a secret, the ones the broker took from
+    the ENVIRONMENT at startup (load_secret_values) are scrubbed from the response."""
+    _restore_ilag_oauth(monkeypatch)
+    broker.apply_oauth_from_environ(dict(OAUTH_ENV))
+    startup_secrets = broker.load_secret_values()
+
+    cfg = _cfg(tmp_path)
+    local = _staged_file(cfg)
+    monkeypatch.setattr(broker, "handle_request",
+                        lambda raw, c, uid: {"ok": False, "error": f"boom {ENV_TOKEN} {ENV_SECRET} {ENV_ID}"})
+    response = _round_trip(cfg, logging.getLogger("test-share-broker-env-secret-leak"),
+                           {"op": "share", "path": str(local), "name": "report.pdf"},
+                           startup_secrets, monkeypatch=monkeypatch)
+    assert response["ok"] is False
+    text = json.dumps(response)
+    for value in OAUTH_ENV.values():
+        assert value not in text
+
+
+def _clean_process_env(monkeypatch, tmp_path, **set_vars):
+    for key in ("DRIVE_SHARE_BROKER_ENV", *broker.OAUTH_KEYS):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("DRIVE_SHARE_BROKER_STAGING_ROOT", str(tmp_path))
+    monkeypatch.setenv("DRIVE_SHARE_BROKER_ALLOWED_UIDS", str(os.getuid()))
+    for key, value in set_vars.items():
+        monkeypatch.setenv(key, value)
+
+
+def test_main_exits_1_naming_missing_keys_only_when_no_credential_source(monkeypatch, tmp_path, capsys):
+    _clean_process_env(monkeypatch, tmp_path, GOOGLE_OAUTH_CLIENT_ID=ENV_ID)
+    assert broker.main([]) == 1
+    err = capsys.readouterr().err
+    assert "GOOGLE_OAUTH_CLIENT_SECRET" in err and "GOOGLE_OAUTH_REFRESH_TOKEN" in err
+    assert ENV_ID not in err
+
+
+def test_main_serves_a_share_from_the_environment_alone_and_redacts_its_secrets(monkeypatch, tmp_path):
+    """The whole startup path with no credential file: load_config -> apply_oauth_source ->
+    load_secret_values -> serve. A request that makes the (mocked) Drive layer echo the token
+    must come back redacted, and the triple must be gone from os.environ."""
+    import threading
+    import time
+
+    _restore_ilag_oauth(monkeypatch)
+    _clean_process_env(monkeypatch, tmp_path, **OAUTH_ENV)
+    sock_path = Path(tempfile.mkdtemp(dir="/tmp")) / "s.sock"
+    monkeypatch.setenv("DRIVE_SHARE_BROKER_SOCKET_PATH", str(sock_path))
+    monkeypatch.setattr(broker, "get_logger", lambda name: logging.getLogger("test-share-broker-main-env"))
+    monkeypatch.setattr(broker, "get_peer_uid", lambda conn: os.getuid())
+    monkeypatch.setattr(broker, "_shutdown_requested", False)
+    # do_share() maps every Drive failure to a fixed string, so route a leak through the handler
+    # to prove the redaction layer main() built from the environment is the one applied.
+    monkeypatch.setattr(broker, "handle_request",
+                        lambda raw, cfg, uid: {"ok": False, "error": f"leak {ENV_TOKEN}"})
+
+    answers: list[dict] = []
+
+    def client():
+        for _ in range(100):
+            if sock_path.exists():
+                break
+            time.sleep(0.05)
+        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        c.settimeout(5.0)
+        c.connect(str(sock_path))
+        c.sendall((json.dumps({"op": "share", "path": "/unused", "name": "report.pdf"}) + "\n").encode())
+        raw = b""
+        while not raw.endswith(b"\n"):
+            chunk = c.recv(4096)
+            if not chunk:
+                break
+            raw += chunk
+        c.close()
+        answers.append(json.loads(raw.decode()))
+
+    old_handlers = {s: signal.getsignal(s) for s in (signal.SIGTERM, signal.SIGINT)}
+    t = threading.Thread(target=client)
+    t.start()
+    try:
+        rc = broker.main(["--once"])
+    finally:
+        for s, h in old_handlers.items():
+            signal.signal(s, h)
+        t.join(timeout=10)
+
+    assert rc == 0
+    assert answers and answers[0]["ok"] is False
+    assert ENV_TOKEN not in json.dumps(answers[0])
+    assert "[REDACTED]" in answers[0]["error"]
+    for key in broker.OAUTH_KEYS:
+        assert key not in os.environ
 
 
 def test_default_folder_and_socket_are_independent_of_the_sibling_brokers():
