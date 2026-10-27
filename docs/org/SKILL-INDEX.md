@@ -104,7 +104,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CTO_Protocol_SpawnWebDesigner` | CTO | cto | Open the Web Designer surface for the CEO to design directly. |
 | `CXO_Protocol_DelegateExternal` | CTO | cxo, worker | Hand a task to an agent that is NOT Claude Code — Codex CLI, Antigravity, or a human — by writing a self-contained brief, shipping only… |
 | `CXO_Protocol_DevSpawn` | CTO | cxo, cto | Required steps when CTO spawns a DEV agent. |
-| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events plus a heartbeat with a… |
+| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events (worker letters, card… |
 | `VIDEO_EDITOR_Protocol_Playbook` | CMO | video_editor, worker | MoonieX org process layer for the `video_editor` role (owned by CMO, created 2026-08-03). Use this whenever a video_editor task arrives… |
 
 ## Commands the CEO types

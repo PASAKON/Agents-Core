@@ -26,7 +26,14 @@ then nothing until it ends (§2b review of #292, B-2):
 
 A wake follows only a letter sent at once, and only when the recipient's own screen
 is prompt_ready (empty input box, no turn running, no prompt waiting): the same test
-the rename service uses before it types. Letters carry box ids, never a session's
+the rename service uses before it types.
+
+The timed parts (the idle threshold, the one reminder, the digest spacing) run on
+lib/wake_backoff.wake_interval(base, tier=<the recipient's tier>): the base times the
+usage-budget factor (x2 one provider over, x4 all over, stale or missing data x1) times
+the tier factor (a critical or C-level recipient x1, normal x2 while over, low none: no
+timed letter at all). A PH's tier is its projects row (ph_session); every C-level is
+critical. A new at-once finding is never slowed (IRON-RULES section 64). Letters carry box ids, never a session's
 display name or any text a session wrote (M-1). Dry run by default:
 
     python tools/escalation_watch.py            # print findings, send nothing
@@ -55,7 +62,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lib import mailbox  # noqa: E402
+from lib import mailbox, portfolio, wake_backoff  # noqa: E402
 from tools import live_sessions as ls  # noqa: E402
 from tools.rename_service import pane_waiting, prompt_ready  # noqa: E402  (the rename service's screen tests)
 
@@ -216,6 +223,14 @@ def owner_box(ph_sid: str) -> str | None:
     return f"{parts[1]}-{parts[2]}" if len(parts) == 3 and _BOX_RE.fullmatch(f"{parts[1]}-{parts[2]}") else None
 
 
+def tier_of(box: str) -> str:
+    """The tier that paces timed letters to `box`: a PH's projects row (normal when it has
+    none or the hub is unreadable), critical for every C-level and the COO."""
+    if not box.startswith("project_head-"):
+        return "critical"
+    return portfolio.tier_for({"owner_cto": box})
+
+
 def coo_box() -> str | None:
     sid = ls.read_lock(LOCKS_DIR / "coo-active")
     return f"coo-{sid}" if re.fullmatch(r"[0-9a-f]{8}", sid) else None
@@ -224,9 +239,10 @@ def coo_box() -> str | None:
 # --- findings ----------------------------------------------------------------------
 
 def find(sessions, meta, questions, hosts, now: float, *, panes=capture,
-         live: set[str] | None = None) -> list[dict]:
+         live: set[str] | None = None, idle_s: float | None = IDLE_S) -> list[dict]:
     """Findings, each with a stable `subject` (its episode key). `live`: the boxes of
-    live sessions; a blocker from a PH not in it is dropped (B-2). None = unknown, keep."""
+    live sessions; a blocker from a PH not in it is dropped (B-2). None = unknown, keep.
+    `idle_s`: the idle threshold, already scaled for its recipient (None: no idle check)."""
     out = []
     for s in sessions:
         if not _BOX_RE.fullmatch(s["box"]):
@@ -235,7 +251,7 @@ def find(sessions, meta, questions, hosts, now: float, *, panes=capture,
         if screen is not None and pane_waiting(screen):
             out.append({"kind": "waiting", "box": s["box"], "subject": f"waiting:{s['box']}",
                         "text": "a prompt is waiting on a person (permission or question)"})
-        elif s["status"] == "idle" and s["since"] and now - s["since"] >= IDLE_S:
+        elif idle_s is not None and s["status"] == "idle" and s["since"] and now - s["since"] >= idle_s:
             out.append({"kind": "idle", "box": s["box"], "subject": f"idle:{s['box']}:{int(s['since'])}",
                         "text": f"idle {int((now - s['since']) // 60)} min"})
     for b in [m for m in meta if m.get("kind") == "blocker" and _BOX_RE.fullmatch(m["from"])
@@ -357,12 +373,17 @@ RULE = ("Rule (CEO 2026-10-14): a PH sends its C-level a blocker at once; a C-le
 
 
 def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
-          panes=capture) -> list[str]:
+          panes=capture, budget=None, tier_of=tier_of) -> list[str]:
     """Send what is due and return one line per letter. An at-once finding (waiting,
     blocker): a letter when its episode starts, one reminder REMIND_S later, then
     nothing. Others: one digest line per episode, flushed per recipient at most once
     per DIGEST_S. A wake only after an at-once letter, and only into a screen that is
-    prompt_ready."""
+    prompt_ready. `budget` (lib/wake_backoff.load_budget(); None = no slowdown) and
+    `tier_of` pace the reminder and the digest per recipient: wake_interval(REMIND_S or
+    DIGEST_S, tier=tier_of(recipient)); a recipient whose interval is None gets neither."""
+    def interval(base, box):
+        return wake_backoff.wake_interval(base, tier=tier_of(box), budget_json=budget, now=now)
+
     state, sent = load_state(now), []
     eps, dig = state["episodes"], state["digest"]
     current = {f["subject"] for f in findings}
@@ -376,8 +397,12 @@ def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
         ep = eps.setdefault(f["subject"], {"start": now, "sent": 0, "last": 0})
         to = recipients(f, live_c_levels)
         if f["kind"] in AT_ONCE:
-            if ep["sent"] >= AT_ONCE_SENDS or (ep["sent"] == 1 and now - ep["last"] < REMIND_S):
+            if ep["sent"] >= AT_ONCE_SENDS:
                 continue
+            if ep["sent"] == 1:         # the reminder is the one timed part: pace it per recipient
+                to = [b for b in to if (iv := interval(REMIND_S, b)) is not None and now - ep["last"] >= iv]
+                if not to:
+                    continue
             again = " (reminder; the last one this episode)" if ep["sent"] else ""
             body = f"blocker · urgent · escalation watch{again}: {line(f)}. {RULE}"
             for box in to:
@@ -395,17 +420,20 @@ def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
             if ep["sent"]:
                 continue
             for box in to:
-                dig.setdefault(box, {"last": 0, "lines": []})["lines"].append(line(f))
+                if interval(DIGEST_S, box) is not None:
+                    dig.setdefault(box, {"last": 0, "lines": []})["lines"].append(line(f))
         ep["sent"], ep["last"] = ep["sent"] + 1, now
     for box, d in dig.items():
-        if d["lines"] and now - d["last"] >= DIGEST_S:
+        iv = interval(DIGEST_S, box)
+        if d["lines"] and iv is not None and now - d["last"] >= iv:
             role, sid = box.split("-", 1)
             body = ("fyi · normal · escalation watch digest (no wake; act only if one is yours):\n- "
                     + "\n- ".join(d["lines"][:50]))
             send(role, sid, body, *FROM, kind="fyi", subject="escalation watch digest")
             sent.append(f"{box} <- digest of {len(d['lines'])}")
             d["lines"], d["last"] = [], now
-    state["digest"] = {b: d for b, d in dig.items() if d["lines"] or now - d["last"] < DIGEST_S}
+    state["digest"] = {b: d for b, d in dig.items()
+                       if d["lines"] or now - d["last"] < (interval(DIGEST_S, b) or DIGEST_S)}
     try:
         save_state(state)
     except StateUnusable as e:
@@ -452,7 +480,12 @@ def main(argv=None) -> int:
     questions = question_times()
     if questions is None:
         notes.append("Run Inbox unreadable: blocker findings cannot see question cards")
-    findings = find(sessions, read_meta(mailbox.meta_path()), questions, hosts, now, live=live)
+    budget = wake_backoff.load_budget()
+    factor = wake_backoff.backoff_factor(budget, now)
+    if factor > 1:
+        notes.append(f"usage budget over: timed checks slowed x{factor} (new findings still go at once)")
+    idle_s = wake_backoff.wake_interval(IDLE_S, tier=tier_of(coo_box() or ""), budget_json=budget, now=now)
+    findings = find(sessions, read_meta(mailbox.meta_path()), questions, hosts, now, live=live, idle_s=idle_s)
     for f in findings:
         print(f"{f['kind']:<8} {f.get('box') or f.get('host')}: {f['text']}")
     for h, info in hosts.items():
@@ -464,7 +497,7 @@ def main(argv=None) -> int:
         print("ok       nothing stalled")
     if a.nudge:     # also on an empty scan: ended episodes are pruned, a due digest flushes
         try:
-            sent = nudge(findings, live_c, now, wake=_wake)
+            sent = nudge(findings, live_c, now, wake=_wake, budget=budget)
         except StateUnusable as e:
             for out in e.sent:
                 print(f"sent     {out}")
