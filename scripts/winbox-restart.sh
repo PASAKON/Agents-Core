@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # winbox-restart.sh --sha <40-hex> [--dry-run] [--wait-max SECONDS]
+# winbox-restart.sh --register-logon-task   --sha <40-hex> [--dry-run]
+# winbox-restart.sh --unregister-logon-task --sha <40-hex> [--dry-run]
 #
 # SafeRestart for winbox, run on Contabo by a CEO-approved Run card:
 #   1. the winbox clone must be exactly at --sha with no changed tracked file;
@@ -20,9 +22,17 @@
 #               taken, nothing is rebooted). A wrong --sha or a missing logon task is a
 #               warning here and a refusal in a real run.
 #
+# --register-logon-task / --unregister-logon-task (one Run card each, the CEO taps it on his
+# phone; nobody goes to the winbox desk): after the same clone == --sha check, run
+# windows\register-org-resume.ps1 (with -Remove for unregister) in the console session
+# through the same one-shot interactive task prep uses, then print the state of
+# MooniexOrgResume. The .ps1 itself refuses to run in session 0. No lease and no keystroke:
+# nothing here touches the desktop. A restart is not part of either mode.
+#
 # Env: WINBOX_HOST (ssh alias, default winbox), WINBOX_REPO (the clone, default
 # C:\Users\passg\mooniex\repo\MoonieX-Agents).
-# Exit: 0 done (rebooting) | 1 prep/rollback failed | 2 usage or the clone is wrong |
+# WINBOX_POLL_SEC (default 5) paces the wait for the console-session task; tests lower it.
+# Exit: 0 done (rebooting; or the logon task is now in the state asked for) | 1 prep/rollback failed | 2 usage or the clone is wrong |
 #       3 refused (CEO hold, running card, safety gate) | 4 the logon task is missing.
 set -euo pipefail
 
@@ -39,8 +49,12 @@ cd "$HERE"
 sha=''
 dry=0
 wait_max=240
+mode=restart                       # restart | register | unregister
+poll="${WINBOX_POLL_SEC:-5}"
 while (( $# )); do
   case "$1" in
+    --register-logon-task) [[ "$mode" == restart ]] || { echo "give only one of --register-logon-task / --unregister-logon-task"; exit 2; }; mode=register; shift ;;
+    --unregister-logon-task) [[ "$mode" == restart ]] || { echo "give only one of --register-logon-task / --unregister-logon-task"; exit 2; }; mode=unregister; shift ;;
     --sha) sha="${2:?--sha needs a value}"; shift 2 ;;
     --dry-run) dry=1; shift ;;
     --wait-max) wait_max="${2:?--wait-max needs a value}"; shift 2 ;;
@@ -55,6 +69,7 @@ ok()   { printf '\033[32m✓\033[0m %s\n' "$*"; }
 refuse() { if (( dry )); then warn "dry run: would refuse: $1"; else die "$1" "${2:-3}"; fi; }
 
 [[ "$wait_max" =~ ^[0-9]+$ ]] || die "--wait-max must be a whole number of seconds" 2
+[[ "$poll" =~ ^[1-9][0-9]*$ ]] || die "WINBOX_POLL_SEC must be a whole number of seconds, at least 1" 2
 [[ "$REPO_WIN" =~ ^[A-Za-z]:\\[A-Za-z0-9_.\\-]+$ ]] || die "WINBOX_REPO must be a plain Windows path without spaces: $REPO_WIN" 2
 if [[ -n "$sha" ]]; then
   [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || die "--sha must be 40 lowercase hex characters" 2
@@ -72,6 +87,7 @@ flock -n 9 || die "another winbox restart is running" 1
 ssh_out() { ssh -o BatchMode=yes -o ConnectTimeout=20 -n "$HOST" "$@" | tr -d '\r'; }
 
 label=''; (( dry )) && label=' (dry run)'
+case "$mode" in register) label=" --register-logon-task$label" ;; unregister) label=" --unregister-logon-task$label" ;; esac
 echo "== winbox SafeRestart$label host=$HOST clone=$REPO_WIN sha=${sha:-none}"
 
 # ---- 1. the clone is the commit the card names --------------------------------------
@@ -87,6 +103,7 @@ fi
 [[ -z "$dirty" ]] || refuse "$REPO_WIN has changed tracked files; a restart runs only a clean checkout:
 $dirty" 2
 
+if [[ "$mode" == restart ]]; then
 # ---- 2. no Run card is running on winbox ----------------------------------------------
 # winbox has no Run Inbox token, so prep cannot look; this side does, and tells prep with
 # --cards-checked. The restart card itself runs on Contabo and is not in the way.
@@ -117,11 +134,13 @@ fi
 if ssh_out "schtasks /query /tn $LOGON_TASK" >/dev/null 2>&1; then
   ok "$LOGON_TASK is registered"
 else
-  refuse "$LOGON_TASK is not registered on winbox: sessions would be saved and never reopened. Register it first (CEO card, at the desktop): powershell -NoProfile -ExecutionPolicy Bypass -File $REPO_WIN\\windows\\register-org-resume.ps1" 4
+  refuse "$LOGON_TASK is not registered on winbox: sessions would be saved and never reopened. Register it first with a CEO card: bash scripts/winbox-restart.sh --register-logon-task --sha ${sha:-<40-hex>}" 4
 fi
+fi   # mode == restart
 
 # ---- the one-shot interactive task: restart_run.py in the console session ---------------
-# $1 = prep | resume. Prints the output; returns restart_run's exit code.
+# $1 = prep | resume | register | unregister. Prints the output; returns the exit code of
+# restart_run.py (prep, resume) or of windows\register-org-resume.ps1 (register; unregister = -Remove).
 inner_script() {
   cat <<'PSEOF'
 # restart-inner.ps1 - written by scripts/winbox-restart.sh; runs once, in the console session.
@@ -135,12 +154,20 @@ try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } 
 $code = 98
 try {
     Set-Location -LiteralPath $Root
-    $py = Join-Path $Root '.venv\Scripts\python.exe'
-    $runArgs = @('--host', 'winbox', $Verb, '--wait-max', "$WaitMax")
-    if ($Verb -eq 'prep') { $runArgs += '--cards-checked' }
-    & $py -E -s (Join-Path $Root 'tools\infisical_setup.py') run Agents-Core prod --as winbox -- $py -I -X utf8 (Join-Path $Root 'tools\restart_run.py') @runArgs 2>&1 |
-        ForEach-Object { "$_" } | Out-File -LiteralPath $out -Encoding utf8
-    $code = $LASTEXITCODE
+    if ($Verb -eq 'register' -or $Verb -eq 'unregister') {
+        # The logon task. register-org-resume.ps1 refuses session 0 itself (exit 2).
+        $psArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $Root 'windows\register-org-resume.ps1'))
+        if ($Verb -eq 'unregister') { $psArgs += '-Remove' }
+        & powershell.exe @psArgs 2>&1 | ForEach-Object { "$_" } | Out-File -LiteralPath $out -Encoding utf8
+        $code = $LASTEXITCODE
+    } else {
+        $py = Join-Path $Root '.venv\Scripts\python.exe'
+        $runArgs = @('--host', 'winbox', $Verb, '--wait-max', "$WaitMax")
+        if ($Verb -eq 'prep') { $runArgs += '--cards-checked' }
+        & $py -E -s (Join-Path $Root 'tools\infisical_setup.py') run Agents-Core prod --as winbox -- $py -I -X utf8 (Join-Path $Root 'tools\restart_run.py') @runArgs 2>&1 |
+            ForEach-Object { "$_" } | Out-File -LiteralPath $out -Encoding utf8
+        $code = $LASTEXITCODE
+    }
 } catch {
     "inner error: $_" | Out-File -LiteralPath $out -Append -Encoding utf8
     $code = 98
@@ -181,16 +208,16 @@ Remove-Item '$WORK_WIN\\run.out','$WORK_WIN\\run.exit' -ErrorAction SilentlyCont
 Register-ScheduledTask -TaskName '$TASK' -Action \$a -Principal \$p -Settings \$s -Force | Out-Null
 Start-ScheduledTask -TaskName '$TASK'
 'started'" | grep -qx started || die "could not start the console-session task on $HOST"
-  echo "restart_run.py $verb is running on $HOST in the console session ..."
+  echo "$verb is running on $HOST in the console session ..."
   code=''
   n=0
-  while (( n * 5 < limit )); do
-    sleep 5
+  while (( n * poll < limit )); do
+    sleep "$poll"
     n=$((n + 1))
     code=$(winbox_ps "if (Test-Path '$WORK_WIN\\run.exit') { (Get-Content -Raw '$WORK_WIN\\run.exit').Trim() }" 2>/dev/null || true)
     [[ "$code" =~ ^[0-9]+$ ]] && break
     code=''
-    (( n % 12 )) || echo "  ... still running ($((n * 5 / 60)) min)"
+    (( n * poll % 60 )) || echo "  ... still running ($((n * poll / 60)) min)"
   done
   [[ -n "$code" ]] || { echo "no result from $HOST after $((limit / 60)) min; the task is left unregistered, state is on the box under $WORK_WIN"; return 1; }
   local out; out=$(mktemp)
@@ -199,6 +226,37 @@ Start-ScheduledTask -TaskName '$TASK'
   unregister_run_task
   return "$code"
 }
+
+# ---- --register-logon-task / --unregister-logon-task ---------------------------------------
+# State of MooniexOrgResume as the box reports it: Ready | Running | Disabled | not registered.
+logon_state() {
+  winbox_ps "\$t = Get-ScheduledTask -TaskName '$LOGON_TASK' -ErrorAction SilentlyContinue; if (\$t) { [string]\$t.State } else { 'not registered' }" 2>/dev/null | tail -1
+}
+
+if [[ "$mode" != restart ]]; then
+  ps1_line="powershell -NoProfile -ExecutionPolicy Bypass -File $REPO_WIN\\windows\\register-org-resume.ps1"
+  [[ "$mode" == unregister ]] && ps1_line="$ps1_line -Remove"
+  echo "-- $mode the logon task: in the console session, as the one-shot task '$TASK' (Interactive, no elevation, no lease, no keystroke):"
+  echo "   $ps1_line"
+  echo "-- $LOGON_TASK now: $(logon_state)"
+  if (( dry )); then
+    echo "dry run finished: nothing was changed"
+    exit 0
+  fi
+  status=0
+  console_run "$mode" || status=$?
+  state=$(logon_state)
+  echo "-- $LOGON_TASK state: ${state:-unknown}"
+  (( status == 0 )) || die "register-org-resume.ps1 exited $status (output above): $LOGON_TASK is $state" 1
+  if [[ "$mode" == register ]]; then
+    [[ "$state" == Ready || "$state" == Running ]] || die "$LOGON_TASK is '${state:-unknown}' after register; expected Ready" 1
+    ok "$LOGON_TASK is registered ($state): at the next logon it reopens the sessions saved by a restart"
+  else
+    [[ "$state" == 'not registered' ]] || die "$LOGON_TASK is still '${state:-unknown}' after unregister" 1
+    ok "$LOGON_TASK is removed: a restart would refuse (exit 4) until it is registered again"
+  fi
+  exit 0
+fi
 
 # ---- dry run: prep --dry-run over plain ssh, then say what a real run adds ---------------
 run_prep_dry() {
@@ -219,6 +277,8 @@ if (( dry )); then
    if prep exits 0:           ssh $HOST shutdown /r /t 60
    if prep fails:             no reboot; the same task runs 'resume' to reopen what prep closed
    at logon:                  $LOGON_TASK -> windows\\org-resume-logon.ps1 -> restart_run.py resume, then report --notify
+   the logon task itself:     bash scripts/winbox-restart.sh --register-logon-task   --sha <40-hex>   (CEO card)
+                              bash scripts/winbox-restart.sh --unregister-logon-task --sha <40-hex>   (CEO card)
 EOF
   echo "dry run finished: nothing was changed (prep --dry-run exit $status)"
   exit "$status"

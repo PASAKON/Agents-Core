@@ -292,6 +292,106 @@ def win_restore_owner(row, dry_run):
         path.write_text(record + '\n', encoding='utf-8')
 
 
+def win_hub_ph(sid):
+    """(record, why): a Project Head's project, lane and owner as the hub's portfolio registry
+    holds them (projects.ph_session = this session, the row tools/spawn_ph.py writes). The
+    record is dict(project, lane, spawned_by) only when every field is known and well formed;
+    otherwise None and one line saying what is missing. c_level_sessions holds none of these."""
+    from lib import db
+    if not db.pg_url():
+        return None, 'ORG_DB_URL is unset, so the hub cannot be read'
+    try:
+        with db.get_conn() as conn:
+            rows = [dict(r) for r in conn.execute(
+                'SELECT id, name, lane, owner_session FROM projects WHERE ph_session IN (?, ?) ORDER BY id',
+                (sid, f'{roles.PH_ROLE}-{sid}')).fetchall()]
+    except Exception as exc:  # the hub is down, the snapshot has no such table, a driver error
+        return None, f'the hub could not be read ({type(exc).__name__})'
+    if not rows:
+        return None, 'no portfolio project names this session as its Project Head'
+    if len(rows) > 1:
+        return None, 'several portfolio projects name this session: ' + ', '.join(r['id'] for r in rows)
+    row = rows[0]
+    lane = row.get('lane') or ''
+    if roles.ph_lane_refusal(lane):
+        return None, f"project {row['id']} has no usable lane (hub says {lane!r})"
+    # tools/spawn_ph.py stores "<lane>-<owner session>". Only a real session id counts: the
+    # hub also holds placeholders such as "cto-fresh", and an owner record naming a session
+    # that does not exist would send the Project Head's reports nowhere.
+    owner = row.get('owner_session') or ''
+    owner_sid = owner[len(lane) + 1:] if owner.startswith(lane + '-') else ''
+    if not re.fullmatch(r'[0-9a-f]{8}', owner_sid):
+        return None, f"project {row['id']} has no owner session '<lane>-<8 hex>' (hub says {owner!r})"
+    spawned_by = f'cxo:{lane}:{owner_sid}'
+    # The name a spawner types comes first (spawn_ph's one-PH-per-project check compares it
+    # case-folded); a name with a space cannot be one, so the registry id stands in.
+    project = next((v for v in (row['name'], row['id']) if roles.ph_project_refusal(v) is None), None)
+    if project is None:
+        return None, f"project {row['id']} has no name that a Project Head can be started with"
+    return dict(project=project, lane=lane, spawned_by=spawned_by), ''
+
+
+def win_rebuild_owner(entry, dry_run):
+    """Before `cannot_resume`: put back the .project / .spawned_by a Project Head lost (the
+    temp respawn scripts of 2026-10-27 never wrote them). Writes only when the hub knows
+    every field, only the file that is missing, and never over a file that exists. Prints
+    which of rebuilt / not_rebuilt / owner_record_ok happened. Updates `entry` in place."""
+    sid, name = entry['sid'], entry['name']
+    if entry.get('project') and entry.get('spawned_by'):
+        print(f'owner_record_ok: {name}')
+        return
+    locks = ROOT / 'state/locks'
+    files = {'project': locks / f'{roles.PH_ROLE}-{sid}.project',
+             'spawned_by': locks / f'{roles.PH_ROLE}-{sid}.spawned_by'}
+    missing = [key for key in files if not entry.get(key)]
+    for key in missing:
+        if files[key].exists():
+            print(f'not_rebuilt: {name}: {files[key].name} exists but is not usable; left alone')
+            return
+    found, why = win_hub_ph(sid)
+    if found is None:
+        print(f'not_rebuilt: {name}: {why}')
+        return
+    for key in missing:
+        entry[key] = found[key]
+        if not dry_run:
+            files[key].parent.mkdir(parents=True, exist_ok=True)
+            files[key].write_text(found[key], encoding='utf-8')
+    entry['lane'] = found['lane']
+    print(('would_rebuild' if dry_run else 'rebuilt') + f": {name}: wrote {', '.join(files[k].name for k in missing)}"
+          f" from the hub (project={entry['project']} lane={entry['lane']} spawned_by={entry['spawned_by']})")
+
+
+def win_plan_lines(plan, actions, cannot):
+    """Dry run: what a real run does with each session. `actions` is the plan's action per
+    sid before prep turned a forced `wait` into a resume; `cannot` maps sid -> why not."""
+    lines = []
+    for row in plan['sessions']:
+        role, sid = identity(row)
+        action = actions[sid]
+        if managed(row):
+            label = 'leave alone'
+        elif worker(row):
+            label = 'leave running'
+        elif sid in cannot:
+            label = 'cannot_resume'
+        elif action == 'wait':
+            label = 'wait'
+        elif action == 'close':
+            label = 'close (no reopen)'
+        elif action == 'park':
+            label = 'save only (park)'
+        else:
+            label = 'save+reopen'
+        why = {'leave alone': 'service_managed', 'leave running': 'worker, owned by the task ledger',
+               'cannot_resume': cannot.get(sid, ''), 'close (no reopen)': 'recorded closed, not typed into',
+               'wait': 'mid-turn: a real run waits up to --wait-max, then stops with exit 3'}.get(label, '')
+        if label == 'save+reopen':
+            why = {'compact_then_resume': '/compact first', 'resume_lazy': 'lazy: no continue message'}.get(action, '')
+        lines.append(f"  {label:<18} {role} #{sid}  {row['name']}" + (f'  ({why})' if why else ''))
+    return lines
+
+
 def win_boot_time():
     """Epoch seconds of the last boot, or None."""
     try:
@@ -524,6 +624,9 @@ def prep(args):
         if row['action'] not in restart_plan.ACTIONS:
             raise ValueError('unknown plan action')
     write_json(STATE / f'{args.host}-plan-{stamp()}.json', plan, args.dry_run)
+    # What the planner decided, before a forced `wait` becomes a resume below.
+    actions = {identity(r)[1]: r['action'] for r in plan['sessions']}
+    blocked = False
     if blockers(plan) and not args.force:
         if not args.dry_run:
             def ready():
@@ -536,7 +639,9 @@ def prep(args):
         if blockers(plan):
             for item in blockers(plan):
                 print(f'ยังทำอยู่: {item}')
-            return 3
+            if not (win and args.dry_run):
+                return 3
+            blocked = True   # a winbox dry run still says what each session would do
     manifest = []
     for row in plan['sessions']:
         if managed(row) or worker(row):
@@ -561,14 +666,25 @@ def prep(args):
                              spawned_by=owner)
             manifest.append(entry)
     if win:
+        # A Project Head that lost its owner record gets it back from the hub if the hub
+        # knows every field; only then is it left as cannot_resume.
+        for entry in manifest:
+            if entry['role'] == roles.PH_ROLE:
+                win_rebuild_owner(entry, args.dry_run)
         # Never save (and so lose) a session that resume could not reopen.
-        unreachable = False
+        cannot = {}
         for entry in manifest:
             try:
                 win_launcher(entry)
             except ValueError as exc:
                 print(f"cannot_resume: {entry['name']}: {exc}")
-                unreachable = True
+                cannot[entry['sid']] = str(exc).split(':')[0]
+        unreachable = bool(cannot)
+        if args.dry_run:
+            print('-- what a real run does, per session')
+            print('\n'.join(win_plan_lines(plan, actions, cannot)) or '  (no sessions)')
+        if blocked:
+            return 3
         if unreachable:
             print('nothing was typed, saved or closed: fix the sessions above or leave them out of the restart')
             return 1

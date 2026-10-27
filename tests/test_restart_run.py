@@ -601,6 +601,7 @@ def winbox(monkeypatch, tmp_path):
     monkeypatch.setattr(rr, 'win_live', Mock(return_value=set()))
     monkeypatch.setattr(rr, 'win_wt_running', lambda: False)
     monkeypatch.setattr(rr, 'win_boot_time', lambda: None)
+    monkeypatch.setattr(rr, 'win_hub_ph', Mock(return_value=(None, 'the hub is not reachable in tests')))
     monkeypatch.setattr(rr.session_status, 'record_close', Mock())
     monkeypatch.setenv('LOCALAPPDATA', r'C:\Users\x\AppData\Local')
     return wake
@@ -1053,3 +1054,390 @@ def test_winbox_report_notify_all_back_asks_a_question(winbox, tmp_path):
     first = commands()[0]
     assert first[:3] == [sys.executable, 'tools/ask_run.py', 'ask']
     assert first[first.index('--question') + 1].startswith('Restart winbox: ')
+
+
+# ---- winbox: a Project Head that lost its owner record (rebuilt from the hub) ----------
+HUB_PH = dict(project='LuminaSkies', lane='cto', spawned_by='cxo:cto:c34459eb')
+
+
+class FakeHub:
+    """The one query win_hub_ph makes, answered from `rows`."""
+    def __init__(self, rows):
+        self.rows, self.params = rows, None
+
+    def execute(self, sql, params=()):
+        assert 'FROM projects WHERE ph_session IN' in sql
+        self.params = params
+        return self
+
+    def fetchall(self):
+        return self.rows
+
+
+def hub(monkeypatch, rows=(), url='postgres://hub', error=None):
+    import contextlib
+    from lib import db
+    conn = FakeHub(list(rows))
+
+    @contextlib.contextmanager
+    def get_conn():
+        if error:
+            raise error
+        yield conn
+    monkeypatch.setattr(db, 'pg_url', lambda: url)
+    monkeypatch.setattr(db, 'get_conn', get_conn)
+    return conn
+
+
+def hub_row(**extra):
+    return {**dict(id='lumina-skies', name='LuminaSkies', lane='cto', owner_session='cto-c34459eb'), **extra}
+
+
+def ph_entry(**extra):
+    return {**wentry(role='project_head', sid=SID_B), 'name': f'project_head #{SID_B}',
+            'project': None, 'lane': None, 'spawned_by': None, **extra}
+
+
+def owner_files(tmp_path):
+    locks = tmp_path / 'state/locks'
+    return locks / f'project_head-{SID_B}.project', locks / f'project_head-{SID_B}.spawned_by'
+
+
+@pytest.mark.parametrize('row_,expected', [
+    (hub_row(), HUB_PH),
+    # a name with a space cannot be started with, so the registry id stands in
+    (hub_row(name='BLACK LIQUIDITY', id='black-liquidity', lane='cmo', owner_session='cmo-ef04792e'),
+     dict(project='black-liquidity', lane='cmo', spawned_by='cxo:cmo:ef04792e')),
+])
+def test_win_hub_ph_reads_project_lane_and_owner(monkeypatch, row_, expected):
+    conn = hub(monkeypatch, [row_])
+    assert rr.win_hub_ph(SID_B) == (expected, '')
+    assert conn.params == (SID_B, f'project_head-{SID_B}')
+
+
+@pytest.mark.parametrize('rows,url,error,why', [
+    ([], 'postgres://hub', None, 'no portfolio project'),
+    ([hub_row(), hub_row(id='other')], 'postgres://hub', None, 'several portfolio projects'),
+    ([hub_row(owner_session=None)], 'postgres://hub', None, 'no owner session'),
+    ([hub_row(owner_session='cto-fresh')], 'postgres://hub', None, 'no owner session'),   # a placeholder, not a session
+    ([hub_row(owner_session='cmo-c34459eb')], 'postgres://hub', None, 'no owner session'),  # another lane's session
+    ([hub_row(lane='nobody')], 'postgres://hub', None, 'no usable lane'),
+    ([hub_row(name='a b', id='c d')], 'postgres://hub', None, 'no name'),
+    ([], None, None, 'ORG_DB_URL is unset'),
+    ([], 'postgres://hub', OSError('down'), 'could not be read (OSError)'),
+])
+def test_win_hub_ph_gives_nothing_unless_every_field_is_known(monkeypatch, rows, url, error, why):
+    hub(monkeypatch, rows, url, error)
+    found, reason = rr.win_hub_ph(SID_B)
+    assert found is None and why in reason
+
+
+def test_win_rebuild_owner_writes_the_files_it_lacks(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(rr, 'win_hub_ph', Mock(return_value=(HUB_PH, '')))
+    e = ph_entry()
+    rr.win_rebuild_owner(e, False)
+    project_file, owner_file = owner_files(tmp_path)
+    assert project_file.read_text() == 'LuminaSkies' and owner_file.read_text() == 'cxo:cto:c34459eb'
+    assert (e['project'], e['lane'], e['spawned_by']) == ('LuminaSkies', 'cto', 'cxo:cto:c34459eb')
+    assert f'rebuilt: project_head #{SID_B}' in capsys.readouterr().out
+    assert rr.win_owner(SID_B) == 'cxo:cto:c34459eb'      # the record resume and cxo-claude.ps1 read
+
+
+def test_win_rebuild_owner_dry_run_fills_the_entry_but_writes_nothing(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(rr, 'win_hub_ph', Mock(return_value=(HUB_PH, '')))
+    e = ph_entry()
+    rr.win_rebuild_owner(e, True)
+    assert not any(p.exists() for p in owner_files(tmp_path))
+    assert e['spawned_by'] == 'cxo:cto:c34459eb'
+    assert 'would_rebuild' in capsys.readouterr().out
+
+
+def test_win_rebuild_owner_writes_nothing_when_the_hub_does_not_know(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(rr, 'win_hub_ph', Mock(return_value=(None, 'no portfolio project names this session')))
+    e = ph_entry()
+    rr.win_rebuild_owner(e, False)
+    assert not any(p.exists() for p in owner_files(tmp_path))
+    assert (e['project'], e['lane'], e['spawned_by']) == (None, None, None)
+    assert f'not_rebuilt: project_head #{SID_B}: no portfolio project' in capsys.readouterr().out
+
+
+def test_win_rebuild_owner_writes_only_the_missing_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(rr, 'win_hub_ph', Mock(return_value=(HUB_PH, '')))
+    e = ph_entry(project='demo')
+    rr.win_rebuild_owner(e, False)
+    project_file, owner_file = owner_files(tmp_path)
+    assert owner_file.exists() and not project_file.exists() and e['project'] == 'demo'
+
+
+def test_win_rebuild_owner_never_overwrites_a_file_that_exists(tmp_path, monkeypatch, capsys):
+    hub_ = Mock(return_value=(HUB_PH, ''))
+    monkeypatch.setattr(rr, 'win_hub_ph', hub_)
+    _, owner_file = owner_files(tmp_path)
+    owner_file.parent.mkdir(parents=True)
+    owner_file.write_text('garbage')
+    rr.win_rebuild_owner(ph_entry(), False)
+    assert owner_file.read_text() == 'garbage' and not hub_.called
+    assert 'not_rebuilt' in capsys.readouterr().out
+
+
+def test_win_rebuild_owner_leaves_a_complete_record_alone(tmp_path, monkeypatch, capsys):
+    hub_ = Mock(return_value=(HUB_PH, ''))
+    monkeypatch.setattr(rr, 'win_hub_ph', hub_)
+    rr.win_rebuild_owner(ph_entry(project='demo', spawned_by='cxo:cto:c34459eb'), False)
+    assert not hub_.called and f'owner_record_ok: project_head #{SID_B}' in capsys.readouterr().out
+
+
+def test_winbox_prep_rebuilds_a_lost_owner_record_instead_of_cannot_resume(winbox, tmp_path, capsys):
+    rr.win_hub_ph.return_value = (HUB_PH, '')
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    assert rr.prep(wargs(tmp_path, [wrow('resume_full', 'project_head', SID_B)])) == 0
+    out = capsys.readouterr().out
+    assert 'rebuilt:' in out and 'cannot_resume' not in out
+    data = json.loads((rr.STATE / 'winbox-resume.json').read_text())
+    assert (data[0]['project'], data[0]['lane'], data[0]['spawned_by']) == ('demo', 'cto', 'cxo:cto:c34459eb')
+    assert owner_files(tmp_path)[1].read_text() == 'cxo:cto:c34459eb'
+
+
+def test_winbox_prep_keeps_cannot_resume_when_the_hub_has_no_owner(winbox, tmp_path, capsys):
+    assert rr.prep(wargs(tmp_path, [wrow(), wrow('resume_full', 'project_head', SID_B)])) == 1
+    out = capsys.readouterr().out
+    assert f'not_rebuilt: project_head #{SID_B}' in out and f'cannot_resume: project_head #{SID_B}' in out
+    assert winbox.call_count == 0 and not any(p.exists() for p in owner_files(tmp_path))
+
+
+def test_winbox_prep_dry_run_rebuilds_nothing_on_disk_but_shows_it(winbox, tmp_path, capsys):
+    rr.win_hub_ph.return_value = (HUB_PH, '')
+    a = wargs(tmp_path, [wrow('resume_full', 'project_head', SID_B)])
+    a.dry_run = True
+    assert rr.prep(a) == 0
+    out = capsys.readouterr().out
+    assert 'would_rebuild' in out and 'cannot_resume' not in out
+    assert not any(p.exists() for p in owner_files(tmp_path))
+
+
+# ---- winbox dry run: what a real run does with each session -------------------------------
+def test_winbox_prep_dry_run_says_per_session_what_a_real_run_does(winbox, tmp_path, capsys):
+    import re
+    rows = [wrow('resume_full'), wrow('compact_then_resume', 'cmo', SID_B), wrow('park', 'cfo', '0badc0de'),
+            wrow('close', 'cgo', 'c10c10c1'), wrow('resume_full', 'project_head', 'f00dcafe')]
+    a = wargs(tmp_path, rows)
+    a.dry_run = True
+    assert rr.prep(a) == 1                              # the Project Head cannot be reopened
+    out = capsys.readouterr().out
+    assert '-- what a real run does, per session' in out
+    for pattern in (rf'save\+reopen +cto #{SID_A}', rf'save\+reopen +cmo #{SID_B} .*\(/compact first\)',
+                    r'save only \(park\) +cfo #0badc0de', r'close \(no reopen\) +cgo #c10c10c1',
+                    r'cannot_resume +project_head #f00dcafe .*project_head-<sid>\.spawned_by'):
+        assert re.search(pattern, out), pattern
+    winbox.assert_not_called()
+
+
+def test_winbox_prep_dry_run_with_a_session_mid_turn_still_lists_the_plan(winbox, tmp_path, capsys):
+    import re
+    a = wargs(tmp_path, [wrow('wait'), wrow('resume_full', 'cmo', SID_B)])
+    a.dry_run = True
+    assert rr.prep(a) == 3
+    out = capsys.readouterr().out
+    assert 'ยังทำอยู่' in out
+    assert re.search(rf'wait +cto #{SID_A} .*mid-turn', out) and re.search(rf'save\+reopen +cmo #{SID_B}', out)
+    winbox.assert_not_called()
+    assert not rr.STATE.exists()
+
+
+def test_winbox_prep_real_run_still_stops_at_a_session_mid_turn_without_the_table(winbox, tmp_path, capsys):
+    assert rr.prep(wargs(tmp_path, [wrow('wait')])) == 3
+    assert 'what a real run does' not in capsys.readouterr().out
+
+
+def test_contabo_prep_dry_run_prints_no_winbox_plan(tmp_path, capsys):
+    a = args(tmp_path, [row()])
+    a.dry_run = True
+    rr.prep(a)
+    assert 'what a real run does' not in capsys.readouterr().out
+
+
+# ---- scripts/winbox-restart.sh against a fake ssh/scp ----------------------------------------
+SHA = '0123456789abcdef0123456789abcdef01234567'
+FAKE_SSH = r'''#!/usr/bin/env python3
+import base64, os, sys
+fake = os.environ['FAKE_DIR']
+def log(line):
+    with open(os.path.join(fake, 'calls'), 'a') as f:
+        f.write(line + '\n')
+def put(name, text):
+    with open(os.path.join(fake, name), 'w') as f:
+        f.write(text)
+def get(name, default=''):
+    try:
+        return open(os.path.join(fake, name)).read().strip()
+    except OSError:
+        return default
+remote = sys.argv[-1]
+if remote.startswith('powershell -NoProfile -NonInteractive -EncodedCommand '):
+    ps = base64.b64decode(remote.rsplit(' ', 1)[1]).decode('utf-16-le')
+    log('PS ' + ' '.join(ps.split()))
+    if 'Register-ScheduledTask -TaskName' in ps and "'mooniex-restart-run'" in ps:
+        verb = ps.split('-Verb ')[1].split()[0]
+        put('verb', verb)
+        code = os.environ.get('FAKE_RUN_EXIT', '0')
+        put('run.exit', code)                      # the console-session task "ran" and finished
+        if code == '0' and verb == 'register':
+            put('logon_state', os.environ.get('FAKE_STATE_AFTER', 'Ready'))
+        if code == '0' and verb == 'unregister':
+            put('logon_state', 'not registered')
+        print('started')
+    elif 'Get-ScheduledTask' in ps:
+        print(get('logon_state', 'not registered'))
+    elif 'run.exit' in ps:
+        print(get('run.exit'))
+    sys.exit(0)
+log('SSH ' + remote)
+if 'rev-parse HEAD' in remote:
+    print(os.environ.get('FAKE_HEAD', ''))
+elif 'status --porcelain' in remote:
+    print(os.environ.get('FAKE_DIRTY', ''))
+elif remote.startswith('schtasks /query'):
+    sys.exit(0 if get('logon_state', 'not registered') != 'not registered' else 1)
+elif 'pending-winbox.json echo marker' in remote:
+    print(os.environ.get('FAKE_MARKER', ''))
+elif 'prep --dry-run' in remote:
+    print('PREP-DRY-RUN-OUTPUT')
+'''
+FAKE_SCP = r'''#!/usr/bin/env python3
+import os, shutil, sys
+fake = os.environ['FAKE_DIR']
+src, dst = sys.argv[-2], sys.argv[-1]
+with open(os.path.join(fake, 'calls'), 'a') as f:
+    f.write(f'SCP {src} {dst}\n')
+if dst.startswith('winbox:'):
+    shutil.copy(src, os.path.join(fake, 'uploaded.ps1'))
+else:
+    with open(dst, 'w') as f:
+        f.write(os.environ.get('FAKE_RUN_OUT', 'output of the console-session task\n'))
+'''
+
+
+def _winbox_sh(tmp_path, *argv, logon_state='', **env):
+    """Run a copy of winbox-restart.sh with ssh/scp replaced by scripts that answer and log."""
+    scripts = tmp_path / 'scripts'
+    (scripts / 'lib').mkdir(parents=True)
+    (scripts / 'hub').mkdir()
+    for name in ('winbox-restart.sh', 'lib/winbox_deploy.sh'):
+        (scripts / name).write_text((REPO / 'scripts' / name).read_text())
+    (scripts / 'hub/org-python.sh').write_text('#!/bin/sh\necho "${FAKE_CARDS:-[]}"\n')
+    (scripts / 'pc-lease.sh').write_text('#!/bin/sh\necho "LEASE $*" >> "$FAKE_DIR/calls"\n')
+    bindir, fake = tmp_path / 'bin', tmp_path / 'fake'
+    bindir.mkdir()
+    fake.mkdir()
+    for name, body in (('ssh', FAKE_SSH), ('scp', FAKE_SCP)):
+        (bindir / name).write_text(body)
+        (bindir / name).chmod(0o755)
+    if logon_state:
+        (fake / 'logon_state').write_text(logon_state)
+    full = {**os.environ, 'PATH': f'{bindir}:' + os.environ['PATH'], 'FAKE_DIR': str(fake),
+            'WINBOX_POLL_SEC': '1', 'FAKE_HEAD': SHA, **env}
+    result = REAL_RUN(['bash', str(scripts / 'winbox-restart.sh'), *argv],
+                      env=full, capture_output=True, text=True, timeout=120)
+    calls = (fake / 'calls').read_text().splitlines() if (fake / 'calls').exists() else []
+    uploaded = (fake / 'uploaded.ps1').read_text() if (fake / 'uploaded.ps1').exists() else ''
+    return result, calls, uploaded
+
+
+def _called(calls, text):
+    return [c for c in calls if text in c]
+
+
+ONE_SHOT = "Register-ScheduledTask -TaskName 'mooniex-restart-run'"
+
+
+def test_winbox_sh_register_runs_the_ps1_in_the_console_session_and_prints_the_state(tmp_path):
+    result, calls, uploaded = _winbox_sh(tmp_path, '--register-logon-task', '--sha', SHA)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert '-Verb register ' in _called(calls, ONE_SHOT)[0]
+    assert 'register-org-resume.ps1' in uploaded and uploaded.isascii()
+    assert 'MooniexOrgResume now: not registered' in result.stdout
+    assert 'MooniexOrgResume state: Ready' in result.stdout
+    assert 'output of the console-session task' in result.stdout
+    assert len(_called(calls, "Unregister-ScheduledTask -TaskName 'mooniex-restart-run'")) >= 2   # the one-shot task goes
+    assert not _called(calls, 'LEASE') and not _called(calls, 'shutdown') and not _called(calls, 'prep')
+
+
+def test_winbox_sh_unregister_passes_remove(tmp_path):
+    result, calls, uploaded = _winbox_sh(tmp_path, '--unregister-logon-task', '--sha', SHA, logon_state='Ready')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert '-Verb unregister ' in _called(calls, ONE_SHOT)[0]
+    assert "if ($Verb -eq 'unregister') { $psArgs += '-Remove' }" in uploaded
+    assert 'MooniexOrgResume now: Ready' in result.stdout and 'MooniexOrgResume state: not registered' in result.stdout
+
+
+def test_winbox_sh_register_ps1_line_is_exactly_what_the_card_shows(tmp_path):
+    result, _, _ = _winbox_sh(tmp_path, '--register-logon-task', '--dry-run', '--sha', SHA)
+    reg = r'powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\passg\mooniex\repo\MoonieX-Agents\windows\register-org-resume.ps1'
+    assert reg + '\n' in result.stdout
+    result, _, _ = _winbox_sh(tmp_path / 'u', '--unregister-logon-task', '--dry-run', '--sha', SHA)
+    assert reg + ' -Remove\n' in result.stdout
+
+
+@pytest.mark.parametrize('flag', ['--register-logon-task', '--unregister-logon-task'])
+def test_winbox_sh_dry_run_registers_nothing(tmp_path, flag):
+    result, calls, uploaded = _winbox_sh(tmp_path, flag, '--dry-run', '--sha', SHA)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'nothing was changed' in result.stdout
+    assert not _called(calls, ONE_SHOT) and not uploaded and not _called(calls, 'SCP')
+
+
+@pytest.mark.parametrize('flag', ['--register-logon-task', '--unregister-logon-task'])
+@pytest.mark.parametrize('env,fragment', [
+    (dict(FAKE_HEAD='f' * 40), 'the card names'),                    # the clone is at another commit
+    (dict(FAKE_DIRTY=' M tools/restart_run.py'), 'changed tracked files'),
+])
+def test_winbox_sh_logon_task_needs_the_clone_to_be_the_card_sha(tmp_path, flag, env, fragment):
+    result, calls, uploaded = _winbox_sh(tmp_path, flag, '--sha', SHA, **env)
+    assert result.returncode == 2 and fragment in result.stdout + result.stderr
+    assert not _called(calls, ONE_SHOT) and not uploaded
+
+
+def test_winbox_sh_logon_task_needs_a_sha_and_one_mode(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--register-logon-task')
+    assert result.returncode == 2 and '--sha' in result.stdout + result.stderr and not calls
+    result, calls, _ = _winbox_sh(tmp_path / 'b', '--register-logon-task', '--unregister-logon-task', '--sha', SHA)
+    assert result.returncode == 2 and 'only one' in result.stdout + result.stderr
+
+
+def test_winbox_sh_register_fails_when_the_ps1_fails(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--register-logon-task', '--sha', SHA, FAKE_RUN_EXIT='2')
+    assert result.returncode == 1
+    assert 'exited 2' in result.stdout + result.stderr and 'MooniexOrgResume state: not registered' in result.stdout
+
+
+def test_winbox_sh_register_fails_when_the_task_is_not_ready_afterwards(tmp_path):
+    result, _, _ = _winbox_sh(tmp_path, '--register-logon-task', '--sha', SHA, FAKE_STATE_AFTER='Disabled')
+    assert result.returncode == 1 and "'Disabled' after register" in result.stdout + result.stderr
+
+
+def test_winbox_sh_restart_refuses_without_the_logon_task_and_names_the_card(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA)
+    assert result.returncode == 4
+    assert f'--register-logon-task --sha {SHA}' in result.stdout + result.stderr
+    assert not _called(calls, ONE_SHOT) and not _called(calls, 'shutdown')
+
+
+def test_winbox_sh_restart_reboots_only_after_prep_exits_zero(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, logon_state='Ready')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert '-Verb prep ' in _called(calls, ONE_SHOT)[0]
+    assert _called(calls, 'LEASE take') and _called(calls, 'LEASE give-back')
+    assert _called(calls, 'shutdown /r /t 60') and calls.index(_called(calls, 'shutdown /r /t 60')[0]) > calls.index(_called(calls, ONE_SHOT)[0])
+
+
+def test_winbox_sh_restart_does_not_reboot_when_prep_fails(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, logon_state='Ready', FAKE_RUN_EXIT='3')
+    assert result.returncode == 3 and 'No reboot' in result.stdout
+    assert not _called(calls, 'shutdown') and _called(calls, 'LEASE give-back')
+
+
+def test_winbox_sh_restart_dry_run_runs_prep_dry_run_only(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--dry-run', '--sha', SHA, logon_state='Ready')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'PREP-DRY-RUN-OUTPUT' in result.stdout and '--register-logon-task' in result.stdout
+    assert not _called(calls, ONE_SHOT) and not _called(calls, 'LEASE') and not _called(calls, 'shutdown')
