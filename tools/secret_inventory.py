@@ -485,12 +485,18 @@ def consumer_of(host: str, path: str) -> str:
     if m:
         user = re.search(r"/(?:Users|home)/([^/]+)/", p)
         return f"profile:{m.group(1)}({user.group(1) if user else 'root'})"
+    m = re.search(r"/mooniex/repo/([^/]+)/", p)
+    if m:
+        return m.group(1)
     m = re.search(r"/Users/[^/]+/Projects/([^/]+)", p)
     if m:
         return m.group(1)
-    m = re.search(r"^/home/([^/]+)/([^/]+)", p)
+    m = re.search(r"^[A-Za-z]:/Users/[^/]+/([^/.][^/]*)/", p)   # a project folder straight under the profile
     if m:
-        return f"home:{m.group(1)}/{m.group(2)}"
+        return m.group(1)
+    m = re.search(r"^/home/([^/]+)/", p)
+    if m:
+        return f"home:{m.group(1)}"
     m = re.search(r"^/docker/([^/]+)", p)
     if m:
         return f"docker:{m.group(1)}"
@@ -717,8 +723,12 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
     live = [r for r in rows if not (r["archive"] and r["host"] != "github")]
     archive = [r for r in rows if r["archive"] and r["host"] != "github"]
     groups: dict[str, list[dict]] = {}
+    canon: dict[str, str] = {}   # LungNote-Mcp (disk) and LungNote-MCP (Infisical) are one project
+    for r in sorted(live, key=lambda r: r["host"] != "infisical"):
+        canon.setdefault(r["consumer"].lower(), r["consumer"])
     for r in live:
-        groups.setdefault(_project_key(r["consumer"]), []).append(r)
+        groups.setdefault(canon[r["consumer"].lower()], []).append(r)
+    hq = {k.lower(): v for k, v in hq.items()}
 
     def order(item):
         name, rs = item
@@ -731,7 +741,7 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
              "and is not marked here.\n")
     for name, rs in sorted(groups.items(), key=order):
         on_disk = sum(1 for r in rs if r["status"] in ("disk-only", "dead"))
-        L.append(f"### {name}  ·  hq.yaml: {hq.get(name, '—')}  ·  on disk: {on_disk} / {len(rs)}\n")
+        L.append(f"### {name}  ·  hq.yaml: {hq.get(name.lower(), '—')}  ·  on disk: {on_disk} / {len(rs)}\n")
         L.extend(_table(rs))
     if archive:
         L.append("## Archive copies (dead by definition)\n")
@@ -758,10 +768,6 @@ def _by_provider(rows: list[dict]) -> list[str]:
             out.append(f"| {prov} | {_cell(name)} | {_cell(', '.join(sorted(by[prov][name])))} |")
     out.append("")
     return out
-
-
-def _project_key(consumer: str) -> str:
-    return consumer
 
 
 def _shared_values(rows: list[dict]) -> list[tuple[str, list[dict]]]:

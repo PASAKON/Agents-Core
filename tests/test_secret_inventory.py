@@ -170,6 +170,9 @@ def test_provider_and_consumer_mapping():
     assert si.consumer_of("contabo", "/etc/mooniex/secretary-secrets.env") == "etc-mooniex:secretary"
     assert si.consumer_of("winbox", r"C:\Users\passg\MoonieXHQ\Projects\MoonieX\Option\.env") == "MoonieX-Option"
     assert si.consumer_of("contabo", "/root/.config/gh/hosts.yml") == "profile:.config/gh(root)"
+    assert si.consumer_of("contabo", "/home/secretary/.secretary.env.bak-zai") == "home:secretary"
+    assert si.consumer_of("winbox", r"C:\Users\passg\mooniex\repo\MoonieX-Agents\.codex\config.toml") == "MoonieX-Agents"
+    assert si.consumer_of("winbox", r"C:\Users\passg\cookierun-bot\.env") == "cookierun-bot"
 
 
 def test_infisical_collector_hashes_and_drops_values():
