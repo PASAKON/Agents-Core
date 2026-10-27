@@ -404,11 +404,13 @@ async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] |
 async def _h_ask_ceo(*, question: str = "", options: list[str] | None = None, why: str = "",
                      recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
                      session: str = "", role: str = "", host: str = "", task: str = "",
-                     dry_run: bool = False, questions: list[dict] | None = None) -> str:
+                     dry_run: bool = False, questions: list[dict] | None = None,
+                     media: list[dict] | None = None, pick: str = "") -> str:
     arguments = {
         "question": question, "options": options, "why": why, "recommended": recommended,
         "free_text": free_text, "expires_h": expires_h, "session": session, "role": role,
         "host": host, "task": task, "dry_run": dry_run, "questions": questions,
+        "media": media, "pick": pick,
     }
     result = await asyncio.to_thread(ask_run_tool.mcp_ask_ceo, arguments)
     return json.dumps(result, indent=2, ensure_ascii=False)
@@ -902,6 +904,11 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "{group_id, url, expires_at, questions: [{id, url}]}; ask_run_wait "
             "on the QG- id returns when all of them have ended "
             "(QUESTIONS.md §10). "
+            "Pictures, video or audio to choose from: pass media=[{path, "
+            "caption?}, ...] (1-12 local files, shrunk to a preview before upload) "
+            "with one question; 2+ items need pick='one' or 'many', 1 item gets "
+            "ใช้ได้/แก้/ไม่เอา by default; ask_run_wait prints 'picked: B (name) · "
+            "note: ...' (QUESTIONS.md §11). "
             "Not the same tool as mcp__sompong__ask_ceo (SomPong's Telegram/LINE "
             "question in the COO session)."
         ),
@@ -911,6 +918,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             Param("expires_h", float, 24.0), Param("session", str, ""),
             Param("role", str, ""), Param("host", str, ""), Param("task", str, ""),
             Param("dry_run", bool, False), Param("questions", list[dict], None),
+            Param("media", list[dict], None), Param("pick", str, ""),
         ),
         handler=_h_ask_ceo,
         is_async=True,

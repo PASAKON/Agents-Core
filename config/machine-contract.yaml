@@ -67,6 +67,8 @@ entries:
      restore: "closed with tools/workdir.py close --archive → Drive BACKUP/MoonieX HQ/Work-Archive/Agents-Work-<task>-<date>.tar (md5 verified before delete)"}
   - {machine: all,     path: "<hq>/Assets/**",                            class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "per-asset Drive copy (CXO_Rules_GDrive_Filing rows); Cookie Run gold set + blueprint copies: BACKUP/MoonieX HQ/Machine-Blueprints and BACKUP/CookieRun Backup"}
+  - {machine: contabo, path: "<hq>/Assets/MoonieX/Console/run-media/**", class: DISPOSABLE, owner: MoonieX-Console, review: 2026-12-23, discovered: false,
+     restore: "none, never backed up: previews of pictures/videos/sounds on Run Inbox question cards (QUESTIONS.md §11); the sender keeps the master. ttl 7 d after the card closes, an unattached upload 1 h; the Console sweep deletes them and the store is capped at 2 GB (storage-policy.yaml run_media). Sits inside <hq>/Assets/** (IRREPLACEABLE); this narrower row says the run-media folder is not part of that promise"}
   - {machine: all,     path: "<hq>/Archive/**",                           class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "one-off backups incl. other machines' secrets at 0600 (winbox-keys-*, mac-secrets-*) — never on Drive; the row for each lives here"}
   - {machine: all,     path: "<hq>/Agents/Core/worktrees/**",             class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,

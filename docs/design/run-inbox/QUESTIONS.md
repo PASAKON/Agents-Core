@@ -309,3 +309,52 @@ boundary: what he sends at once reaches each asker as one letter. No time window
   `src/run/notify.js` (`writeQuestionBatchLetter`), `test/run-questions-batch.test.js` (3 questions from 2
   sessions → one send → one letter per session). Agents-Core `tools/ask_run.py`,
   `tests/test_ask_run_questions.py` §groups.
+
+## 11. Media: pictures, videos and sounds on a card (CEO 27 Oct)
+
+A card may carry 1 to 12 **items** the CEO looks at or listens to and picks from. The Console builds the hub half
+(upload route, serving, sweep, the page); this section is the requester's side (`tools/ask_run.py`) and the wire
+shape both sides keep. The card shows a **preview**: the sender keeps the master.
+
+- **Wire.** `POST /api/run/question-media`: the file's raw bytes, `Content-Type: application/octet-stream`, header
+  `X-Media-Name` (the base name); answers 201 `{media_id: "M-" + 24 hex, kind, mime, bytes, sha256}`, 413
+  `too_large`, 415 `unsupported_media`, 429 `rate_limited` (40 uploads per session per hour), 507 `store_full` /
+  `disk_low`. An upload belongs to the session that made it and is attached by one card only. `POST
+  /api/run/questions` then carries `media:[{id, caption?, poster_id?}]` and `pick` (400 `invalid_media`,
+  `options_not_allowed`; `media_not_in_groups` in a group). The sha256 of the question covers `pick` and each item's
+  `{n, kind, mime, bytes, sha256, caption}` when media is present; a card without media keeps today's canonical text.
+
+- **Kinds and caps** (read from the first bytes, never the name; an SVG, an HTML page or a PDF named `.jpg` is
+  refused before any call). Picture JPEG/PNG/GIF/WebP, at most 10 MB. Video MP4/MOV/WebM, at most 50 MB. Audio
+  MP3/M4A/AAC/WAV/OGG, at most 20 MB. At most 12 items. The caps hold for what is **uploaded**, after the shrink.
+- **Shrink before upload** (ffprobe decides, ffmpeg does it, temp dir removed afterwards): a picture with a long edge
+  over 2048 px becomes 2048 (JPEG, a WebP stays WebP); a video becomes a 720p H.264/AAC MP4 with `+faststart` (one
+  that already is that is only re-wrapped) plus a **poster** JPEG at 0.5 s, uploaded as its own image and sent as
+  `media[i].poster_id`; audio that is not MP3/M4A/AAC becomes M4A AAC 128k. No ffmpeg: refused with an install
+  hint, never uploaded untranscoded. A frame over 100 megapixels is refused.
+- **Requester.** `ask_run.py ask ... --media PATH` (repeat 1-12 times) `--caption TEXT` (by order, at most 60
+  characters, one line) `--pick one|many`. Every file is checked and shrunk **before the first upload**, so a bad
+  third file leaves nothing behind. Then each file goes to `POST /api/run/question-media` (raw bytes,
+  `application/octet-stream`, header `X-Media-Name` = the file's base name, percent-encoded when it is not printable
+  ASCII), then `POST /api/run/questions` with `media:[{id, caption?, poster_id?}]` and `pick`. A caption and a file
+  name pass the secret check, §5 (command-shaped) and, for captions, §6 (money).
+- **Pick rules.** One item: `--pick` absent or `one`; options default to ใช้ได้ / แก้ / ไม่เอา, or give 2-4 `--option`s;
+  the answer is a `choice`. Two or more items: `--pick` is required (`one` = he taps one, `many` = he ticks any,
+  none allowed), `--option` and `--recommended` are refused (`options_not_allowed`), items are A, B, C ... L. A media
+  card always has the optional note. `--batch` with media, and `ask_ceo(questions=...)` with media, are refused.
+- **Answer.** A set card: `answer.picks:[n...]` (0-based), `answer.picked:["B", ...]` (letters) and
+  `answer.picked_names:[...]` (the files' display names, text only, never a path); a redo (ขอรอบใหม่) is `redo:true,
+  picks:[]` with the note required. `wait` prints `picked: B (cover_b.png) · note: ...`, `picked: A (a.jpg), C (c.jpg)`,
+  `picked: none · note: ...` (a redo, or nothing ticked) and, for one item, `picked: ใช้ได้ · note: ...`; the note
+  part only when there is one. `--json` keeps `picks`, `picked`, `picked_names`, `redo`. A `picks` that names an
+  item the card does not have, repeats one, or disagrees with `picked` is a failed check (the §1.3 fail-closed rule).
+- **Keeping and reading.** Files are kept 7 days after the card closes (answered, expired or cancelled), then
+  deleted by the Console sweep; an open card's files are never deleted and an upload nobody attached goes after
+  1 hour. The store is capped at 2 GB; over it the oldest closed cards' files go first, and if it is still full or
+  the disk is under 6 GB free the upload is refused with the hub's own message (`store_full`, `disk_low`), which
+  the tool prints as it came. The decision record (names, captions, sha256, sizes, picks, note, time) stays in
+  the hub database for good. Files are served only to the CEO's signed-in session (`operatorOnly`); an org token
+  gets 403. The folder is `<hq>/Assets/MoonieX/Console/run-media`, class DISPOSABLE (`config/machine-contract.yaml`,
+  cap in `config/storage-policy.yaml` `run_media`).
+- **MCP.** `ask_ceo(media=[{path, caption?}], pick=...)` runs the same code as the CLI.
+- **Code + tests.** Agents-Core `tools/ask_run.py` (media section), `tests/test_ask_run_media.py`.
