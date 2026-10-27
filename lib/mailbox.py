@@ -61,6 +61,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from lib import wake_backoff
+
+
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
     worker spawn, GH #154) wins when present -- a worker's own `__file__`
@@ -693,13 +696,17 @@ def read_letter(role: str, session_id: str, letter_id: str, *,
 
 # --- wake debounce ------------------------------------------------------------
 
-def debounce_s() -> float:
+def debounce_s(now: float | None = None) -> float:
+    """The window for a normal letter: ORG_WAKE_DEBOUNCE_S (else the default), times the
+    budget factor (IRON-RULES section 64: x2 one provider over, x4 all over; stale or missing
+    budget data = x1). 0 stays 0. An urgent letter never reaches it (see wake_due)."""
     raw = os.environ.get("ORG_WAKE_DEBOUNCE_S", "").strip()
     try:
         v = float(raw) if raw else DEFAULT_DEBOUNCE_S
     except ValueError:
         v = DEFAULT_DEBOUNCE_S
-    return max(0.0, v)
+    t = now if now is not None else time.time()
+    return max(0.0, v) * wake_backoff.backoff_factor(wake_backoff.load_budget(), t)
 
 
 def note_sweep(*, root: Path | None = None) -> None:
@@ -848,10 +855,10 @@ def wake_due(role: str, session_id: str, prio: str = "normal", *,
         return False
     if not envelope_on() or prio == "urgent":
         return True
-    window = debounce_s()
+    t = now if now is not None else time.time()
+    window = debounce_s(t)
     if window <= 0:
         return True
-    t = now if now is not None else time.time()
     if not sweeping and not sweeper_alive(root=root, now=t):
         return True
     waiting = waiting_since_wake(role, session_id, root=root)
