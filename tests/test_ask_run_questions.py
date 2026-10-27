@@ -782,7 +782,7 @@ def test_org_server_exposes_ask_ceo_with_the_one_rule_in_plain_words(srv):
     assert "questions=[{question, why, options, recommended, free_text}, ...] (1-6)" in tool.description
     assert set(tool.inputSchema["properties"]) == {
         "question", "options", "why", "recommended", "free_text", "expires_h", "session", "role",
-        "host", "task", "dry_run", "questions"}
+        "host", "task", "dry_run", "questions", "media", "pick"}
     assert "q-" in " ".join(tools["ask_run_wait"].description.lower().split())
     assert "answer" not in " ".join(tools) and "answer" not in tools["ask_ceo"].name
 
