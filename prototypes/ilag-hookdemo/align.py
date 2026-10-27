@@ -9,6 +9,9 @@ phrases.json has "เก็บแปดหมื่น"), phrases are searched i
 Also accepts fal's ElevenLabs v4 file, {"audio": {...}, "timestamps": [chunk, ...]}, where every chunk is the shape above with
 times already absolute (load_fal / load_alignment): the chunks are joined in order into one alignment.  It fails when a chunk lacks
 a key, a time goes backwards, or the joined characters differ from narration.txt (whitespace and "..." ignored).
+Pace tags sent to fal ("[rushed] ", "[speaking quickly] ") come back as characters in the alignment: every [...] run, brackets
+included, is dropped from all three arrays (characters and their times) before the narration check and the phrase match.  A
+tag fal already stripped changes nothing.  An unclosed "[" or a stray "]" fails loudly.
 
 library:  phrase_times(align_dict, phrases) -> [[(start, end), ...] per line]   raises AlignError(message)
           load_alignment(path, narration_path) -> plain alignment dict (plain or fal file)
@@ -95,8 +98,35 @@ def load(path):
         raise AlignError(f"{path}: cannot read as JSON: {e}")
 
 
+def strip_tags(ch, st, en):
+    """Drop every [...] run (brackets included) from the character arrays, and the times that belong to those characters.
+    An element holding other characters as well keeps them with its own times.  Raises AlignError on an unclosed [ or a stray ]."""
+    oc, os_, oe = [], [], []
+    depth = 0
+    for i, c in enumerate(ch):
+        kept = []
+        for u in c:
+            if u == "[":
+                depth += 1
+            elif u == "]":
+                if depth == 0:
+                    raise AlignError(f"stray ']' at character {i} of the alignment: a pace tag was closed but never opened")
+                depth -= 1
+            elif depth == 0:
+                kept.append(u)
+        if kept:
+            oc.append("".join(kept))
+            os_.append(st[i])
+            oe.append(en[i])
+    if depth:
+        raise AlignError("a '[' in the alignment is never closed: an unfinished pace tag")
+    return oc, os_, oe
+
+
 def squeeze(text):
-    """Text as compared against the narration: no whitespace, no "..." or the one-character ellipsis."""
+    """Text as compared against the narration: no [tags], no whitespace, no "..." or the one-character ellipsis."""
+    if "[" in text or "]" in text:
+        text = "".join(strip_tags(list(text), [0] * len(text), [0] * len(text))[0])
     return "".join(text.replace("...", "").replace("\u2026", "").split())
 
 
@@ -121,6 +151,9 @@ def join_fal(doc, narration):
         ch += c[KEYS[0]]
         st += c[KEYS[1]]
         en += c[KEYS[2]]
+    ch, st, en = strip_tags(ch, st, en)
+    if not ch:
+        raise AlignError("nothing left in the fal alignment once the [tags] are dropped")
     for i in range(1, len(st)):
         if st[i] < st[i - 1] - 1e-9:
             raise AlignError(f"time goes backwards at character {i} {ch[i]!r}: starts {st[i]} after {ch[i - 1]!r} started {st[i - 1]}")
@@ -144,6 +177,10 @@ def load_alignment(path, narration_path=None):
         except OSError as e:
             raise AlignError(f"cannot read the narration {narration_path}: {e}")
         return join_fal(doc, narration)
+    if isinstance(doc, dict) and all(isinstance(doc.get(k), list) for k in KEYS) and len({len(doc[k]) for k in KEYS}) == 1:
+        ch, st, en = strip_tags(*(doc[k] for k in KEYS))   # a plain alignment may carry tags too; bad shapes fall through to check_shape
+        if ch:
+            return {KEYS[0]: ch, KEYS[1]: st, KEYS[2]: en}
     return doc
 
 

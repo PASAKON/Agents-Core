@@ -28,20 +28,18 @@ ap.add_argument("--align", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--name", default="hook-rehearsal")
 ap.add_argument("--narration", default=str(HERE / "narration.txt"))
-# tools/ilag_cut.py + the kit as of branch agent/developer-task-b7e13b61 (PR #468), unpacked by make_hook.sh into hookdemo/_tool
-# (main's script-style render_kit.py has no build_kit() and crashes ilag_cut; a task worktree may be removed any day)
-ap.add_argument("--ilag-cut", default=None)
-ap.add_argument("--kit", default=None)
+ap.add_argument("--work-name", default=None, help="work/<this> holds the segments (default: --name); a new tool version gets a new one")
+# tools/ilag_cut.py + the kit from origin/main, unpacked by make_hook.sh into hookdemo/_tool-<sha8>; both flags are required
+ap.add_argument("--ilag-cut", required=True)
+ap.add_argument("--kit", required=True)
 ap.add_argument("--py", default=f"{CORE}/.venv/bin/python")
 a = ap.parse_args()
 H, OUT = Path(a.hookdemo).resolve(), Path(a.out)
-a.ilag_cut = a.ilag_cut or str(H / "_tool/tools/ilag_cut.py")
-a.kit = a.kit or str(H / "_tool/knowledge/brand-knowledge/brands/ilag/templates")
 if not OUT.is_absolute():
     OUT = H / OUT
 OUT.mkdir(parents=True, exist_ok=True)
 SHARED = H / "work"                      # sfx, shared by every take
-WORK = SHARED / a.name
+WORK = SHARED / (a.work_name or a.name)
 B = WORK / "build"
 WORK.mkdir(parents=True, exist_ok=True)
 
