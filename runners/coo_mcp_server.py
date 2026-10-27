@@ -21,6 +21,9 @@ Tools (mcp__org__<name> inside the session):
   wait_task(task_id, timeout_s)                 poll until the worker reports (or the timeout)
   close_task(task_id, result, why)              done; result pass|fail scores the runner
   live_sessions(all)                            who is live on every host: run before SendMessage
+  portfolio(raw)                                the Project Monitor rows the CEO sees on Console
+                                                /portfolio, read-only: one line per project (name,
+                                                lane, %, state, next, due); raw=true gives the payload
   ask_run / ask_ceo / ask_run_wait              Run Inbox command and question cards for the CEO's
                                                 tap (root work goes through ask_run, CEO 2026-10-01)
   email_ceo(kind, title, ...)                   action / alert / done / deadline to the CEO only
@@ -39,6 +42,8 @@ email_ceo uses the same token through tools/email_ceo.py; quota reads no credent
 
 CLI for tests and for SomPong's own Bash (no MCP needed):
   .venv/bin/python -m runners.coo_mcp_server --cli create_task '{"role": "researcher", ...}'
+  .venv/bin/python -m runners.coo_mcp_server --cli portfolio          one line per project
+  .venv/bin/python -m runners.coo_mcp_server --cli portfolio --json   the whole payload as JSON
 """
 from __future__ import annotations
 
@@ -60,8 +65,9 @@ RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote"
 # The tool names this server serves, in order. cxo_mcp_config builds the coo session's
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
-              "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait",
-              "email_ceo", "quota", "field_note", "respawn_clevel", "order_open", "order_close")
+              "wait_task", "close_task", "live_sessions", "portfolio", "ask_run", "ask_ceo",
+              "ask_run_wait", "email_ceo", "quota", "field_note", "respawn_clevel", "order_open",
+              "order_close")
 
 
 def session_id() -> str:
@@ -140,6 +146,10 @@ def close_task(task_id: str, result: str = "pass", why: str = "") -> dict:
 
 def live_sessions(all: bool = False) -> dict:
     return call("live_sessions", all=bool(all))
+
+
+def portfolio() -> dict:
+    return _with_session("portfolio")
 
 
 def field_note(skill: str, tag: str, text: str) -> dict:
@@ -277,6 +287,16 @@ def _serve() -> None:
         out = live_sessions(all)
         return out.get("text") if out.get("ok") and out.get("text") else json.dumps(out, ensure_ascii=False)
 
+    @mcp.tool(name="portfolio")
+    def _portfolio(raw: bool = False) -> str:
+        """The Project Monitor rows the CEO sees on Console /portfolio and in his Scriptable widget,
+        read-only and from the same source: one line per project, name · lane · % · state · next ·
+        due. raw=true returns the whole payload instead (counts, the attention list, orders) as JSON."""
+        out = portfolio()
+        if out.get("ok") and out.get("text") and not raw:
+            return "\n".join(out["text"])
+        return json.dumps(out, ensure_ascii=False)
+
     @mcp.tool(name="ask_run")
     async def _ask_run(host: str, why: str, command: str = "", script: str = "",
                        args: list[str] | None = None, expected: str = "", risk: str = "amber",
@@ -387,6 +407,14 @@ def _cli(argv: list[str]) -> int:
         print(f"usage: --cli <{'|'.join(TOOL_NAMES + ('ping', 'respawn_status'))}> ['<json args>']",
               file=sys.stderr)
         return 2
+    if argv[0] == "portfolio":
+        out = portfolio()
+        if out.get("ok") and "--json" not in argv[1:]:
+            for line in out.get("text", []):
+                print(line)
+        else:
+            print(json.dumps(out, ensure_ascii=False, indent=1))
+        return 0 if out.get("ok") else 1
     args = json.loads(argv[1]) if len(argv) > 1 else {}
     if argv[0] == "ping":
         out = call("ping")

@@ -34,7 +34,12 @@
 --                                        and the COO's own O- order
 --                    UPDATE 2 columns    order_close: closed_at, outcome
 --   project_events   INSERT 5 columns    order_close's close event, once a PH has linked the order
---                                        to a project (write-only: org_coo cannot read it back)
+--                                        to a project (the only write; SELECT is the portfolio read)
+--   projects, milestones  SELECT         the gate's portfolio op (CEO 2026-10-27): the Project Monitor
+--   session_heartbeats    SELECT 2 cols  rows SomPong reports from, built by lib.portfolio.
+--   project_events        SELECT 6 cols  monitor_payload(version=2), the call that feeds Console
+--                                        /portfolio. With tasks and orders above these are every table
+--                                        it reads. SELECT only: nothing here can write them.
 -- Nothing else: no UPDATE or DELETE on tasks (status changes are the root dispatcher's, through
 -- its own connection), nothing on locks, letters, hosts, join_tokens, node_secrets.
 --
@@ -138,6 +143,16 @@ GRANT SELECT (host, uuid, sid, role, name, address, status, pid, seen_at, verifi
 GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by),
       UPDATE (closed_at, outcome) ON orders TO org_coo;
 GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;
+-- The Project Monitor read (CEO 2026-10-27, the gate's portfolio op): SELECT only, on exactly what
+-- lib.portfolio.monitor_payload(version=2) reads (traced 2026-10-27 through _monitor_all, _v2_rows,
+-- _monitor_v2 and _order_progress; tasks and orders are granted above). projects and milestones are
+-- read with SELECT *, so the whole table. session_heartbeats: project_id, at. project_events: the
+-- six columns it has (id only for ORDER BY, body for 'decided_for_ceo' and the parked stage). Not
+-- read by it, so not granted: ceo_gos, resource_locks, post_ledger.
+GRANT SELECT ON projects TO org_coo;
+GRANT SELECT ON milestones TO org_coo;
+GRANT SELECT (project_id, at) ON session_heartbeats TO org_coo;
+GRANT SELECT (id, project_id, at, kind, actor, body) ON project_events TO org_coo;
 
 -- 5. Row guards for this role only (see the header).
 CREATE OR REPLACE FUNCTION org_coo_tasks_guard() RETURNS trigger
@@ -348,7 +363,8 @@ CREATE TRIGGER org_coo_guard BEFORE INSERT ON project_events
   FOR EACH ROW EXECUTE FUNCTION org_coo_project_events_guard();
 
 -- 6. Prove it. The role holds exactly the INSERT/UPDATE privileges of section 4, SELECT only on
---    tasks, coo_respawn_events, c_level_sessions, live_hosts, live_sessions and orders, nothing destructive, or this run fails.
+--    tasks, coo_respawn_events, c_level_sessions, live_hosts, live_sessions, orders, projects, milestones,
+--    session_heartbeats and project_events, nothing destructive, or this run fails.
 DO $check$
 DECLARE
   have text;
@@ -462,7 +478,8 @@ BEGIN
 
   IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
-                AND c.relname NOT IN ('tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders')
+                AND c.relname NOT IN ('tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders',
+                                      'projects', 'milestones', 'session_heartbeats', 'project_events')
                 AND has_any_column_privilege('org_coo', c.oid, 'SELECT')) THEN
     RAISE EXCEPTION 'org_coo can read a table outside section 4';
   END IF;
@@ -683,5 +700,80 @@ BEGIN
   END LOOP;
 END
 $orders_proof$;
+
+-- The Project Monitor read: prove org_coo can run the SELECTs lib.portfolio.monitor_payload runs on
+-- each table section 4 opened for it, and cannot write to any of them (INSERT on project_events is
+-- the order_close grant proved above, so only its UPDATE and DELETE are tried). Every statement runs
+-- as org_coo in a subtransaction that is rolled back, so no proof row stays. A read that is refused
+-- or a write that is accepted fails this run; only a missing privilege counts as a refusal.
+DO $portfolio_proof$
+DECLARE
+  proof_name text;
+  proof_sql text;
+  proof_accept boolean;
+  accepted boolean;
+  switched boolean;
+BEGIN
+  FOR proof_name, proof_sql, proof_accept IN SELECT * FROM (VALUES
+    -- read: the statements of lib/portfolio.py, as they are written there
+    ('SELECT projects', $q$SELECT * FROM public.projects WHERE stage IN ('active', 'review', 'parked')$q$, true),
+    ('SELECT milestones', $q$SELECT project_id, count(done_at) AS done, count(*) AS total
+        FROM public.milestones GROUP BY project_id$q$, true),
+    ('SELECT milestones, all columns', $q$SELECT * FROM public.milestones$q$, true),
+    ('SELECT session_heartbeats', $q$SELECT project_id, at FROM public.session_heartbeats
+        WHERE project_id IS NOT NULL$q$, true),
+    ('SELECT project_events', $q$SELECT project_id, actor, body FROM public.project_events
+        WHERE kind = 'decided_for_ceo' ORDER BY at, id$q$, true),
+    ('SELECT project_events, parked stage', $q$SELECT DISTINCT ON (project_id) project_id, at
+        FROM public.project_events WHERE kind = 'stage' AND body->>'to' = 'parked'
+        ORDER BY project_id, at DESC$q$, true),
+    ('SELECT tasks, running', $q$SELECT project, owner_role, owner_cto,
+        COALESCE(spawned_at, updated_at, created_at) AS since, updated_at
+        FROM public.tasks WHERE status = 'in_progress'$q$, true),
+    ('SELECT tasks, order progress', $q$SELECT 1 FROM public.tasks WHERE project_id = 'x'
+        AND status = 'in_progress' LIMIT 1$q$, true),
+    ('SELECT orders', $q$SELECT * FROM public.orders ORDER BY taken_at DESC, id$q$, true),
+    -- write: refused for want of a privilege
+    ('INSERT projects', $q$INSERT INTO public.projects (id, name, lane)
+        VALUES ('coo-ro-proof', 'coo-ro-proof', 'coo')$q$, false),
+    ('UPDATE projects', $q$UPDATE public.projects SET name = name$q$, false),
+    ('DELETE projects', $q$DELETE FROM public.projects$q$, false),
+    ('row lock on projects (SELECT ... FOR UPDATE)', $q$SELECT id FROM public.projects FOR UPDATE$q$, false),
+    ('INSERT milestones', $q$INSERT INTO public.milestones (project_id, n, title)
+        VALUES ('coo-ro-proof', 1, 'proof')$q$, false),
+    ('UPDATE milestones', $q$UPDATE public.milestones SET title = title$q$, false),
+    ('DELETE milestones', $q$DELETE FROM public.milestones$q$, false),
+    ('INSERT session_heartbeats', $q$INSERT INTO public.session_heartbeats (session_id, project_id, at)
+        VALUES ('coo-ro-proof', NULL, now())$q$, false),
+    ('UPDATE session_heartbeats', $q$UPDATE public.session_heartbeats SET at = at$q$, false),
+    ('DELETE session_heartbeats', $q$DELETE FROM public.session_heartbeats$q$, false),
+    ('UPDATE project_events', $q$UPDATE public.project_events SET body = body$q$, false),
+    ('DELETE project_events', $q$DELETE FROM public.project_events$q$, false)
+  ) AS v(name, stmt, accept)
+  LOOP
+    accepted := false;
+    switched := false;
+    BEGIN
+      SET LOCAL ROLE org_coo;
+      switched := current_user = 'org_coo';
+      IF NOT switched THEN
+        RAISE EXCEPTION USING ERRCODE = 'ZX002', MESSAGE = 'proof could not act as org_coo';
+      END IF;
+      EXECUTE proof_sql;
+      RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'statement accepted';
+    EXCEPTION
+      WHEN SQLSTATE 'ZX001' THEN accepted := true;
+      WHEN insufficient_privilege THEN
+        IF NOT switched THEN
+          RAISE;
+        END IF;
+    END;
+    IF accepted IS DISTINCT FROM proof_accept THEN
+      RAISE EXCEPTION 'org_coo portfolio proof "%" was %', proof_name,
+        CASE WHEN accepted THEN 'accepted, expected refused' ELSE 'refused, expected accepted' END;
+    END IF;
+  END LOOP;
+END
+$portfolio_proof$;
 
 \echo org_coo: role, grants and row guards are in place and verified
