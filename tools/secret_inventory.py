@@ -659,6 +659,8 @@ def summary(rows: list[dict]) -> dict[str, dict[str, int]]:
 
 
 STATUSES = ("disk-only", "both", "dead", "infisical-only", "github")
+# names whose last-rotated date the brief asks about (ORG_DB_URL: the 26 Oct leak, rotation due 27 Oct)
+WATCH_NAMES = ("ORG_DB_URL",)
 
 
 def _cell(v) -> str:
@@ -704,6 +706,15 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
     for e in meta["infisical_errors"]:
         L.append(f"- infisical: could not read {e.get('project')}/{e.get('env', '*')}: {e.get('error')}")
     L.append("")
+    watch = [r for r in rows if r["name"] in WATCH_NAMES]
+    if watch:
+        L.append("## Watch list\n")
+        L.append("| variable | where | last rotated | tags | status |")
+        L.append("|---|---|---|---|---|")
+        for r in sorted(watch, key=lambda r: r["where"]):
+            L.append(f"| {r['name']} | {_cell(r['where'])} | {r['rotated'] or '?'} | "
+                     f"{', '.join(r.get('tags') or []) or '—'} | {r['status']} |")
+        L.append("")
     if shared:
         L.append("## One value, several places (live copies only)\n")
         L.append("| hash | names | places |")
