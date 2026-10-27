@@ -73,6 +73,9 @@ state/fomo-scanner.db-shm
 # Only local/secret state is ignored (see .agents/README.md for the .agents/ note).
 .claude/settings.local.json
 .claude/settings.local.json.bak-*
+# Codex CLI project config: its MCP server blocks carry provider tokens (winbox checkout held one
+# untracked and unignored on 2026-10-27, HQSecurity M0 inventory).
+.codex/
 # Timestamped backups written before a hook-registration change.
 .claude/settings.json.bak-*
 .claude/scheduled_tasks.lock
