@@ -286,8 +286,6 @@ def test_a_milestone_10_minutes_overdue_writes_the_ph_once_and_a_replan_clears_t
     assert rc == 0 and state() == {} and len(letters(PH)) == 1 and any("nothing late" in line for line in out)
 
 
-@pytest.mark.xfail(strict=True, reason="needs tools/portfolio_watch.py in the task's touches (self_repo_guard refused "
-                                       "the edit); once it lands this XPASSes, so drop the marker")
 def test_the_letter_about_a_late_milestone_names_it_in_the_subject(box, store):
     _open(due_at=T + timedelta(days=1), due_set_by="ph")
     pf.milestone_add("proj", "write it", due_at=T - timedelta(minutes=10), actor="cto-abcdef12", now=T - timedelta(days=1))
