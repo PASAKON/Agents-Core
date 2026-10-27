@@ -107,7 +107,7 @@ GRANT USAGE ON SCHEMA public TO org_coo;
 -- 4. The grants.
 GRANT SELECT ON tasks TO org_coo;
 GRANT INSERT (id, project, role, status, title, description, parent_task, depends_on, touches,
-              owner_cto, owner_role, host, dispatcher_host, runner, created_at, updated_at)
+              owner_cto, owner_role, host, dispatcher_host, runner, created_at, updated_at, project_id)
   ON tasks TO org_coo;
 GRANT INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;
 CREATE OR REPLACE VIEW coo_respawn_events WITH (security_barrier) AS
@@ -335,7 +335,7 @@ DECLARE
     'tasks.created_at:INSERT '
     'tasks.depends_on:INSERT tasks.description:INSERT tasks.dispatcher_host:INSERT '
     'tasks.host:INSERT tasks.id:INSERT tasks.owner_cto:INSERT tasks.owner_role:INSERT '
-    'tasks.parent_task:INSERT tasks.project:INSERT tasks.role:INSERT tasks.runner:INSERT '
+    'tasks.parent_task:INSERT tasks.project:INSERT tasks.project_id:INSERT tasks.role:INSERT tasks.runner:INSERT '
     'tasks.status:INSERT tasks.title:INSERT tasks.touches:INSERT tasks.updated_at:INSERT';
 BEGIN
   FOREACH forbidden_kind IN ARRAY ARRAY['coo_respawn_done', 'coo_respawn_request'] LOOP

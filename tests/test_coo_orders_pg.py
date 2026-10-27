@@ -240,3 +240,20 @@ def test_a_wrong_actor_leaves_the_order_open(hub):
     with pytest.raises(psycopg.errors.RaiseException, match=GUARD):
         pf.order_close("CO-31", "done: x", actor="CTO#abcd1234", conn=hub.coo())
     assert hub.owner("SELECT closed_at IS NULL FROM orders WHERE id = 'CO-31'")[0][0] is True
+
+
+@pytest.mark.parametrize("project_id", [None, "coo-pg"])
+def test_org_coo_creates_a_coo_task_with_the_columns_create_task_writes(hub, project_id):
+    # lib/db.create_task INSERTs project_id since ProjectTrack P1; org_coo's grant lacked it (27 Oct,
+    # SomPong: permission denied for table tasks). Same column list as lib/db.py create_task.
+    hub.owner("INSERT INTO projects (id, name, lane) VALUES ('coo-pg', 'coo-pg', 'coo') ON CONFLICT DO NOTHING")
+    conn = hub.coo()
+    pid = "NULL" if project_id is None else f"'{project_id}'"
+    conn.execute(
+        "INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,"
+        "owner_role,host,dispatcher_host,runner,created_at,updated_at,project_id) VALUES "
+        "('task-coopg001','mooniex-agents','researcher','pending','t','d',NULL,'[]',NULL,'coo-x','coo',"
+        f"'contabo',NULL,NULL,now(),now(),{pid})")
+    conn.commit()
+    row = hub.owner("SELECT owner_role, status, project_id FROM tasks WHERE id = 'task-coopg001'")
+    assert tuple(row[0]) == ("coo", "pending", project_id)
