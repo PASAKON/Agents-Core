@@ -1140,3 +1140,11 @@ def test_sql_grants_and_privilege_list_are_unchanged_by_the_two_kinds():
     for kind in ("coo_audit", "coo_field_note"):
         assert proof.count(f"('{kind}', 'coo_gate',") == 2 and proof.count(f"('{kind}', 'someone_else',") == 1
     assert "true)" in proof and "false)" in proof
+
+
+def test_org_coo_may_take_and_close_relayed_orders_only():
+    sql = (Path(__file__).resolve().parent.parent / "deploy" / "coo-gate" / "org_coo_role.sql").read_text()
+    assert ("GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by),\n"
+            "  UPDATE (closed_at, outcome) ON orders TO org_coo;") in sql
+    assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in sql
+    assert "DELETE ON orders" not in sql and "ON projects TO org_coo" not in sql

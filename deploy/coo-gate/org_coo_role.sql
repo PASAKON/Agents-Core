@@ -110,6 +110,12 @@ GRANT SELECT (host, published_at, error) ON live_hosts TO org_coo;
 -- verified (M8): the column must exist first, i.e. lib.db.init() has run on this hub.
 GRANT SELECT (host, uuid, sid, role, name, address, status, pid, seen_at, verified)
   ON live_sessions TO org_coo;
+-- CEO orders relayed by SomPong mirror into the hub as CO-<n> (Agents-Core #493, lib/portfolio.order_take /
+-- order_close): read, insert, and close an order (FOR UPDATE needs the UPDATE grant); the project event a linked
+-- order's close writes. Nothing else on either table.
+GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by),
+  UPDATE (closed_at, outcome) ON orders TO org_coo;
+GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;
 
 -- 5. Row guards for this role only (see the header).
 CREATE OR REPLACE FUNCTION org_coo_tasks_guard() RETURNS trigger
