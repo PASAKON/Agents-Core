@@ -212,6 +212,103 @@ def test_monitor_v2_exact_contract_and_attention(store):
     assert order["state"] == "taken" and order["pct"] is None
 
 
+def _late(payload):
+    return [a for a in payload["attention"] if a["kind"] == "late"]
+
+
+def test_an_open_milestone_past_its_date_flags_a_project_whose_own_date_is_later(store):
+    tomorrow = T + timedelta(days=1)
+    project(due_at=tomorrow, due_set_by="ph")
+    pf.milestone_add("p", "write the thing", due_at=T - timedelta(minutes=10), actor=ACTOR, now=T)
+    pf.milestone_add("p", "ship", due_at=tomorrow, actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    row = payload["projects"][0]
+    assert row["late_s"] == 600 and row["due_at"] == pf.iso(tomorrow)       # the shown date is not the late date
+    assert "late_milestone" not in row          # the Console validator refuses a row key it does not know
+    assert _late(payload) == [{"kind": "late", "project_id": "p", "order_id": None, "decided": None,
+                               "text": "เลยกำหนด: M1 write the thing", "since": pf.iso(T - timedelta(minutes=10))}]
+    assert payload["counts"]["late"] == 1
+    pf.replan("p", 1, tomorrow, actor=ACTOR, actor_role="cto", why="dependency", now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] is None and _late(payload) == [] and payload["counts"]["late"] == 0
+
+
+def test_the_milestone_in_the_late_text_is_cut_to_40_and_stays_on_one_line(store):
+    project(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("p", "first line\nsecond " + "y" * 60, due_at=T - timedelta(hours=1), actor=ACTOR, now=T)
+    (late,) = _late(pf.monitor_payload(T, version=2))
+    assert late["text"] == "เลยกำหนด: M1 " + ("first line second " + "y" * 60)[:40]
+    assert "\n" not in late["text"] and len(late["text"]) <= 80
+
+
+def test_a_done_milestone_past_its_date_is_not_late(store):
+    project(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("p", "write the thing", due_at=T - timedelta(minutes=10), actor=ACTOR, now=T)
+    pf.milestone_add("p", "ship", due_at=T + timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_done("p", 1, "sha1", actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] is None and _late(payload) == [] and payload["counts"]["late"] == 0
+
+
+@pytest.mark.parametrize("project_due,milestones,late_s,text,since", [
+    # the project's own date is past, nothing else is: today's behaviour and today's text
+    (timedelta(seconds=-60), [], 60, "เลยกำหนด", timedelta(seconds=-60)),
+    (timedelta(seconds=-60), [timedelta(days=1)], 60, "เลยกำหนด", timedelta(seconds=-60)),
+    # both are past: the earlier date decides, and a milestone is named only when it is the earlier one
+    (timedelta(hours=-1), [timedelta(minutes=-10)], 3600, "เลยกำหนด", timedelta(hours=-1)),
+    (timedelta(minutes=-10), [timedelta(hours=-1)], 3600, "เลยกำหนด: M1 m1", timedelta(hours=-1)),
+    # no project date: the earliest overdue open milestone, not the latest
+    (None, [timedelta(hours=-2), timedelta(hours=-1)], 7200, "เลยกำหนด: M1 m1", timedelta(hours=-2)),
+    (None, [timedelta(hours=1), timedelta(hours=-1)], 3600, "เลยกำหนด: M2 m2", timedelta(hours=-1)),
+    # nothing past
+    (None, [timedelta(hours=1)], None, None, None),
+    (timedelta(days=1), [timedelta(hours=1)], None, None, None),
+    (None, [], None, None, None),
+])
+def test_late_is_seconds_past_the_earliest_date_already_past(store, project_due, milestones, late_s, text, since):
+    project(due_at=T + project_due if project_due is not None else None, due_set_by="ph" if project_due else None)
+    for i, offset in enumerate(milestones, 1):
+        pf.milestone_add("p", f"m{i}", due_at=T + offset, actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] == late_s
+    if late_s is None:
+        assert _late(payload) == []
+    else:
+        (late,) = _late(payload)
+        assert (late["text"], late["since"]) == (text, pf.iso(T + since))
+
+
+def test_a_loop_keeps_its_beat_rule_whatever_its_milestones_say(store):
+    project(kind="loop", cadence_h=24)
+    pf.beat("p", "episode 1", actor=ACTOR, now=T)
+    pf.milestone_add("p", "old", due_at=T - timedelta(hours=5), actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T + timedelta(hours=1), version=2)
+    assert payload["projects"][0]["late_s"] is None and payload["projects"][0]["due_at"] is None
+    assert _late(payload) == []
+    payload = pf.monitor_payload(T + timedelta(hours=25), version=2)
+    assert payload["projects"][0]["late_s"] == 3600
+    assert [(a["text"], a["since"]) for a in _late(payload)] == [("เลยกำหนด", pf.iso(T + timedelta(days=1)))]
+
+
+def test_a_finite_project_shows_the_earlier_of_its_date_and_its_last_open_milestone(store):
+    # SafeRestart: the project date 29 Oct came from the import, its last milestone is due 27 Oct.
+    project(due_at=T + timedelta(days=3), due_set_by="ceo")
+    pf.milestone_add("p", "done already", due_at=T - timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_add("p", "middle", due_at=T + timedelta(hours=20), actor=ACTOR, now=T)
+    pf.milestone_add("p", "last", due_at=T + timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_done("p", 1, "sha1", actor=ACTOR, now=T)
+    project("later", due_at=T + timedelta(days=1), due_set_by="ceo")                # its own date is the earlier one
+    pf.milestone_add("later", "last", due_at=T + timedelta(days=3), actor=ACTOR, now=T)
+    project("bare", due_at=T + timedelta(days=2), due_set_by="ceo")                  # no milestones: its own date
+    last = pf.iso(T + timedelta(days=1))
+    shown = {r["id"]: r["due_at"] for r in pf.monitor_payload(T, version=2)["projects"]}
+    assert shown == {"p": last, "later": last, "bare": pf.iso(T + timedelta(days=2))}
+    rows = {r["id"]: r for r in pf.report(T)}
+    assert {k: r["due_at"] for k, r in rows.items()} == shown
+    assert last in pf.render_report([rows["p"]]) and pf.iso(T + timedelta(days=3)) not in pf.render_report([rows["p"]])
+    assert pf.show("p", now=T)["project"]["due_at"] == last                          # show agrees with report
+
+
 def test_monitor_v1_bytes_unchanged(store):
     project()
     expected = {"v": 1, "generated_at": pf.iso(T), "counts": {"in_progress": 1, "parked": 0}, "projects": [{

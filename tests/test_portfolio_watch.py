@@ -263,6 +263,51 @@ def test_findings_reads_the_monitors_flags_and_the_boxes(store):
     assert (order["name"], order["owner"], order["ph"]) == ("ship the poster", "coo-1a2b3c4d", None)
 
 
+def _open(pid="proj", **kw):
+    pf.open_project(pid, "Proj", "cto", actor="cto-abcdef12", stage="active", owner_session="cto-fresh",
+                    ph_session="project_head-40fefb4e", now=T - timedelta(days=1), **kw)
+
+
+def test_a_milestone_10_minutes_overdue_writes_the_ph_once_and_a_replan_clears_the_episode(box, store):
+    _open(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("proj", "write it", due_at=T - timedelta(minutes=10), actor="cto-abcdef12", now=T - timedelta(days=1))
+    pf.milestone_add("proj", "ship it", due_at=T + timedelta(days=1), actor="cto-abcdef12", now=T - timedelta(days=1))
+    (found,) = pw.findings(T, store)
+    assert (found["key"], found["since"]) == ("proj:late", T - timedelta(minutes=10))
+    rc, out = go(T, conn=store)
+    assert rc == 0
+    (letter,) = letters(PH)
+    assert letter["subject"].startswith("late: Proj") and "since 2026-10-27T02:50Z, 10 min ago" in letter["body"]
+    assert state()["proj:late"]["sent"] == ["first"] and letters(OWNER) == []
+    go(T + timedelta(minutes=5), conn=store)
+    assert len(letters(PH)) == 1                                    # one letter per episode
+    pf.replan("proj", 1, T + timedelta(days=1), actor="cto-abcdef12", actor_role="cto", why="dependency", now=T)
+    rc, out = go(T + timedelta(minutes=10), conn=store)
+    assert rc == 0 and state() == {} and len(letters(PH)) == 1 and any("nothing late" in line for line in out)
+
+
+def test_the_letter_about_a_late_milestone_names_it_in_the_subject(box, store):
+    _open(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("proj", "write it", due_at=T - timedelta(minutes=10), actor="cto-abcdef12", now=T - timedelta(days=1))
+    (found,) = pw.findings(T, store)
+    assert found["what"] == "M1"
+    assert go(T, conn=store)[0] == 0
+    assert [l["subject"] for l in letters(PH)] == ["late: Proj M1"]
+    assert "(M1; since 2026-10-27T02:50Z, 10 min ago)" in letters(PH)[0]["body"]
+
+
+def test_a_done_overdue_milestone_and_a_loop_with_old_milestones_are_not_findings(store):
+    _open(due_at=T + timedelta(days=2), due_set_by="ph")
+    pf.milestone_add("proj", "write it", due_at=T - timedelta(minutes=10), actor="cto-abcdef12", now=T - timedelta(days=1))
+    pf.milestone_done("proj", 1, "sha1", actor="cto-abcdef12", now=T - timedelta(minutes=5))
+    _open("loop", kind="loop", cadence_h=24)
+    pf.beat("loop", "episode 1", actor="cto-abcdef12", now=T - timedelta(hours=1))      # next beat due 28 Oct 02:00Z
+    pf.milestone_add("loop", "old", due_at=T - timedelta(hours=5), actor="cto-abcdef12", now=T - timedelta(days=1))
+    assert [f["key"] for f in pw.findings(T, store) if f["kind"] == "late"] == []
+    (late,) = [f for f in pw.findings(T + timedelta(hours=24), store) if f["kind"] == "late"]
+    assert (late["key"], late["what"]) == ("loop:late", "due 2026-10-28")   # the beat rule, no milestone named
+
+
 def test_a_parked_or_closed_project_is_never_a_finding_even_if_the_payload_flags_it(store, monkeypatch):
     pf.open_project("gone", "Gone", "cto", actor="cto-1", stage="active", owner_session="cto-fresh",
                     ph_session="aaaaaaaa", due_at=T - timedelta(days=2), due_set_by="clevel", now=T - timedelta(days=3))
