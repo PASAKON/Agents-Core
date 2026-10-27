@@ -912,6 +912,23 @@ def test_hook_gives_up_after_two_seconds_on_a_gate_that_never_answers(tmp_path):
     assert 1.5 < took < 4.5, took
 
 
+def test_hook_gives_up_after_two_seconds_when_stdin_never_closes(tmp_path):
+    env = {"PATH": os.environ.get("PATH", ""), "COO_GATE_SOCKET": str(tmp_path / "none.sock")}
+    t0 = time.monotonic()
+    proc = subprocess.Popen([sys.executable, "-I", str(HOOK)], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    try:
+        proc.wait(timeout=6)          # stdin stays open (communicate() would close it): only the alarm ends this
+        took = time.monotonic() - t0
+        out, err = proc.stdout.read(), proc.stderr.read()
+    finally:
+        proc.kill()
+        for f in (proc.stdin, proc.stdout, proc.stderr):
+            f.close()
+    assert (proc.returncode, out, err) == (0, b"", b"")
+    assert 1.5 < took < 4.5
+
+
 def test_hook_and_gate_agree_on_the_limits():
     import importlib.util
     spec = importlib.util.spec_from_file_location("coo_audit_hook", HOOK)
