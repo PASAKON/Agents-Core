@@ -706,6 +706,13 @@ def go_project(go_id: str, *, conn=None) -> str | None:
         return row["project_id"]
 
 
+def _shown_due(project_due, open_dues):
+    """The date a finite project shows: the earlier of its own due and its latest open
+    milestone's due, or whichever of the two exists. An import can leave the project date later
+    than the plan it now has; the plan's last date is the one to look at."""
+    return min((d for d in (project_due, max(open_dues, default=None)) if d), default=None)
+
+
 def show(project_id: str | None = None, *, now: datetime | None = None, conn=None) -> dict:
     """One project in full (row, milestones, last events, locks, GOs), or every project in brief."""
     now = _utc(now)
@@ -723,9 +730,8 @@ def show(project_id: str | None = None, *, now: datetime | None = None, conn=Non
         proj = dict(_project(c, project_id))
         ms = [dict(r) for r in c.execute("SELECT n, title, done_at, evidence, due_at, order_id FROM milestones"
                                          " WHERE project_id = ? ORDER BY n", (project_id,)).fetchall()]
-        if proj["due_at"] is None:
-            dues = [_as_utc(m["due_at"]) for m in ms if not m["done_at"] and m["due_at"]]
-            proj["due_at"] = max(dues) if dues else None
+        proj["due_at"] = _shown_due(_as_utc(proj["due_at"]),
+                                    [_as_utc(m["due_at"]) for m in ms if not m["done_at"] and m["due_at"]])
         last = _as_utc(proj["last_beat_at"])
         proj["next_beat_due"] = last + timedelta(hours=proj["cadence_h"]) if last and proj["cadence_h"] else None
         ev = [dict(r) for r in c.execute("SELECT at, kind, actor, body FROM project_events"
@@ -1063,19 +1069,33 @@ def _stamp(value):
 
 
 def _v2_rows(now, c):
+    """The v2 project rows, the raw projects and milestones, and `deadlines`: project id ->
+    (date, milestone) for the date a late project is late from. A loop's is its next beat. A finite
+    project's is the earliest of its own due and every open milestone's due that is already past;
+    `milestone` is that milestone's (n, title) when one is the earliest, else None. Kept out of the
+    row: the Console validator refuses a row key it does not know."""
     rows = _monitor_all(now, c)
     projects = {r["id"]: dict(r) for r in c.execute("SELECT * FROM projects").fetchall()}
     milestones = [dict(r) for r in c.execute("SELECT * FROM milestones").fetchall()]
+    deadlines = {}
     for row in rows:
         p = projects[row["id"]]
-        dues = [_as_utc(m["due_at"]) for m in milestones
-                if m["project_id"] == p["id"] and not m["done_at"] and m["due_at"]]
-        due = _as_utc(p["due_at"]) or (max(dues) if dues else None)
+        open_ms = sorted((_as_utc(m["due_at"]), m["n"], m["title"]) for m in milestones
+                         if m["project_id"] == p["id"] and not m["done_at"] and m["due_at"])
+        due = _as_utc(p["due_at"])
         loop = p["kind"] == "loop"
         last = _as_utc(p["last_beat_at"])
         next_due = last + timedelta(hours=p["cadence_h"]) if last and p["cadence_h"] else None
-        deadline = next_due if loop else due
-        row.update(tier=p["tier"], kind=p["kind"], due_at=None if loop else _stamp(due),
+        overdue = next(((d, (n, title)) for d, n, title in open_ms if d < now), None)
+        if loop:
+            deadline, milestone = next_due, None
+        elif overdue and (due is None or overdue[0] < due):
+            deadline, milestone = overdue
+        else:
+            deadline, milestone = due, None
+        deadlines[p["id"]] = (deadline, milestone)
+        shown = _shown_due(due, [d for d, _, _ in open_ms])
+        row.update(tier=p["tier"], kind=p["kind"], due_at=None if loop else _stamp(shown),
                    due_moved_from=_stamp(p["due_first_at"]),
                    late_s=min(10**9, max(0, int((now - deadline).total_seconds()))) if deadline and now > deadline else None,
                    next=_cut(p["next_step"], 60), owner=_cut(p["next_owner"], 40),
@@ -1083,13 +1103,13 @@ def _v2_rows(now, c):
         row["name"] = _cut(row["name"], 120)
         if row["blocker"]:
             row["blocker"].update(what=_cut(p["blocker_what"], 80), ref=_cut(p["blocker_ref"], 40))
-    return rows, projects, milestones
+    return rows, projects, milestones, deadlines
 
 
 def _monitor_v2(now, *, conn=None, attention_cap=10):
     # attention_cap: the wire contract's 10; tools/portfolio_watch.py asks for every item.
     with _tx(conn) as c:
-        rows, projects, milestones = _v2_rows(now, c)
+        rows, projects, milestones, deadlines = _v2_rows(now, c)
         attention = []
         counts = {"in_progress": sum(not r["parked"] for r in rows), "parked": sum(r["parked"] for r in rows),
                   "late": 0, "waiting_ceo": 0, "no_plan": 0}
@@ -1102,7 +1122,9 @@ def _monitor_v2(now, *, conn=None, attention_cap=10):
             p = projects[row["id"]]
             flags = []
             if not row["parked"] and row["late_s"] is not None:
-                flags.append(("late", row["due_at"] or row["beat"]["next_due"], "เลยกำหนด"))
+                deadline, milestone = deadlines[row["id"]]
+                text = "เลยกำหนด" + (f": M{milestone[0]} {_cut(milestone[1], 40)}" if milestone else "")
+                flags.append(("late", _stamp(deadline), text))
             if not row["parked"] and row["state"] == "waiting_ceo":
                 flags.append(("waiting_ceo", row["blocker"]["since"], "รอคุณตอบ"))
             if p["stage"] == "active" and not any(m["project_id"] == p["id"] and not m["done_at"] and m["due_at"] for m in milestones):
@@ -1138,7 +1160,7 @@ def _monitor_v2(now, *, conn=None, attention_cap=10):
 
 def report(now=None, *, conn=None):
     with _tx(conn) as c:
-        rows, _, _ = _v2_rows(_utc(now), c)
+        rows = _v2_rows(_utc(now), c)[0]
     rows = [r for r in rows if not r["parked"]]
     return sorted(rows, key=lambda r: (r["late_s"] is None, -(r["late_s"] or 0), r["lane"], r["id"]))
 
