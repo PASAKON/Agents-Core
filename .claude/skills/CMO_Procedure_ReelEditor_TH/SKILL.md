@@ -202,3 +202,6 @@ attribution required). Use sparingly (see preferences above).
 - Reposition/resize captions → `STYLES[...]["y"]` and `["size"]` in `render_captions.py`.
 - Change the CTA offer/number → `draw_cta` in `render_captions.py`.
 - Add a new cutaway asset type → extend `draw_cutaway` in `render_captions.py`.
+
+## Field notes
+- 2026-10-27 [MISSING] §Environment setup — `requirements.txt` in this folder is a one-time `pip freeze` of the Mac venv (`scripts/claude_home_migrate.py`, `_freeze_reel_editor`, 2026-09-22). Nothing installs from it (the setup above runs `pip install pillow mlx-whisper`), but CI's osv-scanner reads it: its pillow 12.3.0, filelock 4.0.0, setuptools 84.0.0 and certifi 2026.7.22 pins were 46 of the 47 advisories in main's red osv-scanner job (run 40445220019). Commit 58fab540 bumped them to the first fixed versions. Under pillow 13.0.0 the skill's own harness (`render_captions.py` in all 3 styles plus `render_cover.py`, one Linux Thai font swapped in) rendered 33 images pixel-identical to 12.3.0 on Contabo. The Mac venv keeps the old versions until `.venv/bin/pip install -U 'pillow>=13.0.0' 'filelock>=4.2.1' 'setuptools>=84.1.0' 'certifi>=2026.10.19'` runs there; mlx-whisper on that venv is untested. When osv flags this file again, bump the pins here the same way · evidence: run 40445220019, commit 58fab540 · status: pending
