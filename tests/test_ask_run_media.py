@@ -1,6 +1,5 @@
 """Media choice cards on the requester side: `ask_run.py ask --media/--caption/--pick`, the MCP
-`ask_ceo(media, pick)` and the `picked:` line of `wait` (docs/design/run-inbox/QUESTIONS.md §11;
-contract state/handoff/2026-10-27/runmedia-contract.md §7, §8, §11).
+`ask_ceo(media, pick)` and the `picked:` line of `wait` (docs/design/run-inbox/QUESTIONS.md §11).
 
 What these tests hold the requester to:
   - every local refusal happens BEFORE any HTTP call (the hub saw 0 requests) and before any

@@ -1026,7 +1026,7 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------ media cards
-# QUESTIONS.md §11 (contract: state/handoff/2026-10-27/runmedia-contract.md §7, §8, §11). A card may
+# QUESTIONS.md §11 (the Console builds the hub half to the same section). A card may
 # carry 1-12 pictures, videos or sounds the CEO looks at on /run and picks from. The card shows a
 # PREVIEW; the sender keeps the master. Everything below runs BEFORE the first network call:
 #   1. the path is a regular file (not a symlink, FIFO or device), opened once;
@@ -1055,7 +1055,7 @@ CONVERT_TIMEOUT_S = 900
 UPLOAD_TIMEOUT_S = 300.0      # per socket operation, not for the whole 50 MB
 FFMPEG_THREADS = "2"          # Contabo shares its RAM with every C-level session
 PICKS = ("one", "many")
-_MEDIA_ID_RE = re.compile(r"^M-[0-9a-f]{24}\Z")          # contract §1
+_MEDIA_ID_RE = re.compile(r"^M-[0-9a-f]{24}\Z")          # QUESTIONS.md §11
 PENDING_MEDIA_ID = "M-<uploaded when sent>"
 FFMPEG_HINT = ("ffmpeg and ffprobe are needed to shrink media before it is uploaded and one is not on PATH. "
                "Install them: apt-get install ffmpeg (Contabo), brew install ffmpeg (Mac), "
@@ -1072,8 +1072,8 @@ MEDIA_FORMATS = {
     "mp3": ("audio", ".mp3", "mp3"), "aac": ("audio", ".aac", "aac"), "m4a": ("audio", ".m4a", "mov"),
     "wav": ("audio", ".wav", "wav"), "ogg": ("audio", ".ogg", "ogg"),
 }
-_VIDEO_BRANDS = (b"isom", b"iso2", b"iso5", b"mp41", b"mp42", b"avc1", b"M4V ")   # contract §1
-_AUDIO_BRANDS = (b"M4A ", b"M4B ")                                                 # contract §8.1
+_VIDEO_BRANDS = (b"isom", b"iso2", b"iso5", b"mp41", b"mp42", b"avc1", b"M4V ")   # QUESTIONS.md §11
+_AUDIO_BRANDS = (b"M4A ", b"M4B ")                                                 # QUESTIONS.md §11
 _FFMPEG_BASE = ["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-threads", FFMPEG_THREADS,
                 "-protocol_whitelist", "file"]
 
@@ -1104,7 +1104,7 @@ def media_name(path: str) -> str:
 
 
 def sniff_media(head: bytes) -> str | None:
-    """The MEDIA_FORMATS key the first bytes say, else None. Magic bytes only (contract §1, §8.1):
+    """The MEDIA_FORMATS key the first bytes say, else None. Magic bytes only (QUESTIONS.md §11):
     no SVG, HTML or PDF, and an ftyp brand outside the two lists is refused."""
     if head[:3] == b"\xff\xd8\xff":
         return "jpeg"
@@ -1374,13 +1374,13 @@ def stage_media(paths: list[str], work_dir: Path) -> list[Staged]:
 
 def _name_header(name: str) -> str:
     """X-Media-Name: a header is latin-1, so a name with anything but printable ASCII (Thai!) or
-    with a `%` goes out percent-encoded as UTF-8. The hub decodes it (contract §8.3 is silent)."""
+    with a `%` goes out percent-encoded as UTF-8. The hub decodes it (QUESTIONS.md §11)."""
     plain = all(0x20 <= ord(c) < 0x7F for c in name) and "%" not in name
     return name if plain else urllib.parse.quote(name, safe="")
 
 
 def upload_staged(path: Path, size: int, sha256: str, name: str) -> str:
-    """POST one staged file (contract §1) and return the hub's media id. The hub's answer must
+    """POST one staged file (QUESTIONS.md §11) and return the hub's media id. The hub's answer must
     agree with what was sent (size, sha256) or nothing is attached."""
     with open(path, "rb") as f:
         resp = _call("POST", MEDIA_PATH, raw=f, raw_length=size, timeout=UPLOAD_TIMEOUT_S,
@@ -1407,7 +1407,7 @@ def _staged_line(s: Staged) -> str:
 
 def send_media_question(payload: dict, paths: list[str], *, dry_run: bool) -> tuple[dict, dict | None, list[str]]:
     """Stage every file, upload them (and the video posters), then POST the question with the
-    media ids in (contract §1, §2). (body, hub's answer or None for a dry run, one line per item).
+    media ids in (QUESTIONS.md §11). (body, hub's answer or None for a dry run, one line per item).
     The temp dir is gone before this returns; the hub drops an upload nobody attaches within 1 h."""
     with tempfile.TemporaryDirectory(prefix="ask-run-media-") as tmp:
         staged = stage_media(paths, Path(tmp))

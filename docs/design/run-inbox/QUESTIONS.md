@@ -312,9 +312,17 @@ boundary: what he sends at once reaches each asker as one letter. No time window
 
 ## 11. Media: pictures, videos and sounds on a card (CEO 27 Oct)
 
-A card may carry 1 to 12 **items** the CEO looks at or listens to and picks from. Contract and hub API:
-`state/handoff/2026-10-27/runmedia-contract.md` (Console builds §1-§4 and the page; this section is the sender's
-side, `tools/ask_run.py`). The card shows a **preview**: the sender keeps the master.
+A card may carry 1 to 12 **items** the CEO looks at or listens to and picks from. The Console builds the hub half
+(upload route, serving, sweep, the page); this section is the requester's side (`tools/ask_run.py`) and the wire
+shape both sides keep. The card shows a **preview**: the sender keeps the master.
+
+- **Wire.** `POST /api/run/question-media`: the file's raw bytes, `Content-Type: application/octet-stream`, header
+  `X-Media-Name` (the base name); answers 201 `{media_id: "M-" + 24 hex, kind, mime, bytes, sha256}`, 413
+  `too_large`, 415 `unsupported_media`, 429 `rate_limited` (40 uploads per session per hour), 507 `store_full` /
+  `disk_low`. An upload belongs to the session that made it and is attached by one card only. `POST
+  /api/run/questions` then carries `media:[{id, caption?, poster_id?}]` and `pick` (400 `invalid_media`,
+  `options_not_allowed`; `media_not_in_groups` in a group). The sha256 of the question covers `pick` and each item's
+  `{n, kind, mime, bytes, sha256, caption}` when media is present; a card without media keeps today's canonical text.
 
 - **Kinds and caps** (read from the first bytes, never the name; an SVG, an HTML page or a PDF named `.jpg` is
   refused before any call). Picture JPEG/PNG/GIF/WebP, at most 10 MB. Video MP4/MOV/WebM, at most 50 MB. Audio
