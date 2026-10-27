@@ -9,7 +9,7 @@
 # A take with pace tags in its alignment ("[rushed] ...") needs nothing special: align.py drops every [...] run.
 #   TAKES_DIR=/opt/MoonieXHQ/Work/task-e58b9235/voice-v4-fast/takes make_hook.sh f1
 # env overrides:  TAKES_DIR  HD (hookdemo work folder)  OUT_ROOT (default $HD/out/v4-main)  MIN_AVAIL_MB (default 1200)  LOCK  CORE_PY
-set -eu
+set -eu -o pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TAKES_DIR="${TAKES_DIR:-/opt/MoonieXHQ/Work/task-e58b9235/voice-v4/takes}"
 HD="${HD:-/opt/MoonieXHQ/Work/task-e58b9235/hookdemo}"
@@ -50,7 +50,8 @@ TOOL="$HD/_tool-$SHA8"
 if [ ! -f "$TOOL/tools/ilag_cut.py" ]; then
   echo "== unpacking ilag_cut + kit from origin/main $SHA8 into $TOOL"
   mkdir -p "$TOOL.part"
-  git -C "$HERE" archive "$TOOL_SHA" tools/ilag_cut.py knowledge/brand-knowledge/brands/ilag/templates \
+  # from the repo top: git archive reads pathspecs relative to the folder it runs in, and HERE is prototypes/ilag-hookdemo
+  git -C "$(git -C "$HERE" rev-parse --show-toplevel)" archive "$TOOL_SHA" tools/ilag_cut.py knowledge/brand-knowledge/brands/ilag/templates \
     knowledge/brand-knowledge/brands/ilag/images/ilag-page-logo-1080.jpg | tar -x -C "$TOOL.part"
   mv "$TOOL.part" "$TOOL"
 fi
