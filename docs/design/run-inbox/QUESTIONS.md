@@ -317,6 +317,7 @@ A card may carry 1 to 12 **items** the CEO looks at or listens to and picks from
 shape both sides keep. The card shows a **preview**: the sender keeps the master.
 
 - **Wire.** `POST /api/run/question-media`: the file's raw bytes, `Content-Type: application/octet-stream`, header
+  `X-Run-Session` (the card's `requester.session`; missing or malformed = 400 `invalid_requester_session`) and
   `X-Media-Name` (the base name); answers 201 `{media_id: "M-" + 24 hex, kind, mime, bytes, sha256}`, 413
   `too_large`, 415 `unsupported_media`, 429 `rate_limited` (40 uploads per session per hour), 507 `store_full` /
   `disk_low`. An upload belongs to the session that made it and is attached by one card only. `POST
@@ -335,8 +336,8 @@ shape both sides keep. The card shows a **preview**: the sender keeps the master
 - **Requester.** `ask_run.py ask ... --media PATH` (repeat 1-12 times) `--caption TEXT` (by order, at most 60
   characters, one line) `--pick one|many`. Every file is checked and shrunk **before the first upload**, so a bad
   third file leaves nothing behind. Then each file goes to `POST /api/run/question-media` (raw bytes,
-  `application/octet-stream`, header `X-Media-Name` = the file's base name, percent-encoded when it is not printable
-  ASCII), then `POST /api/run/questions` with `media:[{id, caption?, poster_id?}]` and `pick`. A caption and a file
+  `application/octet-stream`, header `X-Run-Session` = the card's `requester.session`, header `X-Media-Name` = the
+  file's base name, percent-encoded when it is not printable ASCII), then `POST /api/run/questions` with `media:[{id, caption?, poster_id?}]` and `pick`. A caption and a file
   name pass the secret check, §5 (command-shaped) and, for captions, §6 (money).
 - **Pick rules.** One item: `--pick` absent or `one`; options default to ใช้ได้ / แก้ / ไม่เอา, or give 2-4 `--option`s;
   the answer is a `choice`. Two or more items: `--pick` is required (`one` = he taps one, `many` = he ticks any,
