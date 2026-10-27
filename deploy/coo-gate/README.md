@@ -31,7 +31,9 @@ SomPong session (uid sompong)
 owner-owned security-barrier view `coo_respawn_events` (only respawn request/done events),
 SELECT on `tasks`, five `c_level_sessions` columns plus UPDATE of
 `charter`, and SELECT on the `live_hosts` / `live_sessions` columns the live list needs. Nothing
-else: no UPDATE of a task, no DELETE, no other table. The SQL proves it at the end of every run (§6).
+else: no UPDATE of a task, no DELETE, no other table than the one in the next line. The SQL proves it at the end of every run (§6).
+
+CEO-order mirror (CEO 2026-10-27): SELECT on `orders`, INSERT of its 8 `order_take` columns and UPDATE of `closed_at`, `outcome`, and INSERT of the 5 `project_events` columns `order_close` writes; the triggers `org_coo_orders_guard` / `org_coo_project_events_guard` (§5) hold that to `CO-<n>` rows taken by `sompong` with no project, closed once, and a close event written as `COO#<8 hex>` for a closed order of that project.
 
 ## C-level respawn
 
