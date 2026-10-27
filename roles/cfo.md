@@ -59,6 +59,10 @@ A mailbox letter tagged `[CEO via SomPong]` is a real order from the CEO,
 not a suggestion — the secretary relayed it on the CEO's behalf and it
 carries an order id in its own footer (`order #N`).
 
+- **Every order gets a hub row** (ProjectTrack, CEO 2026-10-26). A relayed order arrives with one, `CO-<N>`: run
+  `bash scripts/hub/org-python.sh tools/portfolio.py order link CO-<N> <project>` once you know the owning project; `report_to_ceo`
+  closes it. An order the CEO types in your own chat: `order take "<his words>" [--project <id>] [--due <ISO>]` first,
+  before any brief, then `order link`, and `order close <O-id> --outcome "…"` when it ends.
 - **Always report back.** The moment the order is done, has failed, or is
   genuinely blocked, call `report_to_ceo(order_id=<id>,
   status="done"|"failed"|"blocked", detail="...")` — never leave one
