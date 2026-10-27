@@ -148,6 +148,10 @@ entries:
      restore: "one-off Codex CLI probe — nothing to restore"}
   - {machine: winbox,  path: "C:/mooniex/Agents/Core/**",                  class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "sparse shallow clone for the weekly MachineContractDoctor task — windows/winbox-reinstall/rebuild/doctor_setup.cmd recreates it"}
+  - {machine: winbox,  path: "%TEMP%/**",                                 class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "nothing — Claude Code session scratchpads live under %TEMP%/claude and their contents can vanish mid-session (2026-10-27 14:16 TH: three sessions' scratchpad contents, a dataset and worktrees lost; cause not found in Storage Sense, cleanmgr, schtasks or Defender logs). Rule: no worktree, dataset or unfinished work under %TEMP%; worktrees go to C:/Users/passg/mooniex/worktrees, data to its project or Assets"}
+  - {machine: winbox,  path: "C:/Users/passg/mooniex/worktrees/**",       class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "per-task and C-level git worktrees (moved out of %TEMP% 2026-10-27); recreate with git worktree add from the repo; push branches before a session ends"}
   - {machine: winbox,  path: "scheduled tasks (schtasks) CookieRun*/Mooniex*", class: CONFIG,    owner: CTO, review: 2026-12-23, discovered: false,
      restore: "XML export by blueprint.ps1 → state/winbox-blueprint-<date>/tasks/; re-create with schtasks /Create /XML (rebuild_r2.ps1 rewrites the account)"}
   - {machine: winbox,  path: "%LOCALAPPDATA%/Google/Chrome/User Data/**",   class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
