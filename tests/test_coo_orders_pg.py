@@ -186,8 +186,24 @@ FORBIDDEN = [
     ("a due date", _take(due_at=datetime(2026, 11, 1, tzinfo=timezone.utc), due_set_by="ceo"), GUARD),
     ("a project on insert", _insert_order("CO-10", project_id="'coo-pg'"), GUARD),
     ("a DELETE", _sql("DELETE FROM orders"), DENIED),
-    ("reading project_events back", _sql("SELECT * FROM project_events"), DENIED),
-    ("reading projects", _sql("SELECT * FROM projects"), DENIED),
+    # The portfolio read (the gate's portfolio op) is SELECT only: no write, no row lock, and the
+    # portfolio tables monitor_payload does not read stay closed.
+    ("an INSERT into projects", _sql("INSERT INTO projects (id, name, lane) VALUES ('coo-pg-2', 'x', 'coo')"), DENIED),
+    ("an UPDATE of projects", _sql("UPDATE projects SET name = name"), DENIED),
+    ("a DELETE of projects", _sql("DELETE FROM projects"), DENIED),
+    ("a row lock on projects", _sql("SELECT id FROM projects FOR UPDATE"), DENIED),
+    ("an INSERT into milestones", _sql("INSERT INTO milestones (project_id, n, title) VALUES ('coo-pg', 1, 'x')"), DENIED),
+    ("an UPDATE of milestones", _sql("UPDATE milestones SET title = title"), DENIED),
+    ("a DELETE of milestones", _sql("DELETE FROM milestones"), DENIED),
+    ("an INSERT into session_heartbeats", _sql(
+        "INSERT INTO session_heartbeats (session_id, project_id, at) VALUES ('hb', NULL, now())"), DENIED),
+    ("an UPDATE of session_heartbeats", _sql("UPDATE session_heartbeats SET at = at"), DENIED),
+    ("a DELETE of session_heartbeats", _sql("DELETE FROM session_heartbeats"), DENIED),
+    ("an UPDATE of project_events", _sql("UPDATE project_events SET body = body"), DENIED),
+    ("a DELETE of project_events", _sql("DELETE FROM project_events"), DENIED),
+    ("reading ceo_gos", _sql("SELECT * FROM ceo_gos"), DENIED),
+    ("reading resource_locks", _sql("SELECT * FROM resource_locks"), DENIED),
+    ("reading post_ledger", _sql("SELECT * FROM post_ledger"), DENIED),
     ("a project_events row of another kind", _sql(
         "INSERT INTO project_events (project_id, at, kind, actor, body) VALUES "
         f"('coo-pg', now(), 'stage', '{COO}', '{{\"op\":\"close\",\"id\":\"CO-20\"}}'::jsonb)"), GUARD),
@@ -392,6 +408,73 @@ def test_org_coo_creates_a_coo_task_with_the_columns_create_task_writes(hub, pro
     conn.commit()
     row = hub.owner(f"SELECT owner_role, status, project_id FROM tasks WHERE id = '{tid}'")
     assert tuple(row[0]) == ("coo", "pending", project_id)
+
+
+def test_the_gate_portfolio_op_reads_what_console_gets_as_org_coo_and_writes_nothing(hub, monkeypatch):
+    """runners/coo_gate.op_portfolio against a real hub: every statement monitor_payload runs goes through
+    org_coo's grants (a missing one is InsufficientPrivilege), and the answer equals the payload the
+    owner builds, so the COO sees the rows and the % Console shows."""
+    from datetime import timedelta
+    from lib import portfolio as pf
+    from runners import coo_gate
+    t0 = datetime(2026, 10, 27, 5, tzinfo=timezone.utc)
+    admin = hub.conn
+    kw = {"actor": "cto-abcdef12", "now": t0, "conn": admin}
+    pf.open_project("pg-a", "Alpha film", "cmo", stage="active", due_at=t0 + timedelta(days=3),
+                    due_set_by="ceo", **kw)
+    pf.milestone_add("pg-a", "script", due_at=t0 + timedelta(days=1), **kw)
+    pf.milestone_add("pg-a", "cut", due_at=t0 + timedelta(days=2), **kw)
+    pf.milestone_done("pg-a", 1, "sha abc1234", **kw)
+    pf.set_plan("pg-a", next_step="record voice", next_owner="cmo", **kw)
+    pf.decided("pg-a", "picked the long cut", **kw)
+    pf.open_project("pg-b", "Beta loop", "cgo", stage="active", kind="loop", cadence_h=24, **kw)
+    pf.beat("pg-b", "episode 1", **kw)
+    pf.block("pg-b", "ceo", "needs a channel name", **kw)
+    pf.open_project("pg-c", "Gamma shelf", "cto", stage="active", **kw)
+    pf.park("pg-c", **kw)
+    pf.order_take("ship the film", "sompong:5", actor="sompong", order_id="CO-5", now=t0, conn=admin)
+    admin.execute("INSERT INTO session_heartbeats (session_id, project_id, at) VALUES ('hb-1', 'pg-a', ?)", (t0,))
+    admin.commit()
+    orig_utc = pf._utc
+    monkeypatch.setattr(pf, "_utc", lambda now=None: orig_utc(now) if now is not None else t0 + timedelta(minutes=1))
+    want = pf.monitor_payload(version=2, conn=admin)
+    admin.commit()
+
+    def rows():
+        return [hub.owner(f"SELECT count(*) FROM {t}")[0][0]
+                for t in ("projects", "milestones", "project_events", "orders", "session_heartbeats")]
+
+    before = rows()
+    seen = []
+    org_coo = hub.coo()
+    real_execute = org_coo.execute
+
+    class Spy:
+        """org_coo's connection, remembering the SQL it was given."""
+        def execute(self, sql, params=()):
+            seen.append(sql)
+            return real_execute(sql, params)
+
+        def __getattr__(self, name):
+            return getattr(org_coo, name)
+
+    import contextlib
+
+    @contextlib.contextmanager
+    def tx(conn=None):
+        yield conn or Spy()
+
+    monkeypatch.setattr(pf, "_tx", tx)
+    monkeypatch.setattr(coo_gate, "_coo_session", lambda session_id: None)      # c_level_sessions: covered by the SQLite tests
+    out = coo_gate.handle({"op": "portfolio", "session_id": "c0de0001"}, 994)
+    org_coo.rollback()
+    assert out["ok"] is True, out
+    assert out["payload"] == want
+    assert [r["name"] for r in out["payload"]["projects"]] == ["Alpha film", "Beta loop", "Gamma shelf"]
+    assert len(out["text"]) == 3 and out["text"][0].startswith("Alpha film · cmo · 50% · ")
+    assert seen and not [q for q in seen if not q.lstrip().upper().startswith("SELECT")]
+    assert not [q for q in seen if "FOR UPDATE" in q.upper()]
+    assert rows() == before                                  # nothing was written
 
 
 def test_the_gate_path_opens_and_closes_a_coo_o_order_as_org_coo_with_its_event(hub):
