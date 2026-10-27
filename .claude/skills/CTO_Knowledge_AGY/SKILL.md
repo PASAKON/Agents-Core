@@ -93,10 +93,12 @@ This is the org's largest idle gap (plan §2.3).
   - 30206a64: a code path on the held local main; the send path from a deploy tree.
   So check the brief before blaming the runner.
 - **Never give agy a job that needs a command.**
-  - n=3:
+  - n=4:
     - task-4ec8abff (30 Sep): could not read files;
     - task-5ba7bccf (30 Sep): a relative interpreter path;
-    - task-0156526f (13 Oct): needed git and pytest; exit 0, no output.
+    - task-0156526f (13 Oct): needed git and pytest; exit 0, no output;
+    - task-3a803be1 (27 Oct): pinned to agy by hand (override quota-handoff) for a job that runs git
+      and pytest; dead in 1 min, "a tool permission was auto-denied". A quota override does not lift this rule.
   - Shell jobs go to codex.
 
 ## Not yet measured

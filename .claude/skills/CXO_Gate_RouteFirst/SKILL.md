@@ -148,3 +148,5 @@ Verdict: PROCEED / STOP pending <reason>
 Any FAIL stops the delegate or the close. Fix the line or the brief, then delegate again.
 
 ## Field notes
+
+- 2026-10-27 [MISSING] §Gate 5 — `runner_fit.py task <id>` reads runner, model and bucket from the row as it is now. A verdict recorded after re-pinning the task for a re-run lands on the new runner: task-3a803be1's agy crash went into bucket claude (hub event 14875). Record the verdict before re-pinning, or use `manual --runner <old runner> --task-id <id>` · evidence: task-3a803be1, event 14875 + the manual agy row after it · status: pending
