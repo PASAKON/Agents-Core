@@ -285,3 +285,95 @@ def test_a_bad_gemini_call_spends_nothing(work, fal, call_change):
     job = make_gemini_job(work, n=1, **call_change)
     assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
     assert not fal.submits
+
+
+GEMINI38_PRICE = fal_tts.PRICES[fal_tts.GEMINI38]
+
+
+def make_gemini38_job(work, n=1, chars=100, **call):
+    calls = []
+    for i in range(1, n + 1):
+        t = work / f"h{i}.txt"
+        t.write_text(str(i) + "ก" * (chars - 1), encoding="utf-8")
+        calls.append({"name": f"h{i}", "text_file": str(t), "voice": "Charon", "style_instructions": STYLE, **call})
+    p = work / "job.json"
+    p.write_text(json.dumps({"model": fal_tts.GEMINI38, "out_dir": str(work / "takes"), "calls": calls}),
+                 encoding="utf-8")
+    return p
+
+
+def test_gemini38_sends_only_its_own_fields_to_its_queue_path(work, fal):
+    job = make_gemini38_job(work, n=1, chars=100)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == 0
+    assert fal.submits == [{"prompt": "1" + "ก" * 99, "voice": "Charon", "style_instructions": STYLE}]
+    assert fal.keyed_urls[0] == fal_tts.QUEUE + "fal-ai/gemini-3.8-flash-tts"
+    assert attempts(work)[0]["usd"] == round((100 + len(STYLE)) * GEMINI38_PRICE, 6)
+    assert (work / "takes" / "h1.mp3").exists()
+
+
+@pytest.mark.parametrize("call_change", [
+    {"language_code": "th"}, {"temperature": 1.0}, {"output_format": "mp3"}, {"voice": "Brian"},
+    {"stability": 0.5}, {"style_instructions": "line\rbreak"},
+])
+def test_a_bad_gemini38_call_spends_nothing(work, fal, call_change):
+    job = make_gemini38_job(work, n=1, **call_change)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
+    assert not fal.submits
+
+
+def test_two_server_errors_in_a_row_stop_the_job(work, fal, capsys):
+    fal.fail = lambda body: 500
+    job = make_job(work, n=4)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_FAIL
+    assert len(fal.submits) == 2 and len(attempts(work)) == 2
+    assert "2 server errors in a row" in capsys.readouterr().out
+
+
+def test_a_good_call_between_server_errors_keeps_the_job_going(work, fal):
+    fal.fail = lambda body: 500 if body["text"][0] in "13" else None
+    job = make_job(work, n=4)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_FAIL
+    assert len(fal.submits) == 4
+    assert sorted(p.name for p in (work / "takes").glob("*.mp3")) == ["t2.mp3", "t4.mp3"]
+
+
+def test_a_client_error_ends_a_run_of_server_errors(work, fal):
+    fal.fail = lambda body: {"1": 500, "2": 422, "3": 500}.get(body["text"][0])
+    job = make_job(work, n=4)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_FAIL
+    assert len(fal.submits) == 4
+
+
+def test_the_audio_keeps_the_extension_its_content_type_names(work, fal, monkeypatch):
+    real = fal.http_json
+
+    def wav(url, key, body=None):
+        res = real(url, key, body)
+        if body is None and not url.endswith("/status"):
+            res["audio"] = {"url": "https://v3.fal.media/files/a", "content_type": "audio/wav"}
+        return res
+
+    monkeypatch.setattr(fal_tts, "http_json", wav)
+    job = make_gemini38_job(work, n=1)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == 0
+    assert (work / "takes" / "h1.wav").exists() and not (work / "takes" / "h1.mp3").exists()
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == 0
+    assert len(fal.submits) == 1  # the rerun skipped the .wav take
+
+
+@pytest.mark.parametrize("audio, ext", [
+    ({"url": "https://h/a.mp3"}, "mp3"), ({"url": "https://h/a.wav"}, "wav"), ({"url": "https://h/a.exe"}, "mp3"),
+    ({"url": "https://h/a", "content_type": "audio/ogg; codecs=opus"}, "ogg"),
+    ({"url": "https://h/a.wav", "content_type": "audio/mpeg"}, "mp3"),
+])
+def test_audio_ext(audio, ext):
+    assert fal_tts.audio_ext(audio) == ext
+
+
+def test_an_answer_without_an_audio_file_is_a_failed_call(work, fal, monkeypatch):
+    real = fal.http_json
+    monkeypatch.setattr(fal_tts, "http_json", lambda url, key, body=None: (
+        {"audio": "nope"} if body is None and not url.endswith("/status") else real(url, key, body)))
+    job = make_gemini38_job(work, n=1)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_FAIL
+    assert [p.name for p in (work / "takes").iterdir()] == ["h1.json"]
