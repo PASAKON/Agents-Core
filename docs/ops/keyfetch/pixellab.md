@@ -47,11 +47,11 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9288 \
   --match 'api\.pixellab\.ai/generate-new-token(\?|$)' --field token \
   --wait --new-only \
   --comment '<purpose, one sentence>' \
-  --meta 'provider_name=none (no name field)' \
+  --meta 'provider_name=mx-bedrock-prod-rw-exp<rotate-by YYYY-MM-DD>' \
   --meta 'console_url=https://www.pixellab.ai/account' \
   --meta 'scope=account-wide: PixelLab offers one API token per account; regenerate replaces it' \
   --meta 'wide=yes' --meta 'why_wide=PixelLab offers one account token' \
-  --meta 'expires=<rotate-by YYYY-MM-DD>' --meta 'owner=CTO' \
+  --meta 'expires=none-offered' --meta 'owner=CTO' \
   --meta 'created=<YYYY-MM-DD> <sid>' --meta 'spend_cap=<what the page offers, or none>' \
   >>"$LOG" 2>&1 &
 CAP=$!

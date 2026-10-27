@@ -25,8 +25,10 @@ import pytest
 
 from lib import coo_policy
 from lib import db as db_mod
+from lib import portfolio as pf
 from runners import coo_dispatch, coo_gate, coo_mcp_server, coo_worker
 from scripts.lib import cxo_mcp_config
+from test_projecttrack_p1 import ACTOR, T, project, store  # noqa: F401 -- `store`: p1's in-memory hub
 from tools import coo_field_notes
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -702,7 +704,7 @@ def test_sql_order_mirror_proof_cases_and_privilege_lists():
 
 
 def test_respawn_status_and_mcp_tool_roundtrip(monkeypatch):
-    assert coo_mcp_server.TOOL_NAMES[-1] == "respawn_clevel"
+    assert "respawn_clevel" in coo_mcp_server.TOOL_NAMES
     monkeypatch.setenv("CXO_SESSION_ID", SID)
     monkeypatch.setattr(
         coo_mcp_server,
@@ -1161,7 +1163,8 @@ def test_gate_serves_the_two_new_ops_and_no_others_were_added():
     assert {"audit_append", "field_note"} <= set(coo_gate.OPS)
     assert set(coo_gate.OPS) == {"ping", "set_charter", "create_task", "delegate_task", "get_task",
                                  "list_tasks", "close_task", "live_sessions", "respawn_clevel",
-                                 "respawn_status", "audit_append", "field_note"}
+                                 "respawn_status", "audit_append", "field_note",
+                                 "order_open", "order_close"}
 
 
 # --------------------------------------------------------------------------- the reader
@@ -1269,3 +1272,192 @@ def test_sql_grants_and_privilege_list_are_unchanged_by_the_two_kinds():
     for kind in ("coo_audit", "coo_field_note"):
         assert proof.count(f"('{kind}', 'coo_gate',") == 2 and proof.count(f"('{kind}', 'someone_else',") == 1
     assert "true)" in proof and "false)" in proof
+
+
+# --------------------------------------------------------------------------- order_open / order_close (ProjectTrack P6)
+# The gate's SQL lives in the hub; here the real lib/portfolio runs against p1's in-memory `orders`
+# table and the session check against the tmp ledger, so no Postgres is needed. The role guard that
+# backs these two ops is in org_coo_role.sql and tests/test_coo_orders_pg.py.
+
+OSID, OSID2 = "c0de0001", "c0de0002"        # coo sessions whose ids are 8 lowercase hex, as COO#<sid> needs
+ORDER_ID_RE = re.compile(r"^O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}$")
+
+
+@pytest.fixture
+def orders(store):
+    for sid in (OSID, OSID2):
+        db_mod.register_cxo_session("coo", sid, "contabo")
+    return store
+
+
+def _open(n=7, words="ship the film by friday", sid=OSID, **extra) -> dict:
+    return coo_gate.handle({"op": "order_open", "session_id": sid, "n": n, "words": words, **extra}, 994)
+
+
+def _close(order_id, outcome="done: film shipped", sid=OSID, **extra) -> dict:
+    return coo_gate.handle({"op": "order_close", "session_id": sid, "order_id": order_id,
+                            "outcome": outcome, **extra}, 994)
+
+
+def _order_rows(store) -> list[dict]:
+    return [dict(r) for r in store.execute("SELECT * FROM orders ORDER BY id").fetchall()]
+
+
+def test_order_channel_accepts_coo_n_and_nothing_wider(orders):
+    assert ORDER_ID_RE.match(pf.order_take("x", "coo:123456", actor="COO#c0de0001", now=T))
+    for bad in ("coo:", "coo:x", "coo:1234567", "coo:-1", "coo:1:2", "COO:1", "relay"):
+        with pytest.raises(pf.PortfolioError, match="channel must be"):
+            pf.order_take("x", bad, actor="COO#c0de0001", now=T)
+
+
+def test_order_open_records_a_coo_order_with_no_project_and_no_due(orders):
+    out = _open()
+    assert out["ok"] and out["existing"] is False and ORDER_ID_RE.match(out["order_id"]), out
+    (row,) = _order_rows(orders)
+    assert (row["id"], row["words"], row["channel"], row["taken_by"]) == (
+        out["order_id"], "ship the film by friday", "coo:7", f"COO#{OSID}")
+    assert (row["project_id"], row["due_at"], row["due_set_by"], row["closed_at"], row["outcome"]) == (
+        None, None, None, None, None)
+
+
+@pytest.mark.parametrize("due,stored", [("2026-10-30T17:00:00+07:00", "2026-10-30T10:00:00Z"),
+                                        ("2026-10-30T10:00:00Z", "2026-10-30T10:00:00Z")])
+def test_order_open_with_a_due_date_is_the_ceos_date(orders, due, stored):
+    assert _open(due_at=due)["ok"]
+    (row,) = _order_rows(orders)
+    assert (row["due_at"], row["due_set_by"]) == (stored, "ceo")
+
+
+def test_order_open_null_due_is_no_due(orders):
+    assert _open(due_at=None)["ok"]
+    assert [(r["due_at"], r["due_set_by"]) for r in _order_rows(orders)] == [(None, None)]
+
+
+def test_order_open_again_for_the_same_n_returns_the_open_order_and_writes_nothing(orders):
+    first = _open()
+    again = _open(words="a different sentence", due_at="2026-10-30T17:00:00+07:00")
+    from_other_coo = _open(sid=OSID2)
+    assert again == {"ok": True, "order_id": first["order_id"], "existing": True}
+    assert from_other_coo == again                      # any COO session's open order for coo:<n> counts
+    (row,) = _order_rows(orders)
+    assert (row["words"], row["due_at"], row["due_set_by"]) == ("ship the film by friday", None, None)
+    assert _open(n=8)["order_id"] != first["order_id"] and len(_order_rows(orders)) == 2
+
+
+def test_order_open_after_a_close_starts_a_new_order(orders):
+    first = _open()
+    assert _close(first["order_id"])["ok"]
+    second = _open()
+    assert second["ok"] and second["existing"] is False and second["order_id"] != first["order_id"]
+
+
+def test_order_open_ignores_a_non_coo_order_on_the_same_channel(orders):
+    # taken_by is not COO#...: it is not the COO's order, so a COO open must not return (or adopt) it
+    pf.order_take("someone else's", "coo:7", actor="sompong", now=T)
+    out = _open()
+    assert out["ok"] and out["existing"] is False
+    assert sorted(r["taken_by"] for r in _order_rows(orders)) == [f"COO#{OSID}", "sompong"]
+
+
+@pytest.mark.parametrize("fields", [
+    {"n": 0}, {"n": 1_000_000}, {"n": -3}, {"n": "7"}, {"n": 7.0}, {"n": True}, {"n": None},
+    {"due_at": "tomorrow"}, {"due_at": "2026-10-30T17:00:00"}, {"due_at": "2026-10-30"},
+    {"due_at": ""}, {"due_at": 20261030}, {"due_at": ["2026-10-30T17:00:00+07:00"]},
+    {"words": ""}, {"words": "   "}, {"words": "x" * 2001}, {"words": 7}, {"words": None},
+    {"project_id": "p"}, {"channel": "coo:7"}, {"due_set_by": "ceo"}, {"taken_by": "COO#c0de0001"},
+    {"session_id": "cootest1"}, {"session_id": "C0DE0001"}, {"session_id": "c0de00011"}, {"session_id": ""},
+])
+def test_order_open_refuses_a_bad_request_and_writes_nothing(orders, fields):
+    req = {"op": "order_open", "session_id": OSID, "n": 7, "words": "w", **fields}
+    out = coo_gate.handle(req, 994)
+    assert out["ok"] is False and out["error"], out
+    assert _order_rows(orders) == []
+
+
+def test_order_open_takes_the_longest_words_and_the_last_row(orders):
+    assert _open(n=999_999, words="w" * 2000)["ok"]
+    assert [r["channel"] for r in _order_rows(orders)] == ["coo:999999"]
+
+
+def test_order_open_refuses_a_session_that_is_not_coo(orders):
+    db_mod.register_cxo_session("cto", "ab12cd34", "contabo")
+    for sid in ("ab12cd34", "deadbeef"):                # a C-level session, and one the hub never saw
+        out = _open(sid=sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+    assert _order_rows(orders) == []
+
+
+def test_order_close_closes_an_order_a_coo_opened(orders):
+    oid = _open()["order_id"]
+    out = _close(oid, sid=OSID2)                        # closing needs a COO session, not the same one
+    assert out["ok"] and out["order_id"] == oid and re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", out["closed_at"])
+    (row,) = _order_rows(orders)
+    assert (row["closed_at"], row["outcome"], row["words"]) == (out["closed_at"], "done: film shipped",
+                                                               "ship the film by friday")
+
+
+def test_order_close_of_a_linked_order_files_the_project_event_as_the_closing_coo(orders):
+    project()
+    oid = _open()["order_id"]
+    pf.order_link(oid, "p", actor=ACTOR, now=T)
+    assert _close(oid)["ok"]
+    (event,) = orders.execute("SELECT actor, body FROM project_events WHERE kind='order' AND body LIKE '%close%'").fetchall()
+    assert event["actor"] == f"COO#{OSID}"
+    assert json.loads(event["body"]) == {"op": "close", "id": oid, "outcome": "done: film shipped"}
+
+
+@pytest.mark.parametrize("taken_by", ["sompong", "cto-abcdef12", "CTO#c34459eb", "COO#c0de001", "COO#C0DE0001", "coo#c0de0001"])
+def test_order_close_refuses_an_order_no_coo_session_took(orders, taken_by):
+    oid = pf.order_take("not the COO's", "sompong:5", actor=taken_by, now=T)
+    out = _close(oid)
+    assert out == {"ok": False, "error": f"no open COO order {oid}"}
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_close_gives_the_same_answer_for_a_missing_order_and_a_closed_foreign_one(orders):
+    foreign = pf.order_take("x", "sompong:5", actor="sompong", now=T)
+    pf.order_close(foreign, "done", actor="sompong", now=T)
+    for oid in (foreign, "O-20261027-1403-ab12"):
+        assert _close(oid) == {"ok": False, "error": f"no open COO order {oid}"}
+
+
+def test_order_close_twice_is_refused_and_keeps_the_first_outcome(orders):
+    oid = _open()["order_id"]
+    assert _close(oid, "first")["ok"]
+    again = _close(oid, "second")
+    assert again == {"ok": False, "error": f"order {oid} is already closed"}
+    assert [r["outcome"] for r in _order_rows(orders)] == ["first"]
+
+
+@pytest.mark.parametrize("fields", [
+    {"order_id": "CO-7"}, {"order_id": "O-20261027-1403-AB12"}, {"order_id": "O-20261027-1403-ab1"},
+    {"order_id": "O-20261027-1403-ab12\n"}, {"order_id": " O-20261027-1403-ab12"}, {"order_id": None},
+    {"order_id": 7}, {"outcome": ""}, {"outcome": "x" * 501}, {"outcome": None},
+    {"project_id": "p"}, {"closed_at": "2026-10-30T10:00:00Z"}, {"taken_by": "sompong"},
+    {"session_id": "cootest1"}, {"session_id": "C0DE0001"},
+])
+def test_order_close_refuses_a_bad_request_and_closes_nothing(orders, fields):
+    oid = _open()["order_id"]
+    req = {"op": "order_close", "session_id": OSID, "order_id": oid, "outcome": "done", **fields}
+    out = coo_gate.handle(req, 994)
+    assert out["ok"] is False and out["error"], out
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_close_refuses_a_session_that_is_not_coo(orders):
+    oid = _open()["order_id"]
+    db_mod.register_cxo_session("cto", "ab12cd34", "contabo")
+    for sid in ("ab12cd34", "deadbeef"):
+        out = _close(oid, sid=sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_ops_roundtrip_through_the_mcp_tools(orders, monkeypatch):
+    monkeypatch.setenv("CXO_SESSION_ID", OSID)
+    monkeypatch.setattr(coo_mcp_server, "call", lambda op, **fields: coo_gate.handle({"op": op, **fields}, 994))
+    opened = coo_mcp_server.order_open(7, "ship the film", "2026-10-30T17:00:00+07:00")
+    assert opened["ok"] and opened["existing"] is False
+    assert coo_mcp_server.order_open(7, "ship the film")["existing"] is True
+    assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"]
+    assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"] is False
