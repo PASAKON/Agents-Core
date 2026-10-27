@@ -1379,9 +1379,9 @@ def _name_header(name: str) -> str:
     return name if plain else urllib.parse.quote(name, safe="")
 
 
-def upload_staged(path: Path, size: int, sha256: str, kind: str, name: str) -> str:
+def upload_staged(path: Path, size: int, sha256: str, name: str) -> str:
     """POST one staged file (contract §1) and return the hub's media id. The hub's answer must
-    agree with what was sent (kind, size, sha256) or nothing is attached."""
+    agree with what was sent (size, sha256) or nothing is attached."""
     with open(path, "rb") as f:
         resp = _call("POST", MEDIA_PATH, raw=f, raw_length=size, timeout=UPLOAD_TIMEOUT_S,
                      headers={"X-Media-Name": _name_header(name)})
@@ -1389,7 +1389,7 @@ def upload_staged(path: Path, size: int, sha256: str, kind: str, name: str) -> s
     media_id = resp.get("media_id")
     if not isinstance(media_id, str) or not _MEDIA_ID_RE.match(media_id):
         raise HubError("hub accepted the upload but returned no valid media id")
-    for key, sent in (("kind", kind), ("bytes", size), ("sha256", sha256)):
+    for key, sent in (("bytes", size), ("sha256", sha256)):
         if key in resp and resp[key] != sent:
             raise HubError(f"hub stored {key} {str(resp[key])[:80]!r} for an upload of {str(sent)[:80]!r}; "
                            "not attaching it")
@@ -1424,9 +1424,9 @@ def send_media_question(payload: dict, paths: list[str], *, dry_run: bool) -> tu
         if dry_run:
             return body, None, lines
         for s, entry in zip(staged, entries):
-            entry["id"] = upload_staged(s.path, s.size, s.sha256, s.kind, s.name)
+            entry["id"] = upload_staged(s.path, s.size, s.sha256, s.name)
             if s.poster:
-                entry["poster_id"] = upload_staged(s.poster, s.poster_size, s.poster_sha256, "image",
+                entry["poster_id"] = upload_staged(s.poster, s.poster_size, s.poster_sha256,
                                                    f"{s.name}.poster.jpg"[:MEDIA_NAME_MAX])
         return body, submit_question(body), lines
 
