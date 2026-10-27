@@ -32,9 +32,11 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import socket
 import struct
 import sys
+import time
 from pathlib import Path
 from typing import Any, Callable
 
@@ -43,6 +45,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import coo_policy, db  # noqa: E402
+from tools import ask_run  # noqa: E402  (secret shapes only: one list of them, not a second copy)
 
 DEFAULT_SOCKET = "/run/org-coo-gate/gate.sock"
 DEFAULT_PROJECT = "mooniex-agents"
@@ -57,6 +60,19 @@ TASK_FIELDS = ("id", "role", "title", "status", "runner", "runner_model", "repor
                "delegate_log", "created_at", "updated_at", "owner_cto")
 RESPAWN_FIELDS = frozenset({"op", "session_id", "role", "host"})
 RESPAWN_STATUS_FIELDS = frozenset({"op", "session_id", "request_id"})
+# Audit log (#38) and field notes (#24b). The caps here are mirrored in org_coo_role.sql, which
+# checks the same shapes again; tests/test_coo_gate.py reads both and keeps them equal.
+AUDIT_FIELDS = frozenset({"op", "session_id", "tool", "input", "ok"})
+FIELD_NOTE_FIELDS = frozenset({"op", "session_id", "skill", "tag", "text"})
+MAX_AUDIT_TOOL = 100
+MAX_AUDIT_INPUT = 2000
+MAX_FIELD_NOTE = 600
+FIELD_NOTE_TAGS = ("MISSING", "WRONG", "COSTLY", "CONFIRMED")
+SKILL_NAME = re.compile(r"[A-Za-z0-9_.\-]{3,80}")        # fullmatch: `$` would let a newline through
+SKILLS_DIR = ROOT / ".claude" / "skills"
+RATE_WINDOW_S = 3600
+AUDIT_MAX_PER_HOUR = 600
+FIELD_NOTE_MAX_PER_HOUR = 30
 
 log = logging.getLogger("coo_gate")
 
@@ -117,6 +133,79 @@ def _coo_task(task_id: str) -> dict:
 
 def _slim(task: dict) -> dict:
     return {k: task.get(k) for k in TASK_FIELDS}
+
+
+# --------------------------------------------------------------------------- redaction + rate cap
+
+_REDACTED = "<redacted>"
+# One list of token shapes (tools/ask_run.py, tested against scripts/contabo_blueprint.sh), plus the
+# two it lacks: a Google OAuth access token and an HTTP Basic credential.
+_TOKEN_SHAPES = tuple(rx for _label, rx in ask_run._TOKEN_SHAPES) + (
+    re.compile(r"\bya29\.[A-Za-z0-9_.\-]{20,}"),
+    re.compile(r"\bBasic\s+[A-Za-z0-9+/]{8,}=*", re.IGNORECASE),
+)
+_PRIVATE_KEY = re.compile(ask_run.PRIVATE_KEY_MARKER + r".*?(?:END [A-Z ]*PRIVATE KEY|\Z)", re.DOTALL)
+_SECRET_KEY = re.compile(ask_run.SECRET_KEY_WORDS, re.IGNORECASE)
+# `name=` / `name:` / `"name":` with the name starting at a word boundary, so each run of name
+# characters is scanned once (a keyword inside the name is tested in Python, not by backtracking).
+_KEY_SEP = re.compile(r"(?<![A-Za-z0-9_.\-])([A-Za-z0-9_.\-]+)[\\\"']*[ \t]*[:=][ \t]*")
+# A literal value; a bare reference to an env var ($NAME) is how a secret should be named, so it stays.
+_VALUE = re.compile(
+    r"""\\?(["'])(?!\$\{?[A-Za-z_])(?:(?!\1).)*|(?!\$\{?[A-Za-z_])[^\s"'\\,;&}\]]+""", re.DOTALL)
+# A long unbroken run of key-like characters that mixes letters and digits. Paths are left alone
+# (a run right after `/` is not tested) and so is a UUID.
+_LONG_RUN = re.compile(r"(?<![A-Za-z0-9_\-/])[A-Za-z0-9_\-]{32,}")
+_UUID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+
+
+def _mask_run(m: re.Match) -> str:
+    run = m.group(0)
+    if _UUID.fullmatch(run) or not (re.search(r"\d", run) and re.search(r"[A-Za-z]", run)):
+        return run
+    return _REDACTED
+
+
+def _redact(text: str) -> str:
+    """`text` with what looks like a credential masked. Best effort by shape, not a guarantee: a
+    secret in a form none of these match (a bare short password, `curl -u user:pass`) passes.
+    Linear time: this runs inside the gate's one request loop on text the COO's tools wrote."""
+    text = _PRIVATE_KEY.sub(_REDACTED, text)
+    for rx in _TOKEN_SHAPES:
+        text = rx.sub(_REDACTED, text)
+    text = db.redact_url(text) or ""
+    out, pos = [], 0
+    for m in _KEY_SEP.finditer(text):
+        if m.start() < pos or not _SECRET_KEY.search(m.group(1)):
+            continue         # inside a value already masked, or not a secret's name
+        v = _VALUE.match(text, m.end())
+        if v:
+            out += [text[pos:v.start()], _REDACTED]
+            pos = v.end()
+    out.append(text[pos:])
+    return _LONG_RUN.sub(_mask_run, "".join(out))
+
+
+def _clean(text: str) -> str:
+    """No NUL and no lone surrogate: Postgres refuses both in a jsonb string, which would drop the
+    row (an audit gap anyone could open by putting one in a command)."""
+    return text.replace("\x00", "").encode("utf-8", "replace").decode("utf-8")
+
+
+# kind:session -> times of the rows written in the last hour. The gate is one process and the hub
+# trigger cannot count rows (org_coo may not read audit rows back), so the cap lives here and starts
+# again from zero if the gate restarts.
+_recent: dict[str, list[float]] = {}
+
+
+def _over_cap(kind: str, session_id: str, limit: int, now: float) -> bool:
+    key = f"{kind}:{session_id}"
+    recent = [t for t in _recent.get(key, ()) if now - t < RATE_WINDOW_S]
+    _recent[key] = recent
+    return len(recent) >= limit
+
+
+def _count_row(kind: str, session_id: str, now: float) -> None:
+    _recent.setdefault(f"{kind}:{session_id}", []).append(now)
 
 
 # --------------------------------------------------------------------------- ops
@@ -311,6 +400,67 @@ def op_respawn_status(req: dict, uid: int) -> dict:
     }
 
 
+def op_audit_append(req: dict, uid: int, *, now: float | None = None) -> dict:
+    """Append one row to the COO's audit log (#38): which tool it ran, with what input, and whether it
+    worked. Fed by scripts/coo-audit-hook.py from the COO's own Claude Code settings. Accepts ONLY
+    {op, session_id, tool, input, ok}. The input is redacted, cut to MAX_AUDIT_INPUT, and kept as text."""
+    extra = sorted(set(req) - AUDIT_FIELDS)
+    if extra:
+        raise Refused(f"audit_append accepts only session_id, tool, input, ok (unexpected: {', '.join(extra)})")
+    session_id = _text(req, "session_id", 64)
+    tool = _clean(req["tool"]).strip()[:MAX_AUDIT_TOOL] if isinstance(req.get("tool"), str) else ""
+    if not tool:
+        raise Refused("tool is required (a non-empty string)")
+    if not isinstance(req.get("input"), str):
+        raise Refused("input must be a string (the tool input as JSON text)")
+    if not isinstance(req.get("ok"), bool):
+        raise Refused("ok must be true or false")
+    _coo_session(session_id)
+    now = time.time() if now is None else now
+    if _over_cap("audit", session_id, AUDIT_MAX_PER_HOUR, now):
+        raise Refused(f"audit rate cap: at most {AUDIT_MAX_PER_HOUR} rows per session per hour")
+    # Redact the whole text and cut after: cutting first could leave half a key at the edge, short
+    # enough to slip under the length rule in _redact.
+    payload = {"session_id": session_id, "tool": tool,
+               "input": _redact(_clean(req["input"]))[:MAX_AUDIT_INPUT], "ok": req["ok"]}
+    with db.get_conn() as conn:
+        db.log_event(conn, None, "coo_gate", "coo_audit", payload)
+    _count_row("audit", session_id, now)
+    return {"recorded": True}
+
+
+def op_field_note(req: dict, uid: int, *, now: float | None = None) -> dict:
+    """File one field note (#24b) about an org skill: what it got wrong, lacked, cost, or got right.
+    The gate writes the event and nothing else; a CTO or PH reads it with tools/coo_field_notes.py
+    and folds it into the skill by hand. Accepts ONLY {op, session_id, skill, tag, text}."""
+    extra = sorted(set(req) - FIELD_NOTE_FIELDS)
+    if extra:
+        raise Refused(f"field_note accepts only session_id, skill, tag, text (unexpected: {', '.join(extra)})")
+    session_id = _text(req, "session_id", 64)
+    skill = req.get("skill")
+    if not isinstance(skill, str) or not SKILL_NAME.fullmatch(skill) or skill.startswith("."):
+        raise Refused("skill must match ^[A-Za-z0-9_.-]{3,80}$")
+    if not (SKILLS_DIR / skill).is_dir():
+        raise Refused(f"skill {skill!r} is not a directory under .claude/skills/")
+    tag = req.get("tag")
+    if tag not in FIELD_NOTE_TAGS:
+        raise Refused(f"tag must be one of {', '.join(FIELD_NOTE_TAGS)}")
+    text = _clean(_text(req, "text", MAX_FIELD_NOTE))
+    if len(text.splitlines()) != 1:
+        raise Refused("text must be a single line")
+    _coo_session(session_id)
+    now = time.time() if now is None else now
+    if _over_cap("field_note", session_id, FIELD_NOTE_MAX_PER_HOUR, now):
+        raise Refused(f"field note rate cap: at most {FIELD_NOTE_MAX_PER_HOUR} per session per hour")
+    # A note ends up in a skill file in a public repo: mask anything credential-shaped first.
+    payload = {"session_id": session_id, "skill": skill, "tag": tag,
+               "text": _redact(text)[:MAX_FIELD_NOTE]}
+    with db.get_conn() as conn:
+        db.log_event(conn, None, "coo_gate", "coo_field_note", payload)
+    _count_row("field_note", session_id, now)
+    return {"recorded": True, "skill": skill, "tag": tag}
+
+
 OPS: dict[str, Callable[[dict, int], dict]] = {
     "ping": op_ping,
     "set_charter": op_set_charter,
@@ -322,6 +472,8 @@ OPS: dict[str, Callable[[dict, int], dict]] = {
     "live_sessions": op_live_sessions,
     "respawn_clevel": op_respawn_clevel,
     "respawn_status": op_respawn_status,
+    "audit_append": op_audit_append,
+    "field_note": op_field_note,
 }
 
 

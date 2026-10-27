@@ -25,6 +25,8 @@ Tools (mcp__org__<name> inside the session):
                                                 tap (root work goes through ask_run, CEO 2026-10-01)
   email_ceo(kind, title, ...)                   action / alert / done / deadline to the CEO only
   quota()                                      read the local runner quota snapshot
+  field_note(skill, tag, text)                 one line about an org skill: MISSING | WRONG | COSTLY |
+                                                CONFIRMED. A CTO or PH reads it and folds it in by hand.
 
 The three Run Inbox tools do not go through the gate and touch no hub database: they are
 tools/ask_run.py (the same code as every other C-level's org server), plain HTTPS to the Run Inbox
@@ -56,7 +58,7 @@ RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote"
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
               "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait",
-              "email_ceo", "quota", "respawn_clevel")
+              "email_ceo", "quota", "field_note", "respawn_clevel")
 
 
 def session_id() -> str:
@@ -135,6 +137,10 @@ def close_task(task_id: str, result: str = "pass", why: str = "") -> dict:
 
 def live_sessions(all: bool = False) -> dict:
     return call("live_sessions", all=bool(all))
+
+
+def field_note(skill: str, tag: str, text: str) -> dict:
+    return _with_session("field_note", skill=skill, tag=tag, text=text)
 
 
 def respawn_status(request_id: int) -> dict:
@@ -323,6 +329,15 @@ def _serve() -> None:
     def _quota() -> str:
         """Read runner quota remaining and resets; stale=true means the snapshot is over 2 h old."""
         return json.dumps(quota(), ensure_ascii=False)
+
+    @mcp.tool(name="field_note")
+    def _field_note(skill: str, tag: str, text: str) -> str:
+        """File one field note about an org skill you used (the directory name under .claude/skills/).
+        tag: MISSING (it should have told you X), WRONG (a rule it states proved false), COSTLY (the
+        step that ate the most time) or CONFIRMED (a rule that held). text: one line, at most 600
+        characters, no secrets. A CTO or PH reads the notes and edits the skill by hand; you cannot
+        change a skill from here."""
+        return json.dumps(field_note(skill, tag, text), ensure_ascii=False)
 
     @mcp.tool(name="respawn_clevel")
     def _respawn_clevel(role: str = "", host: str = "contabo",
