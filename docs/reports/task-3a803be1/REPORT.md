@@ -25,7 +25,8 @@ SKILL-OVERRIDE: none.
 - 88bc43a1 — deploy: org-worktree-reap service + timer + installer
 - 7d623571 — tools: gc_stale_tasks --reap removes what is provably dead, no card
 - 75add371 — skill(ALL_Rules_DiskHygiene): contabo.md names the standing worktree reap, supersedes the red-card step
-- (the commit holding this report follows; `git log` has its sha)
+- e000667c — docs(report): task-3a803be1 REPORT.md - standing worktree reap
+- (a final commit may follow with a correction to this file; `git log` has it)
 
 ## Tests
 - ran: `python -m pytest scripts/test_gc_worktree_reap.py scripts/test_gc_stale_tasks.py -p no:cacheprovider`
@@ -61,6 +62,8 @@ SKILL-OVERRIDE: none.
 - Gitignored files are not counted as dirty (as before); a worktree full of ignored build output is removed with it.
 - Stricter than the brief: unsafe task ids, a symlinked worktree path, and a foreign git dir all skip. None of them changes a case the brief lists.
 
+**Side effects of the full suite, undone**: `tests/test_ep5_preprod.py` rewrites the tracked `docs/scripts/ep5-ACT1/2/3.md` in the repo it runs in, and some test creates `state/ph-briefs/` and `state/usage-budget/` there. I restored the three tracked files with `git checkout --` and moved the two new folders to the scratchpad (not deleted), so no change of mine is mixed with them; none of them is in a commit. This is also a live example of why the foreign-file rule matters: after a full suite run this worktree held files that are not the runner's, and the reap would refuse it.
+
 **Not run on purpose**: the reaper against the live tree (not even a dry run) and the installer, per the brief. The CTO runs the dry run at review and raises the install card after merge. The unit runs code from `/opt/MoonieXHQ/Agents/Core`, which must carry this merge.
 
 ## Not checked / risk
@@ -73,3 +76,5 @@ SKILL-OVERRIDE: none.
 - WRONG   [ALL_Rules_DiskHygiene §What will block you] : "Passed: an in-repo tool with a purposeful name (`gc_stale_tasks.py --reap --go`)" is not stable — the 2026-10-26 note shows the classifier refused even the dry run; with the standing timer the question goes away for finished worktrees, so the line should point at the timer · evidence: task-3a803be1 75add371, skill 2026-10-26 note · fix: replace by "the timer runs it; do not run --reap by hand on Contabo unless the timer is not installed".
 - MISSING [ALL_Rules_DiskHygiene §contabo worktrees] : the 2026-10-14/22/26 field notes describe the dirty-by-runner-files fault and the red-card step; both are now handled by the tool and the timer — fold them as superseded · evidence: task-3a803be1 7d623571, 75add371
 - COSTLY  [no owner] : `scripts/test_gc_worktree_reap.py` had no `test_*` functions, so pytest (and the CI) collected 0 tests from it for as long as it existed; the script-style `_mark` pattern passes silently under pytest · evidence: `pytest --collect-only scripts/test_gc_worktree_reap.py` at 43d1777b collected nothing · prevented by: a CI check that a `scripts/test_*.py` file collects ≥1 test or declares itself script-style.
+- COSTLY  [no owner] : running the full suite inside a worktree dirties it with files that are not the task's (`tests/test_ep5_preprod.py` rewrites tracked `docs/scripts/ep5-ACT*.md`; `state/ph-briefs/` and `state/usage-budget/` appear) · evidence: git status after the 47-minute run, task-3a803be1 · prevented by: those tests write under `tmp_path`, or the worker brief says to `git status` and restore after a full run.
+- COSTLY  [no owner] : the full suite takes 47 min on a Contabo box shared with other sessions, and a pty test (`test_w46b_node_fixes.py::test_echo_is_restored_on_interrupt_too`, 15 s timeout) flakes under that load; the brief's 11–33 min estimate was low · evidence: task-3a803be1 suite log · prevented by: state the 47 min figure and the flake in the worker brief.
