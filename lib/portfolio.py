@@ -972,13 +972,19 @@ def _order(c, order_id, *, lock=False):
     return dict(row)
 
 
-def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_by=None, now=None, conn=None):
+def ceo_order_hub_id(n: int) -> str:
+    """The hub order id for row n of the relay's SQLite ceo_orders ledger: a link with no DDL."""
+    return f"CO-{int(n)}"
+
+
+def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_by=None, now=None, conn=None,
+               order_id=None):
     now, actor = _utc(now), _actor(actor)
     words, channel = _text(words, "words"), _text(channel, "channel", limit=120)
     if not re.fullmatch(r"(?:sompong:\d+|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
         raise PortfolioError("channel must be sompong:<n> or chat:<role>-<session>")
     _schedule("finite", due_at, due_set_by, None)
-    oid = "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
+    oid = order_id or "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
     with _tx(conn) as c:
         if project_id:
             _project(c, project_id, lock=True)

@@ -95,6 +95,9 @@ def queue_env(tmp_path, monkeypatch, fake_subprocess):
     monkeypatch.setattr(rms, "LOCKS_DIR", tmp_path / "locks")
     monkeypatch.setattr(sc, "LOCKS_DIR", tmp_path / "locks")
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    # The hub mirror (_hub_order_mirror) is best-effort and reads ORG_DB_URL; a
+    # developer's shell must never let a relay test write a row into the real hub.
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
     fake_subprocess.setdefault("tailscale", FileNotFoundError())
     return tmp_path
 
@@ -1706,6 +1709,67 @@ def test_grab_video_broker_mode_still_honours_the_no_escape_hatch_guard_and_allo
         "read_session", "list_terminals", "session_history", "open_terminal",
         "list_ceo_orders", "read_link", "grab_video",
     }
+
+
+# ---------------------------------------------------------------------------
+# Hub mirror: every relayed CEO order also becomes hub `orders` row CO-<N>,
+# best-effort (task-01fb8d15). lib.portfolio.order_take is stubbed -- no hub.
+# ---------------------------------------------------------------------------
+
+def _live_cto(monkeypatch):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: None)
+
+
+def test_relay_delivered_order_is_mirrored_to_the_hub_as_co_n(queue_env, monkeypatch):
+    from lib import portfolio
+    _live_cto(monkeypatch)
+    taken = []
+    monkeypatch.setattr(portfolio, "order_take", lambda *a, **kw: taken.append((a, kw)))
+
+    result = json.loads(rms.relay_to_session("cto", "ship the thing"))
+
+    assert result["status"] == "delivered"
+    n = result["order_id"]
+    assert taken == [(("ship the thing", f"sompong:{n}"), {"actor": "sompong", "order_id": f"CO-{n}"})]
+
+
+def test_relay_queued_order_is_mirrored_and_words_are_cut_to_the_limit(queue_env, monkeypatch):
+    from lib import portfolio
+    taken = []
+    monkeypatch.setattr(portfolio, "order_take", lambda *a, **kw: taken.append((a, kw)))
+
+    result = json.loads(rms.relay_to_session("cfo", "x" * (portfolio.MAX_TEXT + 500)))
+
+    assert result["status"] == "queued"
+    assert len(taken) == 1
+    (words, channel), kw = taken[0]
+    assert words == "x" * portfolio.MAX_TEXT
+    assert (channel, kw["order_id"]) == (f"sompong:{result['order_id']}", f"CO-{result['order_id']}")
+
+
+def test_relay_result_is_unchanged_when_the_hub_fails(queue_env, monkeypatch):
+    from lib import portfolio
+    audits = []
+    monkeypatch.setattr(rms, "_audit", lambda *a: audits.append(a))
+    monkeypatch.setattr(portfolio, "order_take", lambda *a, **kw: None)
+    ok = json.loads(rms.relay_to_session("cfo", "ping"))
+
+    def hub_down(*a, **kw):
+        raise RuntimeError("could not connect to postgres://sompong:hunter2@hub:5432/org (ping)")
+
+    monkeypatch.setattr(portfolio, "order_take", hub_down)
+    bad = json.loads(rms.relay_to_session("cfo", "ping"))
+
+    assert bad.keys() == ok.keys()
+    varies = {"order_id", "queue_id", "message"}  # the second relay is the second row
+    assert {k: v for k, v in bad.items() if k not in varies} == {k: v for k, v in ok.items() if k not in varies}
+    assert len(_ceo_orders_rows()) == 2
+    failed = [a for a in audits if a[2] == "hub_order_failed"]
+    assert failed == [("relay_to_session", "cfo", "hub_order_failed", f"order_id={bad['order_id']} error=RuntimeError")]
+    assert "hunter2" not in repr(audits) and "postgres://" not in repr(audits)
 
 
 if __name__ == "__main__":
