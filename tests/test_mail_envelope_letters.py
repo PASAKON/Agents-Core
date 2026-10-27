@@ -34,6 +34,7 @@ REPO = Path(__file__).resolve().parent.parent
 
 import lib.db as db_mod  # noqa: E402
 import lib.mailbox as mailbox  # noqa: E402
+import lib.wake_backoff as wake_backoff_mod  # noqa: E402
 import tools.letters as letters  # noqa: E402
 import tools.mail_wake_sweep as sweep_mod  # noqa: E402
 import tools.node_dispatch as nd  # noqa: E402
@@ -284,6 +285,48 @@ def test_debounce_env(monkeypatch, inbox, on, sweeper):
     assert mailbox.debounce_s() == mailbox.DEFAULT_DEBOUNCE_S
     monkeypatch.setenv("ORG_WAKE_DEBOUNCE_S", "30")
     assert mailbox.debounce_s() == 30.0
+
+
+def _budget_file(tmp_path, monkeypatch, states, ts):
+    from lib import wake_backoff
+    path = tmp_path / "usage-budget.json"
+    path.write_text(json.dumps({"ts": ts, "rows": {
+        p: {"state": st} for p, st in zip(("agy", "chatgpt", "claude"), states)}}))
+    monkeypatch.setattr(wake_backoff, "BUDGET_PATH", path)
+
+
+@pytest.mark.parametrize("states,factor", [(("under",) * 3, 1), (("over", "under", "under"), 2),
+                                           (("over",) * 3, 4)])
+def test_debounce_is_times_the_budget_factor(monkeypatch, tmp_path, states, factor):
+    now = time.time()
+    _budget_file(tmp_path, monkeypatch, states, now)
+    assert mailbox.debounce_s(now) == mailbox.DEFAULT_DEBOUNCE_S * factor
+    monkeypatch.setenv("ORG_WAKE_DEBOUNCE_S", "30")
+    assert mailbox.debounce_s(now) == 30.0 * factor
+    monkeypatch.setenv("ORG_WAKE_DEBOUNCE_S", "0")
+    assert mailbox.debounce_s(now) == 0.0, "0 still means no debounce"
+    monkeypatch.delenv("ORG_WAKE_DEBOUNCE_S")
+    assert mailbox.debounce_s(now + 1801) == mailbox.DEFAULT_DEBOUNCE_S, "a stale budget slows nothing"
+
+
+def test_urgent_wakes_at_once_and_a_normal_letter_waits_x4_under_an_all_over_budget(
+        inbox, on, sweeper, monkeypatch, tmp_path):
+    t0 = time.time()
+    mailbox.send("cto", "s1", "a", "cmo", "c1")
+    mailbox.send("cto", "s1", "u", "cmo", "c1", prio="urgent")
+    for t in (t0, t0 + 3 * mailbox.DEFAULT_DEBOUNCE_S):
+        _budget_file(tmp_path, monkeypatch, ("over",) * 3, t)
+        assert mailbox.wake_due("cto", "s1", "urgent", now=t, sweeping=True) is True
+    t = t0 + 4 * mailbox.DEFAULT_DEBOUNCE_S - 5
+    _budget_file(tmp_path, monkeypatch, ("over",) * 3, t)
+    assert mailbox.wake_due("cto", "s1", "normal", now=t, sweeping=True) is False, "x4 is not up yet"
+    t = t0 + 4 * mailbox.DEFAULT_DEBOUNCE_S + 5
+    _budget_file(tmp_path, monkeypatch, ("over",) * 3, t)
+    assert mailbox.wake_due("cto", "s1", "normal", now=t, sweeping=True) is True
+    # the same letter under no budget file is due after the base window, as before
+    monkeypatch.setattr(wake_backoff_mod, "BUDGET_PATH", tmp_path / "gone.json")
+    assert mailbox.wake_due("cto", "s1", "normal", now=t0 + mailbox.DEFAULT_DEBOUNCE_S + 5,
+                            sweeping=True) is True
 
 
 # ---------------------------------------------------------------- send_to_cxo

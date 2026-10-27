@@ -91,8 +91,9 @@ def org(tmp_path, monkeypatch):
         def panes(self, box):
             return self.screens.get(box, INPUT)
 
-        def run(self, findings, now, live_c=("cmo-ef04792e", "cto-c34459eb")):
-            return ew.nudge(findings, list(live_c), now, send=self.send, wake=self.wake, panes=self.panes)
+        def run(self, findings, now, live_c=("cmo-ef04792e", "cto-c34459eb"), **kw):
+            return ew.nudge(findings, list(live_c), now, send=self.send, wake=self.wake,
+                            panes=self.panes, **kw)
 
     o = Org()
     o.sent, o.woke, o.screens = [], [], {}
@@ -439,3 +440,108 @@ def test_more_findings_than_the_cap_do_not_re_fire_every_run(org, monkeypatch):
     org.run(fs, NOW + 60)
     org.run(fs, NOW + 120)
     assert first == 5 * 2 and len(org.sent) == first          # the tracked five stay tracked
+
+
+# --- UsageBudget P4b: timed parts paced by budget x tier (lib/wake_backoff) -----------------
+
+CMO, COO = "cmo-ef04792e", "coo-fde4c4ca"
+
+
+def _budget(now, *states):
+    """A fresh P1 snapshot taken at `now`: states for agy, chatgpt, claude."""
+    return {"ts": now, "rows": {p: {"state": st} for p, st in zip(("agy", "chatgpt", "claude"), states)}}
+
+
+LOW_CMO = lambda box: "low" if box == CMO else "critical"      # noqa: E731
+ALL_LOW = lambda box: "low"                                      # noqa: E731
+
+
+def _senders(org):
+    return [b for b, _, _ in org.sent]
+
+
+def test_a_low_recipient_gets_the_at_once_letter_but_no_timed_reminder(org):
+    blk = [_f("blocker", CMO, ph="project_head-13db8720", subject="blocker:p:c:1")]
+    org.run(blk, NOW, tier_of=LOW_CMO)
+    assert sorted(_senders(org)) == [CMO, COO]                # the new finding goes to both, at once
+    org.run(blk, NOW + ew.REMIND_S, tier_of=LOW_CMO)
+    assert _senders(org).count(CMO) == 1 and _senders(org).count(COO) == 2
+    org.run(blk, NOW + 9 * ew.REMIND_S, tier_of=LOW_CMO)
+    assert _senders(org).count(CMO) == 1 and _senders(org).count(COO) == 2      # and never later
+
+
+def test_an_at_once_finding_ignores_budget_and_tier(org):
+    over = _budget(NOW, "over", "over", "over")
+    org.run([_f("waiting", "cto-c34459eb", subject="waiting:a")], NOW, budget=over, tier_of=ALL_LOW)
+    org.run([_f("blocker", CMO, ph="project_head-13db8720", subject="blocker:p:c:1")], NOW,
+            budget=over, tier_of=ALL_LOW)
+    assert COO in _senders(org) and CMO in _senders(org)
+    assert COO in org.woke                                    # the wake after an at-once letter stays
+
+
+@pytest.mark.parametrize("states,factor", [(("under",) * 3, 1), (("over", "under", "under"), 2),
+                                           (("over",) * 3, 4)])
+def test_the_reminder_waits_budget_factor_times_longer(org, states, factor):
+    blk = [_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")]
+    t0 = NOW
+    org.run(blk, t0, budget=_budget(t0, *states))
+    n = len(org.sent)
+    t = t0 + ew.REMIND_S * factor - 60
+    org.run(blk, t, budget=_budget(t, *states))
+    assert len(org.sent) == n                                 # just before the stretched interval
+    t = t0 + ew.REMIND_S * factor
+    org.run(blk, t, budget=_budget(t, *states))
+    assert len(org.sent) == n + 2 and "reminder" in org.sent[-1][1]      # COO and the holder
+
+
+def test_a_stale_budget_leaves_the_reminder_at_its_base(org):
+    blk = [_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")]
+    org.run(blk, NOW)
+    stale = _budget(NOW + ew.REMIND_S - 3600, "over", "over", "over")
+    org.run(blk, NOW + ew.REMIND_S, budget=stale)
+    assert "reminder" in org.sent[-1][1]
+
+
+def test_a_low_recipient_gets_no_digest_line_and_a_normal_one_a_slower_digest(org):
+    idle = [_f("idle", "cto-c34459eb", subject="idle:a:1")]
+    org.run(idle, NOW, tier_of=ALL_LOW)
+    assert org.sent == []                                     # nobody takes timed letters
+    # normal tier, one provider over: the digest spacing is DIGEST_S x 2 x 2
+    normal = lambda box: "normal"                             # noqa: E731
+    one_over = lambda t: _budget(t, "over", "under", "under")  # noqa: E731
+    first = [_f("idle", "cto-c34459eb", subject="idle:c:1")]
+    org.run(first, NOW + 10, tier_of=normal, budget=one_over(NOW + 10))
+    assert len(org.sent) == 1                                 # the first digest still goes at once
+    later = [_f("idle", "cto-c34459eb", subject="idle:b:1")]
+    t = NOW + 10 + ew.DIGEST_S * 4 - 60
+    org.run(later, t, tier_of=normal, budget=one_over(t))
+    assert len(org.sent) == 1
+    t = NOW + 10 + ew.DIGEST_S * 4
+    org.run(later, t, tier_of=normal, budget=one_over(t))
+    assert len(org.sent) == 2 and "idle cto-c34459eb" in org.sent[-1][1]
+
+
+def test_the_idle_threshold_is_the_scaled_interval_and_none_turns_the_check_off():
+    s = _s("project_head-13db8720", since=NOW - 31 * 60)
+    screens = lambda t: INPUT
+    assert [f["kind"] for f in ew.find([s], [], {}, {}, NOW, panes=screens)] == ["idle"]
+    assert ew.find([s], [], {}, {}, NOW, panes=screens, idle_s=2 * ew.IDLE_S) == []
+    assert ew.find([s], [], {}, {}, NOW, panes=screens, idle_s=None) == []
+    s["since"] = NOW - 61 * 60
+    assert [f["kind"] for f in ew.find([s], [], {}, {}, NOW, panes=screens, idle_s=2 * ew.IDLE_S)] == ["idle"]
+
+
+def test_tier_of_reads_a_ph_from_the_registry_and_every_c_level_is_critical(monkeypatch):
+    seen = []
+    monkeypatch.setattr(ew.portfolio, "tier_for", lambda task: seen.append(task) or "low")
+    assert ew.tier_of("project_head-13db8720") == "low"
+    assert seen == [{"owner_cto": "project_head-13db8720"}]
+    seen.clear()
+    for box in (CMO, COO, "cto-c34459eb"):
+        assert ew.tier_of(box) == "critical"
+    assert seen == []                                         # no registry lookup for a C-level
+
+
+def test_tier_of_a_ph_with_no_registry_row_is_normal(monkeypatch):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)           # no hub: tier_for fails open
+    assert ew.tier_of("project_head-0badc0de") == "normal"
