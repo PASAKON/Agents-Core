@@ -238,3 +238,47 @@ def test_standard_library_only():
         mods |= {n.module.split(".")[0] for n in ast.walk(tree)
                  if isinstance(n, ast.ImportFrom) and n.module and n.level == 0}
         assert mods - set(sys.stdlib_module_names) - {"tools", "__future__"} == set(), rel
+
+
+GEMINI_PRICE = fal_tts.PRICES[fal_tts.GEMINI]
+STYLE = "A Thai storyteller in his fifties, deep and warm, unhurried."
+
+
+def make_gemini_job(work, n=1, chars=100, **call):
+    calls = []
+    for i in range(1, n + 1):
+        t = work / f"g{i}.txt"
+        t.write_text(str(i) + "ก" * (chars - 1), encoding="utf-8")
+        calls.append({"name": f"g{i}", "text_file": str(t), "voice": "Charon", "style_instructions": STYLE,
+                      "language_code": "th", "temperature": 1.0, **call})
+    p = work / "job.json"
+    p.write_text(json.dumps({"model": fal_tts.GEMINI, "out_dir": str(work / "takes"), "calls": calls}),
+                 encoding="utf-8")
+    return p
+
+
+def test_gemini_sends_its_own_fields_and_prices_the_voice_block_too(work, fal):
+    job = make_gemini_job(work, n=1, chars=100)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == 0
+    assert fal.submits == [{"prompt": "1" + "ก" * 99, "voice": "Charon", "output_format": "mp3",
+                            "style_instructions": STYLE, "language_code": "Thai (Thailand)", "temperature": 1.0}]
+    assert attempts(work)[0]["usd"] == round((100 + len(STYLE)) * GEMINI_PRICE, 6)
+    assert (work / "takes" / "g1.mp3").exists()
+
+
+def test_gemini_cap_counts_the_voice_block(work, fal):
+    job = make_gemini_job(work, n=2, chars=100)  # (100 + 61) chars a call, $0.00805 each
+    assert fal_tts.main(["--job", str(job), "--max-usd", "0.01"]) == fal_tts.EXIT_CAP
+    assert len(fal.submits) == 1
+
+
+@pytest.mark.parametrize("call_change", [
+    {"voice": "Brian"}, {"voice": "charon"}, {"stability": 0.5}, {"seed": 7}, {"timestamps": True},
+    {"language_code": "Thai (Thailand)"}, {"language_code": "xx"}, {"temperature": 3}, {"temperature": True},
+    {"style_instructions": "x" * (fal_tts.MAX_STYLE + 1)}, {"style_instructions": "line\rbreak"},
+    {"style_instructions": 7},
+])
+def test_a_bad_gemini_call_spends_nothing(work, fal, call_change):
+    job = make_gemini_job(work, n=1, **call_change)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
+    assert not fal.submits

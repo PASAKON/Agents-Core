@@ -1,5 +1,6 @@
-"""Text to speech on fal (ElevenLabs v4) that stops at its own spend cap: a declared spend tool for
-Run Inbox script cards (Console docs/run.md §Spend label, config/spend-tools.txt). CMO Ging, 2026-10-26.
+"""Text to speech on fal (ElevenLabs v4, Gemini 3.1 Flash TTS) that stops at its own spend cap: a declared
+spend tool for Run Inbox script cards (Console docs/run.md §Spend label, config/spend-tools.txt). CMO Ging,
+2026-10-26; Gemini added 2026-10-27.
 
 A job file lists the calls. Before each call the tool prices it from its text (characters times the
 model's price in PRICES) and stops if the running total would pass --max-usd. The total starts from the
@@ -15,6 +16,13 @@ Job file (JSON). Every path is absolute and under /opt/MoonieXHQ/Work/:
   {"model": "elevenlabs/tts/eleven-v4", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
    "calls": [{"name": "t1_Brian_s0.5", "text_file": "/opt/MoonieXHQ/Work/<job>/narration.txt",
               "voice": "Brian", "stability": 0.5, "language_code": "th", "seed": 7, "timestamps": true}]}
+Gemini 3.1 Flash TTS takes one of its 30 preset voices and a voice block in style_instructions (age, timbre,
+pace, accent; the same presets as Google Flow's voices). Its calls are priced on the text plus the
+style_instructions, so the cap holds even if fal bills both:
+  {"model": "fal-ai/gemini-3.1-flash-tts", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
+   "calls": [{"name": "v1_Charon", "text_file": "/opt/MoonieXHQ/Work/<job>/narration.txt", "voice": "Charon",
+              "style_instructions": "A Thai storyteller in his fifties ...", "language_code": "th",
+              "temperature": 1.0}]}
 Each call writes <out_dir>/<name>.mp3 and <name>.json (fal's whole answer, timestamps included).
 The ledger is <job file name without .json>.ledger.jsonl, next to the job file.
 
@@ -39,15 +47,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WORK = Path("/opt/MoonieXHQ/Work")
 # USD per character sent. Add a model only with its price read off its fal model page.
-PRICES = {"elevenlabs/tts/eleven-v4": 0.08 / 1000}  # "$0.08 per 1000 character", read 2026-10-26
+ELEVEN, GEMINI = "elevenlabs/tts/eleven-v4", "fal-ai/gemini-3.1-flash-tts"
+PRICES = {ELEVEN: 0.08 / 1000,   # "$0.08 per 1000 character", read 2026-10-26
+          GEMINI: 0.05 / 1000}   # "Your request will cost $0.05 per 1000 character.", read 2026-10-27
 QUEUE = "https://queue.fal.run/"
 KEY_NAME = "FAL_MEDIA_API_KEY_RW"
 KEY_PROJECT, KEY_ENV, KEY_PATH = "Agents-Core", "prod", "/cmo-media"
 MAX_CALLS = 60
 MAX_CHARS = 5000
 POLL_S, POLL_N = 2, 150
-CALL_KEYS = {"name", "text_file", "voice", "stability", "similarity_boost", "language_code", "seed",
-             "timestamps"}
+CALL_KEYS = {ELEVEN: {"name", "text_file", "voice", "stability", "similarity_boost", "language_code", "seed",
+                      "timestamps"},
+             GEMINI: {"name", "text_file", "voice", "style_instructions", "language_code", "temperature"}}
+# The voice enum of fal-ai/gemini-3.1-flash-tts (queue OpenAPI schema, read 2026-10-27).
+GEMINI_VOICES = frozenset("""Achernar Achird Algenib Algieba Alnilam Aoede Autonoe Callirrhoe Charon Despina Enceladus
+    Erinome Fenrir Gacrux Iapetus Kore Laomedeia Leda Orus Pulcherrima Puck Rasalgethi Sadachbia Sadaltager Schedar
+    Sulafat Umbriel Vindemiatrix Zephyr Zubenelgenubi""".split())
+# Gemini takes the language's display name; "th-TH" is refused with 422.
+GEMINI_LANGS = {"th": "Thai (Thailand)", "en": "English (US)"}
+MAX_STYLE = 2000
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 VOICE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}$")
 LANG_RE = re.compile(r"^[a-z]{2}$")
@@ -98,9 +116,10 @@ def load_job(job_path: Path) -> dict:
         raise JobError(f"calls must be a list of 1 to {MAX_CALLS} calls")
     seen: set[str] = set()
     out = []
+    keys = CALL_KEYS[model]
     for i, c in enumerate(calls, 1):
-        if not isinstance(c, dict) or set(c) - CALL_KEYS:
-            raise JobError(f"call {i} must be an object with only {sorted(CALL_KEYS)}")
+        if not isinstance(c, dict) or set(c) - keys:
+            raise JobError(f"call {i} must be an object with only {sorted(keys)}")
         name = c.get("name")
         if not isinstance(name, str) or not NAME_RE.match(name) or name in seen:
             raise JobError(f"call {i}: name must be unique and match {NAME_RE.pattern}")
@@ -115,6 +134,9 @@ def load_job(job_path: Path) -> dict:
         voice = c.get("voice")
         if not isinstance(voice, str) or not VOICE_RE.match(voice):
             raise JobError(f"call {i}: voice must match {VOICE_RE.pattern}")
+        if model == GEMINI:
+            out.append(_gemini_call(c, i, name, text, voice))
+            continue
         body: dict = {"text": text, "voice": voice}
         for k in ("stability", "similarity_boost"):
             if k in c:
@@ -135,6 +157,27 @@ def load_job(job_path: Path) -> dict:
             body["timestamps"] = True
         out.append({"name": name, "body": body, "chars": len(text)})
     return {"model": model, "price": PRICES[model], "out_dir": out_dir, "calls": out}
+
+
+def _gemini_call(c: dict, i: int, name: str, text: str, voice: str) -> dict:
+    if voice not in GEMINI_VOICES:
+        raise JobError(f"call {i}: voice must be one of the 30 Gemini voices")
+    body: dict = {"prompt": text, "voice": voice, "output_format": "mp3"}
+    style = c.get("style_instructions", "")
+    if not isinstance(style, str) or len(style) > MAX_STYLE or any(ord(ch) < 32 and ch != "\n" for ch in style):
+        raise JobError(f"call {i}: style_instructions must be text of at most {MAX_STYLE} characters")
+    if style.strip():
+        body["style_instructions"] = style.strip()
+    if "language_code" in c:
+        if c["language_code"] not in GEMINI_LANGS:
+            raise JobError(f"call {i}: language_code must be one of {sorted(GEMINI_LANGS)}")
+        body["language_code"] = GEMINI_LANGS[c["language_code"]]
+    if "temperature" in c:
+        t = c["temperature"]
+        if isinstance(t, bool) or not isinstance(t, (int, float)) or not 0 <= t <= 2:
+            raise JobError(f"call {i}: temperature must be a number from 0 to 2")
+        body["temperature"] = float(t)
+    return {"name": name, "body": body, "chars": len(text) + len(body.get("style_instructions", ""))}
 
 
 def ledger_path(job_path: Path) -> Path:
