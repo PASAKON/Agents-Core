@@ -618,7 +618,7 @@ def wargs(tmp_path, rows=(), **kwargs):
 
 
 def wentry(mode='full', role='cto', sid=SID_A, **extra):
-    return {**entry(mode, role, sid), 'uuid': WUUID, 'lane': None, **extra}
+    return {**entry(mode, role, sid), 'uuid': WUUID, 'lane': None, 'spawned_by': None, **extra}
 
 
 def wmanifest(entries):
@@ -763,12 +763,35 @@ def test_win_live_rejects_a_reused_pid(tmp_path, monkeypatch):
         assert rr.win_live() == expected
 
 
-def test_win_lane_comes_from_the_owner_record(tmp_path):
+def test_win_owner_reads_only_a_well_formed_record(tmp_path):
     locks = tmp_path / 'state/locks'
     locks.mkdir(parents=True)
     (locks / f'project_head-{SID_A}.spawned_by').write_text('cxo:cmo:cmo-08d5df68\n')
-    assert rr.win_lane(SID_A) == 'cmo'
-    assert rr.win_lane(SID_B) is None
+    (locks / f'project_head-{SID_B}.spawned_by').write_text('root:cmo:x; rm -rf')
+    assert rr.win_owner(SID_A) == 'cxo:cmo:cmo-08d5df68'
+    assert rr.win_owner(SID_B) is None
+    assert rr.win_owner('0badc0de') is None
+
+
+@pytest.mark.parametrize('present,dry,written', [(False, False, True), (False, True, False), (True, False, False)])
+def test_win_restore_owner_only_fills_a_gap(tmp_path, present, dry, written):
+    path = tmp_path / 'state/locks' / f'project_head-{SID_A}.spawned_by'
+    if present:
+        path.parent.mkdir(parents=True)
+        path.write_text('cxo:cmo:keep-me')
+    rr.win_restore_owner(wentry(role='project_head', lane='cto', spawned_by='cxo:cto:cto-08d5df68'), dry)
+    assert path.exists() is (present or written)
+    if written:
+        assert path.read_text().strip() == 'cxo:cto:cto-08d5df68'
+    if present:
+        assert path.read_text() == 'cxo:cmo:keep-me'
+
+
+def test_win_restore_owner_ignores_other_roles_and_bad_records(tmp_path):
+    rr.win_restore_owner(wentry(spawned_by='cxo:cto:cto-08d5df68'), False)                       # a C-level
+    rr.win_restore_owner(wentry(role='project_head', spawned_by='nonsense'), False)
+    rr.win_restore_owner(wentry(role='project_head'), False)
+    assert not (tmp_path / 'state').exists()
 
 
 @pytest.mark.parametrize('boot_after_lock,removed', [(True, True), (False, False), (None, False)])
@@ -806,9 +829,10 @@ def test_winbox_prep_saves_and_records_what_resume_needs(winbox, tmp_path):
     assert typed_texts(winbox) == ['/session-save'] * 3
     data = json.loads((rr.STATE / 'winbox-resume.json').read_text())
     assert data == [
-        dict(sid=SID_A, role='cto', name=f'cto #{SID_A}', project='demo', mode='full', uuid=WUUID, lane=None),
+        dict(sid=SID_A, role='cto', name=f'cto #{SID_A}', project='demo', mode='full', uuid=WUUID,
+             lane=None, spawned_by=None),
         dict(sid=SID_B, role='project_head', name=f'project_head #{SID_B}', project='demo', mode='lazy',
-             uuid=WUUID, lane='cto')]
+             uuid=WUUID, lane='cto', spawned_by='cxo:cto:cto-08d5df68')]
     assert (rr.STATE / 'pending-winbox.json').exists()
     rr.session_status.record_close.assert_not_called()    # /session-save wrote 'saved' itself
     assert not commands()                                 # no bash, no session-kill.sh

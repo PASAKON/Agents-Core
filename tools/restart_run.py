@@ -263,13 +263,33 @@ def win_record(row, status, dry_run):
         session_status.record_close(role, sid, status, locks_dir=ROOT / 'state' / 'locks')
 
 
-def win_lane(sid):
-    """A Project Head's lane, from the owner record spawn_ph wrote ("cxo:<lane>:<owner>")."""
-    path = ROOT / 'state/locks' / f'project_head-{sid}.spawned_by'
+_OWNER_RECORD = re.compile(r'cxo:[a-z0-9_-]{1,40}:[A-Za-z0-9_-]{1,40}')
+
+
+def win_owner(sid):
+    """A Project Head's owner record, "cxo:<lane>:<owner>" as spawn_ph wrote it, else None.
+    cxo-claude.ps1 refuses to start a Project Head without it and deletes it when claude
+    exits, so prep keeps a copy in the manifest."""
     try:
-        return path.read_text(encoding='utf-8').strip().split(':', 2)[1]
-    except (OSError, IndexError):
+        text = (ROOT / 'state/locks' / f'project_head-{sid}.spawned_by').read_text(encoding='utf-8').strip()
+    except OSError:
         return None
+    return text if _OWNER_RECORD.fullmatch(text) else None
+
+
+def win_restore_owner(row, dry_run):
+    """Put the owner record back if the session's last exit removed it (never overwrite one)."""
+    role, sid = identity(row)
+    record = row.get('spawned_by')
+    if role != 'project_head' or not record or not _OWNER_RECORD.fullmatch(record):
+        return
+    path = ROOT / 'state/locks' / f'project_head-{sid}.spawned_by'
+    if path.exists():
+        return
+    print(f'restore owner record: {path}')
+    if not dry_run:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(record + '\n', encoding='utf-8')
 
 
 def win_boot_time():
@@ -535,7 +555,9 @@ def prep(args):
             if win:
                 # cxo-claude.ps1 --resume takes the full conversation id, and a Project Head
                 # needs its lane back: both are known now and gone with the session's files.
-                entry.update(uuid=row.get('uuid'), lane=win_lane(sid) if role == 'project_head' else None)
+                owner = win_owner(sid) if role == 'project_head' else None
+                entry.update(uuid=row.get('uuid'), lane=owner.split(':')[1] if owner else None,
+                             spawned_by=owner)
             manifest.append(entry)
     if win:
         typed = [r for r in plan['sessions'] if not managed(r) and not worker(r) and r['action'] != 'close']
@@ -662,6 +684,7 @@ def resume(args):
                 continue
             if win:
                 win_clear_stale_lock(row, args.dry_run)
+                win_restore_owner(row, args.dry_run)
             if isinstance(command, str):
                 role, sid = identity(row)
                 unit = f'org-{role}-{sid}.scope'
