@@ -435,6 +435,26 @@ def _order_discard(order_id: int) -> None:
         conn.commit()
 
 
+def _hub_order_mirror(target_role: str, order_id: int, message: str) -> None:
+    """Mirror a delivered ceo_orders row into the hub `orders` table as CO-<id>.
+
+    Best-effort by design: the relay's result never depends on the hub. No
+    ORG_DB_URL, hub down, permission, a duplicate id -- every failure is audited
+    with the exception CLASS only (a DB error's text can carry the URL or the
+    order text) and swallowed. lib.portfolio is imported here, not at module
+    level, so the hub client stays off this server's import path.
+    """
+    try:
+        from lib import portfolio
+        portfolio.order_take(
+            message[:portfolio.MAX_TEXT], f"sompong:{order_id}", actor="sompong",
+            order_id=portfolio.ceo_order_hub_id(order_id),
+        )
+    except Exception as e:
+        _audit("relay_to_session", target_role, "hub_order_failed",
+               f"order_id={order_id} error={type(e).__name__}")
+
+
 def _order_footer(order_id: int) -> str:
     """Server-side footer -- built here, appended in `relay_to_session`,
     the caller cannot omit or alter it, same discipline as RELAY_PREFIX.
@@ -978,6 +998,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
                 mailbox.note_wake(target_role, session_id)
         except Exception as e:
             _audit("relay_to_session", target_role, "wake_failed", str(e))
+        _hub_order_mirror(target_role, order_id, message)
         _audit("relay_to_session", target_role, "delivered",
                f"tmux={tmux_name} letter={letter_path} order_id={order_id} "
                f"message={full_message!r}")
@@ -1057,6 +1078,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
             "status": "error", "target_role": target_role,
             "detail": f"queue write failed: {e}",
         }, ensure_ascii=False)
+    _hub_order_mirror(target_role, order_id, message)
     mac = _mac_status_dict()
     _audit("relay_to_session", target_role, "queued",
            f"queue_id={queue_id} order_id={order_id} mac_state={mac['state']} "

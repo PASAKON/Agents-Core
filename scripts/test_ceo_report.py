@@ -35,6 +35,9 @@ def report_env(tmp_path, monkeypatch):
     current_identity for the Mac-branch and non-C-level cases."""
     monkeypatch.setattr(cr, "QUEUE_DB_PATH", tmp_path / "relay_queue.db")
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    # The hub close (_hub_order_close) is best-effort and reads ORG_DB_URL; a
+    # developer's shell must never let a report test touch the real hub.
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
     monkeypatch.setattr(cr, "detect_host", lambda: "contabo")
     monkeypatch.setattr(cr, "current_identity", lambda: Identity("cxo", "cto", "abc123"))
     return tmp_path
@@ -288,6 +291,47 @@ def test_mac_side_ssh_failure_is_explicit_error_not_success(report_env, monkeypa
     result = cr.report_to_ceo(3, "done", "x")
     assert "closed as" not in result
     assert "cannot reach Contabo" in result
+
+
+# ---------------------------------------------------------------------------
+# Hub close: closing the ceo_orders row also closes hub `orders` row CO-<N>,
+# best-effort (task-01fb8d15). lib.portfolio.order_close is stubbed -- no hub.
+# ---------------------------------------------------------------------------
+
+def test_report_closes_the_hub_row_co_n(report_env, monkeypatch):
+    from lib import portfolio
+    closed = []
+    monkeypatch.setattr(portfolio, "order_close", lambda *a, **kw: closed.append((a, kw)))
+    order_id = _insert_order()
+
+    result = cr.report_to_ceo(order_id, "done", "y" * 500)
+
+    assert result == f"order #{order_id} closed as done"
+    assert closed == [((f"CO-{order_id}", "done: " + "y" * 200), {"actor": "CTO#abc123"})]
+
+
+def test_report_result_is_unchanged_when_the_hub_fails(report_env, monkeypatch):
+    from lib import portfolio
+
+    def hub_down(*a, **kw):
+        raise RuntimeError("could not connect to postgres://sompong:hunter2@hub:5432/org")
+
+    monkeypatch.setattr(portfolio, "order_close", hub_down)
+    order_id = _insert_order()
+
+    assert cr.report_to_ceo(order_id, "failed", "no go") == f"order #{order_id} closed as failed"
+    with cr._local_conn() as conn:
+        assert conn.execute("SELECT status FROM ceo_orders WHERE id = ?", (order_id,)).fetchone() == ("failed",)
+
+
+def test_a_failed_close_of_the_ledger_row_leaves_the_hub_row_alone(report_env, monkeypatch):
+    from lib import portfolio
+    closed = []
+    monkeypatch.setattr(portfolio, "order_close", lambda *a, **kw: closed.append(a))
+    order_id = _insert_order(status="done")  # already closed: report_to_ceo stops at the lookup
+
+    assert "already closed" in cr.report_to_ceo(order_id, "done", "again")
+    assert closed == []
 
 
 if __name__ == "__main__":
