@@ -572,6 +572,135 @@ def test_sql_events_guard_allows_only_narrow_coo_respawn_request():
     assert "GRANT SELECT (id, kind, payload, ts)" not in sql
 
 
+# --------------------------------------------------------------------------- CEO-order mirror (CO-<n>)
+# org_coo mirrors SomPong's relayed CEO orders into the hub `orders` table (lib/portfolio order_take
+# / order_close). Column grants cannot limit rows, so section 5's triggers do; these tests state each
+# grant, each guard condition and each proof case of org_coo_role.sql. The same file is run against a
+# real Postgres by tests/test_coo_orders_pg.py.
+
+ORDER_INSERT_COLS = ("id", "words", "channel", "taken_by", "taken_at", "project_id", "due_at", "due_set_by")
+ORDER_UPDATE_COLS = ("closed_at", "outcome")
+EVENT_INSERT_COLS = ("project_id", "at", "kind", "actor", "body")
+
+
+def _sql_flat() -> str:
+    """The role file with every run of whitespace squeezed to one space, so a wrapped statement matches."""
+    return " ".join((ROOT / "deploy" / "coo-gate" / "org_coo_role.sql").read_text().split())
+
+
+def _sql_function(name: str) -> str:
+    flat = _sql_flat()
+    m = re.search(rf"CREATE OR REPLACE FUNCTION {name}\(\) RETURNS trigger .*? \$fn\$;", flat)
+    assert m, f"{name} is missing from org_coo_role.sql"
+    return m.group(0)
+
+
+def test_sql_grants_the_order_mirror_exactly_what_order_take_and_order_close_use():
+    flat = _sql_flat()
+    assert ("GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by), "
+            "UPDATE (closed_at, outcome) ON orders TO org_coo;") in flat
+    assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in flat
+    assert flat.count("ON orders TO org_coo") == 1 and flat.count("ON project_events TO org_coo") == 1
+    # The grants are the columns lib/portfolio actually writes: a changed INSERT there fails here first.
+    src = (ROOT / "lib" / "portfolio.py").read_text()
+    take = re.search(r"INSERT INTO orders \(([^)]*)\)", src)
+    assert tuple(c.strip() for c in take.group(1).split(",")) == ORDER_INSERT_COLS
+    assert "UPDATE orders SET closed_at = ?, outcome = ? WHERE id = ?" in src
+    event = re.search(r"INSERT INTO project_events \(([^)]*)\)", src)
+    assert tuple(c.strip() for c in event.group(1).split(",")) == EVENT_INSERT_COLS
+    # Nothing destructive, nothing on the other portfolio tables.
+    for table in ("projects", "milestones", "ceo_gos", "resource_locks", "post_ledger", "session_heartbeats"):
+        assert f"ON {table} TO org_coo" not in flat
+    assert not re.search(r"GRANT [^;]*\b(DELETE|TRUNCATE|TRIGGER|ALL)\b", flat)
+
+
+def test_sql_orders_guard_holds_inserts_to_co_rows_and_updates_to_closing_them():
+    fn = _sql_function("org_coo_orders_guard")
+    assert "IF current_user <> 'org_coo' THEN RETURN NEW;" in fn
+    # INSERT
+    assert "IF TG_OP = 'INSERT' THEN" in fn
+    assert "(NEW.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE" in fn
+    assert "NEW.taken_by IS DISTINCT FROM 'sompong'" in fn
+    assert "NEW.channel IS DISTINCT FROM ('sompong:' || substr(NEW.id, 4))" in fn
+    assert "NEW.project_id IS NOT NULL" in fn
+    assert "NEW.due_at IS NOT NULL" in fn
+    # UPDATE
+    assert "(OLD.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE OR OLD.closed_at IS NOT NULL" in fn
+    assert "NEW.closed_at IS NULL" in fn
+    assert ("(to_jsonb(NEW) - 'closed_at' - 'outcome') IS DISTINCT FROM "
+            "(to_jsonb(OLD) - 'closed_at' - 'outcome')") in fn
+    assert "SET search_path = pg_catalog" in fn
+    flat = _sql_flat()
+    assert ("DROP TRIGGER IF EXISTS org_coo_guard ON orders; CREATE TRIGGER org_coo_guard "
+            "BEFORE INSERT OR UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION org_coo_orders_guard();") in flat
+
+
+def test_sql_project_events_guard_holds_org_coo_to_the_close_event_of_its_closed_order():
+    fn = _sql_function("org_coo_project_events_guard")
+    assert "IF current_user <> 'org_coo' THEN RETURN NEW;" in fn
+    assert "NEW.kind IS DISTINCT FROM 'order'" in fn
+    assert "(NEW.body ->> 'op') IS DISTINCT FROM 'close'" in fn
+    assert "((NEW.body ->> 'id') ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE" in fn
+    assert "(NEW.actor ~ '^COO#[0-9a-f]{8}$') IS DISTINCT FROM TRUE" in fn
+    # The order must exist, belong to this project and already be closed (order_close updates first).
+    assert ("SELECT 1 FROM public.orders o WHERE o.id = (NEW.body ->> 'id') "
+            "AND o.project_id = NEW.project_id AND o.closed_at IS NOT NULL") in fn
+    assert "SET search_path = pg_catalog" in fn
+    flat = _sql_flat()
+    assert ("DROP TRIGGER IF EXISTS org_coo_guard ON project_events; CREATE TRIGGER org_coo_guard "
+            "BEFORE INSERT ON project_events FOR EACH ROW EXECUTE FUNCTION org_coo_project_events_guard();") in flat
+
+
+@pytest.mark.parametrize("session_id", ["abcd1234", "00000000", "f66280fc", "0badc0de"])
+def test_sql_event_actor_pattern_matches_the_label_report_to_ceo_writes_for_the_coo(session_id):
+    """lib/ceo_report passes identity.label() as the actor; for SomPong that is "COO#<CXO_SESSION_ID>",
+    and cxo-claude.sh mints or adopts that id as 8 lowercase hex digits."""
+    from tools.agent_transport import Identity
+    label = Identity("cxo", "coo", session_id).label()
+    assert label == f"COO#{session_id}"
+    pattern = re.search(r"NEW\.actor ~ '([^']+)'", _sql_function("org_coo_project_events_guard")).group(1)
+    pattern = pattern.replace("$", r"\Z")       # Postgres' $ is end of string; Python's also matches before a final newline
+    assert re.search(pattern, label)
+    for other in (Identity("cxo", "cto", session_id).label(), Identity("cxo", "project_head", session_id).label(),
+                  "COO#ABCD1234", "COO#abcd123", "COO#abcd12345", "COO#abcd123g", "sompong", f"{label}\n"):
+        assert not re.search(pattern, other), other
+
+
+def test_sql_order_mirror_proof_cases_and_privilege_lists():
+    sql = (ROOT / "deploy" / "coo-gate" / "org_coo_role.sql").read_text()
+    flat = _sql_flat()
+    # Section 6 knows the new privileges and the one new readable table.
+    want = re.search(r"want text := (.*?);\s*BEGIN", sql, re.S).group(1)
+    tokens = set(re.findall(r"[a-z_]+\.[a-z_]+:[A-Z]+", want))
+    assert {f"orders.{c}:INSERT" for c in ORDER_INSERT_COLS} <= tokens
+    assert {f"orders.{c}:UPDATE" for c in ORDER_UPDATE_COLS} <= tokens
+    assert {f"project_events.{c}:INSERT" for c in EVENT_INSERT_COLS} <= tokens
+    assert not {t for t in tokens if t.startswith(("orders.", "project_events.")) and t.endswith(":REFERENCES")}
+    assert ("'tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders')") in flat
+    assert "live_hosts, live_sessions and orders, nothing destructive" in flat
+    # The behavioural proof: a separate block, so the audit / field-note proof above it is untouched.
+    proof = sql.split("DO $orders_proof$")[1].split("$orders_proof$;")[0]
+    for case in (
+        "A valid CO order, taken and closed",              # accepted
+        "A CO order of a project, closed with its event",  # accepted
+        "An O- id", "A taken_by other than sompong", "A channel that is not the id",
+        "A due date on insert", "A project on insert",
+        "An update of a closed CO order", "An update that changes words",
+        "An update that does not set closed_at", "An update of an order that is not CO-<n>",
+        "A project_events row of another kind", "A close event under another actor", "A take event",
+        "A close event for an order that is still open", "A close event for another project''s order",
+        "A close event for an order that is not CO-<n>",
+    ):
+        assert f"('{case}" in proof, case
+    assert proof.count(", true,") == 2          # the two accepted cases; everything else is refused
+    assert "SET LOCAL ROLE org_coo" in proof
+    assert "WHEN SQLSTATE 'ZX001' THEN accepted := true" in proof
+    assert "IF NOT switched OR proof_step < proof_last THEN" in proof     # a broken setup step fails the run
+    assert "GRANT UPDATE (words) ON public.orders TO org_coo" in proof     # so the trigger, not the grant, refuses
+    # Rolled back as the existing cases do: every case ends in the ZX001 raise, never a COMMIT.
+    assert "RAISE EXCEPTION USING ERRCODE = 'ZX001'" in proof and "COMMIT" not in proof
+
+
 def test_respawn_status_and_mcp_tool_roundtrip(monkeypatch):
     assert coo_mcp_server.TOOL_NAMES[-1] == "respawn_clevel"
     monkeypatch.setenv("CXO_SESSION_ID", SID)
