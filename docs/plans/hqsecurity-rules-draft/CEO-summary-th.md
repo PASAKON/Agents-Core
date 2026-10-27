@@ -16,10 +16,10 @@
 
 | ตัวเลข | ค่า |
 |---|---|
-| test ของ KeyFetch ที่ผ่าน | 63 จาก 63 |
+| test ของ KeyFetch ที่ผ่าน | 48 จาก 63 บน Contabo (อีก 15 ตัว Node บนเครื่องไม่มี WebSocket ตกเหมือนกันบน main) |
 | ตัวกันที่ทำงานครบแล้ว | 5 จาก 8 (อีก 1 ตัวทำงานบางส่วน และอีก 2 ตัวยังไม่ได้ทำหรือปิดอยู่) |
-| repo สาธารณะที่ปิด GitHub secret scanning อยู่ | 2 จาก 2 (Agents-Core, Agents-Rules) |
+| repo สาธารณะที่ปิด GitHub secret scanning อยู่ | 0 (เปิดแล้วทั้ง Agents-Core และ Agents-Rules 27 ต.ค. 14:5x) |
 | งานที่ยังไม่ได้ทำ | 3: ระบบเตือนวันหมดอายุอัตโนมัติ (ระหว่างนี้ C-level จดใน LungNote เอง), gitleaks ก่อน push, hook กันการเปิดไฟล์ /etc/infisical |
 
-- รอคุณตัดสิน 1: เปิด GitHub secret scanning และ push protection ทั้ง 2 repo (ฟรีสำหรับ repo สาธารณะ)
-- รอคุณตัดสิน 2: IRON ข้อ 65 ใหม่ และแก้ IRON ข้อ 34 ข้อย่อย 5 ซึ่งยังเขียนว่าย้าย key เข้า Org-Infra ได้ ขัดกับที่คุณเลือก free plan เมื่อ 26 ต.ค. จะส่งเป็น PR แยกให้คุณดู
+- เสร็จแล้ว: เปิด GitHub secret scanning และ push protection ทั้ง 2 repo (ฟรีสำหรับ repo สาธารณะ)
+- รอคุณตัดสิน: IRON ข้อ 65 ใหม่ และแก้ IRON ข้อ 34 ข้อย่อย 5 ซึ่งยังเขียนว่าย้าย key เข้า Org-Infra ได้ ขัดกับที่คุณเลือก free plan เมื่อ 26 ต.ค. จะส่งเป็น PR แยกให้คุณดู
