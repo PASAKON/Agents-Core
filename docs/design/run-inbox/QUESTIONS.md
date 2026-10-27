@@ -328,7 +328,9 @@ shape both sides keep. The card shows a **preview**: the sender keeps the master
 - **Kinds and caps** (read from the first bytes, never the name; an SVG, an HTML page or a PDF named `.jpg` is
   refused before any call). Picture JPEG/PNG/GIF/WebP, at most 10 MB. Video MP4/MOV/WebM, at most 50 MB. Audio
   MP3/M4A/AAC/WAV/OGG, at most 20 MB. At most 12 items. The caps hold for what is **uploaded**, after the shrink.
-- **Shrink before upload** (ffprobe decides, ffmpeg does it, temp dir removed afterwards): a picture with a long edge
+- **Shrink before upload** (ffprobe decides, ffmpeg does it, temp dir removed afterwards; the requester opens each
+  file once and copies those bytes into the temp dir, at most 2 GiB and only with free disk for it, so what is
+  checked is what is read and a path swapped meanwhile changes nothing): a picture with a long edge
   over 2048 px becomes 2048 (JPEG, a WebP stays WebP); a video becomes a 720p H.264/AAC MP4 with `+faststart` (one
   that already is that is only re-wrapped) plus a **poster** JPEG at 0.5 s, uploaded as its own image and sent as
   `media[i].poster_id`; audio that is not MP3/M4A/AAC becomes M4A AAC 128k. No ffmpeg: refused with an install
