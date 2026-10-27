@@ -10,10 +10,13 @@ changes nothing, no root needed) or the unprivileged `status`. The guards under 
 """
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "install-share-broker.sh"
@@ -162,10 +165,68 @@ def test_status_is_unprivileged_and_reports_no_credential_file():
 
 
 def test_install_without_root_and_without_dry_run_is_refused():
-    import os
     if os.geteuid() == 0:
-        import pytest
         pytest.skip("running as root: the root guard cannot be exercised")
     result = _bash(SCRIPT, "install")
     assert result.returncode == 1
     assert "needs root" in result.stderr
+
+
+# --------------------------------------------------------------------------- checkout trust check
+# Root executes tools/infisical_setup.py from the checkout and the broker runs with the Drive
+# credential, so a source another uid can write is a privilege escalation. Needs root to build
+# root-owned / foreign-owned fixtures; the ancestors loop is not exercised (every fixture would sit
+# under a world-writable /tmp and be refused for that alone).
+
+def _sources_trusted(root: Path) -> subprocess.CompletedProcess:
+    fn = subprocess.run(["sed", "-n", "/^sources_trusted()/,/^}/p", str(SCRIPT)],
+                        capture_output=True, text=True, check=True).stdout
+    assert fn.startswith("sources_trusted()"), "function not found in the installer"
+    return subprocess.run(["bash", "-c", f"{fn}\nsources_trusted \"$1\"", "_", str(root)],
+                          capture_output=True, text=True, timeout=60)
+
+
+def _trusted_tree(base: Path) -> Path:
+    root = base / "checkout"
+    for rel in ("tools", "runners", "lib", "scripts/gdrive-bridge", "deploy/share-broker"):
+        (root / rel).mkdir(parents=True)
+        (root / rel / "mod.py").write_text("x = 1\n")
+    for path in [root, *root.rglob("*")]:
+        os.chown(path, 0, 0)
+        os.chmod(path, 0o755 if path.is_dir() else 0o644)
+    return root
+
+
+@pytest.mark.skipif(os.geteuid() != 0, reason="needs root to create root-owned and foreign-owned fixtures")
+class TestSourcesTrusted:
+    def test_root_owned_unwritable_tree_passes(self, tmp_path):
+        assert _sources_trusted(_trusted_tree(tmp_path)).returncode == 0
+
+    def test_group_writable_file_is_refused_and_named(self, tmp_path):
+        root = _trusted_tree(tmp_path)
+        os.chmod(root / "runners" / "mod.py", 0o664)
+        result = _sources_trusted(root)
+        assert result.returncode == 1
+        assert "group/world writable" in result.stderr and "runners/mod.py" in result.stderr
+
+    def test_world_writable_directory_is_refused(self, tmp_path):
+        root = _trusted_tree(tmp_path)
+        os.chmod(root / "tools", 0o757)
+        assert _sources_trusted(root).returncode == 1
+
+    def test_file_owned_by_another_uid_is_refused_and_named(self, tmp_path):
+        root = _trusted_tree(tmp_path)
+        os.chown(root / "scripts" / "gdrive-bridge" / "mod.py", 501, 20)   # the Mac user's uid
+        result = _sources_trusted(root)
+        assert result.returncode == 1
+        assert "root-owned" in result.stderr and "scripts/gdrive-bridge/mod.py" in result.stderr
+
+    def test_directory_owned_by_another_uid_is_refused(self, tmp_path):
+        root = _trusted_tree(tmp_path)
+        os.chown(root / "lib", 501, 20)
+        assert _sources_trusted(root).returncode == 1
+
+    def test_a_symlink_is_judged_by_its_target_tree_not_its_own_777_mode(self, tmp_path):
+        root = _trusted_tree(tmp_path)
+        (root / "lib" / "link.py").symlink_to("mod.py")   # lrwxrwxrwx, owned by root
+        assert _sources_trusted(root).returncode == 0

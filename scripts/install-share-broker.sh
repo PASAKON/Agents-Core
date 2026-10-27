@@ -75,12 +75,23 @@ run() {
 }
 
 if [[ "$ACTION" != status ]] && ! "$DRY_RUN" && [[ "$(id -u)" -ne 0 ]]; then
-  echo "ERROR: $ACTION needs root (creates a user, writes $UNIT_PATH, runs systemctl) -- rerun with sudo, or use --dry-run" >&2
+  echo "ERROR: $ACTION needs root (system user, files under /var and /etc, systemctl) -- rerun with sudo, or use --dry-run" >&2
   exit 1
 fi
 
 # The path goes into the unit through sed: keep it to characters that cannot break the substitution.
 render_unit() { sed -e "s|@ROOT@|${ROOT}|g" "$TEMPLATE"; }
+
+# Root runs tools/infisical_setup.py from this checkout and the broker code runs with the Drive
+# credential, so nothing in either path may be writable by anyone else. Two checks, both name the
+# first offender: every ancestor directory, then the sources the unit executes or imports.
+sources_trusted() {   # sources_trusted <checkout-root>
+  local dirs=("$1/tools" "$1/runners" "$1/lib" "$1/scripts/gdrive-bridge" "$1/deploy/share-broker") bad
+  bad="$(find "${dirs[@]}" -not -user root -print -quit)"
+  [[ -z "$bad" ]] || { echo "ERROR: runtime sources must be root-owned (tools, runners, lib, scripts/gdrive-bridge, deploy/share-broker); first offender: $bad" >&2; return 1; }
+  bad="$(find "${dirs[@]}" -not -type l -perm /022 -print -quit)"
+  [[ -z "$bad" ]] || { echo "ERROR: runtime sources must not be group/world writable; first offender: $bad" >&2; return 1; }
+}
 
 trusted_checkout() {
   local check="$ROOT"
@@ -89,11 +100,7 @@ trusted_checkout() {
       || { echo "ERROR: checkout ancestor $check must be root-owned and not group/world writable" >&2; return 1; }
     check="$(dirname "$check")"
   done
-  local dirs=("$ROOT/tools" "$ROOT/runners" "$ROOT/lib" "$ROOT/scripts/gdrive-bridge" "$ROOT/deploy/share-broker")
-  [[ -z "$(find "${dirs[@]}" -not -user root -print -quit)" ]] \
-    || { echo "ERROR: runtime sources (tools, runners, lib, scripts/gdrive-bridge, deploy/share-broker) must be root-owned" >&2; return 1; }
-  [[ -z "$(find "${dirs[@]}" -not -type l -perm /022 -print -quit)" ]] \
-    || { echo "ERROR: runtime sources must not be group/world writable" >&2; return 1; }
+  sources_trusted "$ROOT"
 }
 
 do_install() {
