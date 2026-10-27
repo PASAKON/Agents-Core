@@ -37,7 +37,8 @@ mkdir -p "$HD"
 if [ ! -f "$HD/_tool/tools/ilag_cut.py" ]; then
   echo "== unpacking ilag_cut + kit from $TOOL_BRANCH into $HD/_tool"
   mkdir -p "$HD/_tool"
-  git -C "$CORE" archive "$TOOL_BRANCH" tools/ilag_cut.py knowledge/brand-knowledge/brands/ilag/templates | tar -x -C "$HD/_tool"
+  git -C "$CORE" archive "$TOOL_BRANCH" tools/ilag_cut.py knowledge/brand-knowledge/brands/ilag/templates \
+    knowledge/brand-knowledge/brands/ilag/images/ilag-page-logo-1080.jpg | tar -x -C "$HD/_tool"
 fi
 [ -f "$HD/src/ep5-ep1.mp4" ] || { echo "make_hook.sh: source $HD/src/ep5-ep1.mp4 is missing" >&2; exit 66; }
 OUT="$HD/out/v4/$stem"
