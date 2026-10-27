@@ -45,6 +45,9 @@ def temp_db(monkeypatch, tmp_path):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("CXO_ROLE", "cto")
     monkeypatch.setattr(delegate, "_PH_SLOTS_DIR", tmp_path / "ph-slots", raising=False)
+    # The cap tests seed two live workers, so they run at a cap of 2 whatever the
+    # policy row says; test_ph_max_workers_comes_from_the_policy_row reads the row.
+    monkeypatch.setattr(delegate, "_ph_max_workers", lambda: 2)
     db_mod.init()
     yield db_mod
 
