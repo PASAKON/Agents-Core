@@ -1029,7 +1029,9 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
 # QUESTIONS.md §11 (the Console builds the hub half to the same section). A card may
 # carry 1-12 pictures, videos or sounds the CEO looks at on /run and picks from. The card shows a
 # PREVIEW; the sender keeps the master. Everything below runs BEFORE the first network call:
-#   1. the path is a regular file (not a symlink, FIFO or device), opened once;
+#   1. the path is a regular file (not a symlink, FIFO or device), opened once, and those bytes are
+#      copied into a private file in the temp dir: the checks, ffprobe and ffmpeg read that copy and
+#      never the path again, so a swap after the open (a symlink, another file) changes nothing;
 #   2. the kind comes from the first bytes alone, never the name: picture JPEG/PNG/GIF/WebP, video
 #      MP4/MOV/WebM, audio MP3/AAC/M4A/WAV/OGG. A `.jpg` that is HTML or SVG is refused here;
 #   3. ffprobe reads it with the demuxer forced to the sniffed type and only the `file` protocol, so
@@ -1039,8 +1041,9 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
 #      a video becomes 720p H.264/AAC MP4 with +faststart (an MP4/MOV that already is one is only
 #      re-wrapped) plus a poster JPEG at 0.5 s; audio that is not MP3/AAC/M4A becomes M4A AAC 128k;
 #   5. the caps are checked on what will be uploaded: picture 10 MB, video 50 MB, audio 20 MB.
-# Staged files live in a temp dir that is removed afterwards. No ffmpeg: refused, never uploaded
-# untranscoded. Captions and file names pass the same §5 / §6 / secret checks as the question.
+# Staged files, and the private copy of each source, live in a temp dir that is removed afterwards.
+# No ffmpeg: refused, never uploaded untranscoded. Captions and file names pass the same §5 / §6 /
+# secret checks as the question.
 MEDIA_MAX = 12                # items on one card
 CAPTION_MAX = 60              # characters under one item (§8.2)
 MEDIA_NAME_MAX = 80           # characters of a file name shown on the card (§8.3)
@@ -1049,6 +1052,11 @@ MEDIA_CAPS = {"image": 10 * MB, "video": 50 * MB, "audio": 20 * MB}
 IMAGE_EDGE = 2048             # long edge of an uploaded picture
 VIDEO_HEIGHT = 720
 MAX_PIXELS = 100_000_000
+MAX_SOURCE_BYTES = 2048 * MB  # a source is copied into the temp dir whole before anything reads it (see
+                              # stage_one), so it costs that much disk once; a phone clip of several minutes
+                              # fits, anything bigger is cut down by hand first
+STAGE_DISK_MARGIN = 128 * MB  # free space kept beyond that copy: the converted file (at most 50 MB + 1 byte),
+                              # the poster (10 MB) and the items staged before it
 POSTER_AT_S = ("0.5", "0")    # the poster frame; "0" is for a clip shorter than half a second
 PROBE_TIMEOUT_S = 60
 CONVERT_TIMEOUT_S = 900
@@ -1202,10 +1210,12 @@ def _open_regular(path: str, refuse: Callable[[str, str], Refused]) -> tuple[int
 
 
 def _copy_capped(fd: int, dst: Path, cap: int) -> int:
-    """Copy the fd's bytes from the start into dst, at most cap + 1 of them; returns how many."""
+    """Copy the fd's bytes from the start into a NEW file dst (O_EXCL, mode 0600: nothing already at that
+    name is followed or overwritten), at most cap + 1 of them; returns how many."""
     os.lseek(fd, 0, os.SEEK_SET)
     total = 0
-    with open(dst, "wb") as out:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    with os.fdopen(os.open(dst, flags, 0o600), "wb") as out:
         while total <= cap:
             chunk = os.read(fd, min(1 << 20, cap + 1 - total))
             if not chunk:
@@ -1243,10 +1253,12 @@ def _probe(ffprobe: str, path: str, fmt: str, refuse: Callable[[str, str], Refus
     return info if isinstance(info, dict) else {}
 
 
-def _too_large(refuse: Callable[[str, str], Refused], kind: str, size: int | None, after: str) -> Refused:
-    shown = _mb(size) if size is not None else f"more than {_mb(MEDIA_CAPS[kind])}"
+def _too_large(refuse: Callable[[str, str], Refused], kind: str, size: int | None, after: str,
+               cap: int | None = None) -> Refused:
+    cap = MEDIA_CAPS[kind] if cap is None else cap
+    shown = _mb(size) if size is not None else f"more than {_mb(cap)}"
     hint = f"; {VIDEO_HINT}" if kind == "video" else ""
-    return refuse("too_large", f"is {shown} {after}, over the {_mb(MEDIA_CAPS[kind])} cap for a {kind}{hint}")
+    return refuse("too_large", f"is {shown} {after}, over the {_mb(cap)} cap for a {kind}{hint}")
 
 
 def _convert_args(how: str, path: str, fmt: str, out_fmt: str) -> list[str]:
@@ -1299,6 +1311,26 @@ def _poster(ffmpeg: str, video: Path, out: Path, refuse: Callable[[str, str], Re
     raise refuse("invalid_media", "has no frame ffmpeg can take a poster from")
 
 
+def _stage_source(fd: int, size: int, copy: Path, kind: str, refuse: Callable[[str, str], Refused]) -> int:
+    """Copy the opened source into `copy` (a new private file in the work dir); returns its size. The size
+    is checked first and again on what was read (the file may grow), and the disk must have room for the
+    copy and what comes out of ffmpeg, so a full disk is a refusal and not a half-written file."""
+    if size > MAX_SOURCE_BYTES:
+        raise _too_large(refuse, kind, size, "as a source", MAX_SOURCE_BYTES)
+    try:
+        free = shutil.disk_usage(copy.parent).free
+        if free < size + STAGE_DISK_MARGIN:
+            raise refuse("no_space", f"needs {_mb(size + STAGE_DISK_MARGIN)} free in the temp dir to be checked "
+                                     f"and shrunk and only {_mb(free)} is; free some space or point TMPDIR "
+                                     "at a bigger disk")
+        copied = _copy_capped(fd, copy, MAX_SOURCE_BYTES)
+    except OSError as e:
+        raise refuse("invalid_media", f"could not be copied for checking ({e.strerror or e})") from None
+    if copied > MAX_SOURCE_BYTES:
+        raise _too_large(refuse, kind, copied, "as a source", MAX_SOURCE_BYTES)
+    return copied
+
+
 def stage_one(src: str, work_dir: Path, index: int, tools: tuple[str, str]) -> Staged:
     """One file -> a Staged item in `work_dir`, or a Refused naming the item and the rule."""
     ffmpeg, ffprobe = tools
@@ -1309,14 +1341,18 @@ def stage_one(src: str, work_dir: Path, index: int, tools: tuple[str, str]) -> S
         return Refused(f"{code}: media[{index}] {name} {why}")
 
     fd, size = _open_regular(path, refuse)
+    src_copy = work_dir / f"{index}.src"     # what the checks and both tools read: `path` is never opened again
     try:
-        fmt = sniff_media(os.read(fd, 64))
+        fmt = sniff_media(os.read(fd, 64))   # from the open fd: a wrong type is refused before any copy is made
         if fmt is None:
             raise refuse("unsupported_media", "is not a picture (JPEG, PNG, GIF, WebP), video (MP4, MOV, "
                                               "WebM) or audio (MP3, M4A, AAC, WAV, OGG): its first bytes "
                                               "say something else (the file name is not looked at)")
         kind, ext, _demux = MEDIA_FORMATS[fmt]
-        info = _probe(ffprobe, path, fmt, refuse)
+        size = _stage_source(fd, size, src_copy, kind, refuse)
+        if _sniff_file(src_copy) != fmt:
+            raise refuse("invalid_media", "changed while it was being read; try again")
+        info = _probe(ffprobe, str(src_copy), fmt, refuse)
         how: str | None = None           # None = upload the file as it is
         out_fmt, note = fmt, ""
         if kind == "image":
@@ -1350,13 +1386,13 @@ def stage_one(src: str, work_dir: Path, index: int, tools: tuple[str, str]) -> S
         if how is None:
             if size > MEDIA_CAPS[kind]:
                 raise _too_large(refuse, kind, size, "as it is")
-            if _copy_capped(fd, dst, MEDIA_CAPS[kind]) > MEDIA_CAPS[kind] or _sniff_file(dst) != fmt:
-                raise refuse("invalid_media", "changed while it was being read; try again")
+            os.replace(src_copy, dst)        # the bytes that were probed are the bytes that go out
             out_size = dst.stat().st_size
         else:
-            out_size = _convert(ffmpeg, _convert_args(how, path, fmt, out_fmt), dst, kind, out_fmt, refuse)
+            out_size = _convert(ffmpeg, _convert_args(how, str(src_copy), fmt, out_fmt), dst, kind, out_fmt, refuse)
     finally:
         os.close(fd)
+        src_copy.unlink(missing_ok=True)
     staged = Staged(index, name, kind, dst, out_size, _sha256_file(dst), size, note)
     if kind == "video":
         poster = work_dir / f"{index}.poster.jpg"

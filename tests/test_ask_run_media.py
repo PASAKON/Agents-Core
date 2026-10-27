@@ -21,6 +21,7 @@ Run: .venv/bin/python -m pytest tests/test_ask_run_media.py
 from __future__ import annotations
 
 import ast
+import collections
 import hashlib
 import json
 import os
@@ -68,9 +69,13 @@ def blob(fmt: str, size: int = 64) -> bytes:
     return head + b"\x00" * max(0, size - len(head))
 
 
+_PUT_NAMES: dict[str, list[str]] = {}     # sha256 of what put() wrote -> the names it was written under
+
+
 def put(tmp_path: Path, name: str, data: bytes) -> str:
     path = tmp_path / name
     path.write_bytes(data)
+    _PUT_NAMES.setdefault(hashlib.sha256(data).hexdigest(), []).append(name)
     return str(path)
 
 
@@ -82,6 +87,7 @@ class FakeTools:
 
     def __init__(self) -> None:
         self.calls: list[list[str]] = []
+        self.inputs: list[tuple[str, bytes]] = []       # (path, bytes) of each call's -i file, at call time
         self.probe: dict[str, dict] = {}
         self.out_size: dict[str, int] = {}
         self.fail: set[str] = set()
@@ -99,14 +105,27 @@ class FakeTools:
                 {"codec_type": "audio", "codec_name": "aac"}]}
         return {"streams": [{"codec_type": "audio", "codec_name": "pcm_s16le"}]}
 
+    def _probe_info(self, path: str) -> dict:
+        """The answer a test scripted for a file it wrote with put(). The tools read the private copy
+        (<index>.src), not that file, so its name is found again from the bytes."""
+        info = self.probe.get(os.path.basename(path))
+        if info is None:
+            digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+            info = next((self.probe[n] for n in _PUT_NAMES.get(digest, ()) if n in self.probe), None)
+        return info or self._default_info(path)
+
     def __call__(self, cmd, timeout):
         self.calls.append(list(cmd))
+        src = cmd[cmd.index("-i") + 1].removeprefix("file:")
+        try:
+            self.inputs.append((src, Path(src).read_bytes()))
+        except OSError:
+            self.inputs.append((src, b""))
         tool = os.path.basename(cmd[0])
         if tool in self.fail:
             return subprocess.CompletedProcess(cmd, 1, b"", b"Invalid data found when processing input")
         if tool == "ffprobe":
-            path = cmd[cmd.index("-i") + 1].removeprefix("file:")
-            info = self.probe.get(os.path.basename(path)) or self._default_info(path)
+            info = self._probe_info(src)
             return subprocess.CompletedProcess(cmd, 0, json.dumps(info).encode(), b"")
         out = Path(cmd[-1])
         if out.name.endswith((".jpg", ".jpeg")):
@@ -130,6 +149,7 @@ class FakeTools:
 @pytest.fixture
 def tools(monkeypatch):
     fake = FakeTools()
+    _PUT_NAMES.clear()
     monkeypatch.setattr(ask_run, "find_ffmpeg", lambda: ("ffmpeg", "ffprobe"))
     monkeypatch.setattr(ask_run, "_run_tool", fake)
     return fake
@@ -637,6 +657,240 @@ def test_ffmpeg_missing_beats_every_other_file_problem(monkeypatch, mhub, stage,
     path = put(tmp_path, "page.jpg", b"<html></html>")
     assert ask_run.main(ask(*media_args([path]))) == 2
     assert code_of(refused(capsys)) == "ffmpeg_missing"
+
+
+# ================================================================== the source is copied once; only the copy is read
+# stage_one opens the path once, copies those bytes into a private file in the work dir, and gives
+# ffprobe and ffmpeg that copy: a path swapped after the open can never reach them.
+Usage = collections.namedtuple("Usage", "total used free")
+TOOLS = ("ffmpeg", "ffprobe")
+
+
+def _stage_direct(src: str, tmp_path: Path, index: int = 0) -> tuple[ask_run.Staged, Path]:
+    work = tmp_path / "work"
+    work.mkdir(exist_ok=True)
+    return ask_run.stage_one(src, work, index, TOOLS), work
+
+
+def _refused_direct(src: str, tmp_path: Path, index: int = 0) -> tuple[str, Path]:
+    work = tmp_path / "work"
+    work.mkdir(exist_ok=True)
+    with pytest.raises(ask_run.Refused) as e:
+        ask_run.stage_one(src, work, index, TOOLS)
+    return str(e.value), work
+
+
+def _swap_right_after_open(monkeypatch, make) -> None:
+    real = ask_run._open_regular
+
+    def open_then_swap(path, refuse):
+        got = real(path, refuse)
+        make(path)
+        return got
+    monkeypatch.setattr(ask_run, "_open_regular", open_then_swap)
+
+
+def _to_symlink(tmp_path):
+    decoy = tmp_path / "decoy.txt"
+    decoy.write_bytes(b"not media at all")
+
+    def make(path):
+        os.unlink(path)
+        os.symlink(decoy, path)
+    return make
+
+
+def _to_other_picture(tmp_path):
+    other = tmp_path / "other.bin"
+    other.write_bytes(blob("png", 777))
+
+    def make(path):
+        os.replace(other, path)
+    return make
+
+
+SWAPS = [("a symlink to a text file", _to_symlink), ("another picture", _to_other_picture)]
+
+
+@pytest.mark.parametrize("big", [False, True], ids=["sent as it is", "shrunk"])
+@pytest.mark.parametrize("label, swap", SWAPS, ids=[s[0] for s in SWAPS])
+def test_a_source_swapped_after_the_open_is_never_read(monkeypatch, tools, tmp_path, label, swap, big):
+    original = blob("png", 400)
+    path = put(tmp_path, "cover.png", original)
+    if big:
+        tools.probe["cover.png"] = {"streams": [{"codec_type": "video", "width": 3000, "height": 2000}]}
+    _swap_right_after_open(monkeypatch, swap(tmp_path))
+    staged, work = _stage_direct(path, tmp_path)
+    assert Path(path).read_bytes() != original                      # the swap did happen
+    assert len(tools.inputs) == (2 if big else 1)                   # probe, plus the convert when shrunk
+    for src, data in tools.inputs:
+        assert src == str(work / "0.src") and data == original      # the copy of the ORIGINAL bytes
+    assert not any(path in " ".join(cmd) for cmd in tools.calls)    # the original path is never handed over
+    if not big:
+        assert staged.path.read_bytes() == original and staged.sha256 == hashlib.sha256(original).hexdigest()
+
+
+@pytest.mark.parametrize("kind, name, fmt", [("image", "vast.png", "png"), ("video", "vast.mp4", "mp4")])
+def test_a_source_over_the_source_cap_is_refused_before_it_is_copied(monkeypatch, tools, tmp_path, kind, name, fmt):
+    monkeypatch.setattr(ask_run, "MAX_SOURCE_BYTES", 1000)
+    monkeypatch.setattr(ask_run, "_copy_capped", lambda *a, **k: pytest.fail("a source over the cap was copied"))
+    path = put(tmp_path, name, blob(fmt, 1001))
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == "too_large" and f"media[0] {name}" in message and "as a source" in message
+    assert ("ffmpeg -i" in message) == (kind == "video")             # the same cut-it hint a big video gets
+    assert tools.calls == [] and list(work.iterdir()) == []
+
+
+def test_a_source_exactly_at_the_source_cap_is_staged(monkeypatch, tools, tmp_path):
+    monkeypatch.setattr(ask_run, "MAX_SOURCE_BYTES", 1000)
+    path = put(tmp_path, "edge.png", blob("png", 1000))
+    staged, _work = _stage_direct(path, tmp_path)
+    assert staged.source_size == 1000 and staged.path.read_bytes() == blob("png", 1000)
+
+
+def test_a_source_that_grows_past_the_cap_while_it_is_copied_is_refused(monkeypatch, tools, tmp_path):
+    monkeypatch.setattr(ask_run, "MAX_SOURCE_BYTES", 1000)
+    path = put(tmp_path, "grow.png", blob("png", 900))              # 900 when opened ...
+    real = ask_run._open_regular
+
+    def open_then_grow(p, refuse):
+        got = real(p, refuse)
+        with open(p, "ab") as f:                                    # ... 1500 once the copy reads it
+            f.write(b"\0" * 600)
+        return got
+    monkeypatch.setattr(ask_run, "_open_regular", open_then_grow)
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == "too_large" and "as a source" in message
+    assert tools.calls == [] and list(work.iterdir()) == []
+
+
+def _free_space(monkeypatch, free: int) -> list:
+    asked: list = []
+
+    def usage(p):
+        asked.append(p)
+        return Usage(10**12, 10**12 - free, free)
+    monkeypatch.setattr(ask_run.shutil, "disk_usage", usage)
+    return asked
+
+
+def test_a_disk_without_room_for_the_copy_and_the_result_refuses_cleanly(monkeypatch, tools, tmp_path):
+    path = put(tmp_path, "cover.png", blob("png", 400))
+    asked = _free_space(monkeypatch, 400 + ask_run.STAGE_DISK_MARGIN - 1)
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == "no_space" and "media[0] cover.png" in message and "TMPDIR" in message
+    assert [Path(p) for p in asked] == [work]                       # the dir the copy would land in
+    assert tools.calls == [] and list(work.iterdir()) == []
+
+
+def test_a_disk_with_exactly_the_room_needed_stages_the_file(monkeypatch, tools, tmp_path):
+    path = put(tmp_path, "cover.png", blob("png", 400))
+    _free_space(monkeypatch, 400 + ask_run.STAGE_DISK_MARGIN)
+    staged, _work = _stage_direct(path, tmp_path)
+    assert staged.path.read_bytes() == blob("png", 400)
+
+
+def test_low_disk_through_the_cli_sends_nothing_and_leaves_no_temp_dir(monkeypatch, mhub, tools, stage, tmp_path, capsys):
+    good = put(tmp_path, "good.png", blob("png", 400))
+    _free_space(monkeypatch, 0)
+    assert ask_run.main(ask(*media_args([good], pick="one"))) == 2
+    assert code_of(refused(capsys)) == "no_space"
+    assert mhub.requests == [] and list(stage.iterdir()) == []
+
+
+def test_a_failed_copy_is_a_refusal_not_a_traceback(monkeypatch, tools, tmp_path):
+    path = put(tmp_path, "cover.png", blob("png", 400))
+
+    def full(fd, dst, cap):
+        Path(dst).write_bytes(b"partial")
+        raise OSError(28, "No space left on device")
+    monkeypatch.setattr(ask_run, "_copy_capped", full)
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == "invalid_media" and "No space left on device" in message
+    assert tools.calls == [] and list(work.iterdir()) == []         # the partial copy is gone
+
+
+def test_the_private_copy_is_created_exclusively_with_mode_0600(tmp_path):
+    src = tmp_path / "src.bin"
+    src.write_bytes(b"x" * 10)
+    fd = os.open(src, os.O_RDONLY)
+    try:
+        dst = tmp_path / "0.src"
+        old = os.umask(0)                                           # a permissive umask must not widen it
+        try:
+            assert ask_run._copy_capped(fd, dst, 100) == 10
+        finally:
+            os.umask(old)
+        assert dst.stat().st_mode & 0o777 == 0o600
+        victim = tmp_path / "victim"
+        victim.write_bytes(b"keep")
+        planted = tmp_path / "1.src"
+        planted.symlink_to(victim)                                  # something already sits at the name
+        with pytest.raises(FileExistsError):
+            ask_run._copy_capped(fd, planted, 100)
+        assert victim.read_bytes() == b"keep"                       # nothing was written through it
+    finally:
+        os.close(fd)
+
+
+def test_the_staged_source_is_removed_after_success(tools, tmp_path):
+    small = put(tmp_path, "small.jpg", blob("jpeg", 300))
+    big = put(tmp_path, "big.png", blob("png", 400))
+    tools.probe["big.png"] = {"streams": [{"codec_type": "video", "width": 3000, "height": 2000}]}
+    work = tmp_path / "work"
+    work.mkdir()
+    a = ask_run.stage_one(small, work, 0, TOOLS)
+    b = ask_run.stage_one(big, work, 1, TOOLS)
+    assert sorted(p.name for p in work.iterdir()) == ["0.jpg", "1.jpg"]      # no *.src left behind
+    assert a.path.name == "0.jpg" and a.path.read_bytes() == blob("jpeg", 300)   # as-is: the copy itself, renamed
+    assert b.path.name == "1.jpg"
+
+
+BIG_PICTURE = {"streams": [{"codec_type": "video", "width": 3000, "height": 2000}]}
+REFUSALS_AFTER_THE_COPY = [
+    ("ffprobe fails", lambda t, mp: t.fail.add("ffprobe"), "invalid_media"),
+    ("ffmpeg fails", lambda t, mp: (t.fail.add("ffmpeg"), t.probe.update({"x.png": BIG_PICTURE})), "invalid_media"),
+    ("a picture ffprobe cannot measure",
+     lambda t, mp: t.probe.update({"x.png": {"streams": [{"codec_type": "video"}]}}), "invalid_media"),
+    ("over its cap as it is", lambda t, mp: mp.setitem(ask_run.MEDIA_CAPS, "image", 100), "too_large"),
+]
+
+
+@pytest.mark.parametrize("label, setup, code", REFUSALS_AFTER_THE_COPY, ids=[r[0] for r in REFUSALS_AFTER_THE_COPY])
+def test_the_staged_source_is_removed_after_a_refusal(monkeypatch, tools, tmp_path, label, setup, code):
+    path = put(tmp_path, "x.png", blob("png", 400))
+    setup(tools, monkeypatch)
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == code
+    assert tools.inputs and tools.inputs[0][0] == str(work / "0.src")     # the copy existed when it was refused
+    assert list(work.iterdir()) == []
+
+
+def test_the_staged_source_is_removed_when_a_tool_blows_up(monkeypatch, tools, tmp_path):
+    path = put(tmp_path, "x.png", blob("png", 400))
+
+    def boom(cmd, timeout):
+        raise RuntimeError("tool exploded")
+    monkeypatch.setattr(ask_run, "_run_tool", boom)
+    work = tmp_path / "work"
+    work.mkdir()
+    with pytest.raises(RuntimeError):
+        ask_run.stage_one(path, work, 0, TOOLS)
+    assert list(work.iterdir()) == []
+
+
+def test_a_copy_that_no_longer_sniffs_as_what_was_opened_is_refused(monkeypatch, tools, tmp_path):
+    path = put(tmp_path, "x.png", blob("png", 400))
+    real = ask_run._copy_capped
+
+    def copy_then_corrupt(fd, dst, cap):
+        n = real(fd, dst, cap)
+        Path(dst).write_bytes(b"<html>")                            # the copy is not the PNG that was sniffed
+        return n
+    monkeypatch.setattr(ask_run, "_copy_capped", copy_then_corrupt)
+    message, work = _refused_direct(path, tmp_path)
+    assert code_of(message) == "invalid_media" and "changed while it was being read" in message
+    assert tools.calls == [] and list(work.iterdir()) == []
 
 
 # ================================================================== upload, then create
