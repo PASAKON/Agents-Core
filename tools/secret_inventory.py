@@ -205,7 +205,9 @@ def default_roots() -> list[str]:
         home = os.path.expanduser("~")
         # the whole profile (project folders sit straight under it: cookierun-bot, ph-*, MoonieXHQ),
         # with AppData and the legacy junctions skipped (NT_SKIP_DIRS) except the dirs named below
-        roots = [r"C:\Users\UsEr\Projects", home]
+        # C:\Users\UsEr = the pre-reset profile name; on 2026-10-27 it resolved to the same folder as the
+        # passg profile (its Projects folder is gone), so it adds nothing unless the box changes again
+        roots = [home, r"C:\Users\UsEr"]
         appdata = os.environ.get("APPDATA") or os.path.join(home, "AppData", "Roaming")
         roots += [os.path.join(appdata, d) for d in ("gh", "rclone", "Code\\User")]
         roots += [os.path.join(home, f) for f in (".git-credentials", ".netrc", "_netrc", ".npmrc", ".pypirc")]
