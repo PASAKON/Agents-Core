@@ -116,17 +116,22 @@ stdlib only (urllib) and Python 3.9+, so it runs on any box's python3.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
+import shutil
 import socket
 import stat
+import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator
@@ -165,6 +170,7 @@ EXPIRES_MIN_S, EXPIRES_MAX_S = 600, 604800   # 10 min .. 7 days (§2)
 ASKS_PATH = "/api/run/asks"
 QUESTIONS_PATH = "/api/run/questions"
 GROUPS_PATH = "/api/run/question-groups"   # QUESTIONS.md §10
+MEDIA_PATH = "/api/run/question-media"     # QUESTIONS.md §11: one raw upload per file
 GROUP_MAX = 6                              # questions in one group (§10)
 GROUP_TERMINAL_STATES = ("done",)          # a group is done when none of its questions is pending
 GROUP_ITEM_KEYS = ("question", "why", "options", "recommended", "free_text")
@@ -899,7 +905,7 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
         if args.recommended == i + 1:
             option["recommended"] = True
         options.append(option)
-    return {
+    body: dict[str, Any] = {
         "question": (args.question or "").strip(),
         "why": (args.why or "").replace("\r\n", "\n").replace("\r", "\n").strip(),
         "options": options,
@@ -907,6 +913,17 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
         "expires_in_s": _expires_s(args.expires_h),
         "requester": requester,
     }
+    paths, captions = list(getattr(args, "media", None) or []), list(getattr(args, "caption", None) or [])
+    if paths:        # QUESTIONS.md §11: ids are filled in once the files are uploaded
+        if not options:
+            del body["options"]
+        body["media"] = [{"caption": (captions[i] or "").strip()} if i < len(captions) and (captions[i] or "").strip()
+                         else {} for i in range(len(paths))]
+        if getattr(args, "pick", None) is not None:
+            body["pick"] = args.pick
+    elif captions or getattr(args, "pick", None) is not None:
+        raise Refused("invalid_media: --caption and --pick go with --media")
+    return body
 
 
 def check_question_role_gate(body: dict) -> None:
@@ -925,7 +942,7 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
     """QUESTIONS.md §3.1 limits, then §5 (command_shaped), then §6
     (money_needs_command_card), in the order §3.2 lists the hub's refusals.
     Messages name the field and the rule, never the text."""
-    question, why, options = body["question"], body["why"], body["options"]
+    question, why, options = body["question"], body["why"], body.get("options") or []
     if not question:
         raise Refused("question_required: --question is empty")
     if "\n" in question or "\r" in question or len(question) > QUESTION_MAX:
@@ -935,9 +952,12 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
         raise Refused("why_required: --why is empty (the CEO reads it before tapping)")
     if len(why) > WHY_MAX:
         raise Refused(f"invalid_why: at most {WHY_MAX} characters (got {len(why)})")
-    if not OPTIONS_MIN <= len(options) <= OPTIONS_MAX:
-        raise Refused(f"invalid_options: {OPTIONS_MIN} to {OPTIONS_MAX} options "
-                      f"(--option, repeatable), got {len(options)}")
+    if "media" in body:
+        check_media(body, args)      # a set has no options; one item may bring its own 2 to 4
+    if options or "media" not in body:
+        if not OPTIONS_MIN <= len(options) <= OPTIONS_MAX:
+            raise Refused(f"invalid_options: {OPTIONS_MIN} to {OPTIONS_MAX} options "
+                          f"(--option, repeatable), got {len(options)}")
     seen: dict[str, int] = {}
     for i, option in enumerate(options):
         label = option["label"]
@@ -1003,6 +1023,461 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
     check_question(body, args)
     check_ceo_text([("question", body["question"]), ("why", body["why"])])
     return body
+
+
+# ------------------------------------------------------------ media cards
+# QUESTIONS.md §11 (the Console builds the hub half to the same section). A card may
+# carry 1-12 pictures, videos or sounds the CEO looks at on /run and picks from. The card shows a
+# PREVIEW; the sender keeps the master. Everything below runs BEFORE the first network call:
+#   1. the path is a regular file (not a symlink, FIFO or device), opened once;
+#   2. the kind comes from the first bytes alone, never the name: picture JPEG/PNG/GIF/WebP, video
+#      MP4/MOV/WebM, audio MP3/AAC/M4A/WAV/OGG. A `.jpg` that is HTML or SVG is refused here;
+#   3. ffprobe reads it with the demuxer forced to the sniffed type and only the `file` protocol, so
+#      a hostile container cannot become a playlist or a network fetch; a frame over 100 megapixels
+#      (a decompression bomb) is refused;
+#   4. shrink (§11.2): a picture with a long edge over 2048 px becomes 2048 (JPEG; WebP stays WebP);
+#      a video becomes 720p H.264/AAC MP4 with +faststart (an MP4/MOV that already is one is only
+#      re-wrapped) plus a poster JPEG at 0.5 s; audio that is not MP3/AAC/M4A becomes M4A AAC 128k;
+#   5. the caps are checked on what will be uploaded: picture 10 MB, video 50 MB, audio 20 MB.
+# Staged files live in a temp dir that is removed afterwards. No ffmpeg: refused, never uploaded
+# untranscoded. Captions and file names pass the same §5 / §6 / secret checks as the question.
+MEDIA_MAX = 12                # items on one card
+CAPTION_MAX = 60              # characters under one item (§8.2)
+MEDIA_NAME_MAX = 80           # characters of a file name shown on the card (§8.3)
+MB = 1024 * 1024
+MEDIA_CAPS = {"image": 10 * MB, "video": 50 * MB, "audio": 20 * MB}
+IMAGE_EDGE = 2048             # long edge of an uploaded picture
+VIDEO_HEIGHT = 720
+MAX_PIXELS = 100_000_000
+POSTER_AT_S = ("0.5", "0")    # the poster frame; "0" is for a clip shorter than half a second
+PROBE_TIMEOUT_S = 60
+CONVERT_TIMEOUT_S = 900
+UPLOAD_TIMEOUT_S = 300.0      # per socket operation, not for the whole 50 MB
+FFMPEG_THREADS = "2"          # Contabo shares its RAM with every C-level session
+PICKS = ("one", "many")
+_MEDIA_ID_RE = re.compile(r"^M-[0-9a-f]{24}\Z")          # QUESTIONS.md §11
+PENDING_MEDIA_ID = "M-<uploaded when sent>"
+FFMPEG_HINT = ("ffmpeg and ffprobe are needed to shrink media before it is uploaded and one is not on PATH. "
+               "Install them: apt-get install ffmpeg (Contabo), brew install ffmpeg (Mac), "
+               "winget install Gyan.FFmpeg (winbox). Nothing is uploaded without them.")
+VIDEO_HINT = ("cut it shorter or lower the quality, for example: ffmpeg -i IN -vf scale=-2:480 "
+              "-c:v libx264 -crf 32 -preset veryfast -c:a aac -b:a 64k OUT.mp4")
+
+# fmt -> (kind, extension, ffmpeg demuxer forced when reading it)
+MEDIA_FORMATS = {
+    "jpeg": ("image", ".jpg", "jpeg_pipe"), "png": ("image", ".png", "png_pipe"),
+    "gif": ("image", ".gif", "gif"), "webp": ("image", ".webp", "webp_pipe"),
+    "mp4": ("video", ".mp4", "mov"), "mov": ("video", ".mov", "mov"),
+    "webm": ("video", ".webm", "matroska"),
+    "mp3": ("audio", ".mp3", "mp3"), "aac": ("audio", ".aac", "aac"), "m4a": ("audio", ".m4a", "mov"),
+    "wav": ("audio", ".wav", "wav"), "ogg": ("audio", ".ogg", "ogg"),
+}
+_VIDEO_BRANDS = (b"isom", b"iso2", b"iso5", b"mp41", b"mp42", b"avc1", b"M4V ")   # QUESTIONS.md §11
+_AUDIO_BRANDS = (b"M4A ", b"M4B ")                                                 # QUESTIONS.md §11
+_FFMPEG_BASE = ["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-threads", FFMPEG_THREADS,
+                "-protocol_whitelist", "file"]
+
+
+@dataclass
+class Staged:
+    """One item ready to upload: the file to send (inside the temp dir) and what to say about it."""
+    index: int
+    name: str
+    kind: str
+    path: Path
+    size: int
+    sha256: str
+    source_size: int
+    note: str
+    poster: Path | None = None
+    poster_size: int = 0
+    poster_sha256: str = ""
+
+
+def media_name(path: str) -> str:
+    """The file's base name for the card and the answer (§8.3): any path part, control and format
+    characters (zero-width, bidi marks) and line separators gone, cut to MEDIA_NAME_MAX. It is text
+    only and never reaches a path."""
+    base = os.path.basename(str(path).replace("\\", "/"))
+    clean = "".join(c for c in base if unicodedata.category(c) not in _HIDDEN_CATEGORIES)
+    return clean.strip()[:MEDIA_NAME_MAX].strip()
+
+
+def sniff_media(head: bytes) -> str | None:
+    """The MEDIA_FORMATS key the first bytes say, else None. Magic bytes only (QUESTIONS.md §11):
+    no SVG, HTML or PDF, and an ftyp brand outside the two lists is refused."""
+    if head[:3] == b"\xff\xd8\xff":
+        return "jpeg"
+    if head[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if head[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    if head[:4] == b"RIFF":
+        return "webp" if head[8:12] == b"WEBP" else "wav" if head[8:12] == b"WAVE" else None
+    if head[4:8] == b"ftyp":
+        brand = head[8:12]
+        if brand == b"qt  ":
+            return "mov"
+        return "mp4" if brand in _VIDEO_BRANDS else "m4a" if brand in _AUDIO_BRANDS else None
+    if head[:4] == b"\x1a\x45\xdf\xa3":
+        return "webm"
+    if head[:4] == b"OggS":
+        return "ogg"
+    if head[:3] == b"ID3":
+        return "mp3"
+    if len(head) >= 2 and head[0] == 0xFF:
+        if head[1] & 0xF6 == 0xF0:          # ADTS: sync, layer bits 00
+            return "aac"
+        if head[1] & 0xE0 == 0xE0:          # MPEG audio frame sync, not ADTS
+            return "mp3"
+    return None
+
+
+def _mb(n: int) -> str:
+    return f"{n / MB:.1f} MB" if n >= MB // 10 else f"{n / 1024:.0f} KB"
+
+
+def find_ffmpeg() -> tuple[str, str]:
+    ffmpeg, ffprobe = shutil.which("ffmpeg"), shutil.which("ffprobe")
+    if not (ffmpeg and ffprobe):
+        raise Refused("ffmpeg_missing: " + FFMPEG_HINT)
+    return ffmpeg, ffprobe
+
+
+def _run_tool(cmd: list[str], timeout: float) -> subprocess.CompletedProcess:
+    """Run one tool with no stdin and a deadline: the one place a subprocess starts."""
+    try:
+        return subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, timeout=timeout, check=False)
+    except subprocess.TimeoutExpired:
+        raise Refused(f"invalid_media: {os.path.basename(cmd[0])} ran longer than {timeout:g} s "
+                      "and was stopped") from None
+    except OSError as e:
+        raise Refused(f"ffmpeg_missing: could not start {os.path.basename(cmd[0])} "
+                      f"({e.strerror or e}). {FFMPEG_HINT}") from None
+
+
+def _tool_said(cp: subprocess.CompletedProcess) -> str:
+    lines = (cp.stderr or b"").decode("utf-8", "replace").strip().splitlines()
+    return (lines[-1] if lines else f"exit {cp.returncode}")[:160]
+
+
+def _media_stream(info: dict, codec_type: str) -> dict | None:
+    for s in info.get("streams") or []:
+        if isinstance(s, dict) and s.get("codec_type") == codec_type \
+                and not (s.get("disposition") or {}).get("attached_pic"):
+            return s
+    return None
+
+
+def _int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _open_regular(path: str, refuse: Callable[[str, str], Refused]) -> tuple[int, int]:
+    """(fd, size) of a regular, non-empty file. A symlink is refused (the final component), so the
+    bytes read are the bytes of the path given; a FIFO or a device never blocks the open."""
+    try:
+        if stat.S_ISLNK(os.lstat(path).st_mode):
+            raise refuse("invalid_media", "is a symlink; pass the real file")
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+                     | getattr(os, "O_BINARY", 0))
+    except FileNotFoundError:
+        raise refuse("invalid_media", "does not exist") from None
+    except OSError as e:
+        raise refuse("invalid_media", f"cannot be opened ({e.strerror or e})") from None
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise refuse("invalid_media", "is not a regular file")
+        if st.st_size == 0:
+            raise refuse("invalid_media", "is empty")
+    except Refused:
+        os.close(fd)
+        raise
+    return fd, st.st_size
+
+
+def _copy_capped(fd: int, dst: Path, cap: int) -> int:
+    """Copy the fd's bytes from the start into dst, at most cap + 1 of them; returns how many."""
+    os.lseek(fd, 0, os.SEEK_SET)
+    total = 0
+    with open(dst, "wb") as out:
+        while total <= cap:
+            chunk = os.read(fd, min(1 << 20, cap + 1 - total))
+            if not chunk:
+                break
+            out.write(chunk)
+            total += len(chunk)
+    return total
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _sniff_file(path: Path) -> str | None:
+    with open(path, "rb") as f:
+        return sniff_media(f.read(64))
+
+
+def _probe(ffprobe: str, path: str, fmt: str, refuse: Callable[[str, str], Refused]) -> dict:
+    """ffprobe's streams and format for `path`, read as the sniffed type and nothing else."""
+    cmd = [ffprobe, "-hide_banner", "-loglevel", "error", "-protocol_whitelist", "file",
+           "-f", MEDIA_FORMATS[fmt][2], "-print_format", "json", "-show_streams", "-show_format",
+           "-i", "file:" + path]
+    cp = _run_tool(cmd, PROBE_TIMEOUT_S)
+    if cp.returncode != 0:
+        raise refuse("invalid_media", f"is not a readable {MEDIA_FORMATS[fmt][0]} ({_tool_said(cp)})")
+    try:
+        info = json.loads(cp.stdout or b"{}")
+    except ValueError:
+        raise refuse("invalid_media", "gave ffprobe no usable answer") from None
+    return info if isinstance(info, dict) else {}
+
+
+def _too_large(refuse: Callable[[str, str], Refused], kind: str, size: int | None, after: str) -> Refused:
+    shown = _mb(size) if size is not None else f"more than {_mb(MEDIA_CAPS[kind])}"
+    hint = f"; {VIDEO_HINT}" if kind == "video" else ""
+    return refuse("too_large", f"is {shown} {after}, over the {_mb(MEDIA_CAPS[kind])} cap for a {kind}{hint}")
+
+
+def _convert_args(how: str, path: str, fmt: str, out_fmt: str) -> list[str]:
+    """ffmpeg arguments between the base options and `-fs N OUT`."""
+    src = ["-f", MEDIA_FORMATS[fmt][2], "-i", "file:" + path]
+    if how == "image":
+        codec = ["-c:v", "libwebp", "-quality", "80"] if out_fmt == "webp" \
+            else ["-c:v", "mjpeg", "-q:v", "3", "-pix_fmt", "yuvj420p"]
+        return src + ["-frames:v", "1", "-an", "-map_metadata", "-1", "-vf",
+                      f"scale=w={IMAGE_EDGE}:h={IMAGE_EDGE}:force_original_aspect_ratio=decrease",
+                      *codec, "-update", "1"]
+    if how == "audio":
+        return src + ["-map", "0:a:0", "-vn", "-sn", "-dn", "-map_metadata", "-1", "-c:a", "aac",
+                      "-b:a", "128k", "-movflags", "+faststart", "-f", "ipod"]
+    codec = ["-c", "copy"] if how == "copy" else [
+        "-vf", f"scale=-2:'min({VIDEO_HEIGHT},ih)'", "-c:v", "libx264", "-preset", "veryfast",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k"]
+    return src + ["-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-map_metadata", "-1", *codec,
+                  "-movflags", "+faststart", "-f", "mp4"]
+
+
+def _convert(ffmpeg: str, tail: list[str], out: Path, kind: str, expect: str,
+             refuse: Callable[[str, str], Refused]) -> int:
+    """Run one conversion into `out`; returns its size once it is under the cap and sniffs as
+    `expect`. `-fs` stops the encoder one byte over the cap, so a huge source cannot fill the disk."""
+    cp = _run_tool([ffmpeg, *_FFMPEG_BASE, *tail, "-fs", str(MEDIA_CAPS[kind] + 1), str(out)],
+                   CONVERT_TIMEOUT_S)
+    if cp.returncode != 0 or not out.is_file() or out.stat().st_size == 0:
+        raise refuse("invalid_media", f"could not be converted by ffmpeg ({_tool_said(cp)})")
+    size = out.stat().st_size
+    if size > MEDIA_CAPS[kind]:
+        raise _too_large(refuse, kind, None, "after the shrink")
+    if _sniff_file(out) != expect:
+        raise refuse("invalid_media", "came out of ffmpeg as an unexpected file type; not uploaded")
+    return size
+
+
+def _poster(ffmpeg: str, video: Path, out: Path, refuse: Callable[[str, str], Refused]) -> int:
+    """The poster JPEG of a staged (already shrunk) video: the frame at 0.5 s, else the first."""
+    for at in POSTER_AT_S:
+        out.unlink(missing_ok=True)
+        tail = ["-ss", at, "-f", "mov", "-i", "file:" + str(video), "-frames:v", "1", "-an",
+                "-map_metadata", "-1", "-vf", f"scale=-2:'min({VIDEO_HEIGHT},ih)'",
+                "-c:v", "mjpeg", "-q:v", "4", "-pix_fmt", "yuvj420p", "-update", "1"]
+        cp = _run_tool([ffmpeg, *_FFMPEG_BASE, *tail, "-fs", str(MEDIA_CAPS["image"] + 1), str(out)],
+                       CONVERT_TIMEOUT_S)
+        if cp.returncode == 0 and out.is_file() and 0 < out.stat().st_size <= MEDIA_CAPS["image"] \
+                and _sniff_file(out) == "jpeg":
+            return out.stat().st_size
+    raise refuse("invalid_media", "has no frame ffmpeg can take a poster from")
+
+
+def stage_one(src: str, work_dir: Path, index: int, tools: tuple[str, str]) -> Staged:
+    """One file -> a Staged item in `work_dir`, or a Refused naming the item and the rule."""
+    ffmpeg, ffprobe = tools
+    path = os.path.abspath(src)
+    name = media_name(src) or f"item {index + 1}"
+
+    def refuse(code: str, why: str) -> Refused:
+        return Refused(f"{code}: media[{index}] {name} {why}")
+
+    fd, size = _open_regular(path, refuse)
+    try:
+        fmt = sniff_media(os.read(fd, 64))
+        if fmt is None:
+            raise refuse("unsupported_media", "is not a picture (JPEG, PNG, GIF, WebP), video (MP4, MOV, "
+                                              "WebM) or audio (MP3, M4A, AAC, WAV, OGG): its first bytes "
+                                              "say something else (the file name is not looked at)")
+        kind, ext, _demux = MEDIA_FORMATS[fmt]
+        info = _probe(ffprobe, path, fmt, refuse)
+        how: str | None = None           # None = upload the file as it is
+        out_fmt, note = fmt, ""
+        if kind == "image":
+            v = _media_stream(info, "video")
+            w, h = (_int(v.get("width")), _int(v.get("height"))) if v else (0, 0)
+            if w <= 0 or h <= 0:
+                raise refuse("invalid_media", "is a picture ffprobe cannot measure")
+            if w * h > MAX_PIXELS:
+                raise refuse("invalid_media", f"is {w}x{h} px, over {MAX_PIXELS // 1_000_000} megapixels; "
+                                              "cut it down first")
+            if max(w, h) > IMAGE_EDGE:
+                how, out_fmt = "image", "webp" if fmt == "webp" else "jpeg"
+                note = f"{w}x{h} shrunk to {IMAGE_EDGE} px"
+        elif kind == "video":
+            v, a = _media_stream(info, "video"), _media_stream(info, "audio")
+            if v is None:
+                raise refuse("invalid_media", "has no picture track")
+            if _int(v.get("width")) * _int(v.get("height")) > MAX_PIXELS:
+                raise refuse("invalid_media", f"has a frame over {MAX_PIXELS // 1_000_000} megapixels")
+            copy = (fmt in ("mp4", "mov") and v.get("codec_name") == "h264" and v.get("pix_fmt") == "yuv420p"
+                    and 0 < _int(v.get("height")) <= VIDEO_HEIGHT
+                    and (a is None or a.get("codec_name") == "aac"))
+            how, out_fmt = ("copy" if copy else "video"), "mp4"
+            note = "re-wrapped as MP4" if copy else f"shrunk to {VIDEO_HEIGHT}p H.264"
+        else:
+            if _media_stream(info, "audio") is None:
+                raise refuse("invalid_media", "has no sound track")
+            if fmt not in ("mp3", "aac", "m4a"):
+                how, out_fmt, note = "audio", "m4a", "converted to M4A AAC 128k"
+        dst = work_dir / f"{index}{MEDIA_FORMATS[out_fmt][1]}"
+        if how is None:
+            if size > MEDIA_CAPS[kind]:
+                raise _too_large(refuse, kind, size, "as it is")
+            if _copy_capped(fd, dst, MEDIA_CAPS[kind]) > MEDIA_CAPS[kind] or _sniff_file(dst) != fmt:
+                raise refuse("invalid_media", "changed while it was being read; try again")
+            out_size = dst.stat().st_size
+        else:
+            out_size = _convert(ffmpeg, _convert_args(how, path, fmt, out_fmt), dst, kind, out_fmt, refuse)
+    finally:
+        os.close(fd)
+    staged = Staged(index, name, kind, dst, out_size, _sha256_file(dst), size, note)
+    if kind == "video":
+        poster = work_dir / f"{index}.poster.jpg"
+        staged.poster_size = _poster(ffmpeg, dst, poster, refuse)
+        staged.poster, staged.poster_sha256 = poster, _sha256_file(poster)
+    return staged
+
+
+def stage_media(paths: list[str], work_dir: Path) -> list[Staged]:
+    """Stage every file in order, or raise on the first that cannot go. The tools are looked for
+    once, first: no ffmpeg is the refusal whatever the files are."""
+    tools = find_ffmpeg()
+    return [stage_one(p, work_dir, i, tools) for i, p in enumerate(paths)]
+
+
+def _name_header(name: str) -> str:
+    """X-Media-Name: a header is latin-1, so a name with anything but printable ASCII (Thai!) or
+    with a `%` goes out percent-encoded as UTF-8. The hub decodes it (QUESTIONS.md §11)."""
+    plain = all(0x20 <= ord(c) < 0x7F for c in name) and "%" not in name
+    return name if plain else urllib.parse.quote(name, safe="")
+
+
+def upload_staged(path: Path, size: int, sha256: str, name: str) -> str:
+    """POST one staged file (QUESTIONS.md §11) and return the hub's media id. The hub's answer must
+    agree with what was sent (size, sha256) or nothing is attached."""
+    with open(path, "rb") as f:
+        resp = _call("POST", MEDIA_PATH, raw=f, raw_length=size, timeout=UPLOAD_TIMEOUT_S,
+                     headers={"X-Media-Name": _name_header(name)})
+    resp = _unwrap(resp)
+    media_id = resp.get("media_id")
+    if not isinstance(media_id, str) or not _MEDIA_ID_RE.match(media_id):
+        raise HubError("hub accepted the upload but returned no valid media id")
+    for key, sent in (("bytes", size), ("sha256", sha256)):
+        if key in resp and resp[key] != sent:
+            raise HubError(f"hub stored {key} {str(resp[key])[:80]!r} for an upload of {str(sent)[:80]!r}; "
+                           "not attaching it")
+    return media_id
+
+
+def _staged_line(s: Staged) -> str:
+    out = f"media[{s.index}] {s.name}: {s.kind} {_mb(s.source_size)}"
+    if s.size != s.source_size or s.note:
+        out += f" -> {_mb(s.size)}"
+    if s.note:
+        out += f" ({s.note})"
+    return out + (" + poster" if s.poster else "")
+
+
+def send_media_question(payload: dict, paths: list[str], *, dry_run: bool) -> tuple[dict, dict | None, list[str]]:
+    """Stage every file, upload them (and the video posters), then POST the question with the
+    media ids in (QUESTIONS.md §11). (body, hub's answer or None for a dry run, one line per item).
+    The temp dir is gone before this returns; the hub drops an upload nobody attaches within 1 h."""
+    with tempfile.TemporaryDirectory(prefix="ask-run-media-") as tmp:
+        staged = stage_media(paths, Path(tmp))
+        lines = [_staged_line(s) for s in staged]
+        entries = []
+        for s, m in zip(staged, payload["media"]):
+            entry: dict[str, Any] = {"id": PENDING_MEDIA_ID}
+            if m.get("caption"):
+                entry["caption"] = m["caption"]
+            if s.poster:
+                entry["poster_id"] = PENDING_MEDIA_ID
+            entries.append(entry)
+        body = {**payload, "media": entries}
+        if dry_run:
+            return body, None, lines
+        for s, entry in zip(staged, entries):
+            entry["id"] = upload_staged(s.path, s.size, s.sha256, s.name)
+            if s.poster:
+                entry["poster_id"] = upload_staged(s.poster, s.poster_size, s.poster_sha256,
+                                                   f"{s.name}.poster.jpg"[:MEDIA_NAME_MAX])
+        return body, submit_question(body), lines
+
+
+def check_media(body: dict, args: argparse.Namespace) -> None:
+    """The local checks of a media card that need no file: how many items, --pick, the options
+    rule, free_text, and the caption and file-name texts. Messages name the field and the rule."""
+    media, options = body["media"], body.get("options") or []
+    n, pick = len(media), body.get("pick")
+    if n > MEDIA_MAX:
+        raise Refused(f"too_many_media: {n} items; a card holds at most {MEDIA_MAX}")
+    paths = list(args.media or [])
+    if len(args.caption or []) > n:
+        raise Refused(f"invalid_media: {len(args.caption)} captions for {n} items (they match by order)")
+    if pick is not None and pick not in PICKS:
+        raise Refused(f"invalid_pick: --pick is one or many (got {str(pick)[:20]!r})")
+    if n == 1 and pick == "many":
+        raise Refused("invalid_pick: one item has nothing to pick many of; use --pick one or leave it out")
+    if n >= 2 and pick is None:
+        raise Refused(f"pick_required: {n} items need --pick one (he taps one) or --pick many (he ticks any)")
+    if n >= 2 and options:
+        raise Refused("options_not_allowed: a card with 2 or more items has no options; the items are "
+                      "the choices (A, B, C ...)")
+    if not options and args.recommended is not None:
+        raise Refused("invalid_options: --recommended names one of the options you give (a one-item "
+                      "card with --option); the items of a set are not recommended")
+    if args.no_free_text:
+        raise Refused("invalid_free_text: a media card always has the optional note")
+    texts = [(f"media[{i}].caption", m["caption"]) for i, m in enumerate(media) if m.get("caption")]
+    for field, text in texts:
+        if "\n" in text or "\r" in text or len(text) > CAPTION_MAX:
+            raise Refused(f"invalid_caption: {field} is one line of at most {CAPTION_MAX} characters "
+                          f"(got {len(text)})")
+        if _has_hidden_char(text):
+            raise Refused(f"invalid_caption: {field} has a hidden character (control, zero-width or bidi)")
+    names = [(f"media[{i}] file name", media_name(p)) for i, p in enumerate(paths)]
+    for field, text in texts + names:
+        rule = command_shaped(text)
+        if rule:
+            what = "rename the file" if "file name" in field else "reword it"
+            raise Refused(f"command_shaped: {field} looks like a command ({rule}); {what}. Anything that "
+                          "runs a command, spends money or touches a secret goes on a command card.")
+    for field, text in texts:
+        rule = money_shaped(text)
+        if rule:
+            raise Refused(f"money_needs_command_card: {field} names an amount ({rule}); a question never "
+                          "approves spend. Money goes on a command card (ask_run create, Face ID).")
+    hits = find_secret_shapes({f"media[{i}] file name": media_name(p) for i, p in enumerate(paths)})
+    if hits:
+        raise Refused("secret_shaped_value; nothing was sent: " + "; ".join(hits)
+                      + ". A file name carries no secret, ever (DESIGN §6).")
 
 
 # ------------------------------------------------------------ hub access
@@ -1119,6 +1594,11 @@ _HINTS = {
     "money_needs_command_card": "a question never approves spend: money goes on a command card (ask_run create, Face ID)",
     "answer_not_allowed": "a question cannot carry its own answer; only the CEO's tap on /run answers",
     "too_many_open_questions": "50 questions already wait on the CEO; cancel stale ones (list --questions, cancel Q-...)",
+    "unsupported_media": "the hub reads the type from the first bytes: picture JPEG/PNG/GIF/WebP, video MP4/MOV/WebM, audio MP3/M4A/AAC/WAV/OGG",
+    "too_large": "the preview caps are picture 10 MB, video 50 MB, audio 20 MB",
+    "rate_limited": "at most 40 uploads per session per hour; wait and ask again",
+    "invalid_media": "every media id must be an upload of this session that no card has taken yet",
+    "media_not_in_groups": "a media card is raised alone, not in a --batch group",
     401: f"the hub did not accept the org token ({TOKEN_ENV} or ~/{TOKEN_FILE.as_posix()})",
     403: "the org token may not do that (it can create, read its own asks and cancel its own pending ask)",
     404: "no such ask, or not yours (the org token only sees its own asks)",
@@ -1165,11 +1645,12 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
 
 
 def _is_question_path(path: str) -> bool:
-    return any(path == base or path.startswith(base + "/") for base in (QUESTIONS_PATH, GROUPS_PATH))
+    return any(path == base or path.startswith(base + "/") for base in (QUESTIONS_PATH, GROUPS_PATH, MEDIA_PATH))
 
 
 def _request(method: str, path: str, *, body: Any = None, query: dict | None = None,
-             accept: str = "application/json", timeout: float | None = HTTP_TIMEOUT_S):
+             accept: str = "application/json", timeout: float | None = HTTP_TIMEOUT_S,
+             raw: Any = None, raw_length: int = 0, headers: dict | None = None):
     # every question call (ask, wait, cancel, list --questions) passes the strict address check here,
     # before the token is read and before a connection is opened
     base = question_base_url() if _is_question_path(path) else base_url()
@@ -1177,12 +1658,17 @@ def _request(method: str, path: str, *, body: Any = None, query: dict | None = N
     url = base + path
     if query:
         url += "?" + urllib.parse.urlencode(query)
-    headers = {"Authorization": "Bearer " + token, "Accept": accept, "User-Agent": USER_AGENT}
+    out_headers = {"Authorization": "Bearer " + token, "Accept": accept, "User-Agent": USER_AGENT}
     data = None
     if body is not None:
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
-        headers["Content-Type"] = "application/json; charset=utf-8"
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        out_headers["Content-Type"] = "application/json; charset=utf-8"
+    elif raw is not None:        # a media upload: the file's bytes, streamed, never held whole
+        data = raw
+        out_headers["Content-Type"] = "application/octet-stream"
+        out_headers["Content-Length"] = str(raw_length)
+    out_headers.update(headers or {})
+    req = urllib.request.Request(url, data=data, headers=out_headers, method=method)
     try:
         return _OPENER.open(req, timeout=timeout)
     except urllib.error.HTTPError as e:
@@ -1192,8 +1678,9 @@ def _request(method: str, path: str, *, body: Any = None, query: dict | None = N
                        transient=True) from None
 
 
-def _call(method: str, path: str, *, body: Any = None, query: dict | None = None) -> Any:
-    resp = _request(method, path, body=body, query=query)
+def _call(method: str, path: str, *, body: Any = None, query: dict | None = None,
+          timeout: float | None = HTTP_TIMEOUT_S, **upload: Any) -> Any:
+    resp = _request(method, path, body=body, query=query, timeout=timeout, **upload)
     try:
         with resp:
             raw = resp.read()
@@ -1367,6 +1854,23 @@ def _blank(value: Any) -> bool:
     return not (isinstance(value, str) and value.strip())
 
 
+def _picks_problem(rec: dict, answer: dict) -> str | None:
+    """A media card's answer must name items the card has, each once, and `picked` must be their
+    letters; anything else is a record this tool will not print as the CEO's choice."""
+    picks = answer.get("picks")
+    if picks is None:
+        return None
+    media = rec.get("media")
+    top = len(media) if isinstance(media, list) and media else MEDIA_MAX
+    if not isinstance(picks, list) or len(set(map(repr, picks))) != len(picks) or any(
+            isinstance(n, bool) or not isinstance(n, int) or not 0 <= n < top for n in picks):
+        return "answer.picks is not a list of distinct item numbers of this card"
+    picked = answer.get("picked")
+    if picked is not None and picked != [media_label(n) for n in picks]:
+        return "answer.picked does not match answer.picks"
+    return None
+
+
 def verify_question_record(rec: dict) -> None:
     """The record is the hub's, and it is what a session cites as the CEO's
     decision (QUESTIONS.md §1.3). Fail closed on the hub's own marker, not on a
@@ -1386,6 +1890,8 @@ def verify_question_record(rec: dict) -> None:
         reason = "answer.answered_by is empty"
     elif _blank(answer.get("answered_at")):
         reason = "answer.answered_at is empty"
+    elif (reason := _picks_problem(rec, answer)):
+        pass
     else:
         return
     raise HubError(f"{rec.get('id', '?')}: the hub record says answered but {reason}; "
@@ -1592,9 +2098,26 @@ def mcp_ask(arguments: dict, env: dict | None = None) -> dict:
 def _mcp_question_namespace(a: dict) -> argparse.Namespace:
     """MCP `ask_ceo` arguments -> the Namespace `ask` parses, so both run one
     path. `recommended` is 1-based, 0 = none; an empty string means "not given"."""
+    media = a.get("media") or []
+    if not isinstance(media, list) or not all(isinstance(m, dict) for m in media):
+        raise Refused("invalid_media: media is a list of {path, caption} objects")
+    paths, captions = [], []
+    for i, m in enumerate(media):
+        extra = sorted(set(m) - {"path", "caption"})
+        if extra or not isinstance(m.get("path"), str) or not m["path"].strip() \
+                or not isinstance(m.get("caption") or "", str):
+            raise Refused(f"invalid_media: media[{i}] is {{path, caption}}: a path string and an optional "
+                          f"caption string{', no other key (got ' + ', '.join(map(str, extra)) + ')' if extra else ''}")
+        paths.append(m["path"])
+        captions.append(m.get("caption") or "")
     options = a.get("options")
+    if media and options in (None, ""):
+        options = []
     if not isinstance(options, list) or not all(isinstance(x, str) for x in options):
         raise Refused(f"invalid_options: options is a list of {OPTIONS_MIN} to {OPTIONS_MAX} strings")
+    pick = a.get("pick") or None
+    if pick is not None and not isinstance(pick, str):
+        raise Refused("invalid_pick: pick is one or many")
     recommended = a.get("recommended") or 0
     if isinstance(recommended, float) and recommended.is_integer():
         recommended = int(recommended)
@@ -1608,7 +2131,8 @@ def _mcp_question_namespace(a: dict) -> argparse.Namespace:
         why=a.get("why") or "", no_free_text=not free_text,
         expires_h=a.get("expires_h", EXPIRES_DEFAULT_H), session=a.get("session") or None,
         role=a.get("role") or None, host=a.get("host") or None, task=a.get("task") or None,
-        dry_run=bool(a.get("dry_run")), json=False)
+        dry_run=bool(a.get("dry_run")), json=False,
+        media=paths or None, caption=captions if any(captions) else None, pick=pick)
 
 
 def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
@@ -1622,6 +2146,8 @@ def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
             lone.append("recommended")
         if arguments.get("free_text", True) is not True:
             lone.append("free_text")
+        if arguments.get("media"):
+            raise Refused("media_not_in_groups: a media card is raised alone, not inside questions (a group)")
         if lone:
             raise Refused(f"invalid_questions: give questions (a group) or {', '.join(lone)} (one card), "
                           "not both; each item of questions carries its own question, why, options, "
@@ -1655,6 +2181,11 @@ def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
         ns = _mcp_question_namespace(arguments)
         payload = prepare_question(ns, env)
         base = question_base_url()
+        if payload.get("media"):
+            body, resp, lines = send_media_question(payload, list(ns.media), dry_run=ns.dry_run)
+            if resp is None:
+                return {"dry_run": True, "would_post": base + QUESTIONS_PATH, "payload": body, "media": lines}
+            return {"id": resp["id"], "url": resp["url"], "expires_at": resp.get("expires_at"), "media": lines}
     except Refused as e:
         raise Refused(f"refused: {e}") from None
     if ns.dry_run:
@@ -1743,12 +2274,23 @@ def cmd_ask(args: argparse.Namespace) -> int:
         return cmd_ask_batch(args)
     payload = prepare_question(args)
     base = question_base_url()
-    if args.dry_run:
+    if payload.get("media"):
+        body, resp, lines = send_media_question(payload, list(args.media), dry_run=args.dry_run)
+        for line in lines:
+            _say(line)
+        if resp is None:
+            print(json.dumps(body, indent=2, ensure_ascii=False))
+            sys.stdout.flush()
+            _say(f"dry run: nothing sent (would upload {len(lines)} item(s) to {base}{MEDIA_PATH}, "
+                 f"then POST {base}{QUESTIONS_PATH})")
+            return EXIT_OK
+    elif args.dry_run:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         sys.stdout.flush()
         _say(f"dry run: nothing sent (would POST {base}{QUESTIONS_PATH})")
         return EXIT_OK
-    resp = submit_question(payload)
+    else:
+        resp = submit_question(payload)
     question_id = resp["id"]
     if args.json:
         print(json.dumps(resp, indent=2, ensure_ascii=False))
@@ -1758,6 +2300,43 @@ def cmd_ask(args: argparse.Namespace) -> int:
     _say(f"{resp.get('status', 'pending')} · expires {resp.get('expires_at', '?')}. Only the CEO's tap "
          f"on /run answers it. Next: python3 tools/ask_run.py wait {question_id}")
     return EXIT_OK
+
+
+def _plain(value: Any) -> str:
+    """A hub string printed on one line with its control and format characters dropped."""
+    return "".join(c for c in str(value) if unicodedata.category(c) not in _HIDDEN_CATEGORIES).strip()
+
+
+def picked_line(rec: dict, answer: dict) -> str | None:
+    """The line a session reads for a media card (QUESTIONS.md §11), else None for any other
+    card: `picked: B (cover_b.png) · note: ...`, `picked: A (a.jpg), C (c.jpg)`, `picked: none · note: ...`
+    (a redo, or a set where nothing was ticked), `picked: ใช้ได้ · note: ...` (one item). The
+    note part only when there is a note."""
+    picks = answer.get("picks")
+    redo = answer.get("redo") is True or rec.get("redo") is True
+    if not (rec.get("media") or isinstance(picks, list) or redo):
+        return None
+    if redo or (isinstance(picks, list) and not picks):
+        who = "none"
+    elif isinstance(picks, list):
+        labels, names = answer.get("picked"), answer.get("picked_names")
+        parts = []
+        for i, n in enumerate(picks):
+            label = _plain(labels[i]) if isinstance(labels, list) and i < len(labels) else media_label(n)
+            name = _plain(names[i]) if isinstance(names, list) and i < len(names) and names[i] else ""
+            parts.append(f"{label} ({name})" if name else label)
+        who = ", ".join(parts)
+    else:
+        choice = answer.get("choice")
+        who = _plain(answer["label"]) if answer.get("label") else \
+            f"option {choice + 1}" if isinstance(choice, int) and not isinstance(choice, bool) else "?"
+    note = _plain(answer["text"]) if answer.get("text") else ""
+    return f"picked: {who}" + (f" · note: {note}" if note else "")
+
+
+def media_label(n: Any) -> str:
+    """Item n (0-based) as the card letters it: A, B, C ... L."""
+    return chr(65 + n) if isinstance(n, int) and not isinstance(n, bool) and 0 <= n < MEDIA_MAX else "?"
 
 
 def print_question_result(rec: dict, *, as_json: bool = False) -> None:
@@ -1774,7 +2353,11 @@ def print_question_result(rec: dict, *, as_json: bool = False) -> None:
     print("  ".join(parts))
     if rec.get("question"):
         print(f"question: {rec['question']}")
-    if answer:
+    if answer and picked_line(rec, answer):
+        print(picked_line(rec, answer))
+        if rec.get("sha256"):
+            print(f"sha256: {rec['sha256']}")
+    elif answer:
         choice = answer.get("choice")
         if isinstance(choice, int) and not isinstance(choice, bool):
             print(f"answer: option {choice + 1} \"{answer.get('label')}\"")
@@ -2014,6 +2597,16 @@ def _parser() -> argparse.ArgumentParser:
                         "{question, why, options, recommended, free_text}); replaces "
                         "--question/--option/--why/--recommended/--no-free-text. One send from the "
                         "CEO = one letter to you")
+    q.add_argument("--media", action="append", metavar="PATH",
+                   help=f"a picture, video or sound for the CEO to look at and pick from; repeat 1 to {MEDIA_MAX} "
+                        "times. The type is read from the first bytes. It is shrunk before upload (picture "
+                        "2048 px, video 720p MP4 + poster, audio M4A); you keep the master. Needs ffmpeg. "
+                        "Replaces --option for 2 or more items (QUESTIONS.md §11)")
+    q.add_argument("--caption", action="append", metavar="TEXT",
+                   help=f"under the item of the same order (at most {CAPTION_MAX} characters, one line); repeatable")
+    q.add_argument("--pick", metavar="one|many",
+                   help="2 or more items: one = he taps one, many = he ticks any, even none (required). "
+                        "One item: leave it out (he answers ใช้ได้ / แก้ / ไม่เอา)")
     q.add_argument("--no-free-text", action="store_true",
                    help="an option is required and the CEO gets no text box (default: he may add a note)")
     q.add_argument("--expires-h", type=float, default=EXPIRES_DEFAULT_H, metavar="HOURS",
@@ -2067,10 +2660,14 @@ def main(argv: list[str] | None = None) -> int:
                                          ("--option", args.option is not None),
                                          ("--why", args.why is not None),
                                          ("--recommended", args.recommended is not None),
+                                         ("--media", args.media is not None),
+                                         ("--caption", args.caption is not None),
+                                         ("--pick", args.pick is not None),
                                          ("--no-free-text", args.no_free_text)) if given]
         if args.batch is not None and lone:
             parser.error(f"--batch carries every question; drop {', '.join(lone)}")
-        missing = [f for f in ("--question", "--option", "--why") if f not in lone]
+        needed = ("--question", "--why") if args.media else ("--question", "--option", "--why")
+        missing = [f for f in needed if f not in lone]
         if args.batch is None and missing:
             parser.error(f"the following arguments are required: {', '.join(missing)} (or --batch FILE)")
     try:

@@ -271,11 +271,13 @@ async def ask_ceo(
     task: str = "",
     dry_run: bool = False,
     questions: list[dict] | None = None,
+    media: list[dict] | None = None,
+    pick: str = "",
 ) -> str:
     return await reg.dispatch(
         "ask_ceo", question=question, options=options, why=why, recommended=recommended,
         free_text=free_text, expires_h=expires_h, session=session, role=role, host=host,
-        task=task, dry_run=dry_run, questions=questions,
+        task=task, dry_run=dry_run, questions=questions, media=media, pick=pick,
     )
 
 

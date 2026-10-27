@@ -212,6 +212,12 @@ MCP: `ask_ceo(questions=[{question, why, options, recommended, free_text}, …])
 everything he sent you. Each question still has its own `Q-…` id and record: cite that id for
 each decision (QUESTIONS.md §10).
 
+**Pictures, videos or sounds to pick from (CEO 2026-10-27).** `ask --media PATH` (repeat, 1–12) `--caption "…"`
+(≤60 chars, by order) `--pick one|many` (required for 2+ items; no `--option`; items are A, B, C…), or
+`ask_ceo(media=[{path, caption}], pick=…)`. It checks the type from the first bytes, shrinks with ffmpeg
+(picture 2048 px, video 720p + poster, audio M4A; caps 10/50/20 MB), uploads, then raises the card; you keep
+the master. `wait` prints `picked: B (cover_b.png) · note: …`, or `picked: none` for a redo (QUESTIONS.md §11).
+
 1. **HARD — a question card never stands in for a command card.** Anything that runs a command, spends
    money or touches a secret goes on a command card (`ask_run`; red = fresh Face ID). That holds even
    after the CEO has said yes to a question about it. The tool and the hub refuse a question or option
