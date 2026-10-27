@@ -388,7 +388,8 @@ def win_plan_lines(plan, actions, cannot):
                'wait': 'mid-turn: a real run waits up to --wait-max, then stops with exit 3'}.get(label, '')
         if label == 'save+reopen':
             why = {'compact_then_resume': '/compact first', 'resume_lazy': 'lazy: no continue message'}.get(action, '')
-        lines.append(f"  {label:<18} {role} #{sid}  {row['name']}" + (f'  ({why})' if why else ''))
+        who = row['name'] if f'#{sid}' in row['name'] else f"{role} #{sid}  {row['name']}"
+        lines.append(f"  {label:<18} {who}" + (f'  ({why})' if why else ''))
     return lines
 
 
