@@ -1192,15 +1192,18 @@ def idea_with_live_ph(now=None, *, conn=None) -> list[dict]:
                 " WHERE stage = 'idea' AND ph_session IS NOT NULL ORDER BY id").fetchall()]
             if not ideas:
                 return []
-            seen = [(str(r["sid"] or "").lower(), str(r["name"] or "").lower()) for r in c.execute(
-                "SELECT sid, name FROM live_sessions WHERE seen_at >= ?", (since,)).fetchall()]
+            seen = [(str(r["sid"] or "").lower(), str(r["name"] or "").lower(), r["role"]) for r in c.execute(
+                "SELECT sid, name, role FROM live_sessions WHERE seen_at >= ?", (since,)).fetchall()]
     except Exception:
         return []
     out = []
     for p in ideas:
         ph = p["ph_session"].strip().lower()
         token = ph[len("project_head-"):] if ph.startswith("project_head-") else ph
-        if token and any(sid in (token, ph) or (len(token) >= 6 and token in name) for sid, name in seen):
+        # A PH on another host (winbox, the Mac) is listed with only the first 3 hex of its id as sid.
+        if token and any(sid in (token, ph) or (len(token) >= 6 and token in name)
+                         or (role == "project_head" and len(sid) == 3 and token.startswith(sid))
+                         for sid, name, role in seen):
             out.append({"project_id": p["id"], "name": p["name"], "lane": p["lane"],
                         "owner_session": p["owner_session"], "ph_session": p["ph_session"].strip()})
     return out

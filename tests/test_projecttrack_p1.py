@@ -434,6 +434,15 @@ def test_idea_with_live_ph_needs_a_fresh_live_session_that_carries_the_ph_sessio
     assert [r["id"] for r in pf._monitor_all(T, store)] == ["running"]               # the monitor is unchanged
 
 
+def test_idea_with_live_ph_matches_a_ph_on_another_host_by_its_three_hex_sid(store):
+    # winbox and the Mac list a PH with only the first 3 hex of its id as sid (live hub, 27 Oct: f35 for f35affd5)
+    _idea("cookie", "f35affd5")
+    _idea("other", "f40aaaaa")
+    fresh = T - timedelta(minutes=1)
+    live_sessions(store, ("f35", "🖥️ PH#f35 (CTO) - CookieRun", fresh))
+    assert [p["project_id"] for p in pf.idea_with_live_ph(T, conn=store)] == ["cookie"]
+
+
 def test_idea_with_live_ph_is_empty_when_live_sessions_cannot_be_read(store):
     _idea("idea-one", "45728c34")
     assert pf.idea_with_live_ph(T, conn=store) == []                 # Store has no live_sessions table
