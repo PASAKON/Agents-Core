@@ -24,6 +24,7 @@ import ast
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -154,11 +155,15 @@ class _MediaHandler(_Handler):
             return
         hub = self.server.hub  # type: ignore[attr-defined]
         auth = self.headers.get("Authorization")
+        session = self.headers.get("X-Run-Session")
         hub.requests.append({"method": "POST", "path": path, "query": {}, "auth": auth, "body": None,
                              "ctype": self.headers.get("Content-Type"), "name": self.headers.get("X-Media-Name"),
-                             "length": self.headers.get("Content-Length"), "data": raw})
+                             "length": self.headers.get("Content-Length"), "session": session, "data": raw})
         if auth != f"Bearer {hub.token}":
             self._reply(401, b'{"error":"unauthorized"}', "application/json")
+            return
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", session or ""):   # the Console's SEGMENT
+            self._reply(400, b'{"error":"invalid_requester_session"}', "application/json")
             return
         if ("POST", path) in hub.routes:                    # a test scripted this answer
             status, payload = hub.answer("POST", path)
@@ -654,6 +659,8 @@ def test_uploads_come_first_then_the_create_with_the_ids(mhub, tools, stage, tmp
     assert ups[1]["data"] == blob("jpeg", 200)                         # the shrunk copy, not the PNG
     assert ask_run.sniff_media(ups[2]["data"]) == "mp4" and ask_run.sniff_media(ups[3]["data"]) == "jpeg"
     body = mhub.requests[-1]["body"]
+    # every upload is filed under the card's own session (the live hub refuses one without it)
+    assert body["requester"]["session"] and all(u["session"] == body["requester"]["session"] for u in ups)
     ids = list(mhub.uploads)
     assert body["media"] == [{"id": ids[0], "caption": "warm"}, {"id": ids[1]},
                              {"id": ids[2], "caption": "teaser", "poster_id": ids[3]}]
