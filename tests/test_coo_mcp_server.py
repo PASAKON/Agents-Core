@@ -153,9 +153,43 @@ def test_field_note_needs_a_session(monkeypatch):
 
 
 def test_field_note_is_a_cli_and_an_mcp_tool(monkeypatch, capsys):
-    assert "field_note" in server.TOOL_NAMES and server.TOOL_NAMES[-1] == "respawn_clevel"
+    assert {"field_note", "respawn_clevel"} <= set(server.TOOL_NAMES)
     monkeypatch.setenv("CXO_SESSION_ID", "coo-test1234")
     monkeypatch.setattr(server, "call", lambda op, **fields: {"ok": True, "op": op, "tag": fields["tag"]})
     args = {"skill": "ALL_Rules_Approvals", "tag": "COSTLY", "text": "t"}
     assert server._cli(["field_note", json.dumps(args)]) == 0
     assert json.loads(capsys.readouterr().out) == {"ok": True, "op": "field_note", "tag": "COSTLY"}
+
+
+def test_order_tools_send_the_gate_op_with_this_session(monkeypatch):
+    monkeypatch.setenv("CXO_SESSION_ID", "c0de0001")
+    sent = []
+    monkeypatch.setattr(server, "call", lambda op, **fields: sent.append({"op": op, **fields}) or {"ok": True})
+    assert server.order_open(7, "ship it", "2026-10-30T17:00:00+07:00") == {"ok": True}
+    assert server.order_open(8, "no date") == {"ok": True}
+    assert server.order_open(9, "empty date", "") == {"ok": True}      # "" means no date, not a bad one
+    assert server.order_close("O-20261027-1403-ab12", "done") == {"ok": True}
+    assert sent == [
+        {"op": "order_open", "session_id": "c0de0001", "n": 7, "words": "ship it", "due_at": "2026-10-30T17:00:00+07:00"},
+        {"op": "order_open", "session_id": "c0de0001", "n": 8, "words": "no date", "due_at": None},
+        {"op": "order_open", "session_id": "c0de0001", "n": 9, "words": "empty date", "due_at": None},
+        {"op": "order_close", "session_id": "c0de0001", "order_id": "O-20261027-1403-ab12", "outcome": "done"},
+    ]
+
+
+def test_order_tools_need_a_session(monkeypatch):
+    monkeypatch.delenv("CXO_SESSION_ID", raising=False)
+    monkeypatch.delenv("COO_SESSION_ID", raising=False)
+    monkeypatch.setattr(server, "call", lambda *a, **k: pytest.fail("sent without a session"))
+    for out in (server.order_open(7, "x"), server.order_close("O-20261027-1403-ab12", "x")):
+        assert out["ok"] is False and "CXO_SESSION_ID" in out["error"]
+
+
+def test_order_tools_are_cli_entries_and_mcp_tools(monkeypatch, capsys):
+    assert {"order_open", "order_close"} <= set(server.TOOL_NAMES)
+    monkeypatch.setenv("CXO_SESSION_ID", "c0de0001")
+    monkeypatch.setattr(server, "call", lambda op, **fields: {"ok": True, "op": op, "n": fields.get("n")})
+    assert server._cli(["order_open", json.dumps({"n": 3, "words": "w"})]) == 0
+    assert json.loads(capsys.readouterr().out) == {"ok": True, "op": "order_open", "n": 3}
+    assert server._cli(["order_close", json.dumps({"order_id": "O-20261027-1403-ab12", "outcome": "o"})]) == 0
+    assert json.loads(capsys.readouterr().out)["op"] == "order_close"

@@ -30,7 +30,8 @@
 --                    UPDATE charter      the gate's set_charter op, coo rows only
 --   orders           SELECT              lib/portfolio.order_close reads the row it closes (SELECT *
 --                                        ... FOR UPDATE)
---                    INSERT 8 columns    order_take: the CO-<n> mirror of a CEO order SomPong relays
+--                    INSERT 8 columns    order_take: the CO-<n> mirror of a CEO order SomPong relays,
+--                                        and the COO's own O- order
 --                    UPDATE 2 columns    order_close: closed_at, outcome
 --   project_events   INSERT 5 columns    order_close's close event, once a PH has linked the order
 --                                        to a project (write-only: org_coo cannot read it back)
@@ -51,6 +52,14 @@
 -- may change is an open CO-<n> one, and only closed_at (set) and outcome; the only project_events
 -- row it may write is the close event of a closed CO-<n> order that belongs to that project, kind
 -- 'order', body op 'close', actor the COO's own label (COO#<8 hex>, tools/agent_transport).
+--
+-- The COO's own orders (CEO 2026-10-27, O- rows of lib/portfolio): the gate also takes orders in its
+-- own name through order_take, with no order_id, so the id is O-YYYYMMDD-HHMM-<4 hex>. Such an order
+-- is taken_by COO#<8 hex>, channel coo:<n> (1 to 6 digits), no project, and a due date only when the
+-- CEO set it (due_set_by 'ceo'). The only O- order org_coo may change is an open one whose taken_by is
+-- a COO label, and only closed_at (set) and outcome; its close event (same rules as above) is written
+-- only when the order is closed, linked to that project and taken_by COO#. A C-level's O- order is
+-- never touched from here.
 
 \set ON_ERROR_STOP on
 
@@ -247,20 +256,38 @@ BEGIN
     RETURN NEW;
   END IF;
   IF TG_OP = 'INSERT' THEN
+    IF (NEW.id ~ '^O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}$') IS TRUE THEN
+      -- The COO's own order (order_take without an order_id): O-YYYYMMDD-HHMM-<4hex>, taken as the
+      -- COO (COO#<8 hex>) on a coo:<n> channel, no project; a due date only when the CEO set it.
+      IF (NEW.taken_by ~ '^COO#[0-9a-f]{8}$') IS DISTINCT FROM TRUE
+         OR (NEW.channel ~ '^coo:[0-9]{1,6}$') IS DISTINCT FROM TRUE
+         OR NEW.project_id IS NOT NULL
+         OR ((NEW.due_at IS NULL AND NEW.due_set_by IS NULL)
+             OR (NEW.due_at IS NOT NULL AND NEW.due_set_by IS NOT DISTINCT FROM 'ceo')) IS DISTINCT FROM TRUE THEN
+        RAISE EXCEPTION 'org_coo may only insert an order O-<date>-<time>-<4 hex> taken_by COO#<8 hex>, channel coo:<n>, with no project, and a due date only with due_set_by ceo; refused id=% taken_by=% channel=%',
+          NEW.id, NEW.taken_by, NEW.channel;
+      END IF;
+      RETURN NEW;
+    END IF;
     IF (NEW.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE
        OR NEW.taken_by IS DISTINCT FROM 'sompong'
        OR NEW.channel IS DISTINCT FROM ('sompong:' || substr(NEW.id, 4))
        OR NEW.project_id IS NOT NULL
        OR NEW.due_at IS NOT NULL THEN
-      RAISE EXCEPTION 'org_coo may only insert an order CO-<n> taken_by sompong, channel sompong:<n>, with no project and no due date; refused id=% taken_by=% channel=%',
+      RAISE EXCEPTION 'org_coo may only insert an order CO-<n> taken_by sompong, channel sompong:<n>, with no project and no due date, or an O-<date>-<time>-<4 hex> order taken_by COO#<8 hex>; refused id=% taken_by=% channel=%',
         NEW.id, NEW.taken_by, NEW.channel;
     END IF;
     RETURN NEW;
   END IF;
-  -- UPDATE: an open CO-<n> order gets closed_at and outcome, nothing else. to_jsonb(row) covers
-  -- every column, so one added to orders later is held fixed too.
-  IF (OLD.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE OR OLD.closed_at IS NOT NULL THEN
-    RAISE EXCEPTION 'org_coo may only close an open CO-<n> order; refused id=%', OLD.id;
+  -- UPDATE: an open CO-<n> order, or an open O- order the COO took itself, gets closed_at and
+  -- outcome, nothing else. to_jsonb(row) covers every column, so one added to orders later is held
+  -- fixed too.
+  IF (OLD.id ~ '^O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}$') IS TRUE THEN
+    IF OLD.closed_at IS NOT NULL OR (OLD.taken_by ~ '^COO#[0-9a-f]{8}$') IS DISTINCT FROM TRUE THEN
+      RAISE EXCEPTION 'org_coo may only close an open O- order it took itself (taken_by COO#<8 hex>); refused id=%', OLD.id;
+    END IF;
+  ELSIF (OLD.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE OR OLD.closed_at IS NOT NULL THEN
+    RAISE EXCEPTION 'org_coo may only close an open CO-<n> order or an open O- order it took itself; refused id=%', OLD.id;
   END IF;
   IF NEW.closed_at IS NULL
      OR (to_jsonb(NEW) - 'closed_at' - 'outcome') IS DISTINCT FROM (to_jsonb(OLD) - 'closed_at' - 'outcome') THEN
@@ -278,9 +305,10 @@ BEGIN
   END IF;
   IF NEW.kind IS DISTINCT FROM 'order'
      OR (NEW.body ->> 'op') IS DISTINCT FROM 'close'
-     OR ((NEW.body ->> 'id') ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE
+     OR (((NEW.body ->> 'id') ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE
+         AND ((NEW.body ->> 'id') ~ '^O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}$') IS DISTINCT FROM TRUE)
      OR (NEW.actor ~ '^COO#[0-9a-f]{8}$') IS DISTINCT FROM TRUE THEN
-    RAISE EXCEPTION 'org_coo may only write the close event (kind order, op close, id CO-<n>) as the COO (COO#<8 hex>); refused kind=% actor=%',
+    RAISE EXCEPTION 'org_coo may only write the close event (kind order, op close, id CO-<n> or O-<date>-<time>-<4 hex>) as the COO (COO#<8 hex>); refused kind=% actor=%',
       NEW.kind, NEW.actor;
   END IF;
   -- order_close updates the order before it writes the event, in one transaction, so the row
@@ -288,7 +316,13 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.orders o
                   WHERE o.id = (NEW.body ->> 'id') AND o.project_id = NEW.project_id
                     AND o.closed_at IS NOT NULL) THEN
-    RAISE EXCEPTION 'org_coo may only mirror the close of a closed CO-<n> order that belongs to project %', NEW.project_id;
+    RAISE EXCEPTION 'org_coo may only mirror the close of a closed CO-<n> or COO O- order that belongs to project %', NEW.project_id;
+  END IF;
+  -- An O- order is the COO's only if the COO took it: a C-level's order is not mirrored from here.
+  IF ((NEW.body ->> 'id') ~ '^O-') IS TRUE AND NOT EXISTS (
+       SELECT 1 FROM public.orders o
+        WHERE o.id = (NEW.body ->> 'id') AND (o.taken_by ~ '^COO#') IS TRUE) THEN
+    RAISE EXCEPTION 'org_coo may only mirror the close of an O- order it took itself (taken_by COO#); refused id=%', NEW.body ->> 'id';
   END IF;
   RETURN NEW;
 END
@@ -487,10 +521,30 @@ BEGIN
         VALUES ('coo-proof', now(), 'order', 'COO#0badc0de',
                 '{"op":"close","id":"CO-900000002","outcome":"done: proof"}'::jsonb)$q$, NULL),
     -- refused: orders, insert
-    -- the channel is what the guard derives from the id, so only the id check can refuse this one
-    ('An O- id', false, NULL::text,
+    -- an O- id is the COO's own only with taken_by COO#<8 hex> and channel coo:<n>; sompong is the CO- owner
+    ('An O- id taken as sompong', false, NULL::text,
      $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
-        VALUES ('O-20261027-0000-ab12', 'proof', 'sompong:0261027-0000-ab12', 'sompong', now())$q$, NULL, NULL),
+        VALUES ('O-20261027-0000-ab12', 'proof', 'coo:1', 'sompong', now())$q$, NULL, NULL),
+    -- the rest of each O- row is valid, so only the condition named refuses it
+    ('An O- id with a bad shape', false, NULL::text,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
+        VALUES ('O-2026102-0000-ab20', 'proof', 'coo:1', 'COO#0badc0de', now())$q$, NULL, NULL),
+    ('An O- id with a sompong channel', false, NULL::text,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
+        VALUES ('O-20261027-0000-ab21', 'proof', 'sompong:1', 'COO#0badc0de', now())$q$, NULL, NULL),
+    ('An O- id with a project on insert', false,
+     $q$INSERT INTO public.projects (id, name, lane) VALUES ('coo-proof', 'coo-proof', 'coo')$q$,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at, project_id)
+        VALUES ('O-20261027-0000-ab22', 'proof', 'coo:1', 'COO#0badc0de', now(), 'coo-proof')$q$, NULL, NULL),
+    ('An O- id with a due date and no due_set_by', false, NULL::text,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at, due_at)
+        VALUES ('O-20261027-0000-ab23', 'proof', 'coo:1', 'COO#0badc0de', now(), now())$q$, NULL, NULL),
+    ('An O- id with a due date set by a PH', false, NULL::text,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at, due_at, due_set_by)
+        VALUES ('O-20261027-0000-ab24', 'proof', 'coo:1', 'COO#0badc0de', now(), now(), 'ph')$q$, NULL, NULL),
+    ('An O- id with due_set_by ceo and no due date', false, NULL::text,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at, due_set_by)
+        VALUES ('O-20261027-0000-ab25', 'proof', 'coo:1', 'COO#0badc0de', now(), 'ceo')$q$, NULL, NULL),
     ('A taken_by other than sompong', false, NULL::text,
      $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
         VALUES ('CO-900000003', 'proof', 'sompong:900000003', 'someone_else', now())$q$, NULL, NULL),
@@ -519,11 +573,25 @@ BEGIN
      $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
         VALUES ('CO-900000009', 'proof', 'sompong:900000009', 'sompong', now())$q$,
      $q$UPDATE public.orders SET outcome = 'done: proof' WHERE id = 'CO-900000009'$q$, NULL, NULL),
-    ('An update of an order that is not CO-<n>', false,
+    ('An update of an order that is not CO-<n> and not the COO''s own', false,
      $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
-        VALUES ('O-20261027-0000-ab13', 'proof', 'chat:cto-abc', 'someone_else', now())$q$,
+        VALUES ('O-20261027-0000-ab13', 'proof', 'chat:cto-abc', 'cto-fresh', now())$q$,
      $q$UPDATE public.orders SET closed_at = now(), outcome = 'done: proof'
         WHERE id = 'O-20261027-0000-ab13'$q$, NULL, NULL),
+    ('An update of a closed O- order of the COO', false,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at, closed_at, outcome)
+        VALUES ('O-20261027-0000-ab26', 'proof', 'coo:1', 'COO#0badc0de', now(), now(), 'done: proof')$q$,
+     $q$UPDATE public.orders SET outcome = 'changed' WHERE id = 'O-20261027-0000-ab26'$q$, NULL, NULL),
+    ('An update that changes words of an O- order of the COO (UPDATE (words) granted for this case only)', false,
+     $q$GRANT UPDATE (words) ON public.orders TO org_coo;
+        INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
+        VALUES ('O-20261027-0000-ab27', 'proof', 'coo:1', 'COO#0badc0de', now())$q$,
+     $q$UPDATE public.orders SET words = 'changed', closed_at = now(), outcome = 'done: proof'
+        WHERE id = 'O-20261027-0000-ab27'$q$, NULL, NULL),
+    ('An update that does not set closed_at of an O- order of the COO', false,
+     $q$INSERT INTO public.orders (id, words, channel, taken_by, taken_at)
+        VALUES ('O-20261027-0000-ab28', 'proof', 'coo:1', 'COO#0badc0de', now())$q$,
+     $q$UPDATE public.orders SET outcome = 'done: proof' WHERE id = 'O-20261027-0000-ab28'$q$, NULL, NULL),
     -- refused: project_events
     ('A project_events row of another kind', false,
      $q$INSERT INTO public.projects (id, name, lane) VALUES ('coo-proof', 'coo-proof', 'coo');
@@ -560,13 +628,27 @@ BEGIN
      $q$INSERT INTO public.project_events (project_id, at, kind, actor, body)
         VALUES ('coo-proof-2', now(), 'order', 'COO#0badc0de',
                 '{"op":"close","id":"CO-900000014","outcome":"done: proof"}'::jsonb)$q$, NULL, NULL),
-    ('A close event for an order that is not CO-<n>', false,
+    ('A close event for an order that is not CO-<n> and not the COO''s own', false,
      $q$INSERT INTO public.projects (id, name, lane) VALUES ('coo-proof', 'coo-proof', 'coo');
         INSERT INTO public.orders (id, words, channel, taken_by, taken_at, project_id, closed_at, outcome)
-        VALUES ('O-20261027-0000-ab14', 'proof', 'chat:cto-abc', 'someone_else', now(), 'coo-proof', now(), 'done: proof')$q$,
+        VALUES ('O-20261027-0000-ab14', 'proof', 'chat:cto-abc', 'cto-fresh', now(), 'coo-proof', now(), 'done: proof')$q$,
      $q$INSERT INTO public.project_events (project_id, at, kind, actor, body)
         VALUES ('coo-proof', now(), 'order', 'COO#0badc0de',
-                '{"op":"close","id":"O-20261027-0000-ab14","outcome":"done: proof"}'::jsonb)$q$, NULL, NULL)
+                '{"op":"close","id":"O-20261027-0000-ab14","outcome":"done: proof"}'::jsonb)$q$, NULL, NULL),
+    ('A close event for an O- order of the COO that is still open', false,
+     $q$INSERT INTO public.projects (id, name, lane) VALUES ('coo-proof', 'coo-proof', 'coo');
+        INSERT INTO public.orders (id, words, channel, taken_by, taken_at, project_id)
+        VALUES ('O-20261027-0000-ab29', 'proof', 'coo:1', 'COO#0badc0de', now(), 'coo-proof')$q$,
+     $q$INSERT INTO public.project_events (project_id, at, kind, actor, body)
+        VALUES ('coo-proof', now(), 'order', 'COO#0badc0de',
+                '{"op":"close","id":"O-20261027-0000-ab29","outcome":"done: proof"}'::jsonb)$q$, NULL, NULL),
+    ('A close event for an O- id of a bad shape', false,
+     $q$INSERT INTO public.projects (id, name, lane) VALUES ('coo-proof', 'coo-proof', 'coo');
+        INSERT INTO public.orders (id, words, channel, taken_by, taken_at, project_id, closed_at, outcome)
+        VALUES ('O-2026102-0000-ab30', 'proof', 'coo:1', 'COO#0badc0de', now(), 'coo-proof', now(), 'done: proof')$q$,
+     $q$INSERT INTO public.project_events (project_id, at, kind, actor, body)
+        VALUES ('coo-proof', now(), 'order', 'COO#0badc0de',
+                '{"op":"close","id":"O-2026102-0000-ab30","outcome":"done: proof"}'::jsonb)$q$, NULL, NULL)
       ) AS v(name, accept, owner_sql, s1, s2, s3)
   LOOP
     accepted := false;
