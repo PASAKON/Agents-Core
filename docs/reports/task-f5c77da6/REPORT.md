@@ -58,4 +58,6 @@ Wider run of every test file that mentions `ask_run` (18 files): 1696 passed, 20
 - Not exercised: a real concurrent swap against real ffprobe/ffmpeg (the race is simulated with a patched
   `_open_regular`); Windows (winbox) `O_EXCL`/`os.replace` semantics, which are standard but untested here; the
   `ask_run` MCP path beyond the existing `test_mcp_media_*` tests, which pass.
+- The `org:` wiki tool answered "not available" here, so I skimmed `/opt/MoonieXHQ/Agents/Rules/IRON-RULES.md` by keyword
+  only and did not read `playbooks/developer.md` or the project page; nothing in what I saw conflicts with the change.
 - Left alone: untracked `state/ph-briefs/` appeared in the worktree during the task and is not mine; it is not committed.
