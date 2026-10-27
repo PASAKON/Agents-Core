@@ -10,9 +10,11 @@ audio file already exists is skipped and costs nothing.
 
 The fal key comes from FAL_MEDIA_API_KEY_RW in the environment, or, on a Run card, from Infisical
 (Agents-Core prod /cmo-media) as this host's machine identity. It is never printed, and it goes only to
-queue.fal.run, never to the file host the audio comes from, and never through a redirect. A key holding
-anything but printable ASCII is refused unseen. fal's answers are read up to MAX_ANSWER bytes and the audio up
-to MAX_AUDIO. Standard library only: a script card runs this file with the system python3.
+queue.fal.run, never to the file host the audio comes from, and never through a redirect: the queue's redirects
+are refused, and the file host's are followed to https only, their bodies unread. A key holding anything but
+printable ASCII is refused unseen. fal's answers are read up to MAX_ANSWER bytes and the audio up to MAX_AUDIO,
+and an audio file shorter than its Content-Length is refused. Standard library only: a script card runs this
+file with the system python3.
 
 Job file (JSON). Every path is absolute and under /opt/MoonieXHQ/Work/:
   {"model": "elevenlabs/tts/eleven-v4", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
@@ -43,6 +45,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import fcntl
+import http.client
 import json
 import os
 import re
@@ -102,6 +105,26 @@ class FalError(Exception):
     def __init__(self, code: int, text: str) -> None:
         super().__init__(f"HTTP {code}: {text}")
         self.code = code
+
+
+class _Redirects(urllib.request.HTTPRedirectHandler):
+    """urllib reads a redirect's whole body before it follows it, with no limit. This closes the body unread
+    (that read then gets nothing) and follows only to https; with `follow` false it refuses every redirect."""
+    follow = True
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not self.follow or not newurl.startswith("https://"):
+            return None  # urllib then returns before that read and raises HTTPError(code)
+        fp.close()
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+class _NoRedirects(_Redirects):
+    follow = False
+
+
+_queue_open = urllib.request.build_opener(_NoRedirects).open  # fal's queue answers in place
+_file_open = urllib.request.build_opener(_Redirects).open     # the file host may send us on, to https only
 
 
 def under_work(p: object, what: str) -> Path:
@@ -235,7 +258,7 @@ def write_row(lf, row: dict) -> None:
 
 
 def fetch_key() -> str | None:
-    key = os.environ.get(KEY_NAME)
+    key = os.environ.get(KEY_NAME, "").strip()
     if not key:
         try:
             if str(ROOT) not in sys.path:
@@ -246,12 +269,15 @@ def fetch_key() -> str | None:
         except (Exception, SystemExit) as e:  # _project() exits when the project is missing
             print(f"no key: Infisical lookup failed ({e.__class__.__name__})", file=sys.stderr)
             return None
-        key = (secret or {}).get("secretValue")
-    key = key.strip() if isinstance(key, str) else ""
-    if key and not KEY_RE.fullmatch(key):
+        value = (secret or {}).get("secretValue")
+        key = value.strip() if isinstance(value, str) else ""
+    if not key:
+        print(f"no key: {KEY_NAME} is empty", file=sys.stderr)
+        return None
+    if not KEY_RE.fullmatch(key):
         print("no key: the stored key is not one line of printable ASCII", file=sys.stderr)
         return None
-    return key or None
+    return key
 
 
 def http_json(url: object, key: str, body: dict | None = None) -> dict:
@@ -263,7 +289,7 @@ def http_json(url: object, key: str, body: dict | None = None) -> dict:
     # urllib copies ordinary headers to a redirect's target, which may be another host; this one stays behind.
     req.add_unredirected_header("Authorization", f"Key {key}")
     try:
-        with urllib.request.urlopen(req, timeout=120) as f:
+        with _queue_open(req, timeout=120) as f:
             raw = f.read(MAX_ANSWER + 1)
     except urllib.error.HTTPError as e:
         text = e.read(MAX_ANSWER).decode(errors="replace").replace(key, "<redacted>")
@@ -280,10 +306,14 @@ def download(url: object, dest: Path) -> None:
     """The audio file, fetched with no key, written whole or not at all."""
     if not isinstance(url, str) or not url.startswith("https://"):
         raise FalError(0, "the audio URL is not https")
-    with urllib.request.urlopen(url, timeout=120) as f:
+    with _file_open(url, timeout=120) as f:
+        want = None if getattr(f, "chunked", False) else str(f.headers.get("Content-Length") or "").strip()
         data = f.read(MAX_AUDIO + 1)
     if len(data) > MAX_AUDIO:
         raise FalError(0, f"the audio file is larger than {MAX_AUDIO} bytes")
+    # A bounded read returns a short body without IncompleteRead, so the length is checked here.
+    if not data or (want and want.isdigit() and int(want) != len(data)):
+        raise FalError(0, f"the audio file arrived empty or cut off ({len(data)} of {want or '?'} bytes)")
     tmp = dest.with_name(dest.name + ".part")
     tmp.write_bytes(data)
     tmp.replace(dest)
@@ -401,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
                               flush=True)
                         return EXIT_FAIL
                     break
-                except (OSError, ValueError, KeyError, TypeError) as e:
+                except (OSError, ValueError, KeyError, TypeError, RecursionError, http.client.HTTPException) as e:
                     write_row(lf, {"what": "result", "name": name, "ok": False, "code": e.__class__.__name__})
                     print(f"FAIL {name}: {e.__class__.__name__}: {redact(str(e))[:200]}", flush=True)
                     fails += 1

@@ -1,6 +1,7 @@
 """tools/fal_tts.py: the cap holds across calls, retries and reruns; nothing reaches fal or Infisical."""
 import ast
 import fcntl
+import http.client
 import io
 import json
 import sys
@@ -385,8 +386,9 @@ def test_an_answer_without_an_audio_file_is_a_failed_call(work, fal, monkeypatch
 class FakeAnswer:
     """What urlopen hands back: a context manager whose read(n) returns at most n bytes."""
 
-    def __init__(self, raw):
+    def __init__(self, raw, length=-1):
         self.raw = raw
+        self.headers = {} if length is None else {"Content-Length": str(len(raw) if length == -1 else length)}
 
     def __enter__(self):
         return self
@@ -400,7 +402,7 @@ class FakeAnswer:
 
 def test_the_key_stays_behind_on_a_redirect(monkeypatch):
     seen = []
-    monkeypatch.setattr(fal_tts.urllib.request, "urlopen", lambda req, timeout: seen.append(req) or FakeAnswer(b"{}"))
+    monkeypatch.setattr(fal_tts, "_queue_open", lambda req, timeout: seen.append(req) or FakeAnswer(b"{}"))
     fal_tts.http_json(fal_tts.QUEUE + "x/status", KEY)
     req = seen[0]
     assert req.get_header("Authorization") == f"Key {KEY}"
@@ -410,7 +412,7 @@ def test_the_key_stays_behind_on_a_redirect(monkeypatch):
 
 
 def test_http_json_takes_only_a_json_object(monkeypatch):
-    monkeypatch.setattr(fal_tts.urllib.request, "urlopen", lambda req, timeout: FakeAnswer(b'["a", "list"]'))
+    monkeypatch.setattr(fal_tts, "_queue_open", lambda req, timeout: FakeAnswer(b'["a", "list"]'))
     with pytest.raises(fal_tts.FalError) as e:
         fal_tts.http_json(fal_tts.QUEUE + "x/status", KEY)
     assert e.value.code == 0 and "not a JSON object" in str(e.value)
@@ -418,7 +420,7 @@ def test_http_json_takes_only_a_json_object(monkeypatch):
 
 def test_http_json_refuses_an_oversized_answer(monkeypatch):
     monkeypatch.setattr(fal_tts, "MAX_ANSWER", 8)
-    monkeypatch.setattr(fal_tts.urllib.request, "urlopen", lambda req, timeout: FakeAnswer(b'{"a": "123456789"}'))
+    monkeypatch.setattr(fal_tts, "_queue_open", lambda req, timeout: FakeAnswer(b'{"a": "123456789"}'))
     with pytest.raises(fal_tts.FalError) as e:
         fal_tts.http_json(fal_tts.QUEUE + "x/status", KEY)
     assert "larger than 8 bytes" in str(e.value)
@@ -427,7 +429,7 @@ def test_http_json_refuses_an_oversized_answer(monkeypatch):
 def test_an_error_body_loses_the_key_before_it_is_cut(monkeypatch):
     def refuse(req, timeout):
         raise urllib.error.HTTPError(req.full_url, 500, "err", {}, io.BytesIO(b"x" * 290 + KEY.encode()))
-    monkeypatch.setattr(fal_tts.urllib.request, "urlopen", refuse)
+    monkeypatch.setattr(fal_tts, "_queue_open", refuse)
     with pytest.raises(fal_tts.FalError) as e:
         fal_tts.http_json(fal_tts.QUEUE + "x", KEY, {"a": 1})
     assert e.value.code == 500 and KEY[:8] not in str(e.value)
@@ -455,7 +457,7 @@ def test_download_refuses_a_url_that_is_not_text(tmp_path):
 
 def test_download_refuses_an_oversized_file_and_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(fal_tts, "MAX_AUDIO", 4)
-    monkeypatch.setattr(fal_tts.urllib.request, "urlopen", lambda url, timeout: FakeAnswer(b"12345"))
+    monkeypatch.setattr(fal_tts, "_file_open", lambda url, timeout: FakeAnswer(b"12345"))
     with pytest.raises(fal_tts.FalError):
         fal_tts.download("https://v3.fal.media/files/a.mp3", tmp_path / "a.mp3")
     assert list(tmp_path.iterdir()) == []
@@ -470,3 +472,72 @@ def test_an_answer_that_is_not_an_object_is_a_failed_call(work, fal, monkeypatch
     assert "FAIL h1: ValueError" in capsys.readouterr().out
     rows = [json.loads(line) for line in (work / "job.ledger.jsonl").read_text().splitlines()]
     assert [r["what"] for r in rows] == ["attempt", "result"]
+
+
+class Body:
+    """A response body that records whether anything read it while it was still open."""
+
+    def __init__(self):
+        self.closed = False
+        self.read_open = False
+
+    def read(self, n=-1):
+        self.read_open = self.read_open or not self.closed
+        return b""
+
+    def close(self):
+        self.closed = True
+
+
+def redirect(handler, target):
+    req = urllib.request.Request("https://v3.fal.media/files/a.mp3")
+    req.timeout = 5
+    body = Body()
+    return handler.http_error_302(req, body, 302, "Found", {"location": target}), body
+
+
+def test_the_queue_follows_no_redirect_and_reads_none_of_its_body():
+    result, body = redirect(fal_tts._NoRedirects(), "https://queue.fal.run/elsewhere")
+    assert result is None and not body.read_open
+
+
+def test_a_file_redirect_goes_to_https_only_and_reads_none_of_its_body():
+    h, opened = fal_tts._Redirects(), []
+    h.parent = type("Opener", (), {"open": lambda self, new, timeout=None: opened.append(new.full_url) or "next"})()
+    result, body = redirect(h, "https://cdn.example/a.mp3")
+    assert result == "next" and opened == ["https://cdn.example/a.mp3"] and not body.read_open
+    for target in ("http://cdn.example/a.mp3", "ftp://cdn.example/a.mp3"):
+        result, body = redirect(h, target)
+        assert result is None and not body.read_open
+    assert opened == ["https://cdn.example/a.mp3"]
+
+
+@pytest.mark.parametrize("raw, length", [(b"12345", 10), (b"", 0), (b"", None)])
+def test_an_empty_or_cut_off_audio_file_is_refused_and_writes_nothing(tmp_path, monkeypatch, raw, length):
+    monkeypatch.setattr(fal_tts, "_file_open", lambda url, timeout: FakeAnswer(raw, length))
+    with pytest.raises(fal_tts.FalError) as e:
+        fal_tts.download("https://v3.fal.media/files/a.mp3", tmp_path / "a.mp3")
+    assert "empty or cut off" in str(e.value) and list(tmp_path.iterdir()) == []
+
+
+def test_a_whole_audio_file_is_saved(tmp_path, monkeypatch):
+    monkeypatch.setattr(fal_tts, "_file_open", lambda url, timeout: FakeAnswer(b"ID3 whole"))
+    fal_tts.download("https://v3.fal.media/files/a.mp3", tmp_path / "a.mp3")
+    assert (tmp_path / "a.mp3").read_bytes() == b"ID3 whole" and [p.name for p in tmp_path.iterdir()] == ["a.mp3"]
+
+
+@pytest.mark.parametrize("exc", [http.client.IncompleteRead(b""), http.client.InvalidURL("bad"),
+                                 RecursionError("too deep")])
+def test_an_http_client_or_parser_error_is_a_failed_call(work, fal, monkeypatch, capsys, exc):
+    real = fal.http_json
+
+    def answer(url, key, body=None):
+        if body is None and not url.endswith("/status"):
+            raise exc
+        return real(url, key, body)
+    monkeypatch.setattr(fal_tts, "http_json", answer)
+    job = make_gemini38_job(work, n=1)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_FAIL
+    assert f"FAIL h1: {exc.__class__.__name__}" in capsys.readouterr().out
+    rows = [json.loads(line) for line in (work / "job.ledger.jsonl").read_text().splitlines()]
+    assert [r["what"] for r in rows] == ["attempt", "result"] and rows[1]["ok"] is False
