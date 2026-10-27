@@ -252,8 +252,8 @@ def test_org_coo_creates_a_coo_task_with_the_columns_create_task_writes(hub, pro
     conn.execute(
         "INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,"
         "owner_role,host,dispatcher_host,runner,created_at,updated_at,project_id) VALUES "
-        "('task-coopg001','mooniex-agents','researcher','pending','t','d',NULL,'[]',NULL,'coo-x','coo',"
-        f"'contabo',NULL,NULL,now(),now(),{pid})")
+        "('task-coopg001','mooniex-agents','researcher','pending','t','d',NULL,'[]','[]','coo-x','coo',"
+        f"'contabo',NULL,NULL,'2026-10-27T05:00:00Z','2026-10-27T05:00:00Z',{pid})")
     conn.commit()
     row = hub.owner("SELECT owner_role, status, project_id FROM tasks WHERE id = 'task-coopg001'")
     assert tuple(row[0]) == ("coo", "pending", project_id)
