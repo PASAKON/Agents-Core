@@ -61,9 +61,6 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib import wake_backoff
-
-
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
     worker spawn, GH #154) wins when present -- a worker's own `__file__`
@@ -706,7 +703,12 @@ def debounce_s(now: float | None = None) -> float:
     except ValueError:
         v = DEFAULT_DEBOUNCE_S
     t = now if now is not None else time.time()
-    return max(0.0, v) * wake_backoff.backoff_factor(wake_backoff.load_budget(), t)
+    try:  # lazy: hooks load this file alone (scripts/test_hook_inbox.py); no factor = x1
+        from lib import wake_backoff
+        factor = wake_backoff.backoff_factor(wake_backoff.load_budget(), t)
+    except Exception:
+        factor = 1
+    return max(0.0, v) * factor
 
 
 def note_sweep(*, root: Path | None = None) -> None:
