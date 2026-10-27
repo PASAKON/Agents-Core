@@ -2313,7 +2313,7 @@ def picked_line(rec: dict, answer: dict) -> str | None:
     (a redo, or a set where nothing was ticked), `picked: ใช้ได้ · note: ...` (one item). The
     note part only when there is a note."""
     picks = answer.get("picks")
-    redo = answer.get("redo") is True
+    redo = answer.get("redo") is True or rec.get("redo") is True
     if not (rec.get("media") or isinstance(picks, list) or redo):
         return None
     if redo or (isinstance(picks, list) and not picks):

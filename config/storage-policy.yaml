@@ -158,3 +158,15 @@ sparse_worktree:
     - ".claude/skills/*"
     - "prototypes/*"
     - "knowledge/*"
+
+# Run Inbox media cards (docs/design/run-inbox/QUESTIONS.md §11, CEO 2026-10-27). The Console keeps the previews
+# a question card shows; the sender keeps the master, so the folder is DISPOSABLE (machine-contract.yaml).
+# The Console sweep (hourly, in its own process) enforces this; the numbers live here so there is one place to change.
+run_media:
+  machine: contabo
+  root: "<hq>/Assets/MoonieX/Console/run-media"
+  max_bytes: 2147483648          # 2 GB for the whole store; over it, the oldest CLOSED cards' files go first
+  min_free_gb: 6                 # under this much free disk an upload is refused (507 disk_low)
+  close_ttl_days: 7              # a card's files are deleted this long after the card closes (answered/expired/cancelled)
+  pending_ttl_hours: 1           # an upload no card has taken
+  open_card_ttl_days: null       # never: an open card's files are not deleted
