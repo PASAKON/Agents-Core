@@ -43,6 +43,8 @@ DENY_POSIX = ("/etc/infisical", "/proc", "/sys", "/run/sompong-coo", "/dev")
 DENY_NT_SUFFIXES = (r"\programdata\infisical", r"\appdata\local\mooniex\infisical")
 SKIP_DIRS = {"node_modules", ".venv", "venv", ".git", "__pycache__", "site-packages", ".cache",
              ".npm", ".pnpm-store", ".next", ".tox", ".mypy_cache", ".pytest_cache", "dist-packages"}
+NT_SKIP_DIRS = {"AppData", "Application Data", "Local Settings", "Cookies", "NetHood", "PrintHood",
+                "Recent", "SendTo", "Start Menu", "Templates", "My Documents", "Saved Games"}
 MAX_BYTES = 2 * 1024 * 1024
 
 FILE_GLOBS = (".env", ".env.*", "*.env", "*.env.*", "settings*.json", "config*.json", "config*.yaml",
@@ -53,10 +55,10 @@ EXTRA_NAMES = {".git-credentials", ".netrc", "_netrc", ".pgpass", ".npmrc", ".py
 KEY_FILE_GLOBS = ("*.pem", "*.key", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa")
 
 SECRET_NAME_RE = re.compile(
-    r"(api[_-]?key|apikey|token|secret|passw|pwd|credential|private[_-]?key|privatekey|dsn|cookie|"
+    r"(api[_-]?key|apikey|token|secret(?!ary)|passw|pwd|credential|private[_-]?key|privatekey|dsn|cookie|"
     r"webhook|signing|client[_-]?secret|access[_-]?key|auth[_-]?key|_pat$|^pat$|_key$|^key$)", re.I)
 NOT_SECRET_NAME_RE = re.compile(
-    r"(_path|_file|_dir|_ttl|_enabled|_mode|_expires(_at)?|_expiry|_id_?$|_header|_name|_type|_url_env|"
+    r"(_path|_file|_dir|_ttl|_enabled|_uri|_url|_host|_bin|_workdir|_config|_mode|_expires(_at)?|_expiry|_id_?$|_header|_name|_type|_url_env|"
     r"_length|_len|_count|_max|_min|_timeout|_seconds|_version|_prefix|_suffix|_field|_env)$|"
     r"^(token_?type|key_?id|max_?tokens?|tokens?|num_?tokens?|tokenizer.*|.*_tokens)$", re.I)
 URL_WITH_PASSWORD_RE = re.compile(r"^[a-z][a-z0-9+.-]*://[^:/@\s]+:[^@\s]+@", re.I)
@@ -150,9 +152,10 @@ def parse_text(text: str, basename: str) -> list[dict]:
 
     def add(name, value, ln, kind):
         key = (name, ln, kind)
-        if key in seen or is_placeholder(value):
+        h = (ln, hash12(value))
+        if key in seen or is_placeholder(value) or (kind in ("inline", "shape") and h in seen):
             return
-        seen.add(key)
+        seen.update((key, h))
         rows.append(_row(name, value, ln, kind))
 
     for ln, line in enumerate(text.splitlines(), 1):
@@ -200,10 +203,9 @@ def denied(path: str) -> bool:
 def default_roots() -> list[str]:
     if os.name == "nt":
         home = os.path.expanduser("~")
-        roots = [r"C:\Users\UsEr\Projects", os.path.join(home, "Projects"),
-                 os.path.join(home, "MoonieXHQ"), os.path.join(home, "mooniex")]
-        roots += [os.path.join(home, d) for d in (".claude", ".config", ".ssh", ".docker", ".aws",
-                                                  ".codex", ".gemini", ".kube")]
+        # the whole profile (project folders sit straight under it: cookierun-bot, ph-*, MoonieXHQ),
+        # with AppData and the legacy junctions skipped (NT_SKIP_DIRS) except the dirs named below
+        roots = [r"C:\Users\UsEr\Projects", home]
         appdata = os.environ.get("APPDATA") or os.path.join(home, "AppData", "Roaming")
         roots += [os.path.join(appdata, d) for d in ("gh", "rclone", "Code\\User")]
         roots += [os.path.join(home, f) for f in (".git-credentials", ".netrc", "_netrc", ".npmrc", ".pypirc")]
@@ -250,7 +252,7 @@ def scan_file(path: str, basename: str, kind: str) -> list[dict]:
 def scan(roots: list[str], host: str, skip_dirs: set[str] | None = None) -> dict:
     """Walk the roots; one entry per file that holds at least one credential row. Symlinked
     directories are not followed and a file reached twice (a compat link) is counted once."""
-    skip = SKIP_DIRS if skip_dirs is None else skip_dirs
+    skip = (SKIP_DIRS | (NT_SKIP_DIRS if os.name == "nt" else set())) if skip_dirs is None else skip_dirs
     files, unreadable, seen_real = [], [], set()
     walked: list[str] = []
 
@@ -431,9 +433,17 @@ PROVIDERS = (
     ("TOPVIEW", "topview"), ("SEEDANCE", "seedance"), ("XAI", "xai"), ("GROQ", "groq"),
     ("MISTRAL", "mistral"), ("DEEPSEEK", "deepseek"), ("TWILIO", "twilio"), ("SENTRY", "sentry"),
     ("RUN_INBOX", "mooniex-run-inbox"), ("RELAY", "mooniex-relay"), ("LUNGNOTE", "lungnote"),
-    ("CODEX", "openai"), ("OAUTH", "?oauth"), ("JWT", "self"), ("SESSION", "self"),
+    ("CODEX", "openai"), ("GMAIL", "google"), ("OUTLOOK", "microsoft"), ("PEXELS", "pexels"),
+    ("SERPAPI", "serpapi"), ("SENDPULSE", "sendpulse"), ("XM_", "xm-broker"), ("EXNESS", "exness"),
+    ("POSTFORME", "postforme"), ("HERMES", "hermes"), ("SECRETARY", "mooniex-secretary"), ("JWT", "self"), ("SESSION", "self"),
     ("ADMIN", "self"), ("WEBHOOK", "self"),
 )
+
+
+# a credential file in a tool's profile dir says whose it is when the variable name does not
+PROFILE_PROVIDERS = {"profile:.claude": "anthropic (claude oauth)", "profile:.config/gh": "github",
+                     "profile:.config/colab-cli": "google", "profile:.codex": "openai",
+                     "profile:.gemini": "google", "profile:AppData/Roaming/rclone": "google (drive sync)"}
 
 
 def provider_of(name: str) -> str:
@@ -487,16 +497,20 @@ def consumer_of(host: str, path: str) -> str:
     return "?"
 
 
+TEMPLATE_RE = re.compile(r"\.(example|sample|template|dist)$", re.I)
+
+
 def _disk_rows(scan_out: dict) -> list[dict]:
     rows = []
     host = scan_out["host"]
     for f in scan_out["files"]:
         archive = bool(re.search(r"[/\\]Archive[/\\]", f["path"]))
+        template = bool(TEMPLATE_RE.search(f["path"]))
         for r in f["rows"]:
             rows.append({"name": r["name"], "where": f"{host}:{f['path']}" + (f":{r['line']}" if r["line"] else ""),
                          "host": host, "kind": r["kind"], "hash12": r["hash12"], "weak": r["weak"],
                          "consumer": consumer_of(host, f["path"]), "archive": archive,
-                         "scope": "?", "expiry": "", "rotated": ""})
+                         "template": template, "scope": "?", "expiry": "", "rotated": ""})
     return rows
 
 
@@ -611,10 +625,17 @@ def build_report(inputs: list[dict], hq: dict[str, str] | None = None) -> tuple[
                         "repo": r["repo"], "archived": bool(r.get("archived")),
                         "secret_scanning": (sa.get("secret_scanning") or {}).get("status", "?"),
                         "push_protection": (sa.get("secret_scanning_push_protection") or {}).get("status", "?")})
+    # a .env.example is a template: its rows stay only when a value equals a real value somewhere
+    real = {r["hash12"] for r in rows if r.get("hash12") and not r.get("template")}
+    meta["templates_dropped"] = sum(1 for r in rows if r.get("template") and r["hash12"] not in real)
+    meta["templates_real"] = sorted({r["where"] for r in rows if r.get("template") and r["hash12"] in real})
+    rows = [r for r in rows if not r.get("template") or r["hash12"] in real]
     classify(rows)
     display_hashes(rows)
     for r in rows:
         r["provider"] = provider_of(r["name"])
+        if r["provider"] == "?":
+            r["provider"] = PROFILE_PROVIDERS.get(r["consumer"].split("(")[0], "?")
     hq = hq if hq is not None else {}
     md = render_md(rows, meta, hq)
     public_rows = [{k: r[k] for k in ("name", "where", "provider", "consumer", "scope", "expiry", "rotated",
@@ -670,6 +691,10 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
         if bad:
             L.append(f"- {host}: {len(bad)} path(s) unreadable (permission): " + ", ".join(f"`{b}`" for b in bad[:10])
                      + (" …" if len(bad) > 10 else ""))
+    if meta.get("templates_dropped"):
+        L.append(f"- {meta['templates_dropped']} row(s) from template files (.env.example …) dropped: no value equals a "
+                 "real one. Template rows kept because a value equals a real value: "
+                 + (", ".join(f"`{w}`" for w in meta["templates_real"]) or "none"))
     for e in meta["infisical_errors"]:
         L.append(f"- infisical: could not read {e.get('project')}/{e.get('env', '*')}: {e.get('error')}")
     L.append("")
@@ -681,6 +706,7 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
             L.append(f"| {rs[0]['hash']} | {', '.join(sorted({r['name'] for r in rs}))} | "
                      + "<br>".join(_cell(r["where"]) for r in rs) + " |")
         L.append("")
+    L.extend(_by_provider(rows))
     if meta["gh_security"]:
         L.append("## GitHub public repos: secret scanning and push protection\n")
         L.append("| repo | archived | secret scanning | push protection |")
@@ -711,6 +737,27 @@ def render_md(rows: list[dict], meta: dict, hq: dict[str, str]) -> str:
         L.append("## Archive copies (dead by definition)\n")
         L.extend(_table(archive))
     return "\n".join(L) + "\n"
+
+
+def _by_provider(rows: list[dict]) -> list[str]:
+    """Keys that still sit on a machine (live copies, not Archive), per provider: what a relay login
+    per provider has to cover."""
+    by: dict[str, dict[str, set]] = {}
+    for r in rows:
+        if r["host"] in ("infisical", "github") or r["archive"]:
+            continue
+        cell = by.setdefault(r["provider"], {})
+        cell.setdefault(r["name"], set()).add(f"{r['host']}:{r['consumer']}" + ("" if r["status"] == "disk-only"
+                                                                                else f" ({r['status']})"))
+    if not by:
+        return []
+    out = ["## Keys on disk by provider (live copies)\n",
+           "| provider | variable | host:consumer (status when not disk-only) |", "|---|---|---|"]
+    for prov in sorted(by, key=lambda p: (p == "?", p)):
+        for name in sorted(by[prov]):
+            out.append(f"| {prov} | {_cell(name)} | {_cell(', '.join(sorted(by[prov][name])))} |")
+    out.append("")
+    return out
 
 
 def _project_key(consumer: str) -> str:

@@ -32,6 +32,7 @@ def _tree(tmp_path):
         "PORT=3000\n"
         "TOKEN_TTL=86400\n"
         "FAL_KEY=your-fal-key-here\n"
+        "SECRETARY_HOST=127.0.0.1:8080\n"
         f"DB_PASSWORD={V_PW}\n"
         f"DATABASE_URL={V_DB}\n")
     other = tmp_path / "MoonieXHQ" / "Projects" / "MoonieX" / "Option"
@@ -72,10 +73,11 @@ def test_scan_finds_names_and_hashes_never_values(tmp_path):
     assert (".env", "DATABASE_URL") in names          # a URL with a password in it
     assert ("prod.env", "OPENROUTER_API_KEY") in names
     assert ("settings.local.json", "SUPABASE_ACCESS_TOKEN(inline)") in names
-    assert ("settings.local.json", "SUPABASE_PAT(inline)") in names
+    # the same token on the same line is one row, not one per pattern that saw it
+    assert ("settings.local.json", "SUPABASE_PAT(inline)") not in names
     assert ("server.key", "server.key") in names
     assert not any(n == "cert.pem" for n, _ in names)    # a public certificate is not a credential
-    assert not any(n in ("PORT", "TOKEN_TTL", "FAL_KEY") for _, n in names)  # FAL_KEY is a placeholder
+    assert not any(n in ("PORT", "TOKEN_TTL", "FAL_KEY", "SECRETARY_HOST") for _, n in names)  # FAL_KEY is a placeholder
     assert not any("node_modules" in f["path"] for f in out["files"])
     row = next(r for f in out["files"] if f["path"].endswith("ClaudeFlow/.env")
                for r in f["rows"] if r["name"] == "OPENROUTER_API_KEY")
