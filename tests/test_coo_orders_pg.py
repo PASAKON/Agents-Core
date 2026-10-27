@@ -392,3 +392,24 @@ def test_org_coo_creates_a_coo_task_with_the_columns_create_task_writes(hub, pro
     conn.commit()
     row = hub.owner(f"SELECT owner_role, status, project_id FROM tasks WHERE id = '{tid}'")
     assert tuple(row[0]) == ("coo", "pending", project_id)
+
+
+def test_the_gate_path_opens_and_closes_a_coo_o_order_as_org_coo_with_its_event(hub):
+    # PH review, P6: lib/portfolio as the gate calls it (no order_id, channel coo:<n>, actor COO#<sid>).
+    from datetime import datetime, timezone
+    from lib import portfolio as pf
+    hub.owner("INSERT INTO projects (id, name, lane) VALUES ('coo-gate-pg', 'coo-gate-pg', 'coo')")
+    due = datetime(2026, 10, 30, 10, 0, tzinfo=timezone.utc)
+    conn = hub.coo()
+    oid = pf.order_take("words", "coo:3", actor=COO, due_at=due, due_set_by="ceo", conn=conn)
+    conn.commit()
+    assert oid.startswith("O-")
+    hub.owner(f"UPDATE orders SET project_id = 'coo-gate-pg' WHERE id = '{oid}'")      # order_link, by a C-level
+    conn = hub.coo()
+    pf.order_close(oid, "done: relayed", actor=COO, conn=conn)
+    conn.commit()
+    row = hub.owner(f"SELECT taken_by, channel, due_set_by, closed_at IS NOT NULL, outcome FROM orders WHERE id = '{oid}'")
+    assert tuple(row[0]) == (COO, "coo:3", "ceo", True, "done: relayed")
+    (event,) = hub.owner("SELECT kind, actor, body FROM project_events")
+    assert (event["kind"], event["actor"], dict(event["body"])) == (
+        "order", COO, {"op": "close", "id": oid, "outcome": "done: relayed"})
