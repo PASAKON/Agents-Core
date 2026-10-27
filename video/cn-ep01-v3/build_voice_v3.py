@@ -17,9 +17,9 @@ AF_EN = "silenceremove=stop_periods=-1:stop_duration=0.8:stop_threshold=-45dB:st
 # (chunk, silence interval seen in the raw chunk mp3, insert id, pause kept each side of the take in s, extra pad L/R in s)
 # silence intervals: silencedetect -35dB on the raw chunk; word times confirmed with faster-whisper small
 SPEC = {
-    "th1": [("c00", (75.48, 76.08), "title", 0.30, 0.10, 0.15), ("c05", (24.52, 25.16), "punch", 0.30, 0.06, 0.06)],
+    "th1": [("c05", (24.52, 25.16), "punch", 0.30, 0.06, 0.06)],  # title left out: 4.27 s trimmed, 3.4 s even at atempo 1.1 (brief: <= 3 s)
     "th3": [("c06", (65.35, 66.02), "reveal", 0.30, 0.08, 0.10)],
-    "en1": [("c01", "after", "title", 0.0, 0.30, 0.35), ("c13", (23.65, 24.28), "punch", 0.20, 0.06, 0.06)],
+    "en1": [("c13", (23.65, 24.28), "punch", 0.20, 0.06, 0.06)],  # title left out: 4.48 s trimmed, 4.1 s at atempo 1.1
     "en3": [("c08", (7.70, 8.41), "reveal", 0.30, 0.08, 0.10)],
 }[key]
 SRC = f"{V}/arc{N}" if LANG == "th" else f"{V}/en{N}"

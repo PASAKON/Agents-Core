@@ -1,0 +1,74 @@
+{
+ "en_punch_t1": {
+  "trim_s": 1.02,
+  "asr": "Three Tales"
+ },
+ "en_punch_t2": {
+  "trim_s": 1.0,
+  "asr": "Three Tales"
+ },
+ "en_punch_t3": {
+  "trim_s": 0.98,
+  "asr": "Three Tails"
+ },
+ "en_reveal_t1": {
+  "trim_s": 5.87,
+  "asr": "cannot be appraised. And beneath it, one more line, price your life."
+ },
+ "en_reveal_t2": {
+  "trim_s": 5.8,
+  "asr": "cannot be appraised. And beneath it, one more line, price your life."
+ },
+ "en_reveal_t3": {
+  "trim_s": 5.93,
+  "asr": "cannot be appraised. And beneath it, one more line, price your life."
+ },
+ "en_title_t1": {
+  "trim_s": 4.65,
+  "asr": "The Heaven-Appraising Abacus, Episode 1, Three Tales."
+ },
+ "en_title_t2": {
+  "trim_s": 4.48,
+  "asr": "The Heaven-Appraising Abacus, Episode 1, Three Tales."
+ },
+ "en_title_t3": {
+  "trim_s": 4.54,
+  "asr": "The Heaven-Appraising Abacus, Episode 1, Three Tales."
+ },
+ "th_punch_t1": {
+  "trim_s": 1.04,
+  "asr": "3. ตำลึง"
+ },
+ "th_punch_t2": {
+  "trim_s": 1.03,
+  "asr": "3 ตำลึง"
+ },
+ "th_punch_t3": {
+  "trim_s": 1.02,
+  "asr": "สามตำลึง"
+ },
+ "th_reveal_t1": {
+  "trim_s": 5.45,
+  "asr": "ประเมืนไม่ได้ และใต้คำนั้นอีกบันภัทราคาชีวิตเจ้า"
+ },
+ "th_reveal_t2": {
+  "trim_s": 5.33,
+  "asr": "ประเมินไม่ได้ และตายคำนั้นอีกบันทัส ราคาชีวิตเจ้า"
+ },
+ "th_reveal_t3": {
+  "trim_s": 5.38,
+  "asr": "ประเมืนไม่ได้ และตายคำนั้นอีกบันทัส ราคาชีวิตเจ้า"
+ },
+ "th_title_t1": {
+  "trim_s": 4.27,
+  "asr": "ลูกคิดประเมืนฟ้า ตอนที่หนึ่ง ราค้า 3 ตำลึง"
+ },
+ "th_title_t2": {
+  "trim_s": 4.24,
+  "asr": "ลูกคิดประเมืนฟ้า ตอนที่ 1 ราคา 3 ตำลึง"
+ },
+ "th_title_t3": {
+  "trim_s": 4.34,
+  "asr": "ลูกคิดประเมินฟ้า ตอนที่ 1 ราคา 3 ตำลึง"
+ }
+}
