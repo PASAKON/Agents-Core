@@ -1,4 +1,4 @@
-"""Tests for the fal loader in align.py (task-ee1dbcf0).  python3 -m unittest video/hookdemo/test_align.py -v
+"""Tests for the fal loader in align.py (task-ee1dbcf0).  python3 -m unittest prototypes/ilag-hookdemo/test_align.py -v
 Synthetic fal file (no takes needed); the 3 real takes are also loaded when the voice-v4 folder is on this box."""
 import copy
 import sys

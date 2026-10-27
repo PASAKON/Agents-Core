@@ -4,7 +4,7 @@ $0 spend: local files and ffmpeg only. Render ran on Contabo, one take at a time
 
 ## Per take
 
-Measured with ffmpeg ebur128 (`peak=true`) on the delivered files by `video/hookdemo/take_stats.py`.
+Measured with ffmpeg ebur128 (`peak=true`) on the delivered files by `prototypes/ilag-hookdemo/take_stats.py`.
 
 | take | voice end | total length | LUFS (720p / master) | true peak dBTP (720p / master) | 720p size |
 |---|---|---|---|---|---|
@@ -36,7 +36,7 @@ Cut 3 is anchored to the end of phrase 1.2 minus 0.25 s, so a quick delivery of 
 
 Full per-phrase times: `out/v4/<take>/timing.json`.
 
-## fal loader (`video/hookdemo/align.py`)
+## fal loader (`prototypes/ilag-hookdemo/align.py`)
 
 `load_alignment(path, narration)` accepts a plain ElevenLabs alignment or a fal file. A fal file is joined chunk by chunk (10 chunks per take), then checked, then handed to the existing parser. It exits non-zero and says why on:
 
@@ -46,11 +46,11 @@ Full per-phrase times: `out/v4/<take>/timing.json`.
 - joined characters not equal to narration.txt (whitespace and "..." ignored): `... do not match the narration ... at offset 18: alignment has 'ส้มตำเก็กแปดหมื่' , narration has 'ส้มตำเก็บแปดหมื่น'`
 - a truncated take (length 163 vs 177), empty `timestamps`, not JSON, or any other shape
 
-All 3 takes load and map all 15 phrases. 8 unit tests pass: `python3 -m unittest video/hookdemo/test_align.py`. Eight hand-made bad files were also run through the CLI, all exit 2.
+All 3 takes load and map all 15 phrases. 8 unit tests pass: `python3 -m unittest prototypes/ilag-hookdemo/test_align.py`. Eight hand-made bad files were also run through the CLI, all exit 2.
 
 ## One command
 
-`video/hookdemo/make_hook.sh <take-name>`, for example `make_hook.sh t2` or `make_hook.sh t2_George_s0.5`. It resolves the take, prints `free -m` and refuses below 1200 MB available, validates the json first, waits for the lock, runs under nice 19, and writes `hookdemo/out/v4/<take>/`.
+`prototypes/ilag-hookdemo/make_hook.sh <take-name>`, for example `make_hook.sh t2` or `make_hook.sh t2_George_s0.5`. It resolves the take, prints `free -m` and refuses below 1200 MB available, validates the json first, waits for the lock, runs under nice 19, and writes `hookdemo/out/v4/<take>/`.
 
 ## Seen by eye
 
