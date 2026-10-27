@@ -103,15 +103,15 @@ section: `docs/plans/hqsecurity-rules-draft/IRON-65.md`.
    commit on any branch (pushed or not, reverted or not; Agents-Core and Agents-Rules are public, so a push
    is a publication); a Run or question card; a mailbox letter; a prompt or brief; a transcript; any file
    outside Infisical. Then do these steps in order:
-   1. Tag the secret `leaked` in Infisical (the §4c status tag).
-   2. Mint a new key at the provider through KeyFetch, with a new `exp` in its name.
-   3. Put it into Infisical (`put` updates the secret in place).
-   4. Verify the consumer: restart it from Infisical, check that it is green, and run one status-only
-      authenticated call.
-   5. Revoke the old key at the provider (rule 8).
-   6. Look back: list every place that held the value (sessions, transcripts, repos and forks, cards, logs,
-      Drive) and say which ones can be cleaned and which cannot. Write one registry Changelog line (IRON §34
-      item 2).
+   - (1) Tag the secret `leaked` in Infisical (the §4c status tag).
+   - (2) Mint a new key at the provider through KeyFetch, with a new `exp` in its name.
+   - (3) Put it into Infisical (`put` updates the secret in place).
+   - (4) Verify the consumer: restart it from Infisical, check that it is green, and run one status-only
+     authenticated call.
+   - (5) Revoke the old key at the provider (rule 8).
+   - (6) Look back: list every place that held the value (sessions, transcripts, repos and forks, cards, logs,
+     Drive) and say which ones can be cleaned and which cannot. Write one registry Changelog line (IRON §34
+     item 2).
 
    On the free plan Infisical keeps no version history, so a value that was overwritten is gone. Mint
    first and never overwrite a value that cannot be issued again. Report the leak by place (`path:line`,
