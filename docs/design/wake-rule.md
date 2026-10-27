@@ -73,3 +73,33 @@ Never stop them. Events wake immediately. Missing/stale budget data means no slo
 workers. Deduplicate events. Keep a backup check with the budget interval above.
 Do not schedule a model heartbeat to discover that nothing changed. Propose policy
 and routing changes to the CEO; this draft grants no permission to change them.
+
+## Status 27 Oct 2026 — tier x budget factors (P4b) and the five flagged sources (P3b)
+
+`lib/wake_backoff.wake_interval(base_s, tier=, budget_json=, now=)` is base x budget factor x tier factor.
+Tier factor: critical 1; normal 1, or 2 while any provider is over; low none (no timed wake). A tier of
+`None` or any other word is normal. `load_budget()` reads the P1 json and never raises (missing, linked,
+oversized or bad json = no data = factor 1). Events never pass through it.
+
+| Timed part | Base | Paced by |
+|---|---|---|
+| `tools/escalation_watch.py` idle threshold, the one reminder, the fyi digest | 30 min, 1 h, 2 h | the recipient's tier: a PH by its `projects` row (`ph_session`), every C-level critical |
+| `runners/watchdog.py` status-check ping | `PING_AFTER_S` (10 min) | `portfolio.tier_for(task)`; the stall check (30 min) and done/failed are not paced |
+| `lib/mailbox.debounce_s()` | `ORG_WAKE_DEBOUNCE_S` or 10 min | the budget factor only; urgent letters bypass it as before |
+
+New escalation findings (a waiting prompt, a held blocker) still go at once. Today every escalation
+recipient is a C-level box, so its tier factor is 1 and only the budget factor applies; the tier gate
+takes effect for any recipient that is a PH.
+
+The five sources `tools/wake_audit.py` flagged on 22 Oct:
+
+| Source | Now |
+|---|---|
+| `escalation-watch.timer` | BACKOFF: its source must call `wake_interval`, or the audit flags it again |
+| `tool-value-report.timer` | SCHEDULED-REPORT: weekly or slower on a calendar date (the timer text is checked); unit untouched |
+| `ALL_Protocol_RunInbox` | the background `ask_run.py wait <id>` or the result letter; no timed re-check |
+| `CMO_Workflow_MimiPage_Weekly` | REVIEWED: one one-shot per post time (deadline), 2 lines counted |
+| `CXO_Protocol_OvernightSelfWake` | REVIEWED: events, a zero-model watch script whose poll interval carries the factor; one deadline one-shot, 3 lines counted |
+
+A REVIEWED skill is flagged again if it gains a line with a clock primitive beyond its counted number, or
+a different primitive.

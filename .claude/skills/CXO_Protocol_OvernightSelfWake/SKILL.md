@@ -1,11 +1,12 @@
 ---
 name: CXO_Protocol_OvernightSelfWake
 kind: protocol
-description: "PROTOCOL — Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events plus a heartbeat with a backup, and spend the fewest tokens per wake. Trigger on /CXO_Protocol_OvernightSelfWake and on \"ปลุกตัวเอง\", \"อย่าให้ตัวเองหลับ\", \"ขอตัวไปนอน\", \"ระหว่าง CEO หลับ\", \"wake yourself\", \"keep working overnight\". Do NOT use for watching a rented GPU (IRON-RULES §46) or for a browser loop (IRON-RULES §42: delegate to browser_operator)."
+description: "PROTOCOL — Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events (worker letters, card answers, mail) with a zero-model backup check slowed by the usage-budget factor, and spend the fewest tokens per wake. Trigger on /CXO_Protocol_OvernightSelfWake and on \"ปลุกตัวเอง\", \"อย่าให้ตัวเองหลับ\", \"ขอตัวไปนอน\", \"ระหว่าง CEO หลับ\", \"wake yourself\", \"keep working overnight\". Do NOT use for watching a rented GPU (IRON-RULES §46) or for a browser loop (IRON-RULES §42: delegate to browser_operator)."
 owner: CTO
 created_by: agent
 author: {role: cto, date: "2026-10-07"}
-improved_by: []
+improved_by:
+  - {role: developer, date: "2026-10-27", what: "wake part rewritten to IRON-RULES §64: events, a zero-model watch script, the budget factor, no model heartbeat (task-375ec9e9)"}
 aka: []
 audience: [cxo]
 ---
@@ -20,6 +21,9 @@ The CEO, 2026-10-07 01:2x (session cto-369faf85), verbatim fragments: "ฉัน
 "และเรื่อง Token ใช้ประหยัดๆ นะ" · "อะไรที่ตัดสินใจเองได้ ทำให้ก่อนได้ ห้ามรอจนกว่า CEO ตื่นโดนไม่ทำอะไรแล้วนิ่งหายไปเฉยๆ" ·
 "และมีแผนสำรองเสมอ ในการปลุก".
 
+Since 22 Oct (IRON-RULES §64, CEO) a wake is for a real event: the "every 1-2 hours" he asked for here is now a zero-model backup
+check, not a model turn.
+
 ## What went wrong on past nights (the evidence this protocol is built from)
 
 | Date | What happened | Cost | Step that prevents it |
@@ -32,8 +36,8 @@ The CEO, 2026-10-07 01:2x (session cto-369faf85), verbatim fragments: "ฉัน
 | 2026-09-07 | A worker's "holding for CTO" line reached only the log; nothing woke the CTO | 35 min held | 3, 5 |
 | 2026-09-09 | A Monitor's parser crashed on every poll and emitted nothing; the CEO had been told "the monitor will chain it" | box idle 2 h | 3 (first event before trust) |
 | 2026-09-23 | On battery the Mac ran Maintenance Sleep cycles; a 30-min Monitor got 0 events | 30 min of nothing | 1 (power) |
-| 2026-10-01 | A refill loop exited "ALL DONE" and the queue sat empty | 21:42 to 23:11 | 5 (tick reads the queue, not the loop) |
-| 2026-10-03 | A hung renderer timed out every prep | 00:29 to 08:58, 9 h | 5 (tick sees a stall) |
+| 2026-10-01 | A refill loop exited "ALL DONE" and the queue sat empty | 21:42 to 23:11 | 5 (the watch reads the queue, not the loop) |
+| 2026-10-03 | A hung renderer timed out every prep | 00:29 to 08:58, 9 h | 5 (the watch sees a stall) |
 | 2026-10-07 | At the CEO's goodnight the check found the Mac on battery at 4%, ~8 min left | caught: push sent, CEO plugged in | 1 |
 
 Sources: memories `feedback_mac_sleeps_mid_render`, `mac_watchdog_panic_and_cto_resume` (legacy),
@@ -64,26 +68,35 @@ memory_pressure | tail -1      # free %; low free + 3 or more sessions = the ove
 Put it on disk in Agents-Core, `state/night/<short-sid>.md` (it survives a reboot; the scratchpad under /tmp may not). It holds:
 
 - what runs: task ids, agent or worker, expected end;
-- the wake layers armed (step 3) and the next wake time;
+- the layers armed (step 3), the budget factor you saw, and the next deadline wake;
 - what each event triggers (agent done → review, gates, push, send the sha);
 - what waits for the CEO, as one-line questions;
 - the resume line if the session dies: `bash scripts/spawn-cto.sh --id <short> --resume <uuid>`
   (`state/locks/cto-<short>.uuid` holds the UUID; without `--id` the resumed session gets a new short id).
 
-### 3. Arm the wakes: always two layers, from different mechanisms
+### 3. Wake on events; one zero-model backup; no model turn on a clock (IRON-RULES §64)
+
+Only a real event wakes this session: a worker of yours done, failed or stuck (its letter), a Run or question card
+answered, mail from the CEO or a peer, a deadline due within 24 h. Never schedule a model turn to learn that nothing
+changed. Arm these layers, from different mechanisms:
 
 | Layer | Mechanism | Wakes when | Dies when | Idle cost |
 |---|---|---|---|---|
-| Event (primary) | background `Agent` completion, `run_in_background` job exit, a peer's `SendMessage`, a `Monitor` line | the thing happens | the session ends; the memory watchdog kills background Bash | 0 |
-| Heartbeat | `CronCreate` one-shot ~50 min ahead, re-armed by every tick | the time comes and the REPL is idle | the session ends; a tick forgets to re-arm | one turn per fire |
-| Backup | `CronCreate` recurring every 2 h at an off-minute; it re-arms the heartbeat when none is pending | the time comes | the session ends; auto-expires after 7 days | one short turn per fire |
-| Inside /loop only | `ScheduleWakeup` (60 to 3600 s) | only when the CEO started `/loop` without an interval | the loop stops | one turn |
+| Event (primary) | the org's producers: Run Watch and the escalation watch for workers, `send_to_cxo` letters from peers and PHs, a background `Agent` completion, a `run_in_background` job exit | the thing happens | the session ends; the memory watchdog kills background Bash | 0 |
+| Card | `bash scripts/hub/org-python.sh tools/ask_run.py wait <id>` as ONE background command right after `create` | the card ends | as above | 0 |
+| Deadline | ONE session-only `CronCreate recurring:false` at the time a job is due (a render's expected end, an hour the CEO set); never a recurring one | the time comes and the REPL is idle | the session ends; a restore forgets it (`CronList` first) | one turn per deadline |
+| Backup (the plan B the CEO asked for) | a background watch script (step 5) that exits only when the state it reads changes | something it reads changed | the session ends; the memory watchdog kills it | 0 while nothing changes |
 | Off-session | none: Contabo has no route to the Mac, so nothing outside can wake a dead Mac session | n/a | n/a | n/a |
 
-- Never rely on one layer (2026-09-05, 2026-09-09).
-- A Monitor counts only after its first event has arrived. Put its script in a file, `bash -n` it, run it once in the
-  foreground. A Monitor expires after 30 min and every re-arm is a turn: for one outcome prefer `run_in_background`
-  with `until <done marker>; do sleep 60; done`.
+- Never rely on one layer (2026-09-05, 2026-09-09): the event path always has the watch script behind it.
+- **Budget pressure slows the clocks, never the events.** Every poll interval of the watch script is
+  `wake_interval(base, tier="critical", budget_json=load_budget(), now=now)` from `lib/wake_backoff.py`: the base
+  times 2 while AGY, ChatGPT or Claude is over today's target, times 4 while all three are, never stopped; missing or
+  stale budget data is times 1. The script re-reads it on every pass, and the night plan states the factor you saw. A real event still
+  wakes at once.
+- A Monitor counts only after its first event has arrived, and every re-arm of one is a model turn: for one outcome
+  use `run_in_background` with a script that exits on the change. Put the script in a file, `bash -n` it, run it once in
+  the foreground first.
 - Wait on the producer's own done marker, never on a file count or on a file existing.
 - Workers you spawn: a heartbeat line every ~3 min during long waits, and each value reported the moment it exists.
 - `CronCreate` jobs live only in this session and fire only while the REPL is idle (tool doc, 2026-10-07). A session
@@ -94,35 +107,49 @@ Put it on disk in Agents-Core, `state/night/<short-sid>.md` (it survives a reboo
 
 | Waiting for | Wake on |
 |---|---|
-| A job with a known end (an agent, a render of ~30 to 90 min, CI of ~8 min) | its event, plus one check near the expected end |
-| External state with no event | one check at the expected change time, not a 5-min poll |
-| Only a peer's reply | the heartbeat |
-| Nothing: the charter is done | stop the heartbeat, write the morning report, tab 💤 |
+| A job with a known end (an agent, a render of ~30 to 90 min, CI of ~8 min) | its event, plus one deadline wake near the expected end |
+| External state with no event | the watch script polling every base x factor (base 5 to 10 min); never a model poll |
+| Only a peer's reply | the peer's letter |
+| Nothing: the charter is done | stop the watch script, write the morning report, tab 💤 |
 
-**The heartbeat is ~50 min, not 2 h.** This is token math, an estimate from Anthropic's published prompt-cache prices,
-not measured on our bill. This session's prompt cache lives 1 hour (ScheduleWakeup tool doc, 2026-10-07). A wake
-inside the hour reads the whole context at the cache-read price, about 0.1x input. A wake after the hour writes the
-whole context again, about 2x input for the 1-hour cache. So with a large context two warm wakes cost less than one
-cold one. The CEO's "1-2 ชั่วโมง" is the upper bound, not the target. Do not wake more often than every ~10 min unless a
-job ends sooner. In usage overage the cache drops to 5 min and the math flips: then fewer wakes are cheaper.
+Check the factor now: `cd <Agents-Core> && python3 -c "import time; from lib import wake_backoff as w; print(w.wake_interval(300, tier='critical', budget_json=w.load_budget(), now=time.time()))"`
+prints 300 (no pressure), 600 or 1200 seconds. Do not poll more often than the job can change.
 
-### 5. The cheap tick
+**Why no model heartbeat.** Each one reads the whole context again (an estimate from Anthropic's published prompt-cache
+prices, not our bill: about 0.1x input inside the 1-hour cache, about 2x after it), and most found nothing new; the
+22 Oct inventory counted about 41 clock wakes a night for this protocol (IRON-RULES §64, Why). The CEO's "every 1-2 hours"
+is now the watch script's poll, which costs no model turn until something changed.
 
-- **One command:** a script file, read-only, 10 lines of output or fewer, one line per thing that can change: workers
-  and agents, task rows, the peer's branch head, power, caffeinate, memory.
-- **Nothing changed:** one line of reply, no tab change, no notification, re-arm, end.
-- **Something changed:** do the next step at once (review, gates, push, the next job), then one line.
-- **Never on a tick:** screenshots; large files or transcripts (an Agent's `.output` file is its whole JSONL); a full
-  test suite "to check"; re-reading a skill already loaded; re-measuring a number already recorded.
-- **See a stall, not only a finish:** compare the age of the last activity with the expected time (2026-10-03: a hung
+### 5. The watch script: zero model turns while nothing changes
+
+- **One script, read-only, in the background** (`run_in_background`). It prints nothing and sleeps while the state is
+  unchanged, and **exits with one short line when a line it reads changed**: that exit wakes the session. One line per
+  thing that can change: workers and agents, task rows, the peer's branch head, power, caffeinate, memory.
+  Never compare a clock time, a counter or a remaining-minutes figure: they change on every pass.
+- **Nothing changed** is silence: no model turn, no reply, no tab change, no notification.
+- **Something changed:** do the next step at once (review, gates, push, the next job), then one line, then start the
+  script again.
+- **Never in the script:** screenshots; large files or transcripts (an Agent's `.output` file is its whole JSONL); a full
+  test suite "to check"; re-reading a skill already loaded; re-measuring a number already recorded; restarting
+  anything (2026-10-09, §3 note).
+- **See a stall, not only a finish:** also exit when the age of the last activity passes the expected time (2026-10-03: a hung
   renderer went unseen for 9 h).
 
 ```bash
 #!/bin/bash
-# night tick: read-only, one short line per thing that can change
-echo "time $(TZ=Asia/Bangkok date +%H:%M) | $(pmset -g batt | sed -n 2p | cut -f2) | caffeinate $(pgrep -f 'caffeinate -i -m -s' >/dev/null && echo up || echo DOWN)"
-git -C <repo> fetch -q origin; echo "peer head $(git -C <repo> log -1 --format='%h %s' origin/<branch> | cut -c1-70)"
-bash /Users/gob/MoonieXHQ/Agents/Core/scripts/hub/org-python.sh -c "from lib import db; print(' | '.join(f\"{t} {(db.get_task(t) or {}).get('status')}\" for t in (<ids>)))"
+# night watch: read-only, zero model turns; exits (= wakes the session) only when a line below changed
+state() {   # one short line per thing that can change; no clock time, no counters
+  echo "power $(pmset -g batt | head -1) | caffeinate $(pgrep -f 'caffeinate -i -m -s' >/dev/null && echo up || echo DOWN)"
+  git -C <repo> fetch -q origin; echo "peer head $(git -C <repo> log -1 --format='%h %s' origin/<branch> | cut -c1-70)"
+  bash <Agents-Core>/scripts/hub/org-python.sh -c "from lib import db; print(' | '.join(f\"{t} {(db.get_task(t) or {}).get('status')}\" for t in (<ids>)))"
+}
+prev="$(state)"
+while true; do
+  iv="$(cd <Agents-Core> && python3 -c "import time; from lib import wake_backoff as w; print(int(w.wake_interval(300, tier='critical', budget_json=w.load_budget(), now=time.time())))" 2>/dev/null)"
+  sleep "${iv:-300}"
+  cur="$(state)"
+  [ "$cur" != "$prev" ] && { echo "$cur"; exit 0; }
+done
 ```
 
 ### 6. Decide alone, prepare, or leave, but never go silent
@@ -147,9 +174,9 @@ bash /Users/gob/MoonieXHQ/Agents/Core/scripts/hub/org-python.sh -c "from lib imp
 
 ### 7. Morning
 
-- First message, 12 lines or fewer: done (shas), running, the cards waiting for the CEO, how many ticks fired and what
-  they caught, anything that died.
-- `CronDelete` the heartbeat and the backup, close the night plan file, set the tab.
+- First message, 12 lines or fewer: done (shas), running, the cards waiting for the CEO, how many times the watch script
+  woke you and what it caught, anything that died.
+- `CronDelete` any deadline wake still armed, stop the watch script, close the night plan file, set the tab.
 - If the session died overnight: read `state/night/<sid>.md`, resume with its line, and check every external job
   against its own state (a render keeps running server-side; a pushed branch is on origin).
 
@@ -162,16 +189,17 @@ bash /Users/gob/MoonieXHQ/Agents/Core/scripts/hub/org-python.sh -c "from lib imp
 
 ## What it never does
 
-- Never arms only one wake layer.
+- Never relies on one wake layer.
+- Never schedules a model turn on a clock to learn that nothing changed (IRON-RULES §64): no recurring `CronCreate`, no heartbeat.
 - Never runs a browser loop in a C-level tab (IRON-RULES §42).
-- Never writes a long reply to a quiet tick.
+- Never writes a reply while the watch script has not exited.
 - Never trusts a monitor before its first event, or says "it will chain" before it has.
 - Never decides money, secrets, privilege, publication or another session's lane for the sleeping CEO.
 
 ## Field notes
 
 - 2026-10-07 [MISSING] §1 — first run: at the CEO's goodnight (01:2x) the check found the Mac on battery at 4%, ~8 min left; a push went out and the CEO plugged in by 01:27 · evidence: session cto-369faf85 · status: pending
-- 2026-10-07 [MISSING] §4 — the 50-min heartbeat comes from published cache prices, not a measurement; compare the morning usage with the night's tick count · evidence: session cto-369faf85 · status: pending
+- 2026-10-07 [MISSING] §4 — the 50-min heartbeat comes from published cache prices, not a measurement; compare the morning usage with the night's tick count · evidence: session cto-369faf85 — superseded: the model heartbeat is gone (IRON-RULES §64, 27 Oct, task-375ec9e9) · status: superseded
 - 2026-10-09 [COSTLY] §night state — the overnight tools (pyround.py, provmerge3.py, ring plans) and every capture since 10-08 18:27 lived only in the session scratchpad under /private/tmp; a Mac reboot at ~01:29 wiped it with an uncommitted merge inside. Only the transcript still holds the scripts. Rsync the scratchpad (minus worktrees) to Assets at each heartbeat, and commit or push a merge before a long gate run (n=1) · evidence: cto-f39cb080 twin park file ~/.claude/session-data/2026-10-09-f39cb080-twin-session.tmp; same reboot, cto-369faf85 lost its two worktrees and its provenance merge helper (rebuilt as merge_prov.py, copy in Assets scratch-cto-369faf85-2026-10-08) while its pushed branches and the Assets package survived · status: pending
 - 2026-10-09 [MISSING] §3 — a backup layer that restarts the primary (and the primary restarting the backup) through `pgrep … || nohup … &` is a fork bomb, not a safety net: when the Mac neared `kern.maxprocperuid` (1333), `pgrep` itself could not fork, returned non-zero, was read as "dead", and every tick started one more copy — 220 + 440 copies, 1,483 processes, "fork: Resource temporarily unavailable" in every session on the Mac for ~5 h, until the CEO rebooted the Mac (~01:29). The classifier refused the session's own `pkill` ("Interfere With Workloads") until the CEO typed "go ahead". What replaced it: ONE supervisor per job family (`lb_supervisor.sh`), held by `mkdir <lock>` + its pid inside, children tracked by pid file + `kill -0` (bash builtins, nothing forks), nothing restarts the supervisor but a human or the 2-hour check; the two old scripts are stubs that refuse to run. Rule candidate for §3: a liveness check must not fork, and no two loops may restart each other. Run every new loop once in the foreground and read its first log lines before leaving it · evidence: session cto-671f688f 2026-10-08 20:18 → 10-09 01:43, memory `reference_mutual_pgrep_restart_fork_bomb.md`, `lb_out/queue_guard.log` ("restarted keepalive" ×hundreds) · status: pending
 - 2026-10-09 [MISSING] §3 — the reboot also ended every session cron: the restored session (fork d5663133) had an empty CronList, so the morning wake would never have fired. On the first turn after a restore, run CronList and re-arm the wakes (n=1) · evidence: cto-369faf85 01:58 CronList empty, cron 520cec4c re-armed · status: pending
