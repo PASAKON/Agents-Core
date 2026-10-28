@@ -11,7 +11,9 @@
 #   --host-alias  ssh target, default macbook-pro--gob (the tailnet name). A bare name gets
 #                 gob@ in front: the Mac sshd refuses root (PermitRootLogin no, AllowUsers gob@...).
 #                 Pass user@host to use another account.
-#   --repo        the Mac checkout, default /Users/gob/Projects/Agents
+#   --repo        the Mac checkout, default /Users/gob/MoonieXHQ/Agents/Core
+#   --detach      run locally on the Mac through a one-shot launchd job
+#   --cards-checked  pass the operator's card review acknowledgement to prep
 #
 # Exit  0 done (or dry run ok) · 2 usage · 4 Mac HEAD differs from --sha · 5 cannot read the Mac's
 #       HEAD (ssh failed) · 6 prep ok but `sudo -n shutdown` was refused (the sessions are saved and
@@ -23,10 +25,12 @@ export HOME="${HOME:-$(getent passwd "$(id -u)" | cut -d: -f6)}"
 
 sha=""
 alias_="macbook-pro--gob"
-repo="/Users/gob/Projects/Agents"
+repo="/Users/gob/MoonieXHQ/Agents/Core"
 dry=0
+detach=0
+cards=0
 
-usage() { echo "usage: mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--dry-run]" >&2; exit 2; }
+usage() { echo "usage: mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--detach] [--cards-checked] [--dry-run]" >&2; exit 2; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -39,6 +43,8 @@ while [ $# -gt 0 ]; do
       esac
       shift 2 ;;
     --dry-run) dry=1; shift ;;
+    --detach) detach=1; shift ;;
+    --cards-checked) cards=1; shift ;;
     *) echo "unknown option: $1" >&2; usage ;;
   esac
 done
@@ -47,6 +53,13 @@ done
 [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "--sha must be the full 40-hex commit id (git rev-parse HEAD)" >&2; usage; }
 [[ "$alias_" =~ ^[A-Za-z0-9][A-Za-z0-9._@-]*$ ]] || { echo "--host-alias: letters, digits, . _ - @ only" >&2; usage; }
 [[ "$repo" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "--repo must be an absolute path of letters, digits, . _ - /" >&2; usage; }
+
+if [ "$detach" -eq 1 ]; then
+  args=(--sha "$sha" --repo "$repo")
+  [ "$dry" -eq 0 ] || args+=(--dry-run)
+  [ "$cards" -eq 0 ] || args+=(--cards-checked)
+  exec bash "$(dirname "$0")/mac-restart-detach.sh" "${args[@]}"
+fi
 
 case "$alias_" in *@*) target=$alias_ ;; *) target="gob@$alias_" ;; esac
 account=${target%%@*}
@@ -76,6 +89,7 @@ echo "Mac HEAD matches $sha"
 # 2. Prep: save and close the sessions. --wait-max 600 is the mid-turn safety gate.
 prep_flags="--wait-max 600"
 [ "$dry" -eq 0 ] || prep_flags="$prep_flags --dry-run"
+[ "$cards" -eq 0 ] || prep_flags="$prep_flags --cards-checked"
 status=0
 mac_ssh "$in_repo && bash scripts/hub/org-python.sh tools/restart_run.py --host mac prep $prep_flags" || status=$?
 if [ "$status" -ne 0 ]; then
