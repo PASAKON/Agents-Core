@@ -12,8 +12,12 @@ card, sticker, sfx and subtitle comes from the EDL.  The kit's look is untouched
   ilag_cut.py encode <edl.json> --out WORK [--root DIR] [--lock FILE]
         encode each segment to WORK/seg/<id>.mp4 (a segment whose inputs are unchanged is skipped), then concat copy +
         loudnorm to WORK/out/<output>.  Stdlib + ffmpeg/ffprobe on PATH only, so it runs on winbox Windows Python.
+        On Linux without --lock it warns once and holds /opt/MoonieXHQ/Work/.bl-render.lock (one render at a time).
 
-EDL (JSON).  Paths are relative to --root (default: the EDL's folder).  Times are seconds; gains are linear.
+EDL (JSON).  Paths are relative to --root (default: the EDL's folder) and must resolve, symlinks followed, to inside
+it: a src, sfx or kit that leads outside is an error.  The kit folder gives the template, fonts and logo only; the kit's
+Python (render_kit.py, cut_logo.py) is always the repo's own copy.  The work folder (--out) may hold no symlink that
+resolves outside it.  Times are seconds; gains are linear; every number must be finite and at most 1e6.
   top level   fps (24)  size [1080,1920]  sfx "sfx" (folder of <name>.wav)  kit "templates" (default for `cards --kit`)
               output "ilag-ep.mp4"  loudnorm -16 (LUFS)  segments [...]  note
   every segment   id (unique, A-Za-z0-9_-)  kind  note  cards  subs  sfx          (ng: cards/subs/sfx sit inside take/take2)
@@ -55,9 +59,15 @@ NG_SCALES = {3: 1.55, 4: 1.25, 5: 1.06, 6: 0.97}
 NG_SHAKE = {4: (14, -8), 5: (-9, 6), 6: (5, -3)}
 REWIND_SPEED = 1.85
 TAKE2_STICKER = 1.5
+DEFAULT_LOCK = "/opt/MoonieXHQ/Work/.bl-render.lock"    # the BLACK LIQUIDITY render lock: one render at a time on Contabo
+REVERSE_MAX = 8                 # seconds of source a reverse may buffer: every frame sits in RAM
+NUM_MAX = 1e6                   # larger than any EDL number; inf, nan and 1e999 are typos that would overflow
 SIZE = [1080, 1920]
 ENC_SALT = "ilag_cut-2"         # bump when the filter graphs change: invalidates every cached segment
+SRC_STAMP = ".src"              # in an NG frame folder: path, size and mtime_ns of the source the frames were cut from
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+REPO_KIT = Path(__file__).resolve().parents[1] / "knowledge/brand-knowledge/brands/ilag/templates"
+KIT_PYTHON = ("render_kit.py", "cut_logo.py")    # the only Python `cards` runs: always REPO_KIT's copy, never an EDL path's
 DASHES = "—–"
 GUILLEMETS = "\u00ab\u00bb"
 PATH_KEYS = {"src", "kit", "sfx", "output", "id"}      # strings the dash rule does not read
@@ -132,6 +142,13 @@ class V:
         x = obj[key]
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             self.err(where, f"'{key}' must be a number, got {x!r}")
+            return None
+        shown = repr(x) if len(repr(x)) <= 24 else repr(x)[:21] + "..."
+        if isinstance(x, float) and not math.isfinite(x):           # json.loads takes Infinity, -Infinity, NaN, 1e999
+            self.err(where, f"'{key}' must be a finite number, got {shown}")
+            return None
+        if abs(x) > NUM_MAX:                                         # q() and int() overflow long before this
+            self.err(where, f"'{key}' must be at most {NUM_MAX:g} in size, got {shown}")
             return None
         for ok, bound in ((lo is None or x >= lo, f">= {lo}"), (gt is None or x > gt, f"> {gt}"),
                           (hi is None or x <= hi, f"<= {hi}")):
@@ -323,8 +340,8 @@ def expand_segment(v, seg, i, fps):
                 speed = v.num(seg, "speed", where, default=1.0, lo=0.25, hi=4)
                 gain = v.num(seg, "gain", where, default=1.0, lo=0)
                 rev = v.flag(seg, "reverse", where, False)
-                if rev and dur and speed and dur * speed > 8:
-                    v.err(where, f"reverse buffers every frame in RAM; keep the source span <= 8 s "
+                if rev and dur and speed and dur * speed > REVERSE_MAX:
+                    v.err(where, f"reverse buffers every frame in RAM; keep the source span <= {REVERSE_MAX} s "
                                  f"(got {fmt(dur * speed)})")
                 if len(v.errors) == n0:
                     parts.append(part(sid, sid, total, media="video", ss=ss, span=dur * speed, speed=speed, reverse=rev,
@@ -376,6 +393,9 @@ def expand_ng(v, seg, sid, where, wm, fps):
     if tape is None or fz is None or rw is None or len(v.errors) > n0:
         return None
     dur1, dur2, rdur = q(dur1, fps), q(dur2, fps), q((fz - rw) / REWIND_SPEED, fps)
+    if rdur * REWIND_SPEED > REVERSE_MAX:                               # the rewind is a reversed clip: same RAM guard
+        v.err(where, f"the rewind reverses {fmt(rdur * REWIND_SPEED)} s of the take and reverse buffers every frame in "
+                     f"RAM; keep freeze_at - rewind_in <= {REVERSE_MAX} s (set rewind_in later in the take)")
     nfreeze = int(NG_FREEZE * fps) / fps
     c1, s1, f1 = overlays_field(v, t_obj(take), w1, dur1)
     c2, s2, f2 = overlays_field(v, t_obj(take2), w2, dur2)
@@ -393,7 +413,8 @@ def expand_ng(v, seg, sid, where, wm, fps):
              grade="rewind", wm=wm, tags=["rew"], gain=0.0, sfx=[{"name": "rewind", "at": 0.0, "gain": 0.9}],
              note="rewind"),
         part(f"{sid}.4take2", sid, dur2, media="video", src=src2, ss=in2, gain=g2, wm=wm,
-             cards=[{"el": "take2", "at": 0.0, "dur": TAKE2_STICKER, "texts": {}}] + c2, subs=s2, sfx=f2, note="take 2"),
+             cards=[{"el": "take2", "at": 0.0, "dur": min(TAKE2_STICKER, dur2), "texts": {}}] + c2, subs=s2, sfx=f2,
+             note="take 2"),
     ]
 
 
@@ -423,8 +444,9 @@ def load_edl(path):
     return edl
 
 
-def check(edl):
-    """-> (errors, warnings, segments) where segments = [(segment dict, [parts])] in EDL order."""
+def check(edl, root=None):
+    """-> (errors, warnings, segments) where segments = [(segment dict, [parts])] in EDL order.  With a root, every
+    path the EDL names (sources, sfx folder, kit folder) must also resolve, symlinks followed, to inside it."""
     v = V()
     v.keys(edl, {"fps", "size", "sfx", "kit", "output", "loudnorm", "segments", "note"}, "EDL")
     fps = v.num(edl, "fps", "EDL", default=24.0, lo=12, hi=60)
@@ -434,7 +456,7 @@ def check(edl):
     if edl.get("size", SIZE) != SIZE:
         v.err("EDL", f"'size' must be {SIZE} (the kit overlays are {SIZE[0]}x{SIZE[1]}), got {edl.get('size')!r}")
     out = v.string(edl, "output", "EDL", default="ilag-ep.mp4")
-    if out and not re.match(r"^[^/\\]+\.mp4$", out):
+    if out and not re.match(r"^[^/\\:]+\.mp4$", out):
         v.err("EDL", f"'output' must be a file name ending .mp4, got {out!r}")
     v.num(edl, "loudnorm", "EDL", default=-16.0, lo=-70, hi=-5)
     for k in ("sfx", "kit"):
@@ -476,6 +498,14 @@ def check(edl):
             v.err(f"segment '{seg.get('id')}'", "blooper segment must come after the blooper_header")
     if "blooper_header" in kinds and not any(isinstance(s, dict) and s.get("blooper") for s in segs):
         v.warnings.append("blooper_header with no blooper segment after it")
+    if root is not None:
+        named = [(f"segment '{p['seg']}' src", p["src"]) for _, ps in out_segs for p in ps if p["src"]]
+        named += [(f"EDL '{k}'", edl[k]) for k in ("sfx", "kit") if isinstance(edl.get(k), str)]
+        for what, path in dict.fromkeys(named):
+            try:
+                resolve(root, path, what)
+            except Fail as e:
+                v.errors.append(str(e))
     if not v.errors:
         total = sum(p["dur"] for _, ps in out_segs for p in ps)
         if "title" in kinds:
@@ -541,7 +571,7 @@ def clock(t):
 
 def cmd_plan(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     for w in warnings:
         print(f"WARN  {w}", file=sys.stderr)
     if errors:
@@ -571,6 +601,33 @@ def cmd_plan(a):
 
 
 # ------------------------------------------------------------------ cards (Playwright + PIL)
+def edl_root(a):
+    """--root, else the EDL's own folder: absolute, symlinks followed."""
+    return Path(a.root or Path(a.edl).resolve().parent).resolve()
+
+
+def refuse_escaping_links(work):
+    """Every symlink under WORK must resolve inside WORK.  A linked cards/, seg/, out/ or kit/ folder (or one linked
+    file in them) would carry our writes, and the delete of a stale NG frame set, to wherever it points."""
+    work = Path(work).resolve()
+    bad = []
+    for dirpath, dirs, files in os.walk(work):          # followlinks is off: a linked folder is listed, not entered
+        for name in dirs + files:
+            link = Path(dirpath) / name
+            if not link.is_symlink():
+                continue
+            try:
+                target = link.resolve()
+            except (OSError, RuntimeError):             # a link loop
+                bad.append(f"{link} -> (does not resolve)")
+                continue
+            if target != work and work not in target.parents:
+                bad.append(f"{link} -> {target}")
+    if bad:
+        raise Fail(f"{len(bad)} symlink(s) in the work folder {work} point outside it; refused (remove them or give "
+                   f"--out a real folder): " + "; ".join(bad[:5]) + (" ..." if len(bad) > 5 else ""))
+
+
 def logo_source(kit):
     """(path, how): the kit folder's own logo.png (REBUILD step 0), else the Page's logo jpg next to the templates
     folder, which cut_logo.py turns into logo.png.  The logo is never redrawn."""
@@ -578,7 +635,7 @@ def logo_source(kit):
     if (kit / "logo.png").exists():
         return kit / "logo.png", "png"
     jpg = kit.parent / "images" / "ilag-page-logo-1080.jpg"
-    if jpg.exists() and (kit / "cut_logo.py").exists():
+    if jpg.exists() and (REPO_KIT / "cut_logo.py").exists():
         return jpg, "jpg"
     raise Fail(f"no logo for the kit: put logo.png in {kit} or keep images/ilag-page-logo-1080.jpg beside the templates "
                f"folder (REBUILD.md step 0 makes logo.png with cut_logo.py)")
@@ -587,32 +644,47 @@ def logo_source(kit):
 def kit_fingerprint(kit):
     kit = Path(kit)
     h = hashlib.sha256()
-    for name in ("kit.tpl.html", "render_kit.py"):
-        h.update((kit / name).read_bytes())
+    h.update((kit / "kit.tpl.html").read_bytes())
+    h.update((REPO_KIT / "render_kit.py").read_bytes())                  # what actually runs
     src, how = logo_source(kit)
     h.update(src.read_bytes())
     if how == "jpg":
-        h.update((kit / "cut_logo.py").read_bytes())
+        h.update((REPO_KIT / "cut_logo.py").read_bytes())
     for f in sorted((kit / "fonts").glob("*.ttf")):
         h.update(f"{f.name}:{f.stat().st_size}".encode())
     return h.hexdigest()
 
 
-def stage_kit(kit, work):
-    """Copy the kit's template files into WORK/kit (kit.html needs fonts/ and logo.png beside it), build kit.html there."""
+def stage_kit(kit, work, root=None):
+    """Copy the kit's data (template, fonts, logo) into WORK/kit (kit.html needs fonts/ and logo.png beside it) and
+    build kit.html there.  The kit folder may be named by an EDL or by --kit, so it supplies text and pictures, never
+    code: render_kit.py (run here) and cut_logo.py (run in a child) are always the repo's own copies, REPO_KIT."""
     kit, stage = Path(kit), Path(work) / "kit"
-    for need in ("kit.tpl.html", "render_kit.py", "fonts"):
+    root = Path(root) if root is not None else kit.resolve().parent
+    seen = set()
+    for dirpath, dirs, files in os.walk(kit, followlinks=True):
+        resolved = inside(root, dirpath, "kit folder")
+        if resolved in seen:
+            dirs[:] = []
+            continue
+        seen.add(resolved)
+        for name in dirs + files:
+            inside(root, Path(dirpath) / name, "kit child")
+    for need in ("kit.tpl.html", "fonts"):
         if not (kit / need).exists():
             raise Fail(f"{kit} is not the ILAG templates folder: no {need}")
+    for need in KIT_PYTHON:
+        if not (REPO_KIT / need).is_file():
+            raise Fail(f"the repo's own ILAG kit is incomplete: no {REPO_KIT / need}")
     src, how = logo_source(kit)
     stage.mkdir(parents=True, exist_ok=True)
-    for f in ("kit.tpl.html", "render_kit.py"):
-        shutil.copy2(kit / f, stage / f)
+    shutil.copy2(kit / "kit.tpl.html", stage / "kit.tpl.html")
+    shutil.copy2(REPO_KIT / "render_kit.py", stage / "render_kit.py")
     shutil.copytree(kit / "fonts", stage / "fonts", dirs_exist_ok=True)
     if how == "png":
         shutil.copy2(src, stage / "logo.png")
     else:
-        done = subprocess.run([sys.executable, "-I", str(kit / "cut_logo.py"), str(src), str(stage / "logo.png")],
+        done = subprocess.run([sys.executable, "-I", str(REPO_KIT / "cut_logo.py"), str(src), str(stage / "logo.png")],
                               capture_output=True, text=True)
         if done.returncode:
             raise Fail(f"cut_logo.py failed (it needs numpy and PIL: use the Agents-Core venv python):\n"
@@ -622,7 +694,7 @@ def stage_kit(kit, work):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     if not hasattr(mod, "build_kit"):
-        raise Fail(f"{kit}/render_kit.py has no build_kit(): copy the current templates folder")
+        raise Fail(f"{REPO_KIT}/render_kit.py has no build_kit(): the repo's own kit is broken")
     return stage, mod.build_kit(stage)
 
 
@@ -654,13 +726,14 @@ SET_TEXT_JS = """async ({el, items, authored}) => {
 }"""
 
 
-def render_card_set(kit, work, wanted, force=False):
+def render_card_set(kit, work, wanted, force=False, root=None):
     """Render [(el, texts)] to WORK/cards/<el>-<hash>.png.  Returns (rendered, reused)."""
+    work = Path(work).resolve()                         # as_uri() below needs an absolute path
+    refuse_escaping_links(work)
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         raise Fail("cards needs Playwright + PIL: run with /opt/MoonieXHQ/Agents/Core/.venv/bin/python")
-    work = Path(work)
     (work / "cards").mkdir(parents=True, exist_ok=True)
     fp = kit_fingerprint(Path(kit))
     sidecar = work / "cards" / ".kit-sha"
@@ -671,7 +744,7 @@ def render_card_set(kit, work, wanted, force=False):
             os.replace(f, work / "cards" / ".old" / f.name)
     todo = [(el, tx) for el, tx in wanted if force or not card_path(work, el, tx).exists()]
     if todo:
-        stage, html = stage_kit(kit, work)
+        stage, html = stage_kit(kit, work, root)
         authored = authored_fit_sizes(html)
         with sync_playwright() as p:
             b = p.chromium.launch()
@@ -698,14 +771,16 @@ def draw_ng_frames(work, root, p, fps, force=False):
     f = p["frames"]
     d = Path(work) / "cards" / f"ng-{f['key']}"
     n = int(NG_FREEZE * fps)
-    if not force and len(list(d.glob("*.jpg"))) == n:
-        return False
-    d.mkdir(parents=True, exist_ok=True)
-    for old in d.glob("*.jpg"):
-        old.unlink()
     src = resolve(root, f["src"])
     if not src.exists():
         raise Fail(f"segment '{p['seg']}': source not found for the freeze frame: {src}")
+    src_file, seen = d / SRC_STAMP, json.dumps(stat_key([src]))  # the key names the EDL's text; this names the file's state
+    if not force and len(list(d.glob("*.jpg"))) == n and src_file.exists() and src_file.read_text() == seen:
+        return False
+    d.mkdir(parents=True, exist_ok=True)
+    src_file.unlink(missing_ok=True)                            # no stamp until every frame is written
+    for old in d.glob("*.jpg"):
+        old.unlink()
     tmp = d / "freeze.png"
     r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", fmt(f["freeze_at"]), "-i", str(src), "-frames:v", "1",
                         "-vf", f"scale={SIZE[0]}:{SIZE[1]}:force_original_aspect_ratio=increase,crop={SIZE[0]}:{SIZE[1]}",
@@ -731,34 +806,57 @@ def draw_ng_frames(work, root, p, fps, force=False):
             im.alpha_composite(tape)
         im.convert("RGB").save(d / f"{fr:03d}.jpg", quality=94)
     tmp.unlink()
+    src_file.write_text(seen)
     return True
 
 
 def cmd_cards(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     if errors:
         for e in errors:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    root = Path(a.root or Path(a.edl).resolve().parent)
+    root, work = edl_root(a), Path(a.out).resolve()
     kit = a.kit or edl.get("kit")
     if not kit:
         raise Fail("no kit folder: pass --kit or set 'kit' in the EDL")
-    kit = resolve(root, kit) if not a.kit else Path(a.kit)
+    kit = resolve(root, kit, "EDL 'kit'") if not a.kit else Path(a.kit)
     parts = all_parts(segs)
     wanted = wanted_cards(parts, True)
-    rendered, reused, stale = render_card_set(kit, a.out, wanted, a.force)
-    nf = sum(draw_ng_frames(a.out, root, p, int(edl.get("fps", 24)), a.force or stale)
+    kit_root = root
+    if a.kit and not Path(kit).resolve().is_relative_to(root):
+        kit_root = Path(kit).resolve().parent
+    rendered, reused, stale = render_card_set(kit, work, wanted, a.force, kit_root)
+    nf = sum(draw_ng_frames(work, root, p, int(edl.get("fps", 24)), a.force or stale)
              for p in parts if p["frames"])
-    print(f"cards: {rendered} rendered, {reused} reused, {nf} NG frame set(s) drawn -> {Path(a.out) / 'cards'}")
+    print(f"cards: {rendered} rendered, {reused} reused, {nf} NG frame set(s) drawn -> {work / 'cards'}")
     return 0
 
 
 # ------------------------------------------------------------------ encode (stdlib + ffmpeg)
-def resolve(root, p):
-    p = Path(p)
-    return p if p.is_absolute() else Path(root) / p
+def inside(base, p, what, shown=None):
+    """p with every symlink followed, which must sit inside base (followed too).  Returns that resolved path.
+    `shown` is the text to quote in an error (what the EDL wrote), default p."""
+    shown = repr(str(shown if shown is not None else p))[:120]
+    try:
+        base_r, p_r = Path(base).resolve(), Path(p).resolve()
+    except (OSError, RuntimeError, ValueError) as e:             # a link loop, a NUL byte, ...
+        raise Fail(f"{what}: {shown} does not resolve ({e}); refused")
+    if p_r != base_r and base_r not in p_r.parents:
+        raise Fail(f"{what}: {shown} resolves to {p_r}, outside {base_r}; refused (an EDL path must stay inside --root)")
+    return p_r
+
+
+def resolve(root, p, what="path"):
+    """An EDL path against --root; refused when it (or a link on the way) leads outside.  Returned resolved, so the
+    path that was checked is the path that is opened."""
+    q = Path(p)
+    return inside(root, q if q.is_absolute() else Path(root) / q, what, shown=p)
+
+
+def sfx_file(root, sfx, name):
+    return resolve(root, resolve(root, sfx, "sfx folder") / f"{name}.wav", f"sfx '{name}'")
 
 
 def run(cmd):
@@ -814,7 +912,7 @@ def build_cmd(p, env):
         files.extend(f)
         return sum(1 for x in args if x == "-i") - 1
 
-    mk, src = p["media"], (resolve(root, p["src"]) if p["src"] else None)
+    mk, src = p["media"], (resolve(root, p["src"], f"segment '{p['seg']}' src") if p["src"] else None)
     if mk == "video":
         vi = add(["-ss", fmt(p["ss"]), "-t", fmt(p["span"]), "-i", str(src)], src)
     elif mk == "image":
@@ -870,7 +968,7 @@ def build_cmd(p, env):
             g *= 0.8
         parts.append((vi, 0.0, g, ex))
     for s in p["sfx"]:
-        wav = resolve(root, env["sfx"]) / f"{s['name']}.wav"
+        wav = sfx_file(root, env["sfx"], s["name"])
         parts.append((add(["-i", str(wav)], wav), s["at"], s["gain"], []))
     si = add(["-f", "lavfi", "-t", fmt(d), "-i", "anullsrc=r=48000:cl=stereo"])
     parts.insert(0, (si, 0.0, 1.0, []))
@@ -885,6 +983,22 @@ def build_cmd(p, env):
     cmd = ["ffmpeg", "-v", "error", "-y", *args, "-filter_complex", f"{';'.join(vf)};{af}", "-map", "[v]",
            "-map", "[a]", *enc_args(fps), "-t", fmt(d), str(out)]
     return cmd, files
+
+
+def pick_lock(arg, platform=None):
+    """The lock file for `encode`: --lock as given; on Linux without it the box's shared render lock (the BLACK
+    LIQUIDITY renders hold the same file), with one warning; nowhere else (flock is Linux only)."""
+    if arg:
+        return arg
+    if not (platform or sys.platform).startswith("linux"):
+        return None
+    folder = Path(DEFAULT_LOCK).parent
+    if not folder.is_dir():
+        print(f"WARN  no --lock given and {folder} does not exist: encoding with no render lock", file=sys.stderr)
+        return None
+    print(f"WARN  no --lock given: holding the shared render lock {DEFAULT_LOCK} for this encode (one render at a "
+          f"time on this box); pass --lock FILE to use another", file=sys.stderr)
+    return DEFAULT_LOCK
 
 
 def lock_file(path):
@@ -905,10 +1019,13 @@ def lock_file(path):
 def preflight(edl, segs, root, work, probes):
     """Missing files and sources too short for their span; every problem listed."""
     errs = []
-    sfx_dir = resolve(root, edl.get("sfx", "sfx"))
     for p in all_parts(segs):
         if p["src"]:
-            src = resolve(root, p["src"])
+            try:
+                src = resolve(root, p["src"], f"segment '{p['seg']}' src")
+            except Fail as e:
+                errs.append(str(e))
+                continue
             info = None
             if not src.exists():
                 errs.append(f"segment '{p['seg']}': source not found: {src}")
@@ -930,9 +1047,19 @@ def preflight(edl, segs, root, work, probes):
             fdir = Path(work) / "cards" / f"ng-{p['frames']['key']}"
             if not fdir.is_dir() or not list(fdir.glob("*.jpg")):
                 errs.append(f"segment '{p['seg']}': NG slam frames missing ({fdir}); run `cards` first")
+            else:                                                       # drawn from a file that has since been replaced?
+                fsrc, stamp = resolve(root, p["frames"]["src"], f"segment '{p['seg']}' src"), fdir / SRC_STAMP
+                if fsrc.exists() and stamp.exists() and stamp.read_text() != json.dumps(stat_key([fsrc])):
+                    errs.append(f"segment '{p['seg']}': NG slam frames are stale: {fsrc.name} changed since they were "
+                                f"drawn; run `cards` again")
         for s in p["sfx"]:
-            if not (sfx_dir / f"{s['name']}.wav").exists():
-                errs.append(f"segment '{p['seg']}': sfx '{s['name']}' not found in {sfx_dir}")
+            try:
+                wav = sfx_file(root, edl.get("sfx", "sfx"), s["name"])
+            except Fail as e:
+                errs.append(f"segment '{p['seg']}': {e}")
+                continue
+            if not wav.exists():
+                errs.append(f"segment '{p['seg']}': sfx '{s['name']}' not found in {wav.parent}")
     missing = [(el, tx) for el, tx in wanted_cards(all_parts(segs), False) if not card_path(work, el, tx).exists()]
     if missing:
         errs.append(f"{len(missing)} card PNG(s) missing from {Path(work) / 'cards'}; run `ilag_cut.py cards` first "
@@ -942,21 +1069,23 @@ def preflight(edl, segs, root, work, probes):
 
 def cmd_encode(a):
     edl = load_edl(a.edl)
-    errors, warnings, segs = check(edl)
+    errors, warnings, segs = check(edl, edl_root(a))
     for w in warnings:
         print(f"WARN  {w}", file=sys.stderr)
     if errors:
         for e in errors:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    root, work = Path(a.root or Path(a.edl).resolve().parent), Path(a.out)
+    root, work = edl_root(a), Path(a.out).resolve()
+    refuse_escaping_links(work)
     probes = {}
     errs = preflight(edl, segs, root, work, probes)
     if errs:
         for e in errs:
             print(f"ERROR {e}", file=sys.stderr)
         return 1
-    lk = lock_file(a.lock) if a.lock else None
+    lock = pick_lock(a.lock)
+    lk = lock_file(lock) if lock else None
     try:
         fps = int(edl.get("fps", 24))
         env = {"fps": fps, "root": root, "work": work, "sfx": edl.get("sfx", "sfx"), "probes": probes}
@@ -1021,7 +1150,8 @@ def main(argv=None):
             sp.add_argument("--kit", help="the ILAG templates folder (default: 'kit' in the EDL)")
             sp.add_argument("--force", action="store_true", help="re-render every card")
         if name == "encode":
-            sp.add_argument("--lock", help="hold an exclusive flock on this file for the whole encode (Linux only)")
+            sp.add_argument("--lock", help=f"hold an exclusive flock on this file for the whole encode (Linux only; "
+                                           f"default there: {DEFAULT_LOCK})")
         sp.set_defaults(fn=fn)
     a = ap.parse_args(argv)
     try:
