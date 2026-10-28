@@ -113,6 +113,13 @@ def _mesh_probe_off(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _secret_audit_in_tmp(tmp_path, monkeypatch):
+    """The secret door (tools/infisical_setup.py) spools audit rows into the MAIN checkout's
+    state/secret-audit, even from a worktree; a test's rows never land there."""
+    monkeypatch.setenv("ORG_SECRET_AUDIT_DIR", str(tmp_path / "secret-audit"))
+
+
+@pytest.fixture(autouse=True)
 def _letters_meta_in_tmp(tmp_path, monkeypatch):
     """lib.mailbox.send logs every letter's from/to/kind (M11, escalation watch);
     a test's letters never reach the real state/reports/letters-meta.jsonl."""
