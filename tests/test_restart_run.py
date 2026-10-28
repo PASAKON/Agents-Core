@@ -905,6 +905,116 @@ def test_winbox_prep_stops_before_saving_when_a_tab_is_missing(winbox, tmp_path,
     rr.session_status.record_close.assert_not_called()
 
 
+def _stub_no_tab(monkeypatch, tmp_path, live_set, wake_code=2, wake_out=None):
+    def fake_run(cmd, *a, **kw):
+        assert any('wake.ps1' in str(part) for part in cmd)
+        out = f'argc={len(cmd)}\n' if wake_out is None else wake_out
+        return subprocess.CompletedProcess(cmd, wake_code, out, '')
+    monkeypatch.setattr(rr.subprocess, 'run', Mock(side_effect=fake_run))
+    monkeypatch.setattr(rr, 'win_session_id', lambda: 1)
+    monkeypatch.setattr(rr, 'win_gate', Mock(return_value=True))
+    monkeypatch.setattr(rr, 'win_live', Mock(return_value=set(live_set)))
+    monkeypatch.setattr(rr, 'win_wt_running', lambda: False)
+    monkeypatch.setattr(rr.session_status, 'record_close', Mock())
+    monkeypatch.setenv('LOCALAPPDATA', r'C:\Users\x\AppData\Local')
+    record = Mock(wraps=rr.win_record)
+    gone = Mock(wraps=rr.gone)
+    send = Mock(wraps=rr.send)
+    monkeypatch.setattr(rr, 'win_record', record)
+    monkeypatch.setattr(rr, 'gone', gone)
+    monkeypatch.setattr(rr, 'send', send)
+    return record, gone, send
+
+
+@pytest.mark.parametrize('action,mode', [
+    ('resume_full', 'full'),
+    ('compact_then_resume', 'full'),
+    ('resume_lazy', 'lazy'),
+])
+def test_winbox_prep_tab_missing_live_resumable_row_saved_by_jsonl(monkeypatch, tmp_path, capsys, action, mode):
+    locks = tmp_path / 'state/locks'
+    locks.mkdir(parents=True)
+    (locks / f'project_head-{SID_B}.spawned_by').write_text('cxo:cto:cto-08d5df68')
+    r = wrow(action, 'project_head', SID_B)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('project_head', SID_B)})
+    assert rr.prep(wargs(tmp_path, [r])) == 0
+    expected_row = dict(r, untyped=True)
+    send.assert_not_called()
+    record.assert_called_once_with(expected_row, 'force_saved')
+    rr.session_status.record_close.assert_called_once_with(
+        'project_head', SID_B, 'force_saved', locks_dir=locks)
+    gone.assert_called_once_with(expected_row, 'winbox')
+    out = capsys.readouterr().out
+    assert f"no_tab_saved_by_jsonl: {r['name']}" in out
+    assert 'tab_not_found' not in out
+    data = json.loads((rr.STATE / 'winbox-resume.json').read_text())
+    assert data == [dict(sid=SID_B, role='project_head', name=r['name'], project='demo',
+                         mode=mode, uuid=WUUID, lane='cto', spawned_by='cxo:cto:cto-08d5df68')]
+    assert (rr.STATE / 'pending-winbox.json').exists()
+
+
+def test_winbox_prep_tab_missing_non_live_row_fails_closed(monkeypatch, tmp_path, capsys):
+    r = wrow('resume_full', 'cmo', SID_B)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('cto', SID_A)})
+    assert rr.prep(wargs(tmp_path, [r])) == 1
+    send.assert_not_called()
+    record.assert_not_called()
+    gone.assert_not_called()
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+    assert not (rr.STATE / 'winbox-resume.json').exists()
+    out = capsys.readouterr().out
+    assert f"tab_not_found: {r['name']}" in out
+    assert 'no_tab_saved_by_jsonl' not in out
+
+
+@pytest.mark.parametrize('uuid_val', [None, ''])
+def test_winbox_prep_tab_missing_row_without_uuid_fails_closed(monkeypatch, tmp_path, capsys, uuid_val):
+    r = row('resume_full', 'cto', SID_A)
+    if uuid_val is not None:
+        r['uuid'] = uuid_val
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('cto', SID_A)})
+    assert rr.prep(wargs(tmp_path, [r])) == 1
+    send.assert_not_called()
+    record.assert_not_called()
+    gone.assert_not_called()
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+    assert not (rr.STATE / 'winbox-resume.json').exists()
+    out = capsys.readouterr().out
+    assert f"tab_not_found: {r['name']}" in out
+    assert 'no_tab_saved_by_jsonl' not in out
+
+
+@pytest.mark.parametrize('wake_code,wake_out', [
+    (2, 'WAKE exit=2 ms=10 ambiguous: 2 tabs match the title; nothing sent'),
+    (3, 'WAKE exit=3 ms=10 guard refused, nothing sent'),
+])
+def test_winbox_prep_other_preflight_failures_still_fail_closed(monkeypatch, tmp_path, capsys, wake_code, wake_out):
+    r = wrow('resume_full', 'cto', SID_A)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('cto', SID_A)}, wake_code=wake_code, wake_out=wake_out)
+    assert rr.prep(wargs(tmp_path, [r])) == 1
+    send.assert_not_called()
+    record.assert_not_called()
+    gone.assert_not_called()
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+    assert f"tab_not_found: {r['name']}" in capsys.readouterr().out
+
+
+def test_winbox_prep_dry_run_tab_missing_live_resumable_row_prints_and_writes_nothing(monkeypatch, tmp_path, capsys):
+    r = wrow('compact_then_resume', 'cto', SID_A)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('cto', SID_A)})
+    a = wargs(tmp_path, [r])
+    a.dry_run = True
+    assert rr.prep(a) == 0
+    out = capsys.readouterr().out
+    assert f"would save by jsonl (no tab): {r['name']}" in out
+    assert f'type into tab #{SID_A}' not in out
+    assert not rr.STATE.exists()
+    send.assert_not_called()
+    record.assert_not_called()
+    rr.session_status.record_close.assert_not_called()
+    gone.assert_not_called()
+
+
 def test_winbox_prep_stops_when_the_pc_is_not_ours(winbox, tmp_path):
     rr.win_gate.return_value = False
     assert rr.prep(wargs(tmp_path, [wrow()])) == 3
