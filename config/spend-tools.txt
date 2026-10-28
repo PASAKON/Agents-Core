@@ -25,3 +25,9 @@ tools/fal_tts.py --max-usd
 # the VM's own watchdog releases it 15 min after the last heartbeat: about 2.3 CU more on a G4
 # (8.9 CU/h). Studio takes run on G4 only; no other GPU's rate is measured.
 tools/colab_batch.py --max-credits
+
+# Flow card: the inner program is this commit's flow_shoot.py, sha256-checked on winbox,
+# and receives only this tool's own --max-credits. flow_shoot stops before any Submit
+# that would pass the cap (_submit_or_raise, exit 3). Worst case on SIGKILL of the card:
+# the remote run goes on, up to its own cap.
+tools/flow_shoot_card.py --max-credits
