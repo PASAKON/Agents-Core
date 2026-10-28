@@ -12,9 +12,31 @@ version: 0
 # Free space on "/" in GB. Each band keeps every action of the bands above it.
 gauge:
   green:  20   # >= 20 GB: normal
-  yellow: 10   # < 20: notify the CEO once a day, list COLD candidates
+  yellow: 10   # < 20: notify lane owners once a day, list COLD candidates
   orange: 5    # < 10: delete REBUILD automatically; no new download/video task spawns
   red:    0    # < 5:  delegate refuses every spawn in the scope[disk_floor] below
+
+hosts:
+  contabo: {green: 20, orange: 10, red: 5}
+  mac: {green: 20, orange: 10, red: 5}
+  winbox: {green: 60, orange: 30, red: 15}
+runners:
+  claude:
+    retention_days: 7
+    paths: [{path: "$CLAUDE_CONFIG_DIR/projects", action: drive}]
+  codex:
+    retention_days: 7
+    paths: [{path: "$HOME/.codex/sessions", action: drive}]
+  agy-gemini: &agy_state
+    retention_days: 7
+    paths:
+      - {path: "$HOME/.gemini/antigravity-cli/conversations", action: drive}
+      - {path: "$HOME/.gemini/antigravity-cli/brain", action: drive}
+      - {path: "$HOME/.gemini/antigravity-cli/log", action: delete}
+  agy-claude: *agy_state
+  jules: {retention_days: 7, paths: []}
+docker: {keep_rollback_tags: 2, build_cache: always, volumes: never, in_use_images: never}
+review_worktree: {idle_days: 3, require_pushed: true, require_clean: true, keep_branch: true}
 
 # Per-feature scope (CEO 2026-09-23): which owner_cto each feature applies
 # to. "all" = every task of every session, including owner_cto=None; a

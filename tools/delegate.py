@@ -230,13 +230,11 @@ STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 DEFAULT_DISK_ORANGE_GB = 5.0
 
 
-def _disk_orange_floor_gb() -> float:
-    """Tiny private loader for config/storage-policy.yaml `gauge.orange`
-    (GB) — ADR 0030. A shared tools/storage_policy.py loader is being built
-    separately (task brief) — do not create/import it here."""
+def _disk_orange_floor_gb(host=None) -> float:
+    """Legacy function name; all-spawn floor is the host's red threshold."""
     try:
-        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8"))
-        return float((data or {}).get("gauge", {}).get("orange", DEFAULT_DISK_ORANGE_GB))
+        from tools.storage_policy import load, host_thresholds
+        return float(host_thresholds(load(STORAGE_POLICY), host)['red'])
     except (OSError, ValueError, TypeError):
         return DEFAULT_DISK_ORANGE_GB
 
@@ -655,7 +653,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     display = display_for(role)
     tab_title = f"{display} ({task_id})"
     cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
-    work_env = f"export WORK_DIR='{work_dir}' && " if work_dir else ""
+    work_env = f"export WORK_DIR='{work_dir}' && mkdir -p \"$WORK_DIR/tmp\" && export TMPDIR=\"$WORK_DIR/tmp\" && " if work_dir else ""
     if tmux_attach:
         # Trailing `; exit $?` (ADDENDUM 2, CTO 2026-09-07 — CEO rule:
         # ending a worker must close its window, never just the process).
@@ -1918,7 +1916,7 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
         # status write after that point would silently regress the claim.
         db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
         cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
-        work_env = f"export WORK_DIR='{work_dir_path}' && " if work_dir_path else ""
+        work_env = f"export WORK_DIR='{work_dir_path}' && mkdir -p \"$WORK_DIR/tmp\" && export TMPDIR=\"$WORK_DIR/tmp\" && " if work_dir_path else ""
         dev_cmd = f"{cto_env}{work_env}{WORKER_LAUNCHER} {role_name} {task_id}"
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
@@ -2243,7 +2241,7 @@ def _p2_spawn_refusal(task: dict, resolved_host: str | None, this_host: str | No
     """Org restructure P2 gates: the resource gate (ORG_SPAWN_GATE, plan §7.3)
     for a spawn on this machine, then a Project Head's worker cap (plan §3.2)."""
     if resolved_host == this_host:
-        why = resource_gate.check()
+        why = resource_gate.check(kind=task.get('kind') or task.get('role', ''))
         if why:
             return why
     return _ph_cap_refusal(task)
@@ -2351,7 +2349,7 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         pre_free_gb = _free_gb()
         try:
             policy = storage_policy.load(str(STORAGE_POLICY))
-            pre_band = storage_policy.band(pre_free_gb, policy)
+            pre_band = storage_policy.host_band(pre_free_gb, policy, resolved_host)
         except storage_policy.PolicyError as e:
             pre_band = None
             warn(f"storage reclaim: policy load failed task={task_id}: {e}")
@@ -2388,7 +2386,7 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
     # runners/branch_poller.remote_pid_alive's liveness probe — so a broken
     # probe can never become a false floor that blocks every remote spawn.
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
-    orange_gb = _disk_orange_floor_gb()
+    orange_gb = _disk_orange_floor_gb(resolved_host)
     free_gb: float | None
     if resolved_host == this_host:
         free_gb = _free_gb()
@@ -2407,6 +2405,11 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
             host_cfg_for_disk = None
         free_gb = (_remote_free_gb(host_cfg_for_disk["ssh"])
                   if host_cfg_for_disk and host_cfg_for_disk.get("ssh") else None)
+    if disk_floor_applies and free_gb is not None and any(
+            k in (task.get('kind') or task.get('role', '')).lower() for k in ('video', 'download')):
+        if storage_policy.host_band(free_gb, host=resolved_host) == 'orange':
+            db.set_fields(task_id, delegate_log=f'disk orange on {resolved_host}: video/download spawn refused', actor='cto')
+            return db.get_task(task_id)
     if disk_floor_applies and free_gb is not None and free_gb < orange_gb:
         # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
         # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no

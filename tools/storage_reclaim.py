@@ -238,7 +238,7 @@ def plan(db_path: str | Path, policy: dict, owners: str | list[str]) -> list[dic
 
 # -------------------------------------------------------------------- apply
 
-def apply(items: list[dict], ledger_path: str | Path | None = None) -> list[dict]:
+def apply(items: list[dict], ledger_path: str | Path | None = None, *, steward_guard=False) -> list[dict]:
     """Delete every item's path with shutil.rmtree and append one JSON line
     per successfully-deleted item to the ledger. Returns the items actually
     deleted (skips anything that turned into a symlink or vanished since
@@ -249,6 +249,15 @@ def apply(items: list[dict], ledger_path: str | Path | None = None) -> list[dict
     with ledger.open("a", encoding="utf-8") as fh:
         for item in items:
             path = item["path"]
+            if steward_guard:
+                from tools.disk_steward import guard_path
+                try:
+                    guard_path(path)
+                    for base, dirs, files in os.walk(path):
+                        for name in dirs + files:
+                            guard_path(Path(base) / name)
+                except ValueError:
+                    continue
             if os.path.islink(path) or not os.path.isdir(path):
                 continue
             try:
@@ -276,6 +285,7 @@ def _default_db_path() -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true", help="delete instead of listing")
+    parser.add_argument("--steward-guard", action="store_true", help="enforce DiskSteward NEVER paths")
     parser.add_argument("--db", default=None, help="tasks.db path (default: lib.db.DB_PATH)")
     parser.add_argument("--policy", default=str(STORAGE_POLICY))
     args = parser.parse_args()
@@ -303,7 +313,7 @@ def main() -> None:
     print(f"TOTAL: {total} bytes across {len(items)} item(s)")
 
     if args.apply:
-        deleted = apply(items)
+        deleted = apply(items, steward_guard=args.steward_guard)
         print(f"deleted {len(deleted)} item(s)")
 
 

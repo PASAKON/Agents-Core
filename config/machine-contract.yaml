@@ -31,9 +31,9 @@ review_cycle_days: 90
 unknown_growth: {min_mb: 500, classify_within_days: 14, report: weekly}
 drive_root: "BACKUP/MoonieX HQ"
 machines:
-  mac:     {os: macos,   home: "/Users/gob",     claude_config_dir: "/Users/gob/.claude",     hq: "/Users/gob/MoonieXHQ",  scheduler: launchd,  capture: "scripts/mac_blueprint.sh",     restore: "scripts/mac_restore.sh",     run_by: "Mac CTO (Contabo cannot reach the Mac)"}
-  contabo: {os: linux,   home: "/root",          claude_config_dir: "/root/.claude",          hq: "/opt/MoonieXHQ",        scheduler: cron,     capture: "scripts/contabo_blueprint.sh", restore: "scripts/contabo_restore.sh", run_by: "Contabo CTO"}
-  winbox:  {os: windows, home: "C:/Users/passg", claude_config_dir: "C:/Users/passg/.claude", hq: "C:/mooniex",            scheduler: schtasks, capture: "windows/winbox-reinstall/rebuild/blueprint.ps1", restore: "windows/winbox-reinstall/winbox-bootstrap.ps1 + rebuild/rebuild_r1.ps1 + rebuild_r2.ps1", run_by: "Contabo CTO over ssh; logins by the CEO", note: "account passg since the 2026-09-24 reset; junction C:/Users/UsEr -> passg keeps old paths alive"}
+  mac:     {os: macos,   home: "/Users/gob",     claude_config_dir: "/Users/gob/.claude",     hq: "/Users/gob/MoonieXHQ",  band: mac, drive_leg: rest_work_archive, scheduler: launchd,  capture: "scripts/mac_blueprint.sh",     restore: "scripts/mac_restore.sh",     run_by: "Mac CTO (Contabo cannot reach the Mac)"}
+  contabo: {os: linux,   home: "/root",          claude_config_dir: "/root/.claude",          hq: "/opt/MoonieXHQ",        band: contabo, drive_leg: rclone_via_winbox, scheduler: systemd,     capture: "scripts/contabo_blueprint.sh", restore: "scripts/contabo_restore.sh", run_by: "Contabo CTO"}
+  winbox:  {os: windows, home: "C:/Users/passg", claude_config_dir: "C:/Users/passg/.claude", hq: "C:/mooniex",            band: winbox, drive_leg: rclone_local, scheduler: task_scheduler, capture: "windows/winbox-reinstall/rebuild/blueprint.ps1", restore: "windows/winbox-reinstall/winbox-bootstrap.ps1 + rebuild/rebuild_r1.ps1 + rebuild_r2.ps1", run_by: "Contabo CTO over ssh; logins by the CEO", note: "account passg since the 2026-09-24 reset; junction C:/Users/UsEr -> passg keeps old paths alive"}
 
 entries:
   # ── Claude Code profile (same shape on every machine; $CLAUDE_CONFIG_DIR = ~/.claude unless relocated) ──
