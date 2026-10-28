@@ -151,6 +151,7 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
             r.kill(folder)
     try:
         if not r.call('lock'):
+            print('busy: another Flow card or a flow_shoot run is using winbox 9226')
             return 5
         try:
             before = r.call('balance', project=project, source=(ROOT / 'tools/flow_balance_ws.py').read_text())

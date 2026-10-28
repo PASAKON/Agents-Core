@@ -2,6 +2,7 @@ import argparse
 import base64
 import json
 from pathlib import Path
+import re
 import signal
 import subprocess
 import shutil
@@ -199,9 +200,11 @@ def test_pull_hash_mismatch(setup, name):
     assert len(live.read_text().splitlines()) == 1
 
 
-def remote_requests(monkeypatch, tmp_path, requests):
+def remote_requests(monkeypatch, tmp_path, requests, busy=False):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setitem(sys.modules, 'msvcrt', SimpleNamespace(LK_NBLCK=1, locking=lambda *a: None))
+    monkeypatch.setattr(remote, 'other_flow_job', lambda: busy)
+    monkeypatch.setattr(remote, 'ensure_tab', lambda project: None)
     monkeypatch.setattr(sys, 'stdin', io.StringIO('\n'.join(json.dumps(q) for q in [{'verb': 'lock'}] + requests)))
     output = io.StringIO()
     monkeypatch.setattr(sys, 'stdout', output)
@@ -223,6 +226,59 @@ def test_remote_balance_retry(monkeypatch, tmp_path, settles):
     assert replies[-1] == {'result': 73 if settles else None}
     assert len(calls) == 3
     assert sleeps == [5, 5]
+    source = calls[0][0][3]
+    assert repr(remote.own_tab('https://flow.google.com/project/own')) in source
+    assert 'assert mine,' in source and 'mine.sort(' in source
+
+
+@pytest.mark.parametrize('url, mine', [
+    ('https://flow.google.com/project/own', True),
+    ('https://flow.google.com/project/own/edit/clip-1', True),
+    ('https://flow.google.com/project/own?pli=1', True),
+    ('https://flow.google.com/u/1/project/own', True),
+    ('https://flow.google.com/project/owner', False),
+    ('https://flow.google.com/project/other', False),
+    ('https://flow.google.com/', False),
+    ('https://evil.example/flow.google.com/project/own', False),
+])
+def test_own_tab(url, mine):
+    assert bool(re.match(remote.own_tab('https://flow.google.com/project/own'), url)) is mine
+
+
+@pytest.mark.parametrize('open_tabs, opened', [
+    ([{'type': 'page', 'url': 'https://flow.google.com/project/own/edit/x'}], False),
+    ([{'type': 'page', 'url': 'https://flow.google.com/'}], True),
+])
+def test_ensure_tab(monkeypatch, open_tabs, opened):
+    requests, lists = [], [open_tabs, open_tabs + [{'type': 'page', 'url': 'https://flow.google.com/project/own'}]]
+    def urlopen(req, timeout):
+        url = req if isinstance(req, str) else req.full_url
+        requests.append((getattr(req, 'method', 'GET'), url))
+        return io.BytesIO(json.dumps(lists.pop(0) if url.endswith('/json/list') else {}).encode())
+    monkeypatch.setattr(remote.urllib.request, 'urlopen', urlopen)
+    monkeypatch.setattr(remote.time, 'sleep', lambda s: None)
+    remote.ensure_tab('https://flow.google.com/project/own')
+    puts = [r for r in requests if r[0] == 'PUT']
+    assert puts == ([('PUT', remote.CDP + '/json/new?https://flow.google.com/project/own')] if opened else [])
+    assert not any('/json/close' in url for _, url in requests)
+
+
+def test_remote_lock_refuses_other_flow_job(monkeypatch, tmp_path):
+    replies = remote_requests(monkeypatch, tmp_path, [dict(verb='balance', project='p/project/own', source='')],
+                              busy=True)
+    assert replies[0] == {'result': False}
+    assert replies[1] == {'error': 'lock required'}
+
+
+@pytest.mark.parametrize('lines, busy', [
+    (r'C:\mooniex\pwvenv\Scripts\python.exe tools\flow_shoot.py run --sheet x', True),
+    (r'python.exe -u -c boot C:\mooniex\flowcard\a\b\tools\flow_shoot_card_remote.py shoot', False),
+    (r'python.exe tools\flow_balance_ws.py 29b3326b --reload', False),
+    ('', False),
+])
+def test_other_flow_job(monkeypatch, lines, busy):
+    monkeypatch.setattr(remote.subprocess, 'run', lambda *a, **kw: SimpleNamespace(stdout=lines + '\n'))
+    assert remote.other_flow_job() is busy
 
 
 def test_remote_list_and_get(monkeypatch, tmp_path):
@@ -250,7 +306,8 @@ def test_remote_attach_foreground(monkeypatch, tmp_path, front_raises):
             raise RuntimeError('foreground unavailable')
     own = SimpleNamespace(url=project, bring_to_front=front, on=lambda *a: events.append('response'))
     other = SimpleNamespace(url='https://flow.google.com/project/other')
-    browser = SimpleNamespace(contexts=[SimpleNamespace(pages=[other, own])])
+    own_edit = SimpleNamespace(url=project + '/edit/clip-1')
+    browser = SimpleNamespace(contexts=[SimpleNamespace(pages=[other, own_edit, own])])
     def start():
         events.append('start')
         return SimpleNamespace(chromium=SimpleNamespace(connect_over_cdp=lambda url: browser))

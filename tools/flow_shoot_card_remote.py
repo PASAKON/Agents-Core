@@ -10,6 +10,39 @@ import re
 import subprocess
 import sys
 import time
+import urllib.request
+
+CDP = 'http://127.0.0.1:9226'
+
+
+def own_tab(project):
+    """Regex for this project's pages only: /project/<id>, its /edit/ routes, a query string."""
+    ident = re.escape(project.rsplit('/project/', 1)[1])
+    return r'https://flow\.google\.com/(?:[^?#]*/)?project/' + ident + r'(?:[/?#]|$)'
+
+
+def ensure_tab(project):
+    """Open the project's tab when none is open: navigation only, no credits. Never closes a tab."""
+    def mine():
+        tabs = json.load(urllib.request.urlopen(CDP + '/json/list', timeout=8))
+        return [t for t in tabs if t.get('type') == 'page' and re.match(own_tab(project), t['url'])]
+    if mine():
+        return
+    urllib.request.urlopen(urllib.request.Request(CDP + '/json/new?' + project, method='PUT'), timeout=15).read()
+    for _ in range(15):
+        time.sleep(3)
+        if mine():
+            return
+    raise RuntimeError('own project tab did not open')
+
+
+def other_flow_job():
+    """A flow_shoot run started the old way holds no card lock; the card must not share 9226 with it."""
+    out = subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command',
+                          "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
+                          "ForEach-Object { $_.CommandLine }"],
+                         capture_output=True, text=True, timeout=60).stdout
+    return any('flow_shoot' in line and 'flow_shoot_card_remote' not in line for line in out.splitlines())
 
 
 def shoot():
@@ -25,11 +58,11 @@ def shoot():
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
-        pages = [p for c in self._browser.contexts for p in c.pages
-                 if p.url == project or p.url.startswith(project + '/edit/')]
-        if len(pages) != 1:
-            raise RuntimeError('own project tab missing or ambiguous')
-        self.page = pages[0]
+        pages = [p for c in self._browser.contexts for p in c.pages if re.match(own_tab(project), p.url)]
+        if not pages:
+            raise RuntimeError('own project tab missing')
+        # The bare project tab first, the one the balance reader picks; an /edit/ tab otherwise.
+        self.page = sorted(pages, key=lambda p: '/edit/' in p.url)[0]
         try:
             self.page.bring_to_front()
         except Exception:
@@ -55,24 +88,29 @@ def serve():
             lock.seek(0)
             try:
                 msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-                return True
             except OSError:
                 lock.close()
                 lock = None
                 return False
+            if other_flow_job():
+                lock.close()
+                lock = None
+                return False
+            return True
         if lock is None:
             raise RuntimeError('lock required')
         if verb == 'balance':
-            # Execute the pinned stdlib reader from stdin, with exact tab selection.
+            # Execute the pinned stdlib reader from stdin, on this project's own tab only.
             # No bundle or input file is pushed before this gate.
+            ensure_tab(q['project'])
             source = q['source']
             start = source.index('mine = ')
             end = source.index('print("my tabs"', start)
             source = source[:start] + (
-                'project = ' + repr(q['project']) + '\n'
-                'mine = [t for t in tabs if t["type"] == "page" and '
-                '(t["url"] == project or t["url"].startswith(project + "/edit/"))]\n'
-                'assert len(mine) == 1, "own project missing or ambiguous"\n'
+                'mine = [t for t in tabs if t["type"] == "page" and re.match('
+                + repr(own_tab(q['project'])) + ', t["url"])]\n'
+                'mine.sort(key=lambda t: "/edit/" in t["url"])\n'
+                'assert mine, "own project tab missing"\n'
             ) + source[end:]
             for attempt in range(3):
                 result = subprocess.run([sys.executable, '-u', '-c', source, q['project'], '--reload'],

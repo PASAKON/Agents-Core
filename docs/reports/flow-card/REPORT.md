@@ -19,7 +19,7 @@ The balance reader's pinned source is sent over stdin and executed without writi
 ## Validation performed
 - Exact required command:
   /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest tests/test_flow_shoot_card.py tests/test_flow_shoot.py
-- Final result: **148 passed** (36 card tests, 112 existing flow_shoot tests), 15.01 seconds.
+- Final result: **163 passed** (51 card tests, 112 existing flow_shoot tests; 148 at iteration 1, +15 in the CTO fixes), 15.01 seconds.
 - New offline regression coverage checks foreground attachment (including a foreground exception), three separate clip fetches with incremental writes, remote list/get metadata, clip and ledger hash mismatches returning exit 2, balance retry success/exhaustion, a rising balance, and failed taskkill followed by ledger accounting and exit 143.
 - The offline filtered-tree test copies only repository .py/.yaml/.toml files and successfully runs:
   /usr/bin/python3 tools/flow_shoot_card.py --help
@@ -27,24 +27,43 @@ The balance reader's pinned source is sent over stdin and executed without writi
 - git diff --check passed.
 - No SSH connection, live API call, browser access or spend occurred.
 
-## Exact proposed dry-run card argv
-```text
-python3 tools/flow_shoot_card.py --max-credits 20 --sheet /opt/MoonieXHQ/Agents/Core/docs/scripts/banchi-ACT2.md --ledger /opt/MoonieXHQ/Agents/Core/state/banchi/ACT2.tsv --dest /opt/MoonieXHQ/Agents/Core/state/banchi/flow-card-dry-run --only 37 --resolution 360p --dry-run --channel ILAG --purpose "Flow card dry run" --kind test --task task-18f51218 --who cto-fresh
-```
+## CTO review fixes (28 Oct, after iteration 1)
+- Tabs are matched by project id (`own_tab`): `/project/<id>`, its `/edit/` routes, a query string, a `/u/N/` prefix. The bare project tab is preferred. The exact-string match with "exactly one tab" failed whenever an `/edit/` tab was open next to the project tab, and the runner works in an `/edit/` tab (flow_balance_ws.py docstring).
+- When no project tab is open, the card opens one through CDP `PUT /json/new`. This is navigation only and spends no credits. The card never closes a tab. At 23:50 TH on 28 Oct, 9226 had only the Flow home page open, so every card would have exited 4.
+- The lock refuses (exit 5, "busy") while an old-way `flow_shoot` run is alive on winbox. Those runs hold no card lock, and the card brings its tab to the front. CMO, 28 Oct: no tab to the front on 9226 during another lane's shoot.
+- 163 passed: 51 card tests, 112 flow_shoot tests.
 
-The Run label must also declare a 20-credit cap. Before issuing this example, CTO must use the intended existing sheet/shot ledger and ensure that sheet contains exactly one full https://flow.google.com/.../project/<id> URL identifying its own lane. Missing or ambiguous project identity fails closed with exit 4. These live paths and shot selection were not validated by this worker.
+## Fake cards
+- First line of each card: "ปลอม (ทดสอบ ไม่ใช้เครดิต)".
+- They are raised only after the merge, and only after the CMO relays "ILAG shoot done".
+
+Test copies (untracked, under `state/flowcard-test/`):
+- `banchi-ACT2-test.md` = `docs/scripts/banchi-ACT2.md` plus one line naming the banchi project URL.
+- `ACT2-test.tsv` = `state/banchi/ACT2.tsv` with shot 37 set to `todo`.
+- ACT2 itself is 24/24 verified. A dry run on it prints "nothing to do" and never opens the browser, so the argv this worker first proposed would have tested nothing.
+
+| Card | Own flags | Pass when |
+|---|---|---|
+| F1 | `--max-credits 20 --dry-run` | a `DRY-RUN shot 37` line, exit 0, one ledger row with amount 0 and kind test |
+| F2 | `--max-credits 100000 --dry-run` | "over balance", exit 3, nothing pushed |
+| F3 | `--max-credits 1` | flow_shoot's spend-cap stop before Submit, exit 3, balance unchanged |
+
+Shot estimates in the banchi logs run 4 to 15 credits. A cap of 20 therefore lets F1 reach its dry-run line, and a cap of 1 stops F3. If the estimate cannot be read, `EstimateUnreadable` stops F3 before Submit.
+
+Flags shared by all three cards:
+`--sheet /opt/MoonieXHQ/Agents/Core/state/flowcard-test/banchi-ACT2-test.md --ledger /opt/MoonieXHQ/Agents/Core/state/flowcard-test/ACT2-test.tsv --dest /opt/MoonieXHQ/Agents/Core/state/flowcard-test/out --only 37 --resolution 360p --channel ILAG --purpose "Flow card fake test" --kind test --task task-18f51218 --who cto-fresh`
 
 ## Not checked / risk
 - A real card must cover at most 10 shots via --only until a live 40-shot pull is measured.
-- Run one Flow job at a time on 9226. The card lock covers card runs only. A run started the old way in another tab can still take the foreground and change the balance delta.
-- Windows SSH, msvcrt locking, the installed interpreter/dependencies, ffmpeg/ffprobe, real Flow DOM and live end-to-end execution remain for the CTO's dry-run card. Browser access was expressly prohibited.
-- The existing balance reader's DOM behavior is retained; tab selection is tightened to the exact project (or its edit route), requires exactly one match, and reloads on every read.
-- The existing shot TSV has no credit-estimate column. The remote worker therefore persists a separate per-run charges.tsv from the runner's submitted-shot estimate messages. If the after balance fails, accounting sums that journal and explicitly labels the amount an estimate. A kill between Submit and its log line can omit an estimate.
+- Run one Flow job at a time on 9226. The card refuses while an old-way flow_shoot run is alive, but it only sees `python.exe` command lines. A run under another interpreter name, or a person working in the Flow UI, is not detected and can change the balance delta.
+- A tab the card opens comes to the front at once (`/json/new` opens a foreground tab).
+- Windows SSH, msvcrt locking, the installed interpreter/dependencies, ffmpeg/ffprobe, the real Flow DOM and live end-to-end execution are tested by the fake cards above, not by this suite.
+- The existing shot TSV has no credit-estimate column. The remote worker therefore keeps a separate per-run charges.tsv from the runner's submitted-shot estimate messages. If the after balance fails, accounting sums that journal and labels the amount an estimate. A kill between Submit and its log line can leave an estimate out.
 - Shared-account activity outside this card lock can affect the balance delta. The row records both balances; a delta over the card cap exits 6.
-- A SIGKILL cannot trigger local pullback/accounting. The remote run may continue up to its own cap; its private files are retained for recovery. SSH/host loss can likewise require recovery from the retained run folder.
-- Existing clips are compared by sha256 and never replaced with different content. The shot ledger is updated only if its original digest still matches; conflicts retain remote artifacts and return exit 2 after accounting.
-- Clip transfer buffers one file's RPC response in memory; a live 40-shot pull and peak memory use have not been measured.
-- A balance increase records the charges.tsv estimate sum and the note "balance rose by X; amount = estimate sum"; both observed balances remain in the row.
+- A SIGKILL cannot trigger local pullback or accounting. The remote run may continue up to its own cap, and its private files are kept for recovery. Losing SSH or the host can likewise require recovery from the kept run folder.
+- Existing clips are compared by sha256 and never replaced with different content. The shot ledger is updated only if its original digest still matches. A conflict keeps the remote artifacts and returns exit 2 after accounting.
+- Clip transfer buffers one file's RPC response in memory. A live 40-shot pull and its peak memory use have not been measured.
+- When the balance rises, the row records the charges.tsv estimate sum with the note "balance rose by X; amount = estimate sum". Both observed balances stay in the row.
 
 ## Blockers
 - None for offline implementation and validation. Live acceptance is intentionally deferred to CTO.
