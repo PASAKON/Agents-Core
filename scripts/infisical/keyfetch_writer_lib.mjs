@@ -1,6 +1,10 @@
 // Browser-free seat reconciliation. All effects go through the injected API.
 export const IDENTITY_CAP = 5; // tools/infisical_setup.py: IDENTITY_CAP; users also count.
 export const WRITER = 'keyfetch-writer';
+// Infisical's attach default is a 30-day token (2592000 s); `infisical_setup.py save` refuses a writer
+// token that lives over a day, so the seat sets the lifetime itself.
+export const WRITER_TOKEN_TTL = 3600;
+const WRITER_AUTH = { accessTokenTTL: WRITER_TOKEN_TTL, accessTokenMaxTTL: WRITER_TOKEN_TTL };
 export class SeatError extends Error {}
 
 export function parseManifest(text) {
@@ -98,8 +102,14 @@ export async function reconcileSeat({ api, orgId, projects, go = false, log = co
   // authMethods comes from the identity list; fail closed on unknown existing state.
   const methods = writer?.identity.authMethods;
   const attached = methods?.includes('universal-auth');
-  log(`${mode}: ${WRITER} universal-auth ${attached ? 'exists' : 'attach'} client secrets minted=0`);
-  if (go && !attached) await call('keyfetch-writer attach universal-auth', 'POST', `/api/v1/auth/universal-auth/identities/${writer.identity.id}`, {});
+  let ttlOk = true;
+  if (attached) {
+    const ua = (await call('keyfetch-writer read universal-auth', 'GET', `/api/v1/auth/universal-auth/identities/${writer.identity.id}`))?.identityUniversalAuth;
+    ttlOk = [ua?.accessTokenTTL, ua?.accessTokenMaxTTL].every(t => Number.isInteger(t) && t > 0 && t <= WRITER_TOKEN_TTL);
+  }
+  log(`${mode}: ${WRITER} universal-auth ${!attached ? 'attach' : ttlOk ? 'exists' : 'set token ttl'} token ttl=${WRITER_TOKEN_TTL}s client secrets minted=0`);
+  if (go && !attached) await call('keyfetch-writer attach universal-auth', 'POST', `/api/v1/auth/universal-auth/identities/${writer.identity.id}`, WRITER_AUTH);
+  if (go && !ttlOk) await call('keyfetch-writer universal-auth token ttl', 'PATCH', `/api/v1/auth/universal-auth/identities/${writer.identity.id}`, WRITER_AUTH);
   for (const p of targets) {
     const membership = memberships.get(p.id).find(m => m.identity?.id === writer?.identity.id);
     if (membership) {

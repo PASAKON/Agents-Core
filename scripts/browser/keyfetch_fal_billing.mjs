@@ -5,8 +5,9 @@
 //
 //   node scripts/browser/keyfetch_fal_billing.mjs <cdp-url> [--check] [--rotate]
 //
-// Needs a Browser Home already logged in to fal.ai (relay-login), the write identity `setup` in
-// /etc/infisical, and the folder /spend-guard in Agents-Core prod. Fills the "Create API key" dialog
+// Needs a Browser Home already logged in to fal.ai (relay-login), the write identity `keyfetch-writer`
+// in /etc/infisical (minted for the run: docs/ops/keyfetch/infisical-setup-identity.md), and the
+// folder /spend-guard in Agents-Core prod. Fills the "Create API key" dialog
 // (name, preset BILLING, expiration 1 year), then hands over to scripts/keyfetch/capture_key.mjs,
 // which clicks "Create preset key", takes `key_id` + `key_secret` off the create response, joins
 // them as `key_id:key_secret` (the form fal's Authorization header wants) and pipes the result into
@@ -81,7 +82,7 @@ try {
 
 const args = [resolve(ROOT, 'scripts/keyfetch/capture_key.mjs'), cdp,
   '--tab', 'fal\\.ai/dashboard/keys', '--project', 'Agents-Core', '--env', 'prod', '--path', '/spend-guard',
-  '--as', 'setup', ...(ROTATE ? [] : ['--new-only']), '--click', '^create preset key',
+  '--as', 'keyfetch-writer', ...(ROTATE ? [] : ['--new-only']), '--click', '^create preset key',
   '--match', '/keys', '--field', 'key_id+key_secret=FAL_BILLING_API_KEY_RO',
   '--comment', 'spend guard: read credits + per-key usage, pause a key (tools/spend_guard.py)',
   '--meta', `provider_name=${NAME}`, '--meta', `console_url=${PAGE}`,
