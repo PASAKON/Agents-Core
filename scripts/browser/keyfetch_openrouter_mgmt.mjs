@@ -5,7 +5,7 @@
 //   node scripts/browser/keyfetch_openrouter_mgmt.mjs <cdp-url> [--check]
 //
 // Needs a Browser Home already logged in to openrouter.ai (relay-login) and the write identity
-// `setup` in /etc/infisical (scripts/infisical/bootstrap_setup_identity.mjs). Fills the "Create a
+// `keyfetch-writer` in /etc/infisical (docs/ops/keyfetch/infisical-setup-identity.md). Fills the "Create a
 // Management Key" dialog (name, expiration 90 days), then hands over to scripts/keyfetch/capture_key.mjs,
 // which clicks Create, takes the key off the wire and pipes it into `infisical_setup.py put --stdin`.
 // This script never reads, prints or logs a value. --check fills the form, clicks nothing.
@@ -64,7 +64,7 @@ try {
 
 const args = [resolve(ROOT, 'scripts/keyfetch/capture_key.mjs'), cdp,
   '--tab', 'openrouter\\.ai/settings/management-keys', '--project', 'Agents-Core', '--env', 'prod', '--path', '/spend-guard',
-  '--as', 'setup', '--new-only', '--click', '^create$',
+  '--as', 'keyfetch-writer', '--new-only', '--click', '^create$',
   '--match', 'keys', '--field', 'key|data.key|data.secret|secret|data.token|token|data.api_key|api_key=OPENROUTER_API_KEY_ADMIN',
   '--comment', 'spend guard: read credits + per-key usage, pause a key (tools/spend_guard.py)',
   '--meta', `provider_name=${NAME}`, '--meta', `console_url=${PAGE}`,
