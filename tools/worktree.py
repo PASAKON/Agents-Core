@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import os
 import shutil
 import subprocess
 import sys
@@ -10,10 +11,11 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.config import get_project, project_path_for_host, self_host
 
 ROOT = Path(__file__).resolve().parent.parent
-WORKTREE_DIR = ROOT / "worktrees"
+WORKTREE_DIR = Path(os.environ.get("ORG_ROOT") or ROOT) / "worktrees"
 STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 
 
@@ -292,6 +294,16 @@ def restore_worktree(project_key: str, role: str, task_id: str, *,
     if result.returncode != 0:
         raise GitError(result.stderr)
     wt = Path(path) if path else worktree_path(project_key, role, task_id)
+    if wt.exists() or wt.is_symlink():
+        if wt.is_symlink():
+            raise GitError(f"refusing symlink worktree: {wt}")
+        current = _run(["git", "symbolic-ref", "--short", "HEAD"], cwd=wt)
+        top = _run(["git", "rev-parse", "--show-toplevel"], cwd=wt)
+        common = _run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=wt)
+        expected_common = _run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=repo)
+        if current != branch or Path(top).resolve() != wt.resolve() or common != expected_common:
+            raise GitError(f"existing path is not this task's branch: {wt}")
+        return {"worktree": str(wt), "branch": branch}
     wt.parent.mkdir(parents=True, exist_ok=True)
     _run(["git", "worktree", "prune"], cwd=repo)
     if sparse:
@@ -301,6 +313,22 @@ def restore_worktree(project_key: str, role: str, task_id: str, *,
         _run(["git", "worktree", "add", str(wt), branch], cwd=repo)
     provision_worktree(repo, wt)
     return {"worktree": str(wt), "branch": branch}
+
+
+def restore_task(task_id: str) -> dict:
+    from lib import db
+    task = db.get_task(task_id)
+    if not task:
+        raise GitError(f"unknown task: {task_id}")
+    wt = worktree_path(task["project"], task["role"], task_id)
+    if task.get("worktree") and Path(task["worktree"]).resolve() != wt.resolve():
+        raise GitError("recorded worktree does not match the task layout")
+    result = restore_worktree(task["project"], task["role"], task_id,
+                              branch=task.get("branch"), sparse=True)
+    if result is None:
+        raise GitError(f"task branch is missing: {task_id}")
+    db.set_fields(task_id, worktree=result["worktree"], actor="worktree.restore")
+    return result
 
 
 def create_worktree(project_key: str, role: str, task_id: str, *,
@@ -438,6 +466,8 @@ def _main(argv: list[str] | None = None) -> int:
     leaving sparse-checkout off so the caller's plain checkout is a full one."""
     ap = argparse.ArgumentParser(prog="python -m tools.worktree")
     sub = ap.add_subparsers(dest="cmd", required=True)
+    restore = sub.add_parser("restore", help="restore a task checkout from its retained branch")
+    restore.add_argument("task_id")
     p = sub.add_parser("apply-sparse", help="sparse step for a --no-checkout worktree")
     p.add_argument("--repo", required=True, help="the project's own checkout")
     p.add_argument("--wt", required=True, help="the --no-checkout worktree")
@@ -445,9 +475,12 @@ def _main(argv: list[str] | None = None) -> int:
     p.add_argument("--role", required=True)
     args = ap.parse_args(argv)
     try:
+        if args.cmd == "restore":
+            print(restore_task(args.task_id))
+            return 0
         excluded = apply_sparse(Path(args.repo), Path(args.wt), args.start_point, args.role)
     except Exception as e:  # noqa: BLE001 - the launcher falls back to a full checkout
-        print(f"apply-sparse failed: {type(e).__name__}: {str(e).strip()[:500]}", file=sys.stderr)
+        print(f"{args.cmd} failed: {type(e).__name__}: {str(e).strip()[:500]}", file=sys.stderr)
         return 1
     print(f"SPARSE_APPLIED excluded={len(excluded)}")
     return 0

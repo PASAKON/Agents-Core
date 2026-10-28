@@ -1,0 +1,5 @@
+Codex and AGY state previously accumulated without retention, Drive minute quotas stopped archival, and removing finished worktrees discarded their untracked runner reports.
+
+Add `drive_leg.py runner-state` with policy-driven retention, secret exclusion, tar/member manifests, capped quota retries, and deletion only after both Drive checksums verify. Archive runner files before reaping and add `--review-idle` for idle, clean, exactly pushed review checkouts while retaining their branches. `worktree.py restore <task_id>` recreates those checkouts with the creation sparse policy and refuses conflicting paths. Document daily transcript cadence and the Runner-State folder family.
+
+Validation: fake-relay and temporary-repository pytest coverage; no real Drive uploads or host removals. Host runner dry-run and read-only task-snapshot review dry-run are in REPORT.md. Live hub validation is blocked by sandbox DNS. Part A's files are untouched. The report includes the exact Agents-Rules companion diff; nothing was installed.

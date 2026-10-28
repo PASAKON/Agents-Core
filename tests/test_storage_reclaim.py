@@ -53,6 +53,9 @@ def _mkfile(path: Path, mtime: float) -> None:
 
 def _policy() -> dict:
     return {
+        **{k: v for k, v in storage_reclaim.storage_policy.load(
+            storage_reclaim.storage_policy.POLICY_PATH).items()
+           if k in ('hosts', 'runners', 'docker', 'review_worktree')},
         "gauge": {"green": 20, "yellow": 10, "orange": 5, "red": 0},
         "tiers": {
             "HOT": [], "NEVER": [], "COLD": [],

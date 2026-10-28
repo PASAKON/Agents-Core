@@ -270,7 +270,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
   fi
   if [ "$RUNNER" != "claude" ]; then
-    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'; fi
     emit_heartbeat_start
     echo "CLI_RC=\$?; cleanup_heartbeat"
   fi
@@ -757,6 +757,7 @@ LAUNCH_SH="$LAUNCH_DIR/launch.sh"
 if [ "$RUNNER" = "claude" ]; then
   {
     echo '#!/bin/sh'
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'; fi
     printf 'export ORG_HOST=%s\n' "$ORG_HOST"
     printf 'export ORG_WORKER_FINISH=%s\n' \
       "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
@@ -781,7 +782,7 @@ elif [ "$RUNNER" = "codex" ]; then
     # A final message left by an earlier launch of this same task must not be
     # read back as this run's message.
     printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
-    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'; fi
     emit_heartbeat_start
     printf '%s &\n' "$(emit_codex_command)"
     printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\ncleanup_heartbeat\n'
@@ -799,7 +800,7 @@ elif [ "$RUNNER" = "agy" ]; then
     # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
     # Contabo runs the same binary as before); it used to be resolved and then
     # ignored in favour of the literal path.
-    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'; fi
     emit_heartbeat_start
     printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1 &\n' \
       "$(sh_quote "$AGY_BIN")" \
