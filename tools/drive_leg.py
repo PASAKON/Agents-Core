@@ -45,6 +45,7 @@ import io
 import json
 import os
 import re
+import platform
 import random
 import shutil
 import socket
@@ -916,6 +917,8 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
     runners = (policy or {}).get("runners", {})
     defaults = {"codex": ["~/.codex/sessions"], "agy": [
         "~/.gemini/antigravity-cli/conversations", "~/.gemini/antigravity-cli/brain"]}
+    # Runner-State/<machine>/: the host this runs on (ORG_HOST, else by OS), never a fixed name.
+    machine = os.environ.get("ORG_HOST") or {"Darwin": "mac", "Windows": "winbox"}.get(platform.system(), "contabo")
     report = dict(failed=0, deleted_files=0, dry_run=dry_run)
     pending = []
     logs = []
@@ -959,7 +962,7 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
                         frozen.append((path, st.st_size, st.st_mtime_ns))
             print(f"runner-state {name}: {root}: {len(frozen)} files, "
                   f"{sum(s for _, s, _ in frozen)} B, "
-                  f"{'delete logs (no upload)' if discard else 'archive to Runner-State/contabo/' + name}, "
+                  f"{'delete logs (no upload)' if discard else f'archive to Runner-State/{machine}/' + name}, "
                   f"older than {days:g} days" + (" [dry-run]" if dry_run else ""))
             if dry_run or not frozen:
                 continue
@@ -993,12 +996,12 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
                                     raise DriveLegError(f"source changed during archive: {path}")
                                 members.append(dict(path=info.name, size=size, md5=digest.hexdigest()))
                     base = f"{root.name}-{time.time_ns()}"
-                    manifest = build_manifest(name=base, machine="contabo", source=str(root),
+                    manifest = build_manifest(name=base, machine=machine, source=str(root),
                         files=members, restore=f"Extract tar into {root}")
                     def stream(sink):
                         archive.seek(0)
                         shutil.copyfileobj(archive, sink)
-                    result = put(stream, FOLDER_IDS["family"], f"Runner-State/contabo/{name}",
+                    result = put(stream, FOLDER_IDS["family"], f"Runner-State/{machine}/{name}",
                                  base, ".tar", manifest, log_path_=log_path(config_dir),
                                  who=_default_who(), rclone=rclone)
                     if result.get("verified") is not True:
