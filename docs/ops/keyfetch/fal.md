@@ -51,3 +51,14 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9290 \
 - The first run guessed `--field key=…`; the shape line printed `key_id:string key_secret:string` and exit 7 left a key
   at fal with its secret lost. A guess is a free key only if you can revoke it: use the shape from this file.
 - A fresh account shows `Credits: $0.00`; the key still creates and authenticates.
+
+## Rotate (replace the stored key)
+
+- `node scripts/browser/keyfetch_fal_billing.mjs http://127.0.0.1:9290 --rotate` drops `--new-only`, so `put` replaces
+  `FAL_BILLING_API_KEY_RO`. Without `--rotate` the run stops with exit 9 while that secret exists, before any click.
+- The name defaults to `ag-core-prod-ro-exp<today + 1 year, UTC>`; `expires=` is read from the name, so a `KEY_NAME`
+  without `-expYYYY-MM-DD` exits 64. Set `KEY_NAME` together with `KEY_EXPIRY_OPTION` when the expiry changes.
+- After the run: log the rotation (PLAN §3b), wait for `tools/spend_guard.py status` to read the new balance, then
+  revoke the old key from the fal account that holds it.
+- First rotation, 29 Oct 2026: the 14 Oct key sat on a second fal account with $0, so the guard read 0.0 while the
+  media keys spent on the funded account. Check that the Home is logged in to the funded account before the run.

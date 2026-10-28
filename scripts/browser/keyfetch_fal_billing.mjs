@@ -3,7 +3,7 @@
 // and store it in Infisical, zero model. Skill CTO_Procedure_KeyFetch · flags and quirks:
 // docs/ops/keyfetch/fal.md
 //
-//   node scripts/browser/keyfetch_fal_billing.mjs <cdp-url> [--check]
+//   node scripts/browser/keyfetch_fal_billing.mjs <cdp-url> [--check] [--rotate]
 //
 // Needs a Browser Home already logged in to fal.ai (relay-login), the write identity `setup` in
 // /etc/infisical, and the folder /spend-guard in Agents-Core prod. Fills the "Create API key" dialog
@@ -12,6 +12,9 @@
 // them as `key_id:key_secret` (the form fal's Authorization header wants) and pipes the result into
 // `infisical_setup.py put --stdin`. This script never reads, prints or logs a value.
 // --check fills the form, clicks nothing.
+// --rotate replaces an existing FAL_BILLING_API_KEY_RO (no --new-only). Revoke the old key at fal once
+// tools/spend_guard.py reads the new one. The name (KEY_NAME, default one year from today, UTC) carries
+// the exp date that expires= repeats.
 // Selectors likely to break: the "Add key" button, the dialog's first <input> (name), the preset
 // <label> text "Billing … 8 permissions" + button[role=radio][value=BILLING], the expiration button
 // ("No expiration") and its role=option list, the "Create preset key" button.
@@ -22,11 +25,15 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const cdp = (process.argv[2] || 'http://127.0.0.1:9290').replace(/\/$/, '');
 const CHECK = process.argv.includes('--check');
-const NAME = process.env.KEY_NAME || 'ag-core-prod-ro-exp2027-10-14';
+const ROTATE = process.argv.includes('--rotate');
+const inAYear = new Date(); inAYear.setUTCFullYear(inAYear.getUTCFullYear() + 1);
+const NAME = process.env.KEY_NAME || `ag-core-prod-ro-exp${inAYear.toISOString().slice(0, 10)}`;
+const EXPIRES = /-exp(\d{4}-\d{2}-\d{2})(?:-|$)/.exec(NAME)?.[1];
 const EXPIRY_OPTION = process.env.KEY_EXPIRY_OPTION || '1 year';
 const PAGE = 'https://fal.ai/dashboard/keys';
 const log = (...a) => console.log('[fal-billing]', ...a);
 const die = (c, m) => { console.error('[fal-billing]', m); process.exit(c); };
+if (!EXPIRES) die(64, `KEY_NAME "${NAME}" carries no -expYYYY-MM-DD`);
 
 const tabs = await (await fetch(`${cdp}/json/list`)).json().catch(() => die(3, `cannot reach ${cdp}`));
 const tab = tabs.find(t => t.type === 'page' && /fal\.ai/.test(t.url));
@@ -74,11 +81,11 @@ try {
 
 const args = [resolve(ROOT, 'scripts/keyfetch/capture_key.mjs'), cdp,
   '--tab', 'fal\\.ai/dashboard/keys', '--project', 'Agents-Core', '--env', 'prod', '--path', '/spend-guard',
-  '--as', 'setup', '--new-only', '--click', '^create preset key',
+  '--as', 'setup', ...(ROTATE ? [] : ['--new-only']), '--click', '^create preset key',
   '--match', '/keys', '--field', 'key_id+key_secret=FAL_BILLING_API_KEY_RO',
   '--comment', 'spend guard: read credits + per-key usage, pause a key (tools/spend_guard.py)',
   '--meta', `provider_name=${NAME}`, '--meta', `console_url=${PAGE}`,
-  '--meta', 'scope=BILLING-preset', '--meta', 'expires=2027-10-14', '--meta', 'owner=CTO'];
+  '--meta', 'scope=BILLING-preset', '--meta', `expires=${EXPIRES}`, '--meta', 'owner=CTO'];
 if (CHECK) args.push('--check');
 const child = spawn('/opt/node-v22/bin/node', args, { stdio: 'inherit', env: { ...process.env, INFISICAL_SETUP_PY: resolve(ROOT, 'tools/infisical_setup.py'), PYTHON: process.env.PYTHON || 'python3' } });
 process.exit(await new Promise(r => child.on('exit', c => r(c ?? 1))));
