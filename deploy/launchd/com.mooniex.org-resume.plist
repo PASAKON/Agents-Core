@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.org-resume</string>
+
+  <!-- SafeRestart on the Mac: the twin of deploy/systemd/org-resume.service. At login it runs
+       scripts/org-resume-mac.sh, which does nothing unless state/restart/pending-mac.json exists
+       (written by the Mac prep step of tools/restart_run.py), then waits for the network and tailnet and
+       runs the resume and report steps of tools/restart_run.py for the Mac.
+
+       A user LaunchAgent (~/Library/LaunchAgents), not a LaunchDaemon: the Claude Code login is
+       in gob's login Keychain and the sessions must start inside gob's GUI session.
+       RunAtLoad only: no KeepAlive, so a finished resume is never run again by launchd.
+       It also fires once when `launchctl bootstrap` loads it; with no marker that is a log line.
+
+       AbandonProcessGroup: the tmux server and the sessions it starts must outlive this job
+       (the Mac's KillMode=process). No ProcessType: "Background" would hand its low CPU/IO
+       priority to every session this job spawns.
+
+       The path assumes the checkout is /Users/gob/Projects/Agents. If it lives elsewhere, edit the
+       two paths below before copying. HOME and PATH are exported by the script itself.
+       No secrets in this file. Install: docs/ops/safe-restart-mac.md. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/gob/Projects/Agents/scripts/org-resume-mac.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/Projects/Agents</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>AbandonProcessGroup</key>
+  <true/>
+
+  <!-- The script appends to this same file itself; launchd's copy catches a bash error raised
+       before the script's own redirect. -->
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Projects/Agents/state/restart/mac-resume.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Projects/Agents/state/restart/mac-resume.log</string>
+</dict>
+</plist>
