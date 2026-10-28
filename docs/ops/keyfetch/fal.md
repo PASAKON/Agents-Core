@@ -55,7 +55,8 @@ node scripts/keyfetch/capture_key.mjs http://127.0.0.1:9290 \
 ## Rotate (replace the stored key)
 
 - `node scripts/browser/keyfetch_fal_billing.mjs http://127.0.0.1:9290 --rotate` drops `--new-only`, so `put` replaces
-  `FAL_BILLING_API_KEY_RO`. Without `--rotate` the run stops with exit 9 while that secret exists, before any click.
+  `FAL_BILLING_API_KEY_RO`. Without `--rotate` the run stops with exit 9 while that secret exists: the form gets
+  filled, but capture_key checks before it clicks Create, so nothing is made at fal.
 - The name defaults to `ag-core-prod-ro-exp<today + 1 year, UTC>`; `expires=` is read from the name, so a `KEY_NAME`
   without `-expYYYY-MM-DD` exits 64. Set `KEY_NAME` together with `KEY_EXPIRY_OPTION` when the expiry changes.
 - After the run: log the rotation (PLAN §3b), wait for `tools/spend_guard.py status` to read the new balance, then
