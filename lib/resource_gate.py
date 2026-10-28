@@ -31,7 +31,6 @@ import os
 import sys
 import shutil
 import math
-from tools.storage_policy import host_band
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -137,7 +136,11 @@ def read(path: str = "/", *, meminfo: Path = MEMINFO, kind: str = '', host=None)
     override = _env_number('ORG_SPAWN_DISK_MAX_PCT', float('nan'))
     band = None
     if not math.isfinite(override):
-        band = host_band(shutil.disk_usage(path).free / 1024**3, host=host)
+        try:
+            from tools.storage_policy import host_band
+            band = host_band(shutil.disk_usage(path).free / 1024**3, host=host)
+        except Exception:  # noqa: BLE001 - a broken policy falls back to the % ceiling
+            band = None
     return Reading(ram_available_mb(meminfo), disk_used_pct(path), ram_floor_mb(), disk_max_pct(), band, kind)
 
 

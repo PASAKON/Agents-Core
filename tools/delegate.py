@@ -235,7 +235,7 @@ def _disk_orange_floor_gb(host=None) -> float:
     try:
         from tools.storage_policy import load, host_thresholds
         return float(host_thresholds(load(STORAGE_POLICY), host)['red'])
-    except (OSError, ValueError, TypeError):
+    except Exception:  # noqa: BLE001 - PolicyError/KeyError keep the old floor
         return DEFAULT_DISK_ORANGE_GB
 
 
@@ -2350,7 +2350,7 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         try:
             policy = storage_policy.load(str(STORAGE_POLICY))
             pre_band = storage_policy.host_band(pre_free_gb, policy, resolved_host)
-        except storage_policy.PolicyError as e:
+        except (storage_policy.PolicyError, KeyError, OSError) as e:
             pre_band = None
             warn(f"storage reclaim: policy load failed task={task_id}: {e}")
         if pre_band in ("orange", "red"):
@@ -2407,7 +2407,11 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
                   if host_cfg_for_disk and host_cfg_for_disk.get("ssh") else None)
     if disk_floor_applies and free_gb is not None and any(
             k in (task.get('kind') or task.get('role', '')).lower() for k in ('video', 'download')):
-        if storage_policy.host_band(free_gb, host=resolved_host) == 'orange':
+        try:
+            orange_now = storage_policy.host_band(free_gb, host=resolved_host) == 'orange'
+        except Exception:  # noqa: BLE001 - no band, no orange refusal
+            orange_now = False
+        if orange_now:
             db.set_fields(task_id, delegate_log=f'disk orange on {resolved_host}: video/download spawn refused', actor='cto')
             return db.get_task(task_id)
     if disk_floor_applies and free_gb is not None and free_gb < orange_gb:

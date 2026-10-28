@@ -24,8 +24,13 @@ def host_key(host=None):
 
 def host_thresholds(policy=None, host=None):
     policy = policy or load(POLICY_PATH)
-    machines = yaml.safe_load(MACHINES_PATH.read_text())['machines']
-    return policy['hosts'][machines[host_key(host)]['band']]
+    machines = (yaml.safe_load(MACHINES_PATH.read_text()) or {}).get('machines') or {}
+    band = (machines.get(host_key(host)) or {}).get('band')
+    if band in (policy.get('hosts') or {}):
+        return policy['hosts'][band]
+    # A host with no machines: row falls back to the legacy single gauge.
+    gauge = policy.get('gauge') or {}
+    return {'green': gauge.get('green', 20), 'orange': gauge.get('yellow', 10), 'red': gauge.get('orange', 5)}
 
 def host_band(free_gb, policy=None, host=None):
     thresholds = host_thresholds(policy, host)

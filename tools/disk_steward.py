@@ -179,6 +179,8 @@ def cto_main_box():
 def letters(host, band, day, stamps, dry_run):
     from tools import portfolio_watch as watch
     from lib import mailbox
+    if stamps.get('lane_day') == day and band in ('green', 'yellow'):
+        return  # the Work/checkout walk is costly; once a day unless orange/red
     try:
         totals = lane_usage(host)
     except Exception as exc:
@@ -187,7 +189,8 @@ def letters(host, band, day, stamps, dry_run):
                     rc=1, bytes_before=None, bytes_after=None), dry_run)
     pending = []
     for box, size in totals.items():
-        if stamps.get('lane_day') != day and stamps.get('lanes', {}).get(box) != size:
+        prev = stamps.get('lanes', {}).get(box)
+        if stamps.get('lane_day') != day and (prev is None or round(prev / GB, 1) != round(size / GB, 1)):
             pending.append((box, f'{host}: disk พื้นที่ Work + checkout ของสาย {size / GB:.2f} GB', 'report', f'lane:{day}:{box}:{size}'))
     if band in ('orange', 'red') and totals:
         box = max(totals, key=totals.get)
