@@ -19,7 +19,7 @@ The balance reader's pinned source is sent over stdin and executed without writi
 ## Validation performed
 - Exact required command:
   /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest tests/test_flow_shoot_card.py tests/test_flow_shoot.py
-- Final result: **163 passed** (51 card tests, 112 existing flow_shoot tests; 148 at iteration 1, +15 in the CTO fixes), 15.01 seconds.
+- Final result: **173 passed** (61 card tests, 112 existing flow_shoot tests; 148 at iteration 1, +25 in the CTO fixes), 15.01 seconds.
 - New offline regression coverage checks foreground attachment (including a foreground exception), three separate clip fetches with incremental writes, remote list/get metadata, clip and ledger hash mismatches returning exit 2, balance retry success/exhaustion, a rising balance, and failed taskkill followed by ledger accounting and exit 143.
 - The offline filtered-tree test copies only repository .py/.yaml/.toml files and successfully runs:
   /usr/bin/python3 tools/flow_shoot_card.py --help
@@ -31,7 +31,8 @@ The balance reader's pinned source is sent over stdin and executed without writi
 - Tabs are matched by project id (`own_tab`): `/project/<id>`, its `/edit/` routes, a query string, a `/u/N/` prefix. The bare project tab is preferred. The exact-string match with "exactly one tab" failed whenever an `/edit/` tab was open next to the project tab, and the runner works in an `/edit/` tab (flow_balance_ws.py docstring).
 - When no project tab is open, the card opens one through CDP `PUT /json/new`. This is navigation only and spends no credits. The card never closes a tab. At 23:50 TH on 28 Oct, 9226 had only the Flow home page open, so every card would have exited 4.
 - The lock refuses (exit 5, "busy") while an old-way `flow_shoot` run is alive on winbox. Those runs hold no card lock, and the card brings its tab to the front. CMO, 28 Oct: no tab to the front on 9226 during another lane's shoot.
-- 163 passed: 51 card tests, 112 flow_shoot tests.
+- The card runs as root, and `state/` is group-writable by `secretary`. It therefore opens the sheet, the shot ledger and an existing clip with `O_NOFOLLOW`, and it refuses anything that is not a regular file with a single link. Before rewriting the ledger it checks that file again, and it refuses a `--dest` that is a symlink. A refused input exits 4 before anything is sent to winbox. A link found at pull time exits 2 after accounting.
+- 173 passed: 61 card tests, 112 flow_shoot tests.
 
 ## Fake cards
 - First line of each card: "ปลอม (ทดสอบ ไม่ใช้เครดิต)".

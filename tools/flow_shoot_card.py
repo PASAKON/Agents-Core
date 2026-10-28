@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import stat
 import subprocess
 import sys
 import uuid
@@ -63,6 +64,29 @@ def parse(argv):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def plain(path, flags=os.O_RDONLY):
+    """A plain file, never through a symlink or a second hard link: the card runs as root
+    and state/ is group-writable, so a planted link must not redirect a root read or write."""
+    fd = os.open(path, flags | os.O_NOFOLLOW | os.O_NONBLOCK)
+    st = os.fstat(fd)
+    if not stat.S_ISREG(st.st_mode) or st.st_nlink != 1:
+        os.close(fd)
+        raise OSError(f'not a plain file: {path}')
+    return os.fdopen(fd, 'rb' if flags == os.O_RDONLY else 'r+b')
+
+
+def read_plain(path):
+    with plain(path) as f:
+        return f.read()
+
+
+def write_plain(path, data):
+    # Truncate only after the checks: O_TRUNC would empty a linked file before fstat runs.
+    with plain(path, os.O_RDWR) as f:
+        f.truncate(0)
+        f.write(data)
 
 
 def bundle():
@@ -134,13 +158,17 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
     # Do not create a substitute ledger in the temporary checkout.
     with Path(live_path).open('r+'):
         pass
-    sheet = Path(a.sheet).read_bytes()
+    try:
+        sheet = read_plain(a.sheet)
+        original = read_plain(a.ledger)
+    except OSError as exc:
+        print(f'refused: {exc}')
+        return 4
     projects = set(re.findall(r'https://flow\.google\.com/(?:[^\s<>"`()]*/)?project/[a-zA-Z0-9-]+', sheet.decode()))
     if len(projects) != 1:
         print('sheet must identify exactly one Flow project URL')
         return 4
     project = projects.pop()
-    original = Path(a.ledger).read_bytes()
     r = runner or Runner()
     folder = None
     old_handlers = {}
@@ -179,8 +207,13 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
         ledger = original
         # Compare-and-swap the run's ledger; preserve concurrent edits.
         pull_error = None
-        if digest(Path(a.ledger).read_bytes()) != digest(original):
+        try:
+            changed = digest(read_plain(a.ledger)) != digest(original)
+        except OSError:
+            changed = True
+        if changed:
             pull_error = 'local shot ledger changed during run; remote copy retained'
+        dest_ok = None
         for entry in pulled:
             name = entry['name']
             if name != 'ledger.tsv' and not re.fullmatch(r'out/[\w.-]+', name):
@@ -195,21 +228,36 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
                 else:
                     pull_error = 'pull hash mismatch: ' + name
                 continue
+            if dest_ok is None:
+                try:
+                    Path(a.dest).mkdir(parents=True, exist_ok=True)
+                    dest_ok = stat.S_ISDIR(os.lstat(a.dest).st_mode)
+                except OSError:
+                    dest_ok = False
+            if not dest_ok:
+                pull_error = 'dest is not a plain directory; remote copy retained'
+                continue
             target = Path(a.dest) / Path(name).name
-            target.parent.mkdir(parents=True, exist_ok=True)
             try:
                 with target.open('xb') as f:
                     f.write(data)
-                if digest(target.read_bytes()) != entry['sha256'] or not valid:
+                if digest(read_plain(target)) != entry['sha256'] or not valid:
                     pull_error = 'pull hash mismatch: ' + name
             except FileExistsError:
-                if digest(target.read_bytes()) != digest(data):
+                try:
+                    same = digest(read_plain(target)) == digest(data)
+                except OSError:
+                    same = False
+                if not same:
                     pull_error = 'different existing clip: ' + str(target)
             if not valid:
                 pull_error = 'pull hash mismatch: ' + name
         if pull_error is None:
-            Path(a.ledger).write_bytes(ledger)
-        else:
+            try:
+                write_plain(a.ledger, ledger)
+            except OSError as exc:
+                pull_error = f'shot ledger not written: {exc}'
+        if pull_error is not None:
             print(pull_error)
         try:
             after = r.call('balance', project=project, source=(ROOT / 'tools/flow_balance_ws.py').read_text())

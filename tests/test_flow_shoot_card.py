@@ -1,6 +1,7 @@
 import argparse
 import base64
 import json
+import os
 from pathlib import Path
 import re
 import signal
@@ -379,6 +380,68 @@ def test_clip_conflict_still_accounts(setup):
     assert card.main(argv, FakeRunner(), live) == 2
     assert (dest / 'shot-01.mp4').read_bytes() == b'existing'
     assert json.loads(live.read_text())['amount'] == 5
+
+
+def plant(path, victim, link):
+    path.unlink()
+    if link == 'symlink':
+        path.symlink_to(victim)
+    elif link == 'hardlink':
+        os.link(victim, path)
+    else:
+        os.mkfifo(path)
+
+
+# The card runs as root and state/ is group-writable: a planted link must not redirect it.
+@pytest.mark.parametrize('which', [3, 5])
+@pytest.mark.parametrize('link', ['symlink', 'hardlink', 'fifo'])
+def test_refuses_linked_input(setup, tmp_path, which, link, capsys):
+    argv, live = setup
+    victim = tmp_path / 'victim'
+    victim.write_bytes(Path(argv[which]).read_bytes())
+    plant(Path(argv[which]), victim, link)
+    runner = FakeRunner()
+    assert card.main(argv, runner, live) == 4
+    assert not runner.calls
+    assert capsys.readouterr().out.startswith('refused: ')
+
+
+@pytest.mark.parametrize('link', ['symlink', 'hardlink'])
+def test_ledger_swapped_before_write(setup, tmp_path, link):
+    argv, live = setup
+    victim = tmp_path / 'victim'
+    victim.write_bytes(b'root only\n')
+    class Runner(FakeRunner):
+        def call(self, verb, **kw):
+            if verb == 'get' and kw['name'].startswith('out/'):
+                plant(Path(argv[5]), victim, link)  # after the compare-and-swap read
+            return super().call(verb, **kw)
+    assert card.main(argv, Runner(), live) == 2
+    assert victim.read_bytes() == b'root only\n'
+    assert len(live.read_text().splitlines()) == 1
+
+
+def test_dest_symlink(setup, tmp_path):
+    argv, live = setup
+    elsewhere = tmp_path / 'elsewhere'
+    elsewhere.mkdir()
+    Path(argv[7]).symlink_to(elsewhere)
+    original = Path(argv[5]).read_bytes()
+    assert card.main(argv, FakeRunner(), live) == 2
+    assert not list(elsewhere.iterdir())
+    assert Path(argv[5]).read_bytes() == original
+    assert len(live.read_text().splitlines()) == 1
+
+
+def test_existing_clip_symlink(setup, tmp_path):
+    argv, live = setup
+    victim = tmp_path / 'victim'
+    victim.write_bytes(b'clip')
+    dest = Path(argv[7])
+    dest.mkdir()
+    (dest / 'shot-01.mp4').symlink_to(victim)
+    assert card.main(argv, FakeRunner(), live) == 2
+    assert (dest / 'shot-01.mp4').is_symlink()
 
 
 def test_filtered_tree_help(tmp_path):
