@@ -65,9 +65,9 @@ def add(args: argparse.Namespace, path: Path = LEDGER) -> dict:
         "kind": args.kind,
         "task": args.task or "",
     }
-    if args.before is not None:
+    if args.before is not None or getattr(args, "include_balances", False):
         row["balance_before"] = args.before
-    if args.after is not None:
+    if args.after is not None or getattr(args, "include_balances", False):
         row["balance_after"] = args.after
     if args.before is not None and args.after is not None:
         delta = args.before - args.after
