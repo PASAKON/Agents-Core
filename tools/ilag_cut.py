@@ -655,11 +655,21 @@ def kit_fingerprint(kit):
     return h.hexdigest()
 
 
-def stage_kit(kit, work):
+def stage_kit(kit, work, root=None):
     """Copy the kit's data (template, fonts, logo) into WORK/kit (kit.html needs fonts/ and logo.png beside it) and
     build kit.html there.  The kit folder may be named by an EDL or by --kit, so it supplies text and pictures, never
     code: render_kit.py (run here) and cut_logo.py (run in a child) are always the repo's own copies, REPO_KIT."""
     kit, stage = Path(kit), Path(work) / "kit"
+    root = Path(root) if root is not None else kit.resolve().parent
+    seen = set()
+    for dirpath, dirs, files in os.walk(kit, followlinks=True):
+        resolved = inside(root, dirpath, "kit folder")
+        if resolved in seen:
+            dirs[:] = []
+            continue
+        seen.add(resolved)
+        for name in dirs + files:
+            inside(root, Path(dirpath) / name, "kit child")
     for need in ("kit.tpl.html", "fonts"):
         if not (kit / need).exists():
             raise Fail(f"{kit} is not the ILAG templates folder: no {need}")
@@ -716,7 +726,7 @@ SET_TEXT_JS = """async ({el, items, authored}) => {
 }"""
 
 
-def render_card_set(kit, work, wanted, force=False):
+def render_card_set(kit, work, wanted, force=False, root=None):
     """Render [(el, texts)] to WORK/cards/<el>-<hash>.png.  Returns (rendered, reused)."""
     work = Path(work).resolve()                         # as_uri() below needs an absolute path
     refuse_escaping_links(work)
@@ -734,7 +744,7 @@ def render_card_set(kit, work, wanted, force=False):
             os.replace(f, work / "cards" / ".old" / f.name)
     todo = [(el, tx) for el, tx in wanted if force or not card_path(work, el, tx).exists()]
     if todo:
-        stage, html = stage_kit(kit, work)
+        stage, html = stage_kit(kit, work, root)
         authored = authored_fit_sizes(html)
         with sync_playwright() as p:
             b = p.chromium.launch()
@@ -814,7 +824,10 @@ def cmd_cards(a):
     kit = resolve(root, kit, "EDL 'kit'") if not a.kit else Path(a.kit)
     parts = all_parts(segs)
     wanted = wanted_cards(parts, True)
-    rendered, reused, stale = render_card_set(kit, work, wanted, a.force)
+    kit_root = root
+    if a.kit and not Path(kit).resolve().is_relative_to(root):
+        kit_root = Path(kit).resolve().parent
+    rendered, reused, stale = render_card_set(kit, work, wanted, a.force, kit_root)
     nf = sum(draw_ng_frames(work, root, p, int(edl.get("fps", 24)), a.force or stale)
              for p in parts if p["frames"])
     print(f"cards: {rendered} rendered, {reused} reused, {nf} NG frame set(s) drawn -> {work / 'cards'}")

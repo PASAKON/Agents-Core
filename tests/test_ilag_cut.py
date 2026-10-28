@@ -629,6 +629,31 @@ def test_output_name_cannot_carry_a_windows_drive(tmp_path, capsys):
     assert code == 1 and "'output' must be" in err
 
 
+@pytest.mark.parametrize("kind", ["file", "directory", "inside"])
+def test_stage_kit_child_links_stay_inside_root(tmp_path, kind):
+    root = tmp_path / "root"
+    kit = root / "templates"
+    (kit / "fonts").mkdir(parents=True)
+    (kit / "kit.tpl.html").write_text("template")
+    (kit / "logo.png").write_bytes(b"logo")
+    target = (root if kind == "inside" else tmp_path) / "target"
+    if kind == "directory":
+        target.mkdir()
+        (target / "font.ttf").write_bytes(b"font")
+    else:
+        target.write_bytes(b"font")
+    link = kit / "fonts" / "linked"
+    make_symlink(link, target)
+    if kind == "inside":
+        stage, _ = ilag_cut.stage_kit(kit, tmp_path / "work", root=root)
+        assert (stage / "fonts/linked").read_bytes() == b"font"
+    else:
+        with pytest.raises(ilag_cut.Fail) as exc:
+            ilag_cut.stage_kit(kit, tmp_path / "work", root=root)
+        assert str(link) in str(exc.value) and "outside" in str(exc.value)
+        assert not (tmp_path / "work/kit").exists()
+
+
 def booby_trapped_kit(tmp_path, how):
     """A copy of the kit whose two Python files write a marker when they run."""
     base, marker = tmp_path / "evil", tmp_path / "marker"
@@ -712,7 +737,7 @@ def test_cards_refuses_a_symlinked_kit_stage(tmp_path, media, capsys):
 def test_cards_hands_an_absolute_work_folder_to_the_renderer(tmp_path, monkeypatch):
     seen = {}
     monkeypatch.setattr(ilag_cut, "render_card_set",
-                        lambda kit, work, wanted, force=False: seen.update(work=work) or (0, 0, False))
+                        lambda kit, work, wanted, force=False, root=None: seen.update(work=work) or (0, 0, False))
     monkeypatch.setattr(ilag_cut, "draw_ng_frames", lambda work, *a, **k: seen.update(ng=work) or False)
     monkeypatch.chdir(tmp_path)
     p = write(tmp_path, base_edl())
