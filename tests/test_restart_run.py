@@ -856,7 +856,7 @@ def test_winbox_prep_saves_and_records_what_resume_needs(winbox, tmp_path):
     locks.mkdir(parents=True)
     (locks / f'project_head-{SID_B}.spawned_by').write_text('cxo:cto:cto-08d5df68')
     (locks / f'project_head-{SID_B}.project').write_text('LuminaSkies\n')
-    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': datetime.now(timezone.utc) + timedelta(days=1)}
     rows = [wrow('resume_full'), wrow('resume_lazy', 'project_head', SID_B), wrow('park', 'cmo', '0badc0de')]
     assert rr.prep(wargs(tmp_path, rows)) == 0
     # preflight on every tab (dry), then one /session-save per session
@@ -1223,7 +1223,7 @@ def test_win_rebuild_owner_leaves_a_complete_record_alone(tmp_path, monkeypatch,
 
 def test_winbox_prep_rebuilds_a_lost_owner_record_instead_of_cannot_resume(winbox, tmp_path, capsys):
     rr.win_hub_ph.return_value = (HUB_PH, '')
-    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': datetime.now(timezone.utc) + timedelta(days=1)}
     assert rr.prep(wargs(tmp_path, [wrow('resume_full', 'project_head', SID_B)])) == 0
     out = capsys.readouterr().out
     assert 'rebuilt:' in out and 'cannot_resume' not in out
