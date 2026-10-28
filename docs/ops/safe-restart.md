@@ -89,3 +89,142 @@ Disable future boot recovery with `systemctl disable org-resume.service`, remove
 Remove the two Run cards. Keep recovery manifests/logs for inspection. Restoring
 the prior code version does not require stopping the shared tmux scope. Never
 stop `org-tmux.scope` as part of rollback: that would kill its sessions.
+
+## winbox
+
+Same idea as Contabo: save every Claude session, reboot, reopen each one. The
+differences are what winbox is: no tmux, no systemd, and a person's desktop. Sessions
+live in Windows Terminal tabs; saving means typing `/session-save` into a tab; resume
+means one new tab per session through `windows\cxo-claude.ps1 --resume <uuid>`.
+
+| piece | where | does |
+|---|---|---|
+| `scripts/winbox-restart.sh` | Contabo, run by the CEO's Run card | checks, takes the PC lease, runs prep in the console session, reboots only if prep passed |
+| `tools/restart_run.py --host winbox prep\|resume\|report` | winbox clone | the same verbs as Contabo, with winbox branches (typing through `windows\wake.ps1`, hub record instead of `session-kill.sh`, `wt.exe` tabs instead of tmux) |
+| `windows/org-resume-logon.ps1` | winbox, task `MooniexOrgResume` at logon | does nothing without `state\restart\pending-winbox.json`; otherwise waits out a CEO hold, takes the lease, runs `resume` (3 tries, 60 s apart), then `report --notify` |
+| `windows/register-org-resume.ps1` | winbox console session, once | registers `MooniexOrgResume` (`-Remove` deletes it); refuses session 0 |
+
+### One time: register the logon task (CEO card from the phone)
+
+A task that survives reboots is a CEO decision, and registering one over ssh was
+refused as persistence (2026-09-30). The CEO is never at the winbox desk, so the decision
+is a Run card on Contabo whose text shows what it does. The card runs
+`register-org-resume.ps1` in the console session through the same one-shot interactive
+task prep uses (no lease, no keystroke), then prints the task's state:
+
+```sh
+bash /opt/MoonieXHQ/Agents/Core/scripts/winbox-restart.sh --register-logon-task --sha <40-hex>
+bash /opt/MoonieXHQ/Agents/Core/scripts/winbox-restart.sh --unregister-logon-task --sha <40-hex>   # passes -Remove
+```
+
+Both first require the winbox clone to be exactly at `--sha` with no changed tracked
+file (the `.ps1` that runs is the one in that clone, and the task is bound to that
+checkout). Exit `0` means the task is now `Ready` (register) or gone (unregister); `1`
+means the `.ps1` failed or the state is not what was asked for; `2` the clone is wrong.
+`--dry-run` prints the exact `powershell ... register-org-resume.ps1` line and the task's
+current state, and changes nothing.
+
+`winbox-restart.sh` refuses a restart (exit 4) while the task is missing, because
+sessions would be saved and never reopened. winbox auto-logs-on after a reboot
+(`AutoAdminLogon`), so the task fires without a person at the desk.
+
+### Each restart
+
+1. On winbox, bring the clone to the commit the card names and leave tracked files clean:
+   `git -C C:\Users\passg\mooniex\repo\MoonieX-Agents pull --ff-only`. The script refuses
+   a clone that is not exactly `--sha`.
+2. Dry run first (nothing is typed, saved, registered or rebooted; runs `prep --dry-run`
+   over ssh and prints what a real run would add):
+
+   ```sh
+   bash /opt/MoonieXHQ/Agents/Core/scripts/winbox-restart.sh --dry-run [--sha <40-hex>]
+   ```
+
+   The `prep --dry-run` part ends with a block that says, per session, what a real run does:
+
+   ```
+   -- what a real run does, per session
+     save+reopen        cto #1234abcd  (...)
+     save only (park)   cmo #abcd1234
+     close (no reopen)  cgo #c10c10c1  (recorded closed, not typed into)
+     cannot_resume      project_head #f00dcafe  (no lane, project or owner record ...)
+   ```
+
+   `save+reopen`: `/session-save` is typed, the session is in the manifest, the logon task
+   reopens it (`/compact` first, or no "continue" message, is said in brackets).
+   `save only (park)`: saved, not reopened. `cannot_resume`: the whole prep stops with exit 1
+   before anything is typed. `wait`: the session is mid-turn; a real run waits up to
+   `--wait-max`, then stops with exit 3 (the dry run does not wait, and still lists the rest).
+   Workers and service-managed sessions are listed as `leave running` / `leave alone`.
+3. The real card:
+
+   ```sh
+   bash /opt/MoonieXHQ/Agents/Core/scripts/winbox-restart.sh --sha <40-hex> [--wait-max 240]
+   ```
+
+Exit codes: `0` done, rebooting | `1` prep or its rollback failed | `2` usage, or the clone
+is not at `--sha` / has changed files | `3` refused (CEO holds the PC, a Run card is
+running on winbox, the safety gate, the lease) | `4` `MooniexOrgResume` not registered.
+A prep that fails does not reboot and runs `resume` for whatever it closed.
+
+### Which sessions come back
+
+Not all of them: the planner's rules are the same as Contabo's. A session with an open
+charter or open task is saved and reopened (`resume_full`/`resume_lazy`); one with
+neither is saved and left parked. Force a decision per session with
+`state\restart\overrides.json` in the winbox clone (`{"<8-hex sid>": "resume_full"}`).
+
+A Project Head can be reopened only with its project, its lane and its owner, the last
+one being `state\locks\project_head-<sid>.spawned_by` (`cxo:<lane>:<owner sid>`;
+`cxo-claude.ps1` refuses to start a Project Head without it). `windows\cxo-claude.ps1` and
+`tools.spawn_ph` leave those files; the Project Heads started by a temp
+`mooniex-respawn-ph-*.ps1` script on 2026-10-27 did not.
+
+Before it gives up, prep tries to rebuild a missing `.project` / `.spawned_by` from the hub's
+portfolio registry (`projects` row whose `ph_session` is this session: project name or id,
+`lane`, and `owner_session` = `<lane>-<8 hex>`). It writes only when the hub knows **every**
+field (a placeholder owner such as `cto-fresh` does not count, nor an owner of another
+lane), only the file that is missing, and never over a file that exists. Per Project Head it
+prints one of `owner_record_ok`, `rebuilt` (`would_rebuild` in a dry run) or
+`not_rebuilt: <why>`. A `not_rebuilt` one keeps today's behaviour: `cannot_resume: ...` and
+exit 1 before anything is typed; park it (override `park`) or restart it through
+`cxo-claude.ps1` first. The c_level_sessions row holds none of these three fields, and a
+hub that cannot be reached (or answers from the read-only snapshot, which has no
+portfolio) is `not_rebuilt`, not a guess.
+
+### After the reboot
+
+`MooniexOrgResume` runs `org-resume-logon.ps1` about 45 s after logon. Log:
+`state\restart\resume-logon-<UTC>Z.log` in the clone. The marker is removed when every
+saved session is back. To retry by hand (or after a CEO hold): 
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File windows\org-resume-logon.ps1
+```
+
+A marker older than 24 h is moved aside (`pending-winbox.stale-<time>.json`) instead of
+reopening sessions days later.
+
+### Cancel or roll back
+
+- Within the 60 s before reboot: `ssh winbox shutdown /a`. Sessions are already saved;
+  reopen them with `windows\org-resume-logon.ps1` (above).
+- Undo the logon task: the `--unregister-logon-task` card (the register script with `-Remove`).
+- Never run `resume` over ssh: it opens tabs, so it refuses in session 0 (the logon
+  script and the one-shot task run it in the console session).
+
+### Known limits
+
+- Typing `/session-save` is a keystroke into a tab, behind the PC lease gate
+  (`pc_lease.py gate`). A CEO hold refuses the whole run. Every tab is found with
+  `wake.ps1 -DryRun` before anything is typed; a missing tab stops the run with nothing saved.
+- There is no way to end a `claude.exe` from outside on winbox. If `/session-save` does
+  not record `saved` within `--wait-max`, prep records `force_saved` in the hub and leaves
+  the process running; the reboot ends it.
+- The Run Inbox has no token on winbox yet, so the `report --notify` card is logged
+  and skipped there. The report is in the log either way.
+- The Run-card check runs on Contabo (`ask_run list`), so it needs the card's Run Inbox
+  token; unreadable cards refuse the run.
+- The inner command is `python -I -X utf8 tools\restart_run.py`, not `-m tools.restart_run`:
+  `-I` drops the current directory, so the module form cannot import `tools`, and
+  without `-X utf8` the Thai session names are written in cp1252.

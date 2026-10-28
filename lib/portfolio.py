@@ -43,6 +43,7 @@ WORKING_S = 5 * 60                           # a heartbeat this fresh is "workin
 IDLE_S = 24 * 3600                           # a heartbeat this fresh is "idle", else "stalled"
 MAX_ROWS = 20
 GENERATING_MAX_AGE_S = IDLE_S                # a task row untouched this long is not "generating"
+LIVE_PH_S = 15 * 60                          # a live_sessions row seen this recently is a live session
 
 ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,62}")
 LANE_RE = re.compile(r"[a-z]{2,12}")
@@ -254,19 +255,27 @@ def park(project_id: str, *, actor: str, reason: str | None = None,
     return set_stage(project_id, "parked", actor=actor, reason=reason, now=now, conn=conn)
 
 
-EDITABLE = ("name", "goal", "repos", "done_criteria", "host")
+EDITABLE = ("name", "goal", "repos", "done_criteria", "host", "kind", "cadence_h")
+_EDIT_FLAG = {"cadence_h": "--cadence"}         # every other field's flag is "--" + its name with dashes
 
 
 def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list[str] | None = None,
-                done_criteria: str | None = None, host: str | None = None) -> dict:
+                done_criteria: str | None = None, host: str | None = None,
+                kind: str | None = None, cadence_h: int | None = None) -> dict:
     """The fields of an edit that were given (not None), checked and cleaned; PortfolioError when
-    none was given or a value is bad. Needs no hub, so a caller can refuse before it connects."""
+    none was given or a value is bad. Needs no hub, so a caller can refuse before it connects.
+    Whether a loop ends up with a cadence depends on the row, so edit_project checks that."""
     given = {k: v for k, v in (("name", name), ("goal", goal), ("repos", repos),
-                               ("done_criteria", done_criteria), ("host", host)) if v is not None}
+                               ("done_criteria", done_criteria), ("host", host),
+                               ("kind", kind), ("cadence_h", cadence_h)) if v is not None}
     if not given:
-        flags = ", ".join("--" + f.replace("_", "-") for f in EDITABLE)
+        flags = ", ".join(_EDIT_FLAG.get(f, "--" + f.replace("_", "-")) for f in EDITABLE)
         raise PortfolioError(f"nothing to edit: give at least one of {flags}")
+    if "kind" in given or "cadence_h" in given:
+        _schedule(kind or "finite", None, None, cadence_h)      # `or "finite"`: _schedule wants a kind
     for field, value in given.items():
+        if field in ("kind", "cadence_h"):
+            continue
         if field == "repos":
             if not isinstance(value, list) or not value or not all(isinstance(x, str) and x.strip() for x in value):
                 raise PortfolioError("repos must be a list of one or more non-empty strings")
@@ -278,14 +287,23 @@ def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list
 
 def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: str | None = None,
                  repos: list[str] | None = None, done_criteria: str | None = None,
-                 host: str | None = None, conn=None) -> dict:
+                 host: str | None = None, kind: str | None = None, cadence_h: int | None = None,
+                 conn=None) -> dict:
     """Change the descriptive fields of a project: only the ones given (not None), and at least
     one. A value equal to the current one is left alone. Returns {project, changed: {field:
-    {from, to}}}; no event row is written (project_events.kind has no value for it)."""
+    {from, to}}}; no event row is written (project_events.kind has no value for it).
+
+    `kind` (finite|loop) and `cadence_h` (positive hours) are the schedule: a loop must end up with
+    a cadence, the given one or the row's own, else PortfolioError; switching to finite leaves
+    cadence_h as it is."""
     _actor(actor)
-    new = edit_fields(name=name, goal=goal, repos=repos, done_criteria=done_criteria, host=host)
+    new = edit_fields(name=name, goal=goal, repos=repos, done_criteria=done_criteria, host=host,
+                      kind=kind, cadence_h=cadence_h)
     with _tx(conn) as c:
         row = _project(c, project_id, lock=True)
+        if ("kind" in new or "cadence_h" in new) and new.get("kind", row["kind"]) == "loop" \
+                and new.get("cadence_h", row["cadence_h"]) is None:
+            raise PortfolioError("a loop needs a cadence: give --cadence HOURS with --kind loop")
         changed = {f: {"from": row[f], "to": v} for f, v in new.items() if row[f] != v}
         if changed:
             sets = ", ".join(f"{f} = ?" + ("::jsonb" if f == "repos" else "") for f in changed)
@@ -689,6 +707,13 @@ def go_project(go_id: str, *, conn=None) -> str | None:
         return row["project_id"]
 
 
+def _shown_due(project_due, open_dues):
+    """The date a finite project shows: the earlier of its own due and its latest open
+    milestone's due, or whichever of the two exists. An import can leave the project date later
+    than the plan it now has; the plan's last date is the one to look at."""
+    return min((d for d in (project_due, max(open_dues, default=None)) if d), default=None)
+
+
 def show(project_id: str | None = None, *, now: datetime | None = None, conn=None) -> dict:
     """One project in full (row, milestones, last events, locks, GOs), or every project in brief."""
     now = _utc(now)
@@ -706,9 +731,8 @@ def show(project_id: str | None = None, *, now: datetime | None = None, conn=Non
         proj = dict(_project(c, project_id))
         ms = [dict(r) for r in c.execute("SELECT n, title, done_at, evidence, due_at, order_id FROM milestones"
                                          " WHERE project_id = ? ORDER BY n", (project_id,)).fetchall()]
-        if proj["due_at"] is None:
-            dues = [_as_utc(m["due_at"]) for m in ms if not m["done_at"] and m["due_at"]]
-            proj["due_at"] = max(dues) if dues else None
+        proj["due_at"] = _shown_due(_as_utc(proj["due_at"]),
+                                    [_as_utc(m["due_at"]) for m in ms if not m["done_at"] and m["due_at"]])
         last = _as_utc(proj["last_beat_at"])
         proj["next_beat_due"] = last + timedelta(hours=proj["cadence_h"]) if last and proj["cadence_h"] else None
         ev = [dict(r) for r in c.execute("SELECT at, kind, actor, body FROM project_events"
@@ -842,11 +866,11 @@ def monitor_rows(now: datetime | None = None, *, conn=None) -> list[dict]:
     return _monitor_all(_utc(now), conn)[:MAX_ROWS]
 
 
-def monitor_payload(now: datetime | None = None, *, conn=None, version=1) -> dict:
+def monitor_payload(now: datetime | None = None, *, conn=None, version=1, attention_cap=10) -> dict:
     """The whole P3-E v1 response body. `counts` are before the row cap."""
     now = _utc(now)
     if version == 2:
-        return _monitor_v2(now, conn=conn)
+        return _monitor_v2(now, conn=conn, attention_cap=attention_cap)
     if version != 1:
         raise PortfolioError("monitor version must be 1 or 2")
     rows = _monitor_all(now, conn)
@@ -910,7 +934,8 @@ def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=Non
         if actor_role == "project_head":
             if project["due_set_by"] == "ceo":
                 raise PermissionError("a Project Head cannot move a CEO-set date")
-            if old is None or abs(new_due - old) > timedelta(days=2):
+            # No date yet: setting the first one is not a move, so the 2-day limit has nothing to measure.
+            if old is not None and abs(new_due - old) > timedelta(days=2):
                 raise PermissionError("a Project Head may move a date by at most 2 days")
         elif actor_role != "ceo" and not is_c_level(actor_role):
             raise PermissionError("only a Project Head or C-level may replan")
@@ -919,7 +944,10 @@ def replan(project_id, n, new_due, *, actor, actor_role, why, now=None, conn=Non
             c.execute("UPDATE projects SET due_first_at = COALESCE(due_first_at, ?) WHERE id = ?",
                       (old, project_id))
         if n == 0:
-            c.execute("UPDATE projects SET due_at = ? WHERE id = ?", (new_due, project_id))
+            # The first project date records who set it, unless the row already says.
+            set_by = {"ceo": "ceo", "project_head": "ph"}.get(actor_role, "clevel") if old is None else None
+            c.execute("UPDATE projects SET due_at = ?, due_set_by = COALESCE(due_set_by, ?) WHERE id = ?",
+                      (new_due, set_by, project_id))
         else:
             c.execute("UPDATE milestones SET due_at = ? WHERE project_id = ? AND n = ?",
                       (new_due, project_id, n))
@@ -951,13 +979,19 @@ def _order(c, order_id, *, lock=False):
     return dict(row)
 
 
-def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_by=None, now=None, conn=None):
+def ceo_order_hub_id(n: int) -> str:
+    """The hub order id for row n of the relay's SQLite ceo_orders ledger: a link with no DDL."""
+    return f"CO-{int(n)}"
+
+
+def order_take(words, channel, *, actor, project_id=None, due_at=None, due_set_by=None, now=None, conn=None,
+               order_id=None):
     now, actor = _utc(now), _actor(actor)
     words, channel = _text(words, "words"), _text(channel, "channel", limit=120)
-    if not re.fullmatch(r"(?:sompong:\d+|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
-        raise PortfolioError("channel must be sompong:<n> or chat:<role>-<session>")
+    if not re.fullmatch(r"(?:sompong:\d+|coo:[0-9]{1,6}|chat:[a-z_]+-[A-Za-z0-9-]+)", channel):
+        raise PortfolioError("channel must be sompong:<n>, coo:<n> or chat:<role>-<session>")
     _schedule("finite", due_at, due_set_by, None)
-    oid = "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
+    oid = order_id or "O-" + now.astimezone(BKK).strftime("%Y%m%d-%H%M-") + secrets.token_hex(2)
     with _tx(conn) as c:
         if project_id:
             _project(c, project_id, lock=True)
@@ -1036,19 +1070,33 @@ def _stamp(value):
 
 
 def _v2_rows(now, c):
+    """The v2 project rows, the raw projects and milestones, and `deadlines`: project id ->
+    (date, milestone) for the date a late project is late from. A loop's is its next beat. A finite
+    project's is the earliest of its own due and every open milestone's due that is already past;
+    `milestone` is that milestone's (n, title) when one is the earliest, else None. Kept out of the
+    row: the Console validator refuses a row key it does not know."""
     rows = _monitor_all(now, c)
     projects = {r["id"]: dict(r) for r in c.execute("SELECT * FROM projects").fetchall()}
     milestones = [dict(r) for r in c.execute("SELECT * FROM milestones").fetchall()]
+    deadlines = {}
     for row in rows:
         p = projects[row["id"]]
-        dues = [_as_utc(m["due_at"]) for m in milestones
-                if m["project_id"] == p["id"] and not m["done_at"] and m["due_at"]]
-        due = _as_utc(p["due_at"]) or (max(dues) if dues else None)
+        open_ms = sorted((_as_utc(m["due_at"]), m["n"], m["title"]) for m in milestones
+                         if m["project_id"] == p["id"] and not m["done_at"] and m["due_at"])
+        due = _as_utc(p["due_at"])
         loop = p["kind"] == "loop"
         last = _as_utc(p["last_beat_at"])
         next_due = last + timedelta(hours=p["cadence_h"]) if last and p["cadence_h"] else None
-        deadline = next_due if loop else due
-        row.update(tier=p["tier"], kind=p["kind"], due_at=None if loop else _stamp(due),
+        overdue = next(((d, (n, title)) for d, n, title in open_ms if d < now), None)
+        if loop:
+            deadline, milestone = next_due, None
+        elif overdue and (due is None or overdue[0] < due):
+            deadline, milestone = overdue
+        else:
+            deadline, milestone = due, None
+        deadlines[p["id"]] = (deadline, milestone)
+        shown = _shown_due(due, [d for d, _, _ in open_ms])
+        row.update(tier=p["tier"], kind=p["kind"], due_at=None if loop else _stamp(shown),
                    due_moved_from=_stamp(p["due_first_at"]),
                    late_s=min(10**9, max(0, int((now - deadline).total_seconds()))) if deadline and now > deadline else None,
                    next=_cut(p["next_step"], 60), owner=_cut(p["next_owner"], 40),
@@ -1056,12 +1104,13 @@ def _v2_rows(now, c):
         row["name"] = _cut(row["name"], 120)
         if row["blocker"]:
             row["blocker"].update(what=_cut(p["blocker_what"], 80), ref=_cut(p["blocker_ref"], 40))
-    return rows, projects, milestones
+    return rows, projects, milestones, deadlines
 
 
-def _monitor_v2(now, *, conn=None):
+def _monitor_v2(now, *, conn=None, attention_cap=10):
+    # attention_cap: the wire contract's 10; tools/portfolio_watch.py asks for every item.
     with _tx(conn) as c:
-        rows, projects, milestones = _v2_rows(now, c)
+        rows, projects, milestones, deadlines = _v2_rows(now, c)
         attention = []
         counts = {"in_progress": sum(not r["parked"] for r in rows), "parked": sum(r["parked"] for r in rows),
                   "late": 0, "waiting_ceo": 0, "no_plan": 0}
@@ -1074,7 +1123,9 @@ def _monitor_v2(now, *, conn=None):
             p = projects[row["id"]]
             flags = []
             if not row["parked"] and row["late_s"] is not None:
-                flags.append(("late", row["due_at"] or row["beat"]["next_due"], "เลยกำหนด"))
+                deadline, milestone = deadlines[row["id"]]
+                text = "เลยกำหนด" + (f": M{milestone[0]} {_cut(milestone[1], 40)}" if milestone else "")
+                flags.append(("late", _stamp(deadline), text))
             if not row["parked"] and row["state"] == "waiting_ceo":
                 flags.append(("waiting_ceo", row["blocker"]["since"], "รอคุณตอบ"))
             if p["stage"] == "active" and not any(m["project_id"] == p["id"] and not m["done_at"] and m["due_at"] for m in milestones):
@@ -1104,13 +1155,13 @@ def _monitor_v2(now, *, conn=None):
             row["id"] = _cut(row["id"], 40)
         for row in attention + orders:
             row["project_id"] = _cut(row["project_id"], 40)
-        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:10],
+        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:attention_cap],
                 "projects": rows[:20], "orders": orders[:20]}
 
 
 def report(now=None, *, conn=None):
     with _tx(conn) as c:
-        rows, _, _ = _v2_rows(_utc(now), c)
+        rows = _v2_rows(_utc(now), c)[0]
     rows = [r for r in rows if not r["parked"]]
     return sorted(rows, key=lambda r: (r["late_s"] is None, -(r["late_s"] or 0), r["lane"], r["id"]))
 
@@ -1123,6 +1174,39 @@ def render_report(rows):
         lines.append(" · ".join(str(x or "—") for x in (r["lane"], r["name"], r["kind"], progress, due,
                      r["state"], (r["blocker"] or {}).get("what"), r["next"])))
     return "\n".join(lines)
+
+
+def idea_with_live_ph(now=None, *, conn=None) -> list[dict]:
+    """Projects still at stage 'idea' whose Project Head is running: the monitor selects only
+    active, review and parked, so such a project shows nowhere else. Live = a live_sessions row
+    seen in the last LIVE_PH_S whose sid is the ph_session (with or without its `project_head-`
+    prefix) or whose name carries it (names read `PH#45728c34 (CTO) - Project`; 6+ characters, so
+    a short ph_session cannot match every name). Returns [] and never raises when the hub or
+    live_sessions cannot be read. Pass the caller's connection last: a failed read aborts a
+    PostgreSQL transaction."""
+    try:
+        since = _utc(now) - timedelta(seconds=LIVE_PH_S)
+        with _tx(conn) as c:
+            ideas = [dict(r) for r in c.execute(
+                "SELECT id, name, lane, owner_session, ph_session FROM projects"
+                " WHERE stage = 'idea' AND ph_session IS NOT NULL ORDER BY id").fetchall()]
+            if not ideas:
+                return []
+            seen = [(str(r["sid"] or "").lower(), str(r["name"] or "").lower(), r["role"]) for r in c.execute(
+                "SELECT sid, name, role FROM live_sessions WHERE seen_at >= ?", (since,)).fetchall()]
+    except Exception:
+        return []
+    out = []
+    for p in ideas:
+        ph = p["ph_session"].strip().lower()
+        token = ph[len("project_head-"):] if ph.startswith("project_head-") else ph
+        # A PH on another host (winbox, the Mac) is listed with only the first 3 hex of its id as sid.
+        if token and any(sid in (token, ph) or (len(token) >= 6 and token in name)
+                         or (role == "project_head" and len(sid) == 3 and token.startswith(sid))
+                         for sid, name, role in seen):
+            out.append({"project_id": p["id"], "name": p["name"], "lane": p["lane"],
+                        "owner_session": p["owner_session"], "ph_session": p["ph_session"].strip()})
+    return out
 
 
 def eta_stats(*, conn=None):

@@ -1,0 +1,64 @@
+# Rendered by scripts/install-share-broker.sh into /etc/systemd/system/mooniex-share-broker.service (Contabo).
+# The installer fills in the checkout path (an absolute Agents-Core path); do not copy this file by hand.
+#
+# The Drive SHARE broker (runners/drive_share_broker.py): SomPong's one way to hand the CEO a public
+# link to a file in the fixed Drive folder "SomPong Share/". No credential file exists: root fetches
+# GOOGLE_OAUTH_CLIENT_ID / _CLIENT_SECRET / _REFRESH_TOKEN from Infisical (MoonieX-SomPong, prod,
+# folder /drive-share) and setpriv drops to the system user shareup before any code of ours runs, so
+# the Drive credential lives only in that unprivileged process's memory. Modelled on
+# scripts/install-gmail-broker.sh (the Gmail broker unit) and deploy/coo-gate/org-coo-gate.service.
+#
+# Callers: only uid 0. SomPong's inbox calls as root, so DRIVE_SHARE_BROKER_ALLOWED_UIDS is 0 and the
+# broker also requires a staged file to be owned by that same uid (root).
+[Unit]
+Description=MoonieX Drive SHARE broker (SomPong Share/ public links; credential from Infisical, no file)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=10min
+StartLimitBurst=10
+
+[Service]
+Type=simple
+# No User=/Group= on purpose: with User= set, NoNewPrivileges=true leaves root unable to setresuid, so
+# setpriv fails (measured on Contabo 2026-10-23, scripts/install-gmail-broker.sh). Root is the default
+# and setpriv below drops it before the broker starts.
+WorkingDirectory=@ROOT@
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+Environment=DRIVE_SHARE_BROKER_ALLOWED_UIDS=0
+Environment=DRIVE_SHARE_BROKER_STAGING_ROOT=/var/lib/sompong-share/staging
+Environment=DRIVE_SHARE_BROKER_SOCKET_PATH=/run/mooniex-share-broker/broker.sock
+Environment=ORG_LOG_DIR=/var/log/mooniex-share-broker
+# The socket directory comes from a "+" (fully privileged, unsandboxed) pre-step, not from
+# RuntimeDirectory=: systemd re-chowns a RuntimeDirectory to the unit's User= (root here) before every
+# command it starts (systemd.exec(5)), which undid the chown to shareup and left bind() with EACCES
+# (the same trap hit deploy/coo-gate, RUN-20261013-2142-7e3b). The broker (shareup) creates the socket
+# in this directory, so shareup owns it; root, the only caller, needs no directory permission.
+# The "-" on ReadWritePaths is load-bearing: systemd builds the mount namespace for the "+" pre-step
+# too, and a missing entry fails it with 226/NAMESPACE before install can create the directory (fresh
+# boot or first start). With "-" the pre-step runs, and ExecStart's own namespace, built after it, finds
+# the directory and makes it writable. Staging and log directories are made by the installer and are
+# required: without them the unit should fail loudly.
+ExecStartPre=+/usr/bin/install -d -m 0750 -o shareup -g shareup /run/mooniex-share-broker
+ExecStart=/usr/bin/python3 @ROOT@/tools/infisical_setup.py run MoonieX-SomPong prod --as contabo --path /drive-share -- /usr/bin/setpriv --reuid=shareup --regid=shareup --clear-groups --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs -- /usr/bin/python3 -m runners.drive_share_broker
+Restart=on-failure
+RestartSec=5
+# infisical_setup.py run exits 2 when the /drive-share folder holds no secrets (the one-time import has
+# not been done yet): a standing condition, not a blip, so do not hammer the Infisical API retrying it.
+# Restart the unit by hand after the import.
+RestartPreventExitStatus=2
+UMask=0077
+LimitCORE=0
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=-/run/mooniex-share-broker /var/lib/sompong-share/staging /var/log/mooniex-share-broker
+
+[Install]
+WantedBy=multi-user.target

@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-62 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 6 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+63 org skills by kind — Rules 8 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 6 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -17,6 +17,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_Approvals` | COO | all | What needs the CEO and what does not (CEO ruling 2026-09-27) — own-lane work and skills, cross-lane skills without asking, money / secrets… |
 | `ALL_Rules_DiskHygiene` | CTO | cxo, worker | Rules for reclaiming disk space without losing data, on the Mac, winbox (Windows) and the Contabo VPS — the Green list (delete now, no… |
 | `ALL_Rules_HQ_Filing` | COO | all | Filing rules for MoonieX HQ — read before creating/moving/cloning/renaming/deleting any project folder on the Mac, before `git clone`… |
+| `ALL_Rules_Secrets` | CTO | all | One rule set for every credential: where it lives, its name, scope and expiry, how it is read, and what a leak sets off. |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
 | `CTO_Rules_Bedrock_References` | CTO | cto, worker | Every link, picture, video, pack or data file handed over as a reference for Minecraft Bedrock work is recorded with its URL and our… |
@@ -104,7 +105,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CTO_Protocol_SpawnWebDesigner` | CTO | cto | Open the Web Designer surface for the CEO to design directly. |
 | `CXO_Protocol_DelegateExternal` | CTO | cxo, worker | Hand a task to an agent that is NOT Claude Code — Codex CLI, Antigravity, or a human — by writing a self-contained brief, shipping only… |
 | `CXO_Protocol_DevSpawn` | CTO | cxo, cto | Required steps when CTO spawns a DEV agent. |
-| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events plus a heartbeat with a… |
+| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events (worker letters, card… |
 | `VIDEO_EDITOR_Protocol_Playbook` | CMO | video_editor, worker | MoonieX org process layer for the `video_editor` role (owned by CMO, created 2026-08-03). Use this whenever a video_editor task arrives… |
 
 ## Commands the CEO types

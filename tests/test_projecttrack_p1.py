@@ -55,6 +55,15 @@ def project(pid="p", **kwargs):
     return pf.open_project(pid, pid, "cto", actor=ACTOR, now=T, stage="active", **kwargs)
 
 
+def live_sessions(store, *rows):
+    """live_sessions is Postgres only, so Store has no such table: make it, with (sid, name, seen_at) rows."""
+    store.execute("CREATE TABLE IF NOT EXISTS live_sessions"
+                  " (host TEXT, uuid TEXT, sid TEXT, role TEXT, name TEXT, seen_at TEXT)")
+    for i, (sid, name, seen) in enumerate(rows):
+        store.execute("INSERT INTO live_sessions (host, uuid, sid, role, name, seen_at)"
+                      " VALUES ('h', ?, ?, 'project_head', ?, ?)", (f"u{i}", sid, name, pf.iso(seen)))
+
+
 @pytest.mark.parametrize("days,source,role,allowed", [
     (2, "ph", "project_head", True), (3, "ph", "project_head", False),
     (1, "ceo", "project_head", False), (3, "ceo", "cto", True),
@@ -212,6 +221,103 @@ def test_monitor_v2_exact_contract_and_attention(store):
     assert order["state"] == "taken" and order["pct"] is None
 
 
+def _late(payload):
+    return [a for a in payload["attention"] if a["kind"] == "late"]
+
+
+def test_an_open_milestone_past_its_date_flags_a_project_whose_own_date_is_later(store):
+    tomorrow = T + timedelta(days=1)
+    project(due_at=tomorrow, due_set_by="ph")
+    pf.milestone_add("p", "write the thing", due_at=T - timedelta(minutes=10), actor=ACTOR, now=T)
+    pf.milestone_add("p", "ship", due_at=tomorrow, actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    row = payload["projects"][0]
+    assert row["late_s"] == 600 and row["due_at"] == pf.iso(tomorrow)       # the shown date is not the late date
+    assert "late_milestone" not in row          # the Console validator refuses a row key it does not know
+    assert _late(payload) == [{"kind": "late", "project_id": "p", "order_id": None, "decided": None,
+                               "text": "เลยกำหนด: M1 write the thing", "since": pf.iso(T - timedelta(minutes=10))}]
+    assert payload["counts"]["late"] == 1
+    pf.replan("p", 1, tomorrow, actor=ACTOR, actor_role="cto", why="dependency", now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] is None and _late(payload) == [] and payload["counts"]["late"] == 0
+
+
+def test_the_milestone_in_the_late_text_is_cut_to_40_and_stays_on_one_line(store):
+    project(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("p", "first line\nsecond " + "y" * 60, due_at=T - timedelta(hours=1), actor=ACTOR, now=T)
+    (late,) = _late(pf.monitor_payload(T, version=2))
+    assert late["text"] == "เลยกำหนด: M1 " + ("first line second " + "y" * 60)[:40]
+    assert "\n" not in late["text"] and len(late["text"]) <= 80
+
+
+def test_a_done_milestone_past_its_date_is_not_late(store):
+    project(due_at=T + timedelta(days=1), due_set_by="ph")
+    pf.milestone_add("p", "write the thing", due_at=T - timedelta(minutes=10), actor=ACTOR, now=T)
+    pf.milestone_add("p", "ship", due_at=T + timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_done("p", 1, "sha1", actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] is None and _late(payload) == [] and payload["counts"]["late"] == 0
+
+
+@pytest.mark.parametrize("project_due,milestones,late_s,text,since", [
+    # the project's own date is past, nothing else is: today's behaviour and today's text
+    (timedelta(seconds=-60), [], 60, "เลยกำหนด", timedelta(seconds=-60)),
+    (timedelta(seconds=-60), [timedelta(days=1)], 60, "เลยกำหนด", timedelta(seconds=-60)),
+    # both are past: the earlier date decides, and a milestone is named only when it is the earlier one
+    (timedelta(hours=-1), [timedelta(minutes=-10)], 3600, "เลยกำหนด", timedelta(hours=-1)),
+    (timedelta(minutes=-10), [timedelta(hours=-1)], 3600, "เลยกำหนด: M1 m1", timedelta(hours=-1)),
+    # no project date: the earliest overdue open milestone, not the latest
+    (None, [timedelta(hours=-2), timedelta(hours=-1)], 7200, "เลยกำหนด: M1 m1", timedelta(hours=-2)),
+    (None, [timedelta(hours=1), timedelta(hours=-1)], 3600, "เลยกำหนด: M2 m2", timedelta(hours=-1)),
+    # nothing past
+    (None, [timedelta(hours=1)], None, None, None),
+    (timedelta(days=1), [timedelta(hours=1)], None, None, None),
+    (None, [], None, None, None),
+])
+def test_late_is_seconds_past_the_earliest_date_already_past(store, project_due, milestones, late_s, text, since):
+    project(due_at=T + project_due if project_due is not None else None, due_set_by="ph" if project_due else None)
+    for i, offset in enumerate(milestones, 1):
+        pf.milestone_add("p", f"m{i}", due_at=T + offset, actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T, version=2)
+    assert payload["projects"][0]["late_s"] == late_s
+    if late_s is None:
+        assert _late(payload) == []
+    else:
+        (late,) = _late(payload)
+        assert (late["text"], late["since"]) == (text, pf.iso(T + since))
+
+
+def test_a_loop_keeps_its_beat_rule_whatever_its_milestones_say(store):
+    project(kind="loop", cadence_h=24)
+    pf.beat("p", "episode 1", actor=ACTOR, now=T)
+    pf.milestone_add("p", "old", due_at=T - timedelta(hours=5), actor=ACTOR, now=T)
+    payload = pf.monitor_payload(T + timedelta(hours=1), version=2)
+    assert payload["projects"][0]["late_s"] is None and payload["projects"][0]["due_at"] is None
+    assert _late(payload) == []
+    payload = pf.monitor_payload(T + timedelta(hours=25), version=2)
+    assert payload["projects"][0]["late_s"] == 3600
+    assert [(a["text"], a["since"]) for a in _late(payload)] == [("เลยกำหนด", pf.iso(T + timedelta(days=1)))]
+
+
+def test_a_finite_project_shows_the_earlier_of_its_date_and_its_last_open_milestone(store):
+    # SafeRestart: the project date 29 Oct came from the import, its last milestone is due 27 Oct.
+    project(due_at=T + timedelta(days=3), due_set_by="ceo")
+    pf.milestone_add("p", "done already", due_at=T - timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_add("p", "middle", due_at=T + timedelta(hours=20), actor=ACTOR, now=T)
+    pf.milestone_add("p", "last", due_at=T + timedelta(days=1), actor=ACTOR, now=T)
+    pf.milestone_done("p", 1, "sha1", actor=ACTOR, now=T)
+    project("later", due_at=T + timedelta(days=1), due_set_by="ceo")                # its own date is the earlier one
+    pf.milestone_add("later", "last", due_at=T + timedelta(days=3), actor=ACTOR, now=T)
+    project("bare", due_at=T + timedelta(days=2), due_set_by="ceo")                  # no milestones: its own date
+    last = pf.iso(T + timedelta(days=1))
+    shown = {r["id"]: r["due_at"] for r in pf.monitor_payload(T, version=2)["projects"]}
+    assert shown == {"p": last, "later": last, "bare": pf.iso(T + timedelta(days=2))}
+    rows = {r["id"]: r for r in pf.report(T)}
+    assert {k: r["due_at"] for k, r in rows.items()} == shown
+    assert last in pf.render_report([rows["p"]]) and pf.iso(T + timedelta(days=3)) not in pf.render_report([rows["p"]])
+    assert pf.show("p", now=T)["project"]["due_at"] == last                          # show agrees with report
+
+
 def test_monitor_v1_bytes_unchanged(store):
     project()
     expected = {"v": 1, "generated_at": pf.iso(T), "counts": {"in_progress": 1, "parked": 0}, "projects": [{
@@ -241,8 +347,8 @@ def test_monitor_caps_counts_and_order_age(store):
     assert recent in {o["id"] for o in payload["orders"]}
 
 
-@pytest.mark.parametrize("version,expected", [(None, {}), ("1", {}), ("2", {"version": 2}), ("bad", {})])
-def test_publisher_opt_in(monkeypatch, version, expected):
+@pytest.mark.parametrize("version,expected", [(None, {"version": 2}), ("1", {}), ("2", {"version": 2}), ("bad", {"version": 2})])
+def test_publisher_pushes_v2_unless_pinned_to_v1(monkeypatch, version, expected):
     monkeypatch.delenv("PORTFOLIO_MONITOR_V", raising=False)
     if version is not None:
         monkeypatch.setenv("PORTFOLIO_MONITOR_V", version)
@@ -300,6 +406,65 @@ def test_authorization_rows(verb, tmp_path):
     allowed = cli.authorize(ph, verb, p, locks_dir=tmp_path) is None
     assert allowed == (not verb.startswith("order_"))
     assert cli.authorize(ph, verb, {**p, "ph_session": "deadbeef"}, locks_dir=tmp_path)
+
+
+def _idea(pid, ph, stage="idea", name=None):
+    pf.open_project(pid, name or pid, "cto", actor=ACTOR, now=T, stage=stage, owner_session="cto-fresh", ph_session=ph)
+
+
+def test_idea_with_live_ph_needs_a_fresh_live_session_that_carries_the_ph_session(store):
+    _idea("by-sid", "45728c34")
+    _idea("prefixed", "project_head-1a2b3c4d")
+    _idea("by-name", "9f8e7d6c")
+    _idea("stale", "aaaa1111")
+    _idea("absent", "bbbb2222")
+    _idea("no-ph", None)
+    _idea("short", "ab")
+    _idea("running", "cccc3333", stage="active")                     # live, but the monitor already lists it
+    fresh, old = T - timedelta(minutes=14), T - timedelta(minutes=16)
+    live_sessions(store, ("45728c34", "x", fresh), ("1a2b3c4d", "x", fresh),
+                  ("none", "🌐 PH#9F8E7D6C (CTO) - Name", fresh), ("aaaa1111", "x", old),
+                  ("cccc3333", "x", fresh), ("zz", "PH#ab", fresh))
+    got = pf.idea_with_live_ph(T, conn=store)
+    assert [p["project_id"] for p in got] == ["by-name", "by-sid", "prefixed"]       # "short" never matches by name
+    assert got[1] == {"project_id": "by-sid", "name": "by-sid", "lane": "cto",
+                      "owner_session": "cto-fresh", "ph_session": "45728c34"}
+    assert len(pf.idea_with_live_ph(T + timedelta(minutes=1), conn=store)) == 3      # seen 15 min ago still counts
+    assert pf.idea_with_live_ph(T + timedelta(minutes=2), conn=store) == []          # 16 min ago does not
+    assert [r["id"] for r in pf._monitor_all(T, store)] == ["running"]               # the monitor is unchanged
+
+
+def test_idea_with_live_ph_matches_a_ph_on_another_host_by_its_three_hex_sid(store):
+    # winbox and the Mac list a PH with only the first 3 hex of its id as sid (live hub, 27 Oct: f35 for f35affd5)
+    _idea("cookie", "f35affd5")
+    _idea("other", "f40aaaaa")
+    fresh = T - timedelta(minutes=1)
+    live_sessions(store, ("f35", "🖥️ PH#f35 (CTO) - CookieRun", fresh))
+    assert [p["project_id"] for p in pf.idea_with_live_ph(T, conn=store)] == ["cookie"]
+
+
+def test_idea_with_live_ph_is_empty_when_live_sessions_cannot_be_read(store):
+    _idea("idea-one", "45728c34")
+    assert pf.idea_with_live_ph(T, conn=store) == []                 # Store has no live_sessions table
+
+    class Broken:
+        def execute(self, *a, **k):
+            raise RuntimeError("permission denied for table live_sessions")
+    assert pf.idea_with_live_ph(T, conn=Broken()) == []
+
+
+def test_report_prints_one_line_per_idea_with_a_live_ph_and_none_without(store, capsys):
+    identity = Identity("cxo", "cto", "abcdef12")
+    _idea("idea-one", "45728c34", name="Idea One")
+    live_sessions(store, ("45728c34", "x", T - timedelta(minutes=1)))
+    assert cli.run(["report"], identity=identity, now=T) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0].startswith("สาย") and lines[1:] == ["idea · Idea One (idea-one) · PH 45728c34 live: set stage or park"]
+    assert cli.run(["report", "--json"], identity=identity, now=T) == 0
+    assert json.loads(capsys.readouterr().out) == []                 # the JSON stays the monitor's rows only
+    store.execute("UPDATE live_sessions SET seen_at = ?", (T - timedelta(minutes=20),))
+    assert cli.run(["report"], identity=identity, now=T) == 0
+    assert "idea ·" not in capsys.readouterr().out
 
 
 def test_cli_verbs(store, monkeypatch, capsys):
@@ -403,3 +568,123 @@ def test_cli_new_verbs_keep_enforcement_pattern(store, monkeypatch, tmp_path, en
                      identity=Identity("dev", "developer", "task-x"), now=T)
     assert result == (1 if enforced else 0)
     assert pf.get_project("p")["next_step"] == (None if enforced else "next")
+
+
+# --- a Project Head finishes its own row (CTO Main order 27 Oct) ---------------------------------
+
+PH = Identity("cxo", "project_head", "12345678")
+PH_REPLAN = dict(actor="project_head-12345678", actor_role="project_head", why="first date", now=T)
+
+
+def replan_events(store):
+    return store.execute("SELECT count(*) FROM project_events WHERE kind='replan'").fetchone()[0]
+
+
+def test_ph_sets_a_first_milestone_date_but_cannot_move_it_by_three_days(store):
+    project(ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    event = pf.replan("p", 1, T + timedelta(days=30), **PH_REPLAN)     # no date yet: nothing to measure a move from
+    assert event == {"n": 1, "from": None, "to": pf.iso(T + timedelta(days=30)), "why": "first date"}
+    assert pf.get_project("p")["due_set_by"] is None                   # a milestone date says nothing about the project's
+    with pytest.raises(PermissionError, match="at most 2 days"):
+        pf.replan("p", 1, T + timedelta(days=33), **PH_REPLAN)
+    pf.replan("p", 1, T + timedelta(days=32), **PH_REPLAN)              # 2 days is still a small move
+    assert replan_events(store) == 2
+
+
+@pytest.mark.parametrize("role,source", [("project_head", "ph"), ("cto", "clevel"), ("ceo", "ceo")])
+def test_the_first_project_date_records_who_set_it(store, role, source):
+    project()
+    pf.replan("p", 0, T + timedelta(days=5), actor=ACTOR, actor_role=role, why="first date", now=T)
+    row = pf.get_project("p")
+    assert (row["due_at"], row["due_set_by"], row["due_first_at"]) == (pf.iso(T + timedelta(days=5)), source, None)
+    pf.replan("p", 0, T + timedelta(days=6), actor=ACTOR, actor_role="cto", why="move", now=T)
+    assert pf.get_project("p")["due_set_by"] == source                  # a later move does not take the date over
+
+
+def test_a_first_project_date_keeps_a_due_set_by_the_row_already_has(store):
+    project(due_set_by="clevel")                                        # attributed, no date yet
+    pf.replan("p", 0, T + timedelta(days=5), **{**PH_REPLAN, "now": T})
+    assert pf.get_project("p")["due_set_by"] == "clevel"
+
+
+@pytest.mark.parametrize("n", [0, 1])
+def test_ph_cannot_set_or_move_a_date_on_a_ceo_set_project(store, n):
+    project(due_at=T, due_set_by="ceo", ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)                   # milestone 1 has no date: the "first date" case
+    with pytest.raises(PermissionError, match="CEO-set"):
+        pf.replan("p", n, T + timedelta(days=1), **PH_REPLAN)
+    assert replan_events(store) == 0 and pf.get_project("p")["due_at"] == pf.iso(T)
+
+
+def test_a_worker_cannot_set_a_first_date(store):
+    project()
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    with pytest.raises(PermissionError, match="only a Project Head or C-level"):
+        pf.replan("p", 1, T + timedelta(days=1), **{**PH_REPLAN, "actor_role": "developer"})
+    assert replan_events(store) == 0
+
+
+@pytest.fixture
+def cli_as(store, monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, "gate", lambda identity, verb, pid, reason: reason is None)
+    monkeypatch.setattr(cli, "LOCKS_DIR", tmp_path)                     # no owner records on this box count
+
+    def run(*args, who=PH):
+        code = cli.run([a + "T00:00:00Z" if re.fullmatch(r"2026-1[01]-\d\d", a) else a for a in args], identity=who, now=T)
+        out = capsys.readouterr()
+        return code, out.out, out.err
+    return run
+
+
+def test_cli_ph_replans_its_own_milestone_first_date(cli_as, store):
+    project(ph_session="12345678")
+    pf.milestone_add("p", "ship", actor=ACTOR, now=T)
+    code, out, _ = cli_as("replan", "p", "1", "--due", "2026-10-30", "--why", "first date")
+    assert code == 0 and json.loads(out)["from"] is None
+    code, _, err = cli_as("replan", "p", "1", "--due", "2026-11-02", "--why", "slip")       # 3 days
+    assert code == 1 and "at most 2 days" in err
+
+
+def test_cli_edit_loop_needs_a_cadence(cli_as, store):
+    project(ph_session="12345678")
+    code, _, err = cli_as("edit", "p", "--kind", "loop")
+    assert code == 2 and "needs a cadence" in err
+    row = pf.get_project("p")
+    assert (row["kind"], row["cadence_h"]) == ("finite", None)
+    code, out, _ = cli_as("edit", "p", "--kind", "loop", "--cadence", "24")
+    assert code == 0
+    assert json.loads(out) == {"project": "p", "changed": {"kind": {"from": "finite", "to": "loop"},
+                                                           "cadence_h": {"from": None, "to": 24}}}
+    row = pf.get_project("p")
+    assert (row["kind"], row["cadence_h"]) == ("loop", 24)
+
+
+def test_cli_edit_kind_and_cadence_edges(cli_as, store):
+    project(ph_session="12345678", kind="loop", cadence_h=24)
+    assert cli_as("edit", "p", "--cadence", "0")[0] == 2                 # not a positive number of hours
+    assert cli_as("edit", "p", "--cadence", "-3")[0] == 2
+    code, out, _ = cli_as("edit", "p", "--kind", "finite")               # finite keeps cadence_h as it is
+    assert code == 0 and json.loads(out)["changed"] == {"kind": {"from": "loop", "to": "finite"}}
+    assert pf.get_project("p")["cadence_h"] == 24
+    code, out, _ = cli_as("edit", "p", "--kind", "loop")                 # the row's own cadence is enough
+    assert code == 0 and json.loads(out)["changed"] == {"kind": {"from": "finite", "to": "loop"}}
+    code, out, _ = cli_as("edit", "p", "--cadence", "12")
+    assert code == 0 and json.loads(out)["changed"] == {"cadence_h": {"from": 24, "to": 12}}
+
+
+def test_cli_unrelated_edit_is_not_blocked_by_a_loop_without_cadence(cli_as, store):
+    project(ph_session="12345678", kind="loop")                          # a loop with no cadence, as opened before this rule
+    code, out, _ = cli_as("edit", "p", "--goal", "new goal")
+    assert code == 0 and list(json.loads(out)["changed"]) == ["goal"]
+
+
+def test_cli_ph_cannot_edit_or_replan_another_projects_row(cli_as, store):
+    project("p", ph_session="12345678")
+    project("q", ph_session="deadbeef")
+    pf.milestone_add("q", "ship", actor=ACTOR, now=T)
+    assert cli_as("edit", "q", "--kind", "loop", "--cadence", "24")[0] == 1
+    assert cli_as("replan", "q", "1", "--due", "2026-10-30", "--why", "x")[0] == 1
+    other = pf.get_project("q")
+    assert (other["kind"], other["cadence_h"]) == ("finite", None) and replan_events(store) == 0
+    assert cli_as("edit", "p", "--kind", "loop", "--cadence", "24")[0] == 0

@@ -10,6 +10,7 @@ Run:  .venv/bin/python -m pytest tests/test_coo_gate.py
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -17,14 +18,20 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
+import time
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
 from lib import coo_policy
 from lib import db as db_mod
+from lib import portfolio as pf
 from runners import coo_dispatch, coo_gate, coo_mcp_server, coo_worker
 from scripts.lib import cxo_mcp_config
+from test_projecttrack_p1 import ACTOR, T, project, store  # noqa: F401 -- `store`: p1's in-memory hub
+from tools import coo_field_notes, portfolio_push
 
 ROOT = Path(__file__).resolve().parents[1]
 SID = "cootest1"
@@ -43,6 +50,7 @@ def _isolated_db(monkeypatch, tmp_path):
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setenv("ORG_HOST", "contabo")
     db_mod.register_cxo_session("coo", SID, "contabo")
+    coo_gate._recent.clear()
 
 
 def _events(tid: str, kind: str) -> list[dict]:
@@ -318,6 +326,7 @@ def test_cxo_config_gives_coo_the_gate_server_and_only_its_tools(tmp_path):
     assert "with-org-db-env" not in json.dumps(entry)
     allowed = cxo_mcp_config._allowed_for(["org"], str(tmp_path), False, "coo")
     assert allowed == [f"mcp__org__{n}" for n in coo_mcp_server.TOOL_NAMES]
+    assert "mcp__org__portfolio" in allowed          # the coo session may call it, nothing else is added
     assert "mcp__org__merge_task" not in allowed
 
 
@@ -568,8 +577,143 @@ def test_sql_events_guard_allows_only_narrow_coo_respawn_request():
     assert "GRANT SELECT (id, kind, payload, ts)" not in sql
 
 
+# --------------------------------------------------------------------------- CEO-order mirror (CO-<n>)
+# org_coo mirrors SomPong's relayed CEO orders into the hub `orders` table (lib/portfolio order_take
+# / order_close). Column grants cannot limit rows, so section 5's triggers do; these tests state each
+# grant, each guard condition and each proof case of org_coo_role.sql. The same file is run against a
+# real Postgres by tests/test_coo_orders_pg.py.
+
+ORDER_INSERT_COLS = ("id", "words", "channel", "taken_by", "taken_at", "project_id", "due_at", "due_set_by")
+ORDER_UPDATE_COLS = ("closed_at", "outcome")
+EVENT_INSERT_COLS = ("project_id", "at", "kind", "actor", "body")
+
+
+def _sql_flat() -> str:
+    """The role file with every run of whitespace squeezed to one space, so a wrapped statement matches."""
+    return " ".join((ROOT / "deploy" / "coo-gate" / "org_coo_role.sql").read_text().split())
+
+
+def _sql_function(name: str) -> str:
+    flat = _sql_flat()
+    m = re.search(rf"CREATE OR REPLACE FUNCTION {name}\(\) RETURNS trigger .*? \$fn\$;", flat)
+    assert m, f"{name} is missing from org_coo_role.sql"
+    return m.group(0)
+
+
+def test_sql_grants_the_order_mirror_exactly_what_order_take_and_order_close_use():
+    flat = _sql_flat()
+    assert ("GRANT SELECT, INSERT (id, words, channel, taken_by, taken_at, project_id, due_at, due_set_by), "
+            "UPDATE (closed_at, outcome) ON orders TO org_coo;") in flat
+    assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in flat
+    # orders: the one grant. project_events: that INSERT and the portfolio read's SELECT (below).
+    assert flat.count("ON orders TO org_coo") == 1 and flat.count("ON project_events TO org_coo") == 2
+    # The grants are the columns lib/portfolio actually writes: a changed INSERT there fails here first.
+    src = (ROOT / "lib" / "portfolio.py").read_text()
+    take = re.search(r"INSERT INTO orders \(([^)]*)\)", src)
+    assert tuple(c.strip() for c in take.group(1).split(",")) == ORDER_INSERT_COLS
+    assert "UPDATE orders SET closed_at = ?, outcome = ? WHERE id = ?" in src
+    event = re.search(r"INSERT INTO project_events \(([^)]*)\)", src)
+    assert tuple(c.strip() for c in event.group(1).split(",")) == EVENT_INSERT_COLS
+    # Nothing destructive, nothing on the portfolio tables the Project Monitor does not read, and the
+    # ones it does read are SELECT only (test_sql_grants_select_only_on_the_tables_monitor_payload_reads).
+    for table in ("ceo_gos", "resource_locks", "post_ledger"):
+        assert f"ON {table} TO org_coo" not in flat
+    for table in ("projects", "milestones", "session_heartbeats"):
+        (privs,) = re.findall(rf"GRANT ([^;]*?) ON {table} TO org_coo;", flat)
+        assert privs.startswith("SELECT") and not re.search(r"INSERT|UPDATE", privs), table
+    assert not re.search(r"GRANT [^;]*\b(DELETE|TRUNCATE|TRIGGER|ALL)\b", flat)
+
+
+def test_sql_orders_guard_holds_inserts_to_co_rows_and_updates_to_closing_them():
+    fn = _sql_function("org_coo_orders_guard")
+    assert "IF current_user <> 'org_coo' THEN RETURN NEW;" in fn
+    # INSERT
+    assert "IF TG_OP = 'INSERT' THEN" in fn
+    assert "(NEW.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE" in fn
+    assert "NEW.taken_by IS DISTINCT FROM 'sompong'" in fn
+    assert "NEW.channel IS DISTINCT FROM ('sompong:' || substr(NEW.id, 4))" in fn
+    assert "NEW.project_id IS NOT NULL" in fn
+    assert "NEW.due_at IS NOT NULL" in fn
+    # UPDATE
+    assert "(OLD.id ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE OR OLD.closed_at IS NOT NULL" in fn
+    assert "NEW.closed_at IS NULL" in fn
+    assert ("(to_jsonb(NEW) - 'closed_at' - 'outcome') IS DISTINCT FROM "
+            "(to_jsonb(OLD) - 'closed_at' - 'outcome')") in fn
+    assert "SET search_path = pg_catalog" in fn
+    flat = _sql_flat()
+    assert ("DROP TRIGGER IF EXISTS org_coo_guard ON orders; CREATE TRIGGER org_coo_guard "
+            "BEFORE INSERT OR UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION org_coo_orders_guard();") in flat
+
+
+def test_sql_project_events_guard_holds_org_coo_to_the_close_event_of_its_closed_order():
+    fn = _sql_function("org_coo_project_events_guard")
+    assert "IF current_user <> 'org_coo' THEN RETURN NEW;" in fn
+    assert "NEW.kind IS DISTINCT FROM 'order'" in fn
+    assert "(NEW.body ->> 'op') IS DISTINCT FROM 'close'" in fn
+    assert "((NEW.body ->> 'id') ~ '^CO-[0-9]+$') IS DISTINCT FROM TRUE" in fn
+    assert "(NEW.actor ~ '^COO#[0-9a-f]{8}$') IS DISTINCT FROM TRUE" in fn
+    # The order must exist, belong to this project and already be closed (order_close updates first).
+    assert ("SELECT 1 FROM public.orders o WHERE o.id = (NEW.body ->> 'id') "
+            "AND o.project_id = NEW.project_id AND o.closed_at IS NOT NULL") in fn
+    assert "SET search_path = pg_catalog" in fn
+    flat = _sql_flat()
+    assert ("DROP TRIGGER IF EXISTS org_coo_guard ON project_events; CREATE TRIGGER org_coo_guard "
+            "BEFORE INSERT ON project_events FOR EACH ROW EXECUTE FUNCTION org_coo_project_events_guard();") in flat
+
+
+@pytest.mark.parametrize("session_id", ["abcd1234", "00000000", "f66280fc", "0badc0de"])
+def test_sql_event_actor_pattern_matches_the_label_report_to_ceo_writes_for_the_coo(session_id):
+    """lib/ceo_report passes identity.label() as the actor; for SomPong that is "COO#<CXO_SESSION_ID>",
+    and cxo-claude.sh mints or adopts that id as 8 lowercase hex digits."""
+    from tools.agent_transport import Identity
+    label = Identity("cxo", "coo", session_id).label()
+    assert label == f"COO#{session_id}"
+    pattern = re.search(r"NEW\.actor ~ '([^']+)'", _sql_function("org_coo_project_events_guard")).group(1)
+    pattern = pattern.replace("$", r"\Z")       # Postgres' $ is end of string; Python's also matches before a final newline
+    assert re.search(pattern, label)
+    for other in (Identity("cxo", "cto", session_id).label(), Identity("cxo", "project_head", session_id).label(),
+                  "COO#ABCD1234", "COO#abcd123", "COO#abcd12345", "COO#abcd123g", "sompong", f"{label}\n"):
+        assert not re.search(pattern, other), other
+
+
+def test_sql_order_mirror_proof_cases_and_privilege_lists():
+    sql = (ROOT / "deploy" / "coo-gate" / "org_coo_role.sql").read_text()
+    flat = _sql_flat()
+    # Section 6 knows the new privileges and the one new readable table.
+    want = re.search(r"want text := (.*?);\s*BEGIN", sql, re.S).group(1)
+    tokens = set(re.findall(r"[a-z_]+\.[a-z_]+:[A-Z]+", want))
+    assert {f"orders.{c}:INSERT" for c in ORDER_INSERT_COLS} <= tokens
+    assert {f"orders.{c}:UPDATE" for c in ORDER_UPDATE_COLS} <= tokens
+    assert {f"project_events.{c}:INSERT" for c in EVENT_INSERT_COLS} <= tokens
+    assert not {t for t in tokens if t.startswith(("orders.", "project_events.")) and t.endswith(":REFERENCES")}
+    assert ("'tasks', 'coo_respawn_events', 'c_level_sessions', 'live_hosts', 'live_sessions', 'orders', "
+            "'projects', 'milestones', 'session_heartbeats', 'project_events')") in flat
+    assert "session_heartbeats and project_events, nothing destructive" in flat
+    # The behavioural proof: a separate block, so the audit / field-note proof above it is untouched.
+    proof = sql.split("DO $orders_proof$")[1].split("$orders_proof$;")[0]
+    for case in (
+        "A valid CO order, taken and closed",              # accepted
+        "A CO order of a project, closed with its event",  # accepted
+        "An O- id", "A taken_by other than sompong", "A channel that is not the id",
+        "A due date on insert", "A project on insert",
+        "An update of a closed CO order", "An update that changes words",
+        "An update that does not set closed_at", "An update of an order that is not CO-<n>",
+        "A project_events row of another kind", "A close event under another actor", "A take event",
+        "A close event for an order that is still open", "A close event for another project''s order",
+        "A close event for an order that is not CO-<n>",
+    ):
+        assert f"('{case}" in proof, case
+    assert proof.count(", true,") == 2          # the two accepted cases; everything else is refused
+    assert "SET LOCAL ROLE org_coo" in proof
+    assert "WHEN SQLSTATE 'ZX001' THEN accepted := true" in proof
+    assert "IF NOT switched OR proof_step < proof_last THEN" in proof     # a broken setup step fails the run
+    assert "GRANT UPDATE (words) ON public.orders TO org_coo" in proof     # so the trigger, not the grant, refuses
+    # Rolled back as the existing cases do: every case ends in the ZX001 raise, never a COMMIT.
+    assert "RAISE EXCEPTION USING ERRCODE = 'ZX001'" in proof and "COMMIT" not in proof
+
+
 def test_respawn_status_and_mcp_tool_roundtrip(monkeypatch):
-    assert coo_mcp_server.TOOL_NAMES[-1] == "respawn_clevel"
+    assert "respawn_clevel" in coo_mcp_server.TOOL_NAMES
     monkeypatch.setenv("CXO_SESSION_ID", SID)
     monkeypatch.setattr(
         coo_mcp_server,
@@ -648,3 +792,880 @@ def _respawn_at(now, role):
             994, now=now)}
     except coo_gate.Refused as exc:
         return {"ok": False, "error": str(exc)}
+
+
+# --------------------------------------------------------------------------- audit log (#38)
+
+SQL = ROOT / "deploy" / "coo-gate" / "org_coo_role.sql"
+HOOK = ROOT / "scripts" / "coo-audit-hook.py"
+
+
+def _audit(**over) -> dict:
+    req = {"op": "audit_append", "session_id": SID, "tool": "Bash", "input": '{"command": "ls"}', "ok": True}
+    req.update(over)
+    return coo_gate.handle(req, 994)
+
+
+def _rows(kind: str) -> list[dict]:
+    with db_mod.get_conn() as conn:
+        rows = conn.execute("SELECT task_id, actor, payload, ts FROM events WHERE kind=? ORDER BY id", (kind,)).fetchall()
+    return [{"task_id": r["task_id"], "actor": r["actor"], "ts": r["ts"], "payload": json.loads(r["payload"])}
+            for r in rows]
+
+
+def test_audit_appends_one_taskless_row_with_exactly_four_keys():
+    out = _audit(tool="mcp__org__ask_run", input='{"host": "contabo"}', ok=False)
+    assert out == {"ok": True, "recorded": True}
+    (row,) = _rows("coo_audit")
+    assert row["task_id"] is None and row["actor"] == "coo_gate"
+    assert row["payload"] == {"session_id": SID, "tool": "mcp__org__ask_run",
+                              "input": '{"host": "contabo"}', "ok": False}
+
+
+def _fake(*parts: str) -> str:
+    """A credential-shaped value built at run time, so no token-shaped literal sits in the repo."""
+    return "".join(parts)
+
+
+REDACT_CASES = [
+    (_fake("ghp_", "Ab1" * 13), 'git push https://x:{s}@github.com/o/r'),
+    (_fake("sk-", "Zz9" * 15), 'export OPENAI_API_KEY={s} && run'),
+    (_fake("sk-ant-", "Qq7" * 15), '{{"env": {{"ANTHROPIC_API_KEY": "{s}"}}}}'),
+    ("hunter2 hunter3", '{{"password": "{s}", "user": "u"}}'),
+    ("Xq9" * 8, 'curl -H \\"Authorization: Bearer {s}\\" https://api.example/v1'),
+    ("Sup3rS3cretPw", 'psql postgresql://org:{s}@db.example:5432/org'),
+    ("abc123def456", 'curl "https://api.example/x?access_token={s}&b=1"'),
+    (_fake("eyJhbGciOiJI", "UzI1NiJ9.eyJzdWIiOiIx", "MjM0NTY3ODkw.SflKxwRJSMeKKF2QT4"), 'jwt {s} sent'),
+    ("dXNlcjpwYXNzd29yZDEyMw==", 'curl -H "Authorization: Basic {s}"'),
+    ("Ab3dE5gH7jK9mN1pQ3sT5vW7yZ9bC1dE3fG5", 'key is {s} here'),
+    ("MIIEvQIBADANBgkqhkiG9w0BAQEFAASC", '-----BEGIN PRIVATE KEY-----\\n{s}\\n-----END PRIVATE KEY----- after'),
+]
+
+
+def test_audit_redacts_what_looks_like_a_credential():
+    for secret, text in REDACT_CASES:
+        assert _audit(input=text.format(s=secret))["ok"]
+        stored = _rows("coo_audit")[-1]["payload"]["input"]
+        for piece in secret.split():
+            assert piece not in stored, (text, stored)
+        assert "<redacted>" in stored or "***" in stored, (text, stored)
+
+
+def test_audit_keeps_paths_uuids_and_env_references():
+    text = ('{"command": "cd /opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-503505d8 '
+            '&& GH_TOKEN=\\"$GH_TOKEN\\" gh pr view d405e3e2-1111-2222-3333-a6f2f69c4825"}')
+    assert _audit(input=text)["ok"]
+    assert _rows("coo_audit")[0]["payload"]["input"] == text
+
+
+def test_audit_cuts_to_2000_and_a_secret_on_the_cut_does_not_leak():
+    key = _fake("sk-", "Q9" * 20)
+    assert _audit(input="a " * 995 + key + " tail")["ok"]
+    stored = _rows("coo_audit")[0]["payload"]["input"]
+    assert len(stored) == 2000 and "Q9Q9Q9" not in stored
+    assert _audit(input="y" * 5000)["ok"] and len(_rows("coo_audit")[1]["payload"]["input"]) == 2000
+
+
+def test_audit_survives_a_nul_and_a_lone_surrogate():
+    """Postgres refuses both in a jsonb string, which would otherwise be a way to skip the log."""
+    assert _audit(input="a\x00b \ud800 c")["ok"]
+    stored = _rows("coo_audit")[0]["payload"]["input"]
+    assert stored == "ab ? c"
+    stored.encode("utf-8")
+
+
+def test_audit_cuts_a_long_tool_name_instead_of_losing_the_row():
+    assert _audit(tool="t" * 150)["ok"]
+    assert _rows("coo_audit")[0]["payload"]["tool"] == "t" * 100
+
+
+AUDIT_REFUSALS = [
+    ({"extra": 1}, "unexpected: extra"),
+    ({"input": {"command": "ls"}}, "input must be a string"),
+    ({"input": None}, "input must be a string"),
+    ({"ok": "yes"}, "ok must be true or false"),
+    ({"ok": 1}, "ok must be true or false"),
+    ({"tool": ""}, "tool is required"),
+    ({"tool": "\x00"}, "tool is required"),
+    ({"tool": 5}, "tool is required"),
+    ({"session_id": "nosuchsession"}, "not a coo session"),
+    ({"session_id": ""}, "session_id is required"),
+]
+
+
+def test_audit_refuses_a_bad_request_and_writes_nothing():
+    for over, why in AUDIT_REFUSALS:
+        out = _audit(**over)
+        assert out["ok"] is False and why in out["error"], (over, out)
+    assert _rows("coo_audit") == []
+
+
+def test_audit_refuses_a_session_that_is_not_coo():
+    db_mod.register_cxo_session("cto", "ctoabc12", "contabo")
+    assert "not a coo session" in _audit(session_id="ctoabc12")["error"]
+    assert _rows("coo_audit") == []
+
+
+def test_audit_cap_is_600_per_session_per_hour(monkeypatch):
+    assert coo_gate.AUDIT_MAX_PER_HOUR == 600 and coo_gate.RATE_WINDOW_S == 3600
+    monkeypatch.setattr(coo_gate, "AUDIT_MAX_PER_HOUR", 5)   # same code path, without 600 writes
+    db_mod.register_cxo_session("coo", "coo-other", "contabo")
+    req = {"op": "audit_append", "session_id": SID, "tool": "Bash", "input": "{}", "ok": True}
+    t0 = time.time() - 60       # handle() below reads the real clock: stay inside the same hour
+    for i in range(5):
+        coo_gate.op_audit_append(req, 994, now=t0 + i)
+    with pytest.raises(coo_gate.Refused) as refused:
+        coo_gate.op_audit_append(req, 994, now=t0 + 10)
+    assert str(refused.value) == "audit rate cap: at most 5 rows per session per hour"
+    handled = coo_gate.handle(req, 994)
+    assert handled["ok"] is False and "audit rate cap" in handled["error"]
+    coo_gate.op_audit_append({**req, "session_id": "coo-other"}, 994, now=t0 + 10)   # another session
+    coo_gate.op_audit_append(req, 994, now=t0 + 3600)   # the first row has aged out
+    assert len(_rows("coo_audit")) == 7
+
+
+def test_audit_refusals_do_not_use_up_the_cap(monkeypatch):
+    monkeypatch.setattr(coo_gate, "AUDIT_MAX_PER_HOUR", 2)
+    for _ in range(5):
+        assert _audit(ok="maybe")["ok"] is False
+    assert _audit()["ok"] and _audit()["ok"] and _audit()["ok"] is False
+
+
+# --------------------------------------------------------------------------- the PostToolUse hook
+
+@pytest.fixture
+def gate_sock(tmp_path):
+    """A real unix socket served by coo_gate.serve_one on this test's ledger."""
+    path = str(tmp_path / "g.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(path)
+    srv.listen(8)
+    srv.settimeout(0.2)
+    stop = threading.Event()
+
+    def loop():
+        while not stop.is_set():
+            try:
+                conn, _ = srv.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            with conn:
+                conn.settimeout(5)
+                try:
+                    coo_gate.serve_one(conn, frozenset({os.getuid()}))
+                except OSError:
+                    pass
+
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+    yield path
+    stop.set()
+    t.join(2)
+    srv.close()
+
+
+def _hook(stdin: str, sock: str, session: str | None = None, timeout: float = 15):
+    env = {"PATH": os.environ.get("PATH", ""), "COO_GATE_SOCKET": sock}
+    if session:
+        env["CXO_SESSION_ID"] = session
+    t0 = time.monotonic()
+    done = subprocess.run([sys.executable, "-I", str(HOOK)], input=stdin, env=env,
+                          capture_output=True, text=True, timeout=timeout)
+    return done, time.monotonic() - t0
+
+
+def _event(**over) -> str:
+    ev = {"session_id": "claude-uuid-1", "hook_event_name": "PostToolUse", "tool_name": "Bash",
+          "tool_input": {"command": "ls /tmp"}, "tool_response": {"stdout": "x", "interrupted": False}}
+    ev.update(over)
+    return json.dumps(ev)
+
+
+def test_hook_writes_the_audit_row_through_the_gate(gate_sock):
+    done, _ = _hook(_event(), gate_sock, session=SID)
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    (row,) = _rows("coo_audit")
+    assert row["payload"] == {"session_id": SID, "tool": "Bash", "input": '{"command": "ls /tmp"}', "ok": True}
+
+
+def test_hook_takes_the_hook_session_id_when_the_env_has_none(gate_sock):
+    done, _ = _hook(_event(session_id=SID), gate_sock)
+    assert done.returncode == 0
+    assert _rows("coo_audit")[0]["payload"]["session_id"] == SID
+
+
+def test_hook_env_session_wins_over_the_hook_session_id(gate_sock):
+    _hook(_event(session_id="somebody-else"), gate_sock, session=SID)
+    assert [r["payload"]["session_id"] for r in _rows("coo_audit")] == [SID]
+
+
+@pytest.mark.parametrize("over", [
+    {"hook_event_name": "PostToolUseFailure"},
+    {"tool_response": {"is_error": True}},
+    {"tool_response": {"error": "boom"}},
+    {"tool_response": {"success": False}},
+])
+def test_hook_records_a_failed_call_as_ok_false(gate_sock, over):
+    _hook(_event(**over), gate_sock, session=SID)
+    assert _rows("coo_audit")[0]["payload"]["ok"] is False
+
+
+def test_hook_cuts_a_huge_input_to_fit_one_request(gate_sock):
+    big = {"file_path": "/tmp/x", "content": "z" * 500_000}
+    done, _ = _hook(_event(tool_name="Write", tool_input=big), gate_sock, session=SID)
+    assert done.returncode == 0
+    (row,) = _rows("coo_audit")
+    assert row["payload"]["tool"] == "Write" and len(row["payload"]["input"]) == 2000
+
+
+def test_hook_fails_open_on_junk_input(gate_sock):
+    for stdin in ("", "not json", "[]", "null", '{"tool_input": {}}', '{"tool_name": 5}'):
+        done, _ = _hook(stdin, gate_sock, session=SID)
+        assert (done.returncode, done.stdout, done.stderr) == (0, "", ""), stdin
+    assert _rows("coo_audit") == []
+
+
+def test_hook_fails_open_with_no_gate(tmp_path):
+    done, took = _hook(_event(), str(tmp_path / "missing.sock"), session=SID)
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert took < 5
+
+
+def test_hook_fails_open_when_the_gate_refuses(gate_sock):
+    done, _ = _hook(_event(), gate_sock, session="nosuchsession")
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert _rows("coo_audit") == []
+
+
+def test_hook_gives_up_after_two_seconds_on_a_gate_that_never_answers(tmp_path):
+    path = str(tmp_path / "hung.sock")
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(path)
+    srv.listen(1)       # accepts the connection in the kernel and never reads or answers
+    try:
+        done, took = _hook(_event(), path, session=SID)
+    finally:
+        srv.close()
+    assert (done.returncode, done.stdout, done.stderr) == (0, "", "")
+    assert 1.5 < took < 4.5, took
+
+
+def test_hook_gives_up_after_two_seconds_when_stdin_never_closes(tmp_path):
+    env = {"PATH": os.environ.get("PATH", ""), "COO_GATE_SOCKET": str(tmp_path / "none.sock")}
+    t0 = time.monotonic()
+    proc = subprocess.Popen([sys.executable, "-I", str(HOOK)], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    try:
+        proc.wait(timeout=6)          # stdin stays open (communicate() would close it): only the alarm ends this
+        took = time.monotonic() - t0
+        out, err = proc.stdout.read(), proc.stderr.read()
+    finally:
+        proc.kill()
+        for f in (proc.stdin, proc.stdout, proc.stderr):
+            f.close()
+    assert (proc.returncode, out, err) == (0, b"", b"")
+    assert 1.5 < took < 4.5
+
+
+def test_hook_and_gate_agree_on_the_limits():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("coo_audit_hook", HOOK)
+    hook = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook)
+    assert hook.MAX_AUDIT_TOOL == coo_gate.MAX_AUDIT_TOOL
+    assert coo_gate.MAX_AUDIT_INPUT <= hook.SEND_INPUT_CHARS < coo_gate.MAX_REQUEST_BYTES // 4
+    assert hook.DEFAULT_SOCKET == coo_gate.DEFAULT_SOCKET
+
+
+# --------------------------------------------------------------------------- field notes (#24b)
+
+@pytest.fixture
+def skills(tmp_path, monkeypatch):
+    d = tmp_path / "skills"
+    for name in ("ALL_Rules_Approvals", "CTO_Gate_MergeChecklist", "abc"):
+        (d / name).mkdir(parents=True)
+    (d / "a_file").write_text("not a skill")
+    monkeypatch.setattr(coo_gate, "SKILLS_DIR", d)
+    return d
+
+
+def _note(**over) -> dict:
+    req = {"op": "field_note", "session_id": SID, "skill": "ALL_Rules_Approvals", "tag": "MISSING",
+           "text": "it never says a card expires after 24 h"}
+    req.update(over)
+    return coo_gate.handle(req, 994)
+
+
+def test_field_note_default_skills_dir_is_this_repos():
+    assert coo_gate.SKILLS_DIR == ROOT / ".claude" / "skills" and coo_gate.SKILLS_DIR.is_dir()
+
+
+def test_field_note_writes_one_taskless_row_per_tag(skills):
+    for tag in ("MISSING", "WRONG", "COSTLY", "CONFIRMED"):
+        out = _note(tag=tag)
+        assert out == {"ok": True, "recorded": True, "skill": "ALL_Rules_Approvals", "tag": tag}
+    rows = _rows("coo_field_note")
+    assert [r["payload"]["tag"] for r in rows] == ["MISSING", "WRONG", "COSTLY", "CONFIRMED"]
+    assert all(r["task_id"] is None and r["actor"] == "coo_gate" for r in rows)
+    assert rows[0]["payload"] == {"session_id": SID, "skill": "ALL_Rules_Approvals", "tag": "MISSING",
+                                  "text": "it never says a card expires after 24 h"}
+
+
+NOTE_REFUSALS = [
+    ({"skill": "../etc"}, "skill must match"),
+    ({"skill": "ab"}, "skill must match"),
+    ({"skill": "a" * 81}, "skill must match"),
+    ({"skill": "ALL_Rules_Approvals\n"}, "skill must match"),
+    ({"skill": "ALL Rules"}, "skill must match"),
+    ({"skill": "..."}, "skill must match"),
+    ({"skill": ".hidden-dir"}, "skill must match"),
+    ({"skill": None}, "skill must match"),
+    ({"skill": "Nonexistent_Skill"}, "not a directory under .claude/skills"),
+    ({"skill": "a_file"}, "not a directory under .claude/skills"),
+    ({"tag": "OTHER"}, "tag must be one of"),
+    ({"tag": "missing"}, "tag must be one of"),
+    ({"tag": None}, "tag must be one of"),
+    ({"text": "two\nlines"}, "single line"),
+    ({"text": "carriage\rreturn inside"}, "single line"),
+    ({"text": "x" * 601}, "longer than 600"),
+    ({"text": ""}, "text is required"),
+    ({"text": "\x00"}, "single line"),
+    ({"text": 5}, "text is required"),
+    ({"extra": "x"}, "unexpected: extra"),
+    ({"session_id": "nosuchsession"}, "not a coo session"),
+]
+
+
+def test_field_note_refuses_a_bad_request_and_writes_nothing(skills):
+    for over, why in NOTE_REFUSALS:
+        out = _note(**over)
+        assert out["ok"] is False and why in out["error"], (over, out)
+    assert _rows("coo_field_note") == []
+
+
+def test_field_note_takes_a_600_character_line(skills):
+    assert _note(text="y" * 600)["ok"]
+    assert len(_rows("coo_field_note")[0]["payload"]["text"]) == 600
+
+
+def test_field_note_masks_a_credential_in_the_text(skills):
+    key = _fake("ghp_", "Ab1" * 13)
+    assert _note(text=f"the skill told me to put {key} in the card")["ok"]
+    assert key not in _rows("coo_field_note")[0]["payload"]["text"]
+
+
+def test_field_note_cap_is_per_session_per_hour(skills, monkeypatch):
+    assert coo_gate.FIELD_NOTE_MAX_PER_HOUR == 30
+    req = {"op": "field_note", "session_id": SID, "skill": "abc", "tag": "WRONG", "text": "t"}
+    monkeypatch.setattr(coo_gate, "FIELD_NOTE_MAX_PER_HOUR", 2)
+    coo_gate.op_field_note(req, 994, now=10.0)
+    coo_gate.op_field_note(req, 994, now=11.0)
+    with pytest.raises(coo_gate.Refused, match="field note rate cap: at most 2 per session per hour"):
+        coo_gate.op_field_note(req, 994, now=12.0)
+    # the audit cap and the note cap do not share a counter
+    assert _audit()["ok"]
+
+
+def test_gate_serves_the_two_new_ops_and_no_others_were_added():
+    assert {"audit_append", "field_note"} <= set(coo_gate.OPS)
+    assert set(coo_gate.OPS) == {"ping", "set_charter", "create_task", "delegate_task", "get_task",
+                                 "list_tasks", "close_task", "live_sessions", "respawn_clevel",
+                                 "respawn_status", "audit_append", "field_note",
+                                 "order_open", "order_close", "portfolio"}
+
+
+# --------------------------------------------------------------------------- the reader
+
+def _put_note(ts: str, text: str, skill="ALL_Rules_Approvals", tag="WRONG") -> None:
+    with db_mod.get_conn() as conn:
+        conn.execute("INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'coo_gate', 'coo_field_note', ?, ?)",
+                     (json.dumps({"session_id": SID, "skill": skill, "tag": tag, "text": text}), ts))
+
+
+def test_reader_prints_skill_tag_ts_text_oldest_first(capsys):
+    _put_note("2026-10-26T10:00:00+00:00", "first")
+    _put_note("2026-10-27T10:00:00+00:00", "second", skill="CTO_Gate_MergeChecklist", tag="COSTLY")
+    assert coo_field_notes.main(["list"]) == 0
+    cap = capsys.readouterr()
+    assert cap.out.splitlines() == [
+        "ALL_Rules_Approvals · WRONG · 2026-10-26T10:00:00+00:00 · first",
+        "CTO_Gate_MergeChecklist · COSTLY · 2026-10-27T10:00:00+00:00 · second"]
+    assert cap.err.strip() == "2 field note(s)"
+
+
+@pytest.mark.parametrize("since,lines", [
+    ("2026-10-27", ["second"]),
+    ("2026-10-27T10:00:00Z", ["second"]),
+    ("2026-10-27T17:00:00+07:00", ["second"]),      # the same instant, written in Thai time
+    ("2026-10-27T10:00:01Z", []),
+    ("2026-01-01", ["first", "second"]),
+])
+def test_reader_since_filters_on_the_instant(capsys, since, lines):
+    _put_note("2026-10-26T10:00:00+00:00", "first")
+    _put_note("2026-10-27T10:00:00+00:00", "second")
+    assert coo_field_notes.main(["list", "--since", since]) == 0
+    assert [l.rsplit(" · ", 1)[1] for l in capsys.readouterr().out.splitlines()] == lines
+
+
+def test_reader_rejects_a_bad_since():
+    with pytest.raises(SystemExit):
+        coo_field_notes.main(["list", "--since", "yesterday"])
+
+
+def test_reader_strips_control_characters_from_what_the_coo_wrote(capsys):
+    _put_note("2026-10-27T10:00:00+00:00", "a\x1b[31mred\x1b[0m\nfake   line\x07")
+    coo_field_notes.main(["list"])
+    out = capsys.readouterr().out
+    assert "\x1b" not in out and "\x07" not in out and " " not in out
+    assert len(out.splitlines()) == 1
+
+
+def test_reader_tolerates_a_row_it_cannot_parse(capsys):
+    with db_mod.get_conn() as conn:
+        conn.execute("INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (NULL, 'x', 'coo_field_note', 'not json', '2026-10-27T10:00:00+00:00')")
+    assert coo_field_notes.main(["list"]) == 0
+    assert capsys.readouterr().out.strip() == "·  · 2026-10-27T10:00:00+00:00 ·"
+
+
+def test_a_note_filed_through_the_gate_is_readable(skills, capsys):
+    assert _note(tag="COSTLY", text="lost 20 minutes to the cwd guard")["ok"]
+    coo_field_notes.main(["list"])
+    line = capsys.readouterr().out.strip()
+    assert line.startswith("ALL_Rules_Approvals · COSTLY · 20") and line.endswith(" · lost 20 minutes to the cwd guard")
+
+
+# --------------------------------------------------------------------------- the SQL guard for both kinds
+
+def _sql_block(kind: str) -> str:
+    sql = SQL.read_text()
+    start = sql.index(f"IF NEW.kind = '{kind}' THEN")
+    return sql[start:sql.index("RETURN NEW;", start)]
+
+
+def test_sql_audit_block_matches_the_gate():
+    b = _sql_block("coo_audit")
+    assert "NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate'" in b
+    assert "ARRAY['input', 'ok', 'session_id', 'tool']" in b
+    for field, kind in (("session_id", "string"), ("tool", "string"), ("input", "string"), ("ok", "boolean")):
+        assert f"jsonb_typeof(NEW.payload::jsonb -> '{field}') IS DISTINCT FROM '{kind}'" in b
+    assert f"->> 'input'), 2001) > {coo_gate.MAX_AUDIT_INPUT}" in b
+    assert f"->> 'tool'), 0) NOT BETWEEN 1 AND {coo_gate.MAX_AUDIT_TOOL}" in b
+    assert "->> 'session_id'), 0) NOT BETWEEN 1 AND 64" in b
+
+
+def test_sql_field_note_block_matches_the_gate():
+    b = _sql_block("coo_field_note")
+    assert "NEW.task_id IS NOT NULL OR NEW.actor IS DISTINCT FROM 'coo_gate'" in b
+    assert "ARRAY['session_id', 'skill', 'tag', 'text']" in b
+    for field in ("session_id", "skill", "tag", "text"):
+        assert f"jsonb_typeof(NEW.payload::jsonb -> '{field}') IS DISTINCT FROM 'string'" in b
+    m = re.search(r"\(NEW\.payload::jsonb ->> 'tag'\) IN \(([^)]*)\)", b)
+    assert m and tuple(re.findall(r"'([A-Z]+)'", m.group(1))) == coo_gate.FIELD_NOTE_TAGS
+    m = re.search(r"'\^(\[[^']*\]\{3,80\})\$'", b)
+    assert m and m.group(1).replace("\\", "") == coo_gate.SKILL_NAME.pattern.replace("\\", "")
+    assert f"->> 'text'), 0) NOT BETWEEN 1 AND {coo_gate.MAX_FIELD_NOTE}" in b
+    assert "position(E'\\n' IN" in b and "position(E'\\r' IN" in b
+
+
+def test_sql_grants_and_privilege_list_are_unchanged_by_the_two_kinds():
+    sql = SQL.read_text()
+    assert sql.count("ON events TO org_coo") == 1                      # the one INSERT grant, no SELECT
+    assert "GRANT INSERT (task_id, actor, kind, payload, ts) ON events TO org_coo;" in sql
+    assert "coo_audit" not in sql.split("CREATE OR REPLACE VIEW coo_respawn_events")[1].split("GRANT SELECT ON coo_respawn_events")[0]
+    assert "('coo_audit'" not in sql.split("-- 5. Row guards")[0]
+    assert "events.payload:INSERT" in sql and "events.id" not in sql.split("want text :=")[1].split(";")[0]
+    # section 6 proves both directions for both kinds
+    proof = sql.split("FOR proof_kind")[1].split("END LOOP")[0]
+    for kind in ("coo_audit", "coo_field_note"):
+        assert proof.count(f"('{kind}', 'coo_gate',") == 2 and proof.count(f"('{kind}', 'someone_else',") == 1
+    assert "true)" in proof and "false)" in proof
+
+
+# --------------------------------------------------------------------------- order_open / order_close (ProjectTrack P6)
+# The gate's SQL lives in the hub; here the real lib/portfolio runs against p1's in-memory `orders`
+# table and the session check against the tmp ledger, so no Postgres is needed. The role guard that
+# backs these two ops is in org_coo_role.sql and tests/test_coo_orders_pg.py.
+
+OSID, OSID2 = "c0de0001", "c0de0002"        # coo sessions whose ids are 8 lowercase hex, as COO#<sid> needs
+ORDER_ID_RE = re.compile(r"^O-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}$")
+
+
+@pytest.fixture
+def orders(store):
+    for sid in (OSID, OSID2):
+        db_mod.register_cxo_session("coo", sid, "contabo")
+    return store
+
+
+def _open(n=7, words="ship the film by friday", sid=OSID, **extra) -> dict:
+    return coo_gate.handle({"op": "order_open", "session_id": sid, "n": n, "words": words, **extra}, 994)
+
+
+def _close(order_id, outcome="done: film shipped", sid=OSID, **extra) -> dict:
+    return coo_gate.handle({"op": "order_close", "session_id": sid, "order_id": order_id,
+                            "outcome": outcome, **extra}, 994)
+
+
+def _order_rows(store) -> list[dict]:
+    return [dict(r) for r in store.execute("SELECT * FROM orders ORDER BY id").fetchall()]
+
+
+def test_order_channel_accepts_coo_n_and_nothing_wider(orders):
+    assert ORDER_ID_RE.match(pf.order_take("x", "coo:123456", actor="COO#c0de0001", now=T))
+    for bad in ("coo:", "coo:x", "coo:1234567", "coo:-1", "coo:1:2", "COO:1", "relay"):
+        with pytest.raises(pf.PortfolioError, match="channel must be"):
+            pf.order_take("x", bad, actor="COO#c0de0001", now=T)
+
+
+def test_order_open_records_a_coo_order_with_no_project_and_no_due(orders):
+    out = _open()
+    assert out["ok"] and out["existing"] is False and ORDER_ID_RE.match(out["order_id"]), out
+    (row,) = _order_rows(orders)
+    assert (row["id"], row["words"], row["channel"], row["taken_by"]) == (
+        out["order_id"], "ship the film by friday", "coo:7", f"COO#{OSID}")
+    assert (row["project_id"], row["due_at"], row["due_set_by"], row["closed_at"], row["outcome"]) == (
+        None, None, None, None, None)
+
+
+@pytest.mark.parametrize("due,stored", [("2026-10-30T17:00:00+07:00", "2026-10-30T10:00:00Z"),
+                                        ("2026-10-30T10:00:00Z", "2026-10-30T10:00:00Z")])
+def test_order_open_with_a_due_date_is_the_ceos_date(orders, due, stored):
+    assert _open(due_at=due)["ok"]
+    (row,) = _order_rows(orders)
+    assert (row["due_at"], row["due_set_by"]) == (stored, "ceo")
+
+
+def test_order_open_null_due_is_no_due(orders):
+    assert _open(due_at=None)["ok"]
+    assert [(r["due_at"], r["due_set_by"]) for r in _order_rows(orders)] == [(None, None)]
+
+
+def test_order_open_again_for_the_same_n_returns_the_open_order_and_writes_nothing(orders):
+    first = _open()
+    again = _open(words="a different sentence", due_at="2026-10-30T17:00:00+07:00")
+    from_other_coo = _open(sid=OSID2)
+    assert again == {"ok": True, "order_id": first["order_id"], "existing": True}
+    assert from_other_coo == again                      # any COO session's open order for coo:<n> counts
+    (row,) = _order_rows(orders)
+    assert (row["words"], row["due_at"], row["due_set_by"]) == ("ship the film by friday", None, None)
+    assert _open(n=8)["order_id"] != first["order_id"] and len(_order_rows(orders)) == 2
+
+
+def test_order_open_after_a_close_starts_a_new_order(orders):
+    first = _open()
+    assert _close(first["order_id"])["ok"]
+    second = _open()
+    assert second["ok"] and second["existing"] is False and second["order_id"] != first["order_id"]
+
+
+def test_order_open_ignores_a_non_coo_order_on_the_same_channel(orders):
+    # taken_by is not COO#...: it is not the COO's order, so a COO open must not return (or adopt) it
+    pf.order_take("someone else's", "coo:7", actor="sompong", now=T)
+    out = _open()
+    assert out["ok"] and out["existing"] is False
+    assert sorted(r["taken_by"] for r in _order_rows(orders)) == [f"COO#{OSID}", "sompong"]
+
+
+@pytest.mark.parametrize("fields", [
+    {"n": 0}, {"n": 1_000_000}, {"n": -3}, {"n": "7"}, {"n": 7.0}, {"n": True}, {"n": None},
+    {"due_at": "tomorrow"}, {"due_at": "2026-10-30T17:00:00"}, {"due_at": "2026-10-30"},
+    {"due_at": ""}, {"due_at": 20261030}, {"due_at": ["2026-10-30T17:00:00+07:00"]},
+    {"words": ""}, {"words": "   "}, {"words": "x" * 2001}, {"words": 7}, {"words": None},
+    {"project_id": "p"}, {"channel": "coo:7"}, {"due_set_by": "ceo"}, {"taken_by": "COO#c0de0001"},
+    {"session_id": "cootest1"}, {"session_id": "C0DE0001"}, {"session_id": "c0de00011"}, {"session_id": ""},
+])
+def test_order_open_refuses_a_bad_request_and_writes_nothing(orders, fields):
+    req = {"op": "order_open", "session_id": OSID, "n": 7, "words": "w", **fields}
+    out = coo_gate.handle(req, 994)
+    assert out["ok"] is False and out["error"], out
+    assert _order_rows(orders) == []
+
+
+def test_order_open_takes_the_longest_words_and_the_last_row(orders):
+    assert _open(n=999_999, words="w" * 2000)["ok"]
+    assert [r["channel"] for r in _order_rows(orders)] == ["coo:999999"]
+
+
+def test_order_open_refuses_a_session_that_is_not_coo(orders):
+    db_mod.register_cxo_session("cto", "ab12cd34", "contabo")
+    for sid in ("ab12cd34", "deadbeef"):                # a C-level session, and one the hub never saw
+        out = _open(sid=sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+    assert _order_rows(orders) == []
+
+
+def test_order_close_closes_an_order_a_coo_opened(orders):
+    oid = _open()["order_id"]
+    out = _close(oid, sid=OSID2)                        # closing needs a COO session, not the same one
+    assert out["ok"] and out["order_id"] == oid and re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", out["closed_at"])
+    (row,) = _order_rows(orders)
+    assert (row["closed_at"], row["outcome"], row["words"]) == (out["closed_at"], "done: film shipped",
+                                                               "ship the film by friday")
+
+
+def test_order_close_of_a_linked_order_files_the_project_event_as_the_closing_coo(orders):
+    project()
+    oid = _open()["order_id"]
+    pf.order_link(oid, "p", actor=ACTOR, now=T)
+    assert _close(oid)["ok"]
+    (event,) = orders.execute("SELECT actor, body FROM project_events WHERE kind='order' AND body LIKE '%close%'").fetchall()
+    assert event["actor"] == f"COO#{OSID}"
+    assert json.loads(event["body"]) == {"op": "close", "id": oid, "outcome": "done: film shipped"}
+
+
+@pytest.mark.parametrize("taken_by", ["sompong", "cto-abcdef12", "CTO#c34459eb", "COO#c0de001", "COO#C0DE0001", "coo#c0de0001"])
+def test_order_close_refuses_an_order_no_coo_session_took(orders, taken_by):
+    oid = pf.order_take("not the COO's", "sompong:5", actor=taken_by, now=T)
+    out = _close(oid)
+    assert out == {"ok": False, "error": f"no open COO order {oid}"}
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_close_gives_the_same_answer_for_a_missing_order_and_a_closed_foreign_one(orders):
+    foreign = pf.order_take("x", "sompong:5", actor="sompong", now=T)
+    pf.order_close(foreign, "done", actor="sompong", now=T)
+    for oid in (foreign, "O-20261027-1403-ab12"):
+        assert _close(oid) == {"ok": False, "error": f"no open COO order {oid}"}
+
+
+def test_order_close_twice_is_refused_and_keeps_the_first_outcome(orders):
+    oid = _open()["order_id"]
+    assert _close(oid, "first")["ok"]
+    again = _close(oid, "second")
+    assert again == {"ok": False, "error": f"order {oid} is already closed"}
+    assert [r["outcome"] for r in _order_rows(orders)] == ["first"]
+
+
+@pytest.mark.parametrize("fields", [
+    {"order_id": "CO-7"}, {"order_id": "O-20261027-1403-AB12"}, {"order_id": "O-20261027-1403-ab1"},
+    {"order_id": "O-20261027-1403-ab12\n"}, {"order_id": " O-20261027-1403-ab12"}, {"order_id": None},
+    {"order_id": 7}, {"outcome": ""}, {"outcome": "x" * 501}, {"outcome": None},
+    {"project_id": "p"}, {"closed_at": "2026-10-30T10:00:00Z"}, {"taken_by": "sompong"},
+    {"session_id": "cootest1"}, {"session_id": "C0DE0001"},
+])
+def test_order_close_refuses_a_bad_request_and_closes_nothing(orders, fields):
+    oid = _open()["order_id"]
+    req = {"op": "order_close", "session_id": OSID, "order_id": oid, "outcome": "done", **fields}
+    out = coo_gate.handle(req, 994)
+    assert out["ok"] is False and out["error"], out
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_close_refuses_a_session_that_is_not_coo(orders):
+    oid = _open()["order_id"]
+    db_mod.register_cxo_session("cto", "ab12cd34", "contabo")
+    for sid in ("ab12cd34", "deadbeef"):
+        out = _close(oid, sid=sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+    assert [r["closed_at"] for r in _order_rows(orders)] == [None]
+
+
+def test_order_ops_roundtrip_through_the_mcp_tools(orders, monkeypatch):
+    monkeypatch.setenv("CXO_SESSION_ID", OSID)
+    monkeypatch.setattr(coo_mcp_server, "call", lambda op, **fields: coo_gate.handle({"op": op, **fields}, 994))
+    opened = coo_mcp_server.order_open(7, "ship the film", "2026-10-30T17:00:00+07:00")
+    assert opened["ok"] and opened["existing"] is False
+    assert coo_mcp_server.order_open(7, "ship the film")["existing"] is True
+    assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"]
+    assert coo_mcp_server.order_close(opened["order_id"], "shipped")["ok"] is False
+
+
+# --------------------------------------------------------------------------- portfolio (the Project Monitor read)
+# CEO 2026-10-27: SomPong reads the rows Console /portfolio shows. The real lib/portfolio runs against p1's
+# in-memory hub with the clock frozen, so no Postgres is needed. The grants it needs are read from the role
+# file below, and on a real Postgres, as org_coo, in tests/test_coo_orders_pg.py.
+
+NOW = T + timedelta(hours=1)               # T is p1's 2026-10-26 12:00Z
+LEAKS = ("db.internal", "100.64", "s3cret", "postgresql://", "org_coo", "5432", "ORG_DB_URL")
+
+
+@pytest.fixture
+def board(store, monkeypatch):
+    """Three projects at a frozen clock: a finite one at 50%, a loop on its first round, a parked one."""
+    orig = pf._utc
+    monkeypatch.setattr(pf, "_utc", lambda now=None: orig(now) if now is not None else NOW)
+    kw = {"actor": ACTOR, "now": T}
+    pf.open_project("alpha", "Alpha film", "cmo", stage="active", due_at=T + timedelta(days=3), due_set_by="ceo", **kw)
+    pf.milestone_add("alpha", "script", due_at=T + timedelta(days=1), **kw)
+    pf.milestone_add("alpha", "cut", due_at=T + timedelta(days=2), **kw)
+    pf.milestone_done("alpha", 1, "sha abc1234", **kw)
+    pf.set_plan("alpha", next_step="record  the\nvoice", next_owner="cmo", **kw)
+    pf.open_project("beta", "Beta loop", "cgo", stage="active", kind="loop", cadence_h=24, **kw)
+    pf.beat("beta", "episode 1", **kw)
+    pf.open_project("gamma", "Gamma shelf", "cto", stage="active", **kw)
+    pf.park("gamma", **kw)
+    return store
+
+
+def _portfolio(sid=SID, **extra) -> dict:
+    return coo_gate.handle({"op": "portfolio", "session_id": sid, **extra}, 994)
+
+
+def test_portfolio_op_is_served_and_listed():
+    assert "portfolio" in coo_gate.OPS and "portfolio" in coo_mcp_server.TOOL_NAMES
+    assert "portfolio" in coo_gate.handle({"op": "nope"}, 994)["error"]          # the unknown-op answer lists it
+
+
+def test_portfolio_returns_the_payload_console_gets_and_one_line_per_project(board):
+    out = _portfolio()
+    assert out["ok"] is True and set(out) == {"ok", "payload", "text"}
+    # The same call that feeds Console (tools/portfolio_push), so the same rows and the same %.
+    assert out["payload"] == json.loads(json.dumps(portfolio_push.build_payload()))
+    assert [(r["id"], r["pct"], r["state"]) for r in out["payload"]["projects"]] == [
+        ("alpha", 50, "stalled"), ("beta", 0, "stalled"), ("gamma", 0, "parked")]
+    assert out["text"] == [
+        "Alpha film · cmo · 50% · stalled · record the voice · 2026-10-28T12:00:00Z",
+        "Beta loop · cgo · 0% (รอบที่ 1) · stalled · — · 2026-10-27T12:00:00Z",
+        "Gamma shelf · cto · 0% · parked · — · —",
+    ]
+    assert all("\n" not in line for line in out["text"])
+
+
+def test_portfolio_with_no_projects_is_an_empty_list_not_an_error(store):
+    out = _portfolio()
+    assert out["ok"] is True and out["text"] == [] and out["payload"]["projects"] == []
+
+
+def test_portfolio_refuses_a_session_that_is_not_coo_and_builds_nothing(board, monkeypatch):
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: pytest.fail("built for a non-coo session"))
+    db_mod.register_cxo_session("cto", "ctoabc12", "contabo")
+    for sid in ("ctoabc12", "deadbeef"):
+        out = _portfolio(sid)
+        assert out["ok"] is False and "not a coo session" in out["error"]
+
+
+@pytest.mark.parametrize("fields", [{"session_id": None}, {"session_id": ""}, {"session_id": "x" * 65},
+                                    {"all": True}, {"limit": 5}, {"project": "alpha"}])
+def test_portfolio_refuses_a_bad_request_and_builds_nothing(board, monkeypatch, fields):
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: pytest.fail("built for a bad request"))
+    out = coo_gate.handle({"op": "portfolio", "session_id": SID, **fields}, 994)
+    assert out["ok"] is False and out["error"]
+    assert coo_gate.handle({"op": "portfolio"}, 994)["ok"] is False             # no session_id at all
+
+
+def test_portfolio_is_read_only_it_issues_only_selects_and_changes_no_row(board, monkeypatch):
+    seen = []
+
+    class Spy:
+        def execute(self, sql, params=()):
+            seen.append(sql)
+            return board.execute(sql, params)
+
+    @contextlib.contextmanager
+    def tx(conn=None):
+        yield conn or Spy()
+
+    tables = ("projects", "milestones", "project_events", "orders", "session_heartbeats", "tasks")
+
+    def counts():
+        return [board.execute(f"SELECT count(*) FROM {t}").fetchone()[0] for t in tables]
+
+    before = counts()
+    monkeypatch.setattr(pf, "_tx", tx)
+    assert _portfolio()["ok"] is True
+    assert seen and all(q.lstrip().upper().startswith("SELECT") for q in seen), seen
+    assert not [q for q in seen if "FOR UPDATE" in q.upper()]
+    assert counts() == before
+
+
+@pytest.mark.parametrize("exc", [
+    RuntimeError('connection to server at "db.internal.example" (100.64.0.9), port 5432 failed: FATAL: password '
+                 'authentication failed for user "org_coo" ' + _fake("postgresql", "://org_coo:", "s3cret", "@db.internal.example:5432/org")),
+    OSError("[Errno 111] Connection refused 100.64.0.9:5432"),
+    pf.PortfolioError("the portfolio lives in the hub: ORG_DB_URL is unset"),
+])
+@pytest.mark.parametrize("where", ["session check", "payload"])
+def test_portfolio_hub_down_is_a_plain_error_without_host_url_or_secret(board, monkeypatch, caplog, exc, where):
+    def boom(*args):
+        raise exc
+
+    if where == "session check":                       # the first hub touch of the op
+        monkeypatch.setattr(coo_gate, "_coo_session", boom)
+    else:
+        monkeypatch.setattr(portfolio_push, "build_payload", boom)
+    with caplog.at_level("DEBUG", logger="coo_gate"):
+        out = _portfolio()
+    assert out == {"ok": False, "error": f"the portfolio could not be read from the hub ({type(exc).__name__})"}
+    blob = json.dumps(out) + caplog.text
+    assert not [leak for leak in LEAKS if leak in blob], blob
+
+
+def test_portfolio_hub_error_names_the_cause_class_only(board, monkeypatch):
+    err = RuntimeError("wrapper at db.internal.example")
+    err.__cause__ = OSError("100.64.0.9 refused")
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: (_ for _ in ()).throw(err))
+    assert _portfolio() == {"ok": False, "error": "the portfolio could not be read from the hub (OSError)"}
+
+
+def test_portfolio_round_trips_through_the_socket_and_the_cli(board, gate_sock, monkeypatch, capsys):
+    """The done-when: `coo_mcp_server --cli portfolio` over the real socket prints the rows the gate built.
+    The payload is built here, on this thread (p1's in-memory hub is single-thread); the socket, the uid
+    check, the session check, the op and the CLI are all real."""
+    payload = portfolio_push.build_payload()
+    monkeypatch.setattr(portfolio_push, "build_payload", lambda: payload)
+    monkeypatch.setattr(coo_mcp_server, "SOCKET_PATH", gate_sock)
+    monkeypatch.setenv("CXO_SESSION_ID", SID)
+    assert coo_mcp_server._cli(["portfolio"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 3 and lines[0].startswith("Alpha film · cmo · 50% · ")
+    assert coo_mcp_server._cli(["portfolio", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["payload"] == json.loads(json.dumps(payload))
+    monkeypatch.setenv("CXO_SESSION_ID", "deadbeef")                              # not a coo session: refused
+    assert coo_mcp_server._cli(["portfolio"]) == 1
+    assert "not a coo session" in json.loads(capsys.readouterr().out)["error"]
+
+
+# The grants the op needs (deploy/coo-gate/org_coo_role.sql section 4) and the proof of them (section 6).
+
+PORTFOLIO_TABLES_READ = {"projects", "milestones", "session_heartbeats", "project_events", "tasks", "orders"}
+
+
+def test_sql_grants_select_only_on_the_tables_monitor_payload_reads():
+    import inspect
+    # The tables the monitor path reads, taken from lib/portfolio.py itself: a table added to (or dropped
+    # from) any of these functions fails here, before the gate meets a permission error on the hub.
+    src = "".join(inspect.getsource(getattr(pf, name)) for name in
+                  ("monitor_payload", "_monitor_all", "_v2_rows", "_monitor_v2", "_order_progress"))
+    assert set(re.findall(r"\b(?:FROM|JOIN)\s+(\w+)", src)) == PORTFOLIO_TABLES_READ
+    flat = _sql_flat()
+    for grant in ("GRANT SELECT ON projects TO org_coo;", "GRANT SELECT ON milestones TO org_coo;",
+                  "GRANT SELECT (project_id, at) ON session_heartbeats TO org_coo;",
+                  "GRANT SELECT (id, project_id, at, kind, actor, body) ON project_events TO org_coo;"):
+        assert flat.count(grant) == 1, grant
+    # tasks and orders were granted before this op; neither grant was touched or doubled.
+    assert flat.count("GRANT SELECT ON tasks TO org_coo;") == 1 and flat.count("ON orders TO org_coo") == 1
+    assert "GRANT INSERT (project_id, at, kind, actor, body) ON project_events TO org_coo;" in flat
+    # Not read by monitor_payload, so not granted.
+    for table in ("ceo_gos", "resource_locks", "post_ledger"):
+        assert f"ON {table} TO org_coo" not in flat
+    # No write privilege came with it: every grant the portfolio read added is SELECT alone.
+    for table in ("projects", "milestones", "session_heartbeats"):
+        (privs,) = re.findall(rf"GRANT ([^;]*?) ON {table} TO org_coo;", flat)
+        assert re.fullmatch(r"SELECT( \([a-z_, ]+\))?", privs), privs
+    # The INSERT/UPDATE list of section 6 did not move: no new `:INSERT` / `:UPDATE` token for these tables.
+    want = re.search(r"want text := (.*?);\s*BEGIN", SQL.read_text(), re.S).group(1)
+    assert not re.findall(r"\b(?:projects|milestones|session_heartbeats)\.[a-z_]+:", want)
+    assert sorted(re.findall(r"\bproject_events\.([a-z_]+):INSERT", want)) == sorted(EVENT_INSERT_COLS)
+    assert not re.findall(r"\bproject_events\.[a-z_]+:UPDATE", want)
+
+
+def test_sql_portfolio_proof_reads_each_table_and_refuses_every_write():
+    sql = SQL.read_text()
+    proof = sql.split("DO $portfolio_proof$")[1].split("$portfolio_proof$;")[0]
+    assert "SET LOCAL ROLE org_coo" in proof
+    assert "WHEN SQLSTATE 'ZX001' THEN accepted := true" in proof
+    assert "WHEN insufficient_privilege THEN" in proof and "raise_exception" not in proof   # only a missing privilege refuses
+    assert "RAISE EXCEPTION USING ERRCODE = 'ZX001'" in proof and "COMMIT" not in proof     # rolled back, no proof row stays
+    for table in ("projects", "milestones", "session_heartbeats", "project_events", "tasks", "orders"):
+        assert re.search(rf"\('SELECT {table}[^']*', \$q\$SELECT .*?\$q\$, true\)", proof, re.S), table
+    for table in ("projects", "milestones", "session_heartbeats"):
+        for verb in ("INSERT", "UPDATE", "DELETE"):
+            assert re.search(rf"\('{verb} {table}', \$q\$.*?\$q\$, false\)", proof, re.S), (verb, table)
+    for verb in ("UPDATE", "DELETE"):                       # INSERT on project_events is order_close's guarded grant
+        assert f"('{verb} project_events'" in proof
+    assert "SELECT id FROM public.projects FOR UPDATE" in proof                             # the row lock is closed too
+    # The blocks that were here before are as they were: the audit / field-note loop and the orders proof.
+    assert "DO $orders_proof$" in sql and sql.index("DO $orders_proof$") < sql.index("DO $portfolio_proof$")
+    assert sql.index("$portfolio_proof$;") < sql.index("\\echo org_coo: role, grants and row guards are in place")

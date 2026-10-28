@@ -8,6 +8,8 @@
     bash scripts/hub/org-python.sh tools/portfolio.py show [<id>]
     bash scripts/hub/org-python.sh tools/portfolio.py monitor          # the P3-E v1 JSON the widget reads
     bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --goal "..." --repos a/b,c/d
+    bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --kind loop --cadence 24
+    bash scripts/hub/org-python.sh tools/portfolio.py replan black-liquidity 1 --due 2026-11-02T00:00:00Z --why "first date"
     bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
         --project x --dry-run                                           # a PH STATUS.md table, once
     bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
@@ -204,13 +206,15 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--due")
     s.add_argument("--cadence", type=int)
 
-    s = sub.add_parser("edit", help="change a project's name, goal, repos, done criteria or host")
+    s = sub.add_parser("edit", help="change a project's name, goal, repos, done criteria, host, kind or cadence")
     s.add_argument("id")
     s.add_argument("--name")
     s.add_argument("--goal")
     s.add_argument("--repos", help="comma list; replaces the current list")
     s.add_argument("--done-criteria")
     s.add_argument("--host")
+    s.add_argument("--kind", choices=("finite", "loop"), help="a loop needs a cadence (given here or already set)")
+    s.add_argument("--cadence", type=int, help="hours between beats of a loop; a positive whole number")
 
     s = sub.add_parser("tier", help="set a project's budget tier")
     s.add_argument("id")
@@ -423,7 +427,7 @@ def _write(args, identity, now: datetime):
 
     if v == "edit":                                  # bad input is refused before the hub is asked anything
         pf.edit_fields(name=args.name, goal=args.goal, repos=_csv(args.repos),
-                       done_criteria=args.done_criteria, host=args.host)
+                       done_criteria=args.done_criteria, host=args.host, kind=args.kind, cadence_h=args.cadence)
     project = pf.get_project(args.id)
     if not ok(v, project):
         return REFUSED
@@ -437,7 +441,8 @@ def _write(args, identity, now: datetime):
         return pf.set_plan(args.id, next_step=args.next, next_owner=args.owner, actor=actor, now=now)
     if v == "edit":
         return pf.edit_project(args.id, actor=actor, name=args.name, goal=args.goal, repos=_csv(args.repos),
-                               done_criteria=args.done_criteria, host=args.host)
+                               done_criteria=args.done_criteria, host=args.host, kind=args.kind,
+                               cadence_h=args.cadence)
     if v == "stage":
         return pf.set_stage(args.id, args.stage, actor=actor, reason=args.reason, now=now)
     if v == "tier":
@@ -482,6 +487,8 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
                 _out(rows)
             else:
                 print(pf.render_report(rows))
+                for p in pf.idea_with_live_ph(now):      # stage idea is outside the monitor: say it here
+                    print(f"idea · {p['name']} ({p['project_id']}) · PH {p['ph_session']} live: set stage or park")
             return 0
         if args.verb == "eta-stats":
             _out(pf.eta_stats())

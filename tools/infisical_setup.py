@@ -35,6 +35,10 @@ config/keyfetch-writer.yaml beside tools/; run these from the checkout (missing 
                            PLAN §5: exec the command with the project's secrets in its
                            environment, read with this machine's identity; nothing touches disk.
                            This is how a service or a launcher starts once its .env is gone.
+                           Every run (and last4) writes ONE audit row of secret NAMES, never
+                           values: hub events kind=secret_read, or state/secret-audit/spool-<host>.jsonl
+                           when the hub is unreachable (fail-open). `python3 tools/secret_audit.py who
+                           NAME` reads it back. ORG_SECRET_AUDIT=off skips the row.
 
 The layout below is PLAN.md §3 / §3b as the CEO approved it on 2026-09-25; changing it is a plan
 change. Rules this tool enforces itself:
@@ -49,11 +53,13 @@ import argparse
 import base64
 import datetime as dt
 import getpass
+import importlib
 import json
 import os
 import re
 import secrets
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -913,11 +919,243 @@ def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> N
     s = _get_secret(org, p["id"], env, name, path)
     if s is None:
         sys.exit(f"{p['name']}/{env}{'' if path == '/' else path} has no secret {name}")
+    audit_secret_read(org.identity, p["name"], env, path, {name: s.get("secretValue") or ""}, ["last4", name])
     print(f"{p['name']}/{env}{'' if path == '/' else path.rstrip('/')} {name}"
           f" · last4={(s.get('secretValue') or '').strip()[-4:]}")
 
 
 EXIT_NO_SECRETS = 2
+
+
+# --- audit: who read which secret NAMES (HQSecurity, order O-20261027-1347-4e62) ---------------
+# `cmd_run` is the one door every wrapper goes through (with-org-db-env.sh, org-python.sh), so it
+# writes ONE record per read: names only, never a value. Fail-open: a record that cannot reach the
+# hub lands in a local spool (`secret_audit.py flush` uploads it) and the wrapped command starts
+# exactly as before. ORG_SECRET_AUDIT=off skips the record (kill switch; an audit trail, not a wall).
+AUDIT_SWITCH = "ORG_SECRET_AUDIT"
+AUDIT_DIR_ENV = "ORG_SECRET_AUDIT_DIR"                 # tests only
+AUDIT_KIND = "secret_read"
+AUDIT_CMD_MAX = 300
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_TOKEN_RUN = re.compile(r"[A-Za-z0-9_\-+/=.]{24,}")
+_PATH_WORD = re.compile(r"^(?:--?[A-Za-z0-9_-]+=)?(?:\./|\.\./|~/|/)[A-Za-z0-9_.@:/-]*$")
+_NAME_SAYS_SECRET = r"[A-Za-z0-9_.-]*(?:KEY|TOKEN|SECRET|PASSW(?:OR)?D|PWD)[A-Za-z0-9_.-]*"
+_SECRET_ASSIGN = re.compile(rf"(?i)(\b{_NAME_SAYS_SECRET}=)(?![\"']?[$<])[\"']?[^\s\"']+")
+_SECRET_FLAG = re.compile(rf"(?i)^--?{_NAME_SAYS_SECRET}$")
+_URL_USERINFO = re.compile(r"(\b[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]*:)[^\s/@]+(@)")
+_BEARER = re.compile(r"(?i)(\bbearer\s+)\S+")
+_SESSION_ENVS = ("CTO_SESSION_ID", "CXO_SESSION_ID", "ORG_SESSION_ID", "CLAUDE_SESSION_ID")
+_RUN_CARD_ENVS = ("ORG_RUN_ID", "MOONIEX_RUN_ID", "RUN_ID")
+
+
+def audit_enabled() -> bool:
+    return os.environ.get(AUDIT_SWITCH, "").strip().lower() not in ("off", "0", "false", "no")
+
+
+def _checkout_root() -> str:
+    """The main checkout even when run from one of its worktrees, so a spool never dies with a
+    worktree (a worktree's `.git` is a file: `gitdir: <main>/.git/worktrees/<name>`)."""
+    try:
+        with open(os.path.join(_ROOT, ".git"), encoding="utf-8") as fh:
+            gitdir = fh.read().split("gitdir:", 1)[1].strip()
+        marker = os.sep + ".git" + os.sep + "worktrees" + os.sep
+        return gitdir.split(marker, 1)[0] if marker in gitdir else _ROOT
+    except (OSError, IndexError):
+        return _ROOT
+
+
+def audit_dir() -> str:
+    return os.environ.get(AUDIT_DIR_ENV) or os.path.join(_checkout_root(), "state", "secret-audit")
+
+
+def audit_host() -> str:
+    """ORG_HOST, else the `host:` line of ~/.config/mooniex/node.yaml, else the identity name."""
+    raw = (os.environ.get("ORG_HOST") or "").strip().lower()
+    if not raw:
+        try:
+            node = os.environ.get("MOONIEX_NODE_YAML") or os.path.expanduser("~/.config/mooniex/node.yaml")
+            with open(node, encoding="utf-8") as fh:
+                m = re.findall(r"^host\s*:\s*[\"']?([A-Za-z0-9_-]+)", fh.read(), re.M)
+            raw = m[-1].lower() if m else ""
+        except OSError:
+            raw = ""
+    return raw if re.fullmatch(r"[a-z0-9_-]+", raw or "") else self_host()
+
+
+def scrub_command(argv: list[str], secrets_by_name: dict[str, str]) -> str:
+    """argv joined, a fetched value replaced by <secret:NAME>, any token-looking run by <redacted>,
+    cut at AUDIT_CMD_MAX. Redaction runs BEFORE the cut so a cut can never leave a token's prefix."""
+    pairs = sorted(((v, n) for n, v in secrets_by_name.items() if isinstance(v, str) and len(v) >= 4),
+                   key=lambda p: -len(p[0]))
+    words, after_flag = [], False
+    for a in argv:
+        masked = False
+        for value, name in pairs:
+            if a == value:
+                a, masked = f"<secret:{name}>", True
+                break
+            if len(value) >= 8 and value in a:
+                a = a.replace(value, f"<secret:{name}>")
+        if after_flag and not masked:
+            a = "<redacted>"                             # `--password hunter2`: the next element is the value
+        after_flag = bool(_SECRET_FLAG.match(a))
+        words.append(a)
+    return redact_text(" ".join(words))[:AUDIT_CMD_MAX]
+
+
+def redact_text(text: str) -> str:
+    """What a short password can hide in, whatever its length: URL userinfo (`://user:PW@host`),
+    NAME=value where NAME says KEY/TOKEN/SECRET/PASSWORD, and the word after `Bearer`. Then any
+    token-looking run (>= 24 chars of [A-Za-z0-9_-+/=.]) becomes <redacted>; a file path is kept
+    (its segments are short words). A fetched value is caught by name first, in scrub_command()."""
+    text = _URL_USERINFO.sub(r"\1<redacted>\2", text)
+    text = _SECRET_ASSIGN.sub(r"\1<redacted>", text)
+    text = _BEARER.sub(r"\1<redacted>", text)
+
+    def word(w: str) -> str:
+        if _PATH_WORD.match(w) and all(len(seg) <= 32 for seg in w.split("/")):
+            return w
+        return _TOKEN_RUN.sub("<redacted>", w)
+    return re.sub(r"\S+", lambda m: word(m.group(0)), text)
+
+
+def audit_record(identity: str, project: str, env: str, path: str, secrets_by_name: dict[str, str],
+                 argv: list[str]) -> dict:
+    """The audit row's payload. Names only: values reach scrub_command() and nothing else."""
+    try:
+        import pwd
+        user, uid = pwd.getpwuid(os.getuid()).pw_name, os.getuid()
+    except Exception:                                    # Windows has no pwd/getuid
+        user, uid = os.environ.get("USERNAME") or os.environ.get("USER") or "?", None
+    parent = None
+    try:
+        with open(f"/proc/{os.getppid()}/comm", encoding="utf-8") as fh:
+            parent = fh.read().strip()
+    except OSError:
+        pass
+    first = lambda keys: next((os.environ[k] for k in keys if os.environ.get(k)), None)  # noqa: E731
+    return {
+        "ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "host": audit_host(), "user": user, "uid": uid, "pid": os.getpid(),
+        "role": first(("CXO_ROLE", "ORG_ROLE", "WORKER_ROLE")),
+        "session": first(_SESSION_ENVS),
+        "task_id": first(("ORG_TASK_ID", "WORKER_TASK_ID")),
+        "ph_project": os.environ.get("ORG_PH_PROJECT") or None,
+        "run_card": first(_RUN_CARD_ENVS),
+        "identity": identity, "project": project, "env": env, "path": path,
+        "names": sorted(secrets_by_name),
+        "argv0": os.path.basename(argv[0]) if argv else "",
+        "cmd": scrub_command(argv, secrets_by_name),
+        "parent": parent,
+    }
+
+
+_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+
+
+def _euid() -> int | None:
+    return os.geteuid() if hasattr(os, "geteuid") else None      # Windows has no uids
+
+
+def audit_dir_unsafe(d: str) -> str | None:
+    """Why `d` may not hold the spool, or None. state/ is group-writable and this runs as root, so the
+    directory must be a real directory (not a symlink), ours, and closed to group and other."""
+    try:
+        st = os.lstat(d)
+    except OSError as exc:
+        return f"cannot stat: {exc.__class__.__name__}"
+    if not stat.S_ISDIR(st.st_mode):
+        return "not a real directory (symlink or file)"
+    if _euid() is not None and (st.st_uid != _euid() or st.st_mode & 0o077):
+        return "not owned by this user or open to group/other"
+    return None
+
+
+def audit_spool(rec: dict) -> str:
+    """Append one JSON line to <audit dir>/spool-<host>.jsonl (dir 0700, file 0600). Refuses ("lost",
+    through the caller) a dir that is a symlink, foreign or group-writable, and never writes through
+    a symlink or into a non-regular file."""
+    d = audit_dir()
+    os.makedirs(os.path.dirname(d), exist_ok=True)
+    try:
+        os.mkdir(d, 0o700)
+    except FileExistsError:
+        pass
+    bad = audit_dir_unsafe(d)
+    if bad:
+        raise OSError(f"audit dir refused: {bad}")
+    flags = os.O_WRONLY | os.O_APPEND | os.O_CREAT | _NOFOLLOW
+    if os.open in os.supports_dir_fd:                    # POSIX: pin the directory so it cannot be swapped
+        dfd = os.open(d, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | _NOFOLLOW)
+        try:
+            if _euid() is not None and (os.fstat(dfd).st_uid != _euid() or os.fstat(dfd).st_mode & 0o077):
+                raise OSError("audit dir refused: changed under us")
+            _spool_write(rec, lambda name, fl, mode: os.open(name, fl, mode, dir_fd=dfd), flags)
+        finally:
+            os.close(dfd)
+    else:
+        _spool_write(rec, lambda name, fl, mode: os.open(os.path.join(d, name), fl, mode), flags)
+    return "spool"
+
+
+def _spool_write(rec: dict, opener, flags: int) -> None:
+    try:                                                # the spool must never be `git add -A`'d
+        fd = opener(".gitignore", os.O_WRONLY | os.O_CREAT | os.O_EXCL | _NOFOLLOW, 0o600)
+    except FileExistsError:
+        pass                                            # exists (or a planted symlink): never written through
+    else:
+        try:
+            os.write(fd, b"*\n")
+        finally:
+            os.close(fd)
+    fd = opener(f"spool-{rec['host']}.jsonl", flags, 0o600)
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode) or (_euid() is not None and st.st_uid != _euid()):
+            raise OSError("spool refused: not a regular file of ours")
+        os.write(fd, (json.dumps(rec, ensure_ascii=True, sort_keys=True) + "\n").encode("ascii"))
+    finally:
+        os.close(fd)
+
+
+AUDIT_INSERT_SQL = "INSERT INTO events (task_id, actor, kind, payload, ts) VALUES (%s,%s,%s,%s,%s)"
+
+
+def audit_row(rec: dict) -> tuple:
+    """The events columns for one audit record: actor is the session id, else user@host."""
+    return (rec.get("task_id"), rec.get("session") or f"{rec['user']}@{rec['host']}", AUDIT_KIND,
+            json.dumps(rec, sort_keys=True), rec["ts"])
+
+
+def audit_insert(rec: dict, url: str) -> None:
+    """One INSERT into the hub's events table; raises on any failure (the caller spools)."""
+    psycopg = importlib.import_module("psycopg")     # optional: the file stays stdlib-only (tests/test_fal_tts.py)
+    with psycopg.connect(url, connect_timeout=3, autocommit=True,
+                         options="-c statement_timeout=500") as conn:
+        conn.execute(AUDIT_INSERT_SQL, audit_row(rec))
+
+
+def audit_secret_read(identity: str, project: str, env: str, path: str, secrets_by_name: dict[str, str],
+                      argv: list[str]) -> str:
+    """Record this read. Never raises and never prints: the wrapped command must start unchanged.
+    Returns "off", "hub", "spool" or "lost" (spool also failed) for the tests."""
+    if not audit_enabled():
+        return "off"
+    try:
+        rec = audit_record(identity, project, env, path, secrets_by_name, argv)
+    except Exception:
+        return "lost"
+    url = secrets_by_name.get("ORG_DB_URL") or os.environ.get("ORG_DB_URL")
+    if url:
+        try:
+            audit_insert(rec, url)
+            return "hub"
+        except Exception:
+            pass
+    try:
+        return audit_spool(rec)
+    except Exception:
+        return "lost"
 
 
 def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = "/") -> None:
@@ -940,6 +1178,7 @@ def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = 
         sys.exit(EXIT_NO_SECRETS)
     print(f"[infisical run] {where} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
           file=sys.stderr)
+    audit_secret_read(identity, p["name"], env, path, secrets, argv)    # fail-open, see above
     child_env = {**os.environ, **secrets}
     if _is_nt():
         # os.exec* on Windows starts a NEW process and ends this one at once (CRT _execvpe), so a

@@ -430,6 +430,22 @@ projects:
       contabo: /opt/MoonieXHQ/Projects/MoonieX/Option
     spawn_backend: tmux
 
+  - key: mooniex-expertadvisor
+    name: MoonieX ExpertAdvisor (MT5 EAs for the CEO's own trading; MoonX + MoonPulse BTC)
+    path: /opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor
+    remote: https://github.com/PASAKON/MoonieX-ExpertAdvisor.git
+    default_branch: main
+    stack: [mql5]
+    agents_allowed: *default_workers
+    # Private. MT5 runs only on winbox (scp + ssh, no git there); never a broker login,
+    # account number, third-party EA file or tick data in the repo. Live money waits
+    # for the CEO's card (CEO 2026-10-27, order O-20261027-1310-d49c).
+    auto_push: false
+    review_required: true
+    paths:
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor
+    spawn_backend: tmux
+
   - key: mooniex-bedrock
     name: MoonieX Bedrock (Minecraft Bedrock Marketplace add-ons)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock

@@ -34,12 +34,14 @@ other than a small conflict fix. If the CEO asks "สถานะ", give him one
 ## The two lines
 
 ```
-Order:    charter (1 command) + tab ⏳ → read only what the order needs → pick the owner
-          → 1 brief per PH → report ≤12 lines + tab 🏁 → wait quietly
+Order:    order take (1 command) → charter (1 command) + tab ⏳ → read only what the order needs → pick the owner
+          → order link → 1 brief per PH (its O- id in the brief) → report ≤12 lines + tab 🏁 → wait quietly
 Conflict: blocker letter → read the 2 diffs → small: branch + PR + merge
           big: 1 Codex task → review once → merge (at most 1 reopen; then fix it yourself or hand it to another runner)
           → 1 line to each affected PH → wait quietly
 ```
+
+**Every order gets a hub row first** (ProjectTrack, CEO 2026-10-26): `bash scripts/hub/org-python.sh tools/portfolio.py order take "<his words>" [--project <id>] [--due <ISO>]`, before any brief, then `order link <O-id> <project>` once the owner is known (`tools/portfolio_watch.py` writes to you after 30 minutes unlinked). A relayed order already has its row, `CO-<N>`: link it the same way, and `report_to_ceo` closes it. A chat order closes with `order close <O-id> --outcome "…"`.
 
 ## Token rules (CEO 2026-10-14)
 

@@ -25,13 +25,17 @@ SomPong session (uid sompong)
 |---|---|
 | `runners/coo_gate.py` `op_create_task`, `op_delegate_task`, `op_respawn_clevel` | `lib/coo_policy.check_role` for worker tasks (`check_respawn` + strict key set `{op, session_id, role, host}` + rate limits for `respawn_clevel`) before any hub write; the dispatcher checks again before starting a worker or C-level |
 | `lib/db.create_task` (every Python path that inserts a task) | `coo_policy.check_role(owner_role, role)` right after the owner is resolved |
-| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three worker roles, three task-bound event kinds (`task_created`, `coo_delegate_request`, `coo_close_request`), taskless `coo_respawn_request` (`task_id IS NULL`, JSON payload keys `role` in `{cto, cmo, cgo, cfo}`, `host = 'contabo'`, non-empty `by_session`), and its own charter |
+| the hub, for anything `org_coo` writes | trigger `org_coo_guard` (`org_coo_role.sql` §5): only pending coo tasks for the three worker roles, three task-bound event kinds (`task_created`, `coo_delegate_request`, `coo_close_request`), taskless `coo_respawn_request` (`task_id IS NULL`, JSON payload keys `role` in `{cto, cmo, cgo, cfo}`, `host = 'contabo'`, non-empty `by_session`), taskless `coo_audit` and `coo_field_note` (`actor = 'coo_gate'`, exact payload keys and types, see below), and its own charter |
 
 `org_coo` holds INSERT on the create columns of `tasks`, INSERT on `events`, SELECT on the
 owner-owned security-barrier view `coo_respawn_events` (only respawn request/done events),
 SELECT on `tasks`, five `c_level_sessions` columns plus UPDATE of
 `charter`, and SELECT on the `live_hosts` / `live_sessions` columns the live list needs. Nothing
-else: no UPDATE of a task, no DELETE, no other table. The SQL proves it at the end of every run (§6).
+else: no UPDATE of a task, no DELETE, no other table than the one in the next line. The SQL proves it at the end of every run (§6).
+
+CEO-order mirror (CEO 2026-10-27): SELECT on `orders`, INSERT of its 8 `order_take` columns and UPDATE of `closed_at`, `outcome`, and INSERT of the 5 `project_events` columns `order_close` writes; the triggers `org_coo_orders_guard` / `org_coo_project_events_guard` (§5) hold that to `CO-<n>` rows taken by `sompong` with no project, closed once, and a close event written as `COO#<8 hex>` for a closed order of that project.
+
+Project Monitor read (CEO 2026-10-27, the gate's `portfolio` op): SELECT only, on `projects`, `milestones`, `session_heartbeats` (`project_id`, `at`) and `project_events` (all six columns), added to the `tasks` and `orders` SELECT above. These are exactly the tables `lib.portfolio.monitor_payload(version=2)` reads, the call that feeds Console `/portfolio` (`tests/test_coo_gate.py` re-derives the list from `lib/portfolio.py`, so a new read there fails the test before it fails on the hub). Nothing was added that can write: no INSERT, UPDATE, DELETE or row lock on any of them (the INSERT on `project_events` is the `order_close` grant above, unchanged). `ceo_gos` and `resource_locks` are not read by the monitor and stay closed. `project_events.body` is readable now, because the monitor reads it for the `decided_for_ceo` text and the parked stage and a column grant cannot limit rows; `events` (the audit log) stays write-only. §6's `$portfolio_proof$` runs the monitor's own SELECTs as `org_coo` on each table and tries the writes.
 
 ## C-level respawn
 
@@ -57,6 +61,56 @@ The SQL guard requires string role/host/by_session values, rejects null roles,
 and its self-proof attempts forbidden done and null-role inserts in rolled-back
 subtransactions. Backend exceptions expose only fixed reason codes and class names.
 
+## Audit log and field notes (#38, #24b)
+
+Two more taskless event kinds, both written by the gate as actor `coo_gate`, both append-only for
+`org_coo` (INSERT; it holds no SELECT on them, so the COO cannot read them back either).
+
+**Audit.** `scripts/coo-audit-hook.py` is a Claude Code PostToolUse hook. After a tool call it sends
+`audit_append {session_id, tool, input, ok}` to the gate and exits 0 with no output, whatever happens:
+2 s in total, then it gives up (fail open, it never blocks the COO). The gate checks the session is a
+coo session, redacts the input by shape (token formats, `key=value` for secret-named keys, URL
+passwords, private keys, long key-like runs), cuts it to 2000 characters and writes `coo_audit
+{session_id, tool, input, ok}`. At most 600 rows per session per hour; past that the gate refuses with a
+fixed reason and the row is not written. The session id is `CXO_SESSION_ID`, else the hook's own
+`session_id` (which is not a hub session, so the gate refuses it: the launcher must export
+`CXO_SESSION_ID`). Read it as the hub owner:
+`SELECT ts, payload FROM events WHERE kind = 'coo_audit' ORDER BY id DESC LIMIT 50`.
+
+The repo does not register the hook. The PH adds `python3 <root>/scripts/coo-audit-hook.py` under
+`hooks.PostToolUse` in SomPong's settings (and under `PostToolUseFailure` if failed calls should show
+`ok: false`).
+
+Limits, stated plainly:
+- **The hook is fed from SomPong's own settings.** The COO can stop feeding it: edit those settings,
+  start a Claude with other ones, or unset the socket path. Nothing is logged that does not pass
+  through the hook, and a gate that is down or full costs rows silently (the gate's journal shows
+  `refused op=audit_append`). A run of missing rows against the transcript is the signal.
+- **What was written, the COO cannot change or delete:** `org_coo` has INSERT only on `events`, no
+  UPDATE, no DELETE, no SELECT of these rows. That holds for `org_coo`, not for root on the box.
+- Redaction is by shape, not a guarantee: a secret in a shape none of the rules match (a bare
+  password, `curl -u user:pass`) is stored. A git SHA is masked like a key. Inputs are cut at 2000
+  characters, so a long command is partial. `ok` is only what the hook saw in the event.
+- The hourly counter lives in the gate's memory: a gate restart starts it again from zero, and the hub
+  trigger cannot count rows it may not read.
+
+**Field notes.** The MCP tool `field_note(skill, tag, text)` (gate op `field_note`) files `coo_field_note
+{session_id, skill, tag, text}`. `skill` must be a directory under `.claude/skills/` of the checkout the
+gate runs from; `tag` is MISSING, WRONG, COSTLY or CONFIRMED; `text` is one line of at most 600
+characters, redacted the same way (a note ends up in a skill file in a public repo); at most 30 per
+session per hour. The COO never changes a skill. A CTO or PH reads the notes and folds them in by
+hand, under the skill learning loop's rule that one sighting is a note, not a rule:
+
+    bash scripts/hub/org-python.sh tools/coo_field_notes.py list [--since ISO]
+
+prints `skill · tag · ts · text`, oldest first, as root. A note has no folded flag (events are
+append-only): keep the `ts` of the last one you folded and pass it as `--since` next time.
+
+Roll-out order after the merge: the grants step (1) first, because it installs the trigger that lets
+`org_coo` write these two kinds and runs section 6's proof of both; then restart `org-coo-gate` (read the
+tmux warning in CLAUDE.md first); until then the running gate answers `unknown op`. Then the PH wires the
+hook.
+
 ## The research box (`runners/coo_worker.py`)
 
 bwrap, root mapped to uid 1000 in a new user namespace, all capabilities dropped, environment cleared.
@@ -76,7 +130,7 @@ Order (`config/plans.yaml` class `research`): codex, Argon, Sonnet. A run with n
 
 ## Install, rotate, remove (each a Run card, red risk)
 
-1. Grants (applied 2026-10-14, re-run after any change to the SQL):
+1. Grants (applied 2026-10-14, re-run after any change to the SQL; the `portfolio` op needs this re-run, then a restart of `org-coo-gate.service` to load the op):
    `python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only`
 2. Rotation (the old org_coo password leaked: `/run/sompong-coo/org-db.url` is readable by `sompong`,
    and commit a60f1744 holds a literal). Needs contabo write on Infisical Org-Coo (card

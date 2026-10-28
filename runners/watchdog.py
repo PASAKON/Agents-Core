@@ -2,7 +2,9 @@
 
 Scans tasks WHERE status='in_progress'. For each:
   - silent < PING_AFTER_S          → leave alone
-  - PING_AFTER_S <= silent < STALL_AFTER_S → send_to_worker "status check"
+  - PING_AFTER_S <= silent < STALL_AFTER_S → send_to_worker "status check", once
+    silence passes _ping_interval(): PING_AFTER_S x the budget factor x the task's
+    tier factor (lib/wake_backoff; a low-tier task gets no timed ping)
   - silent >= STALL_AFTER_S, pid dead  → status=stalled + file gh issue
   - silent >= STALL_AFTER_S, pid alive → review.watchdog="suspect" + file/
     refresh gh issue; status, tab and tmux are never touched (ADDENDUM 2,
@@ -41,7 +43,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib import db, mesh, pane_screen
+from lib import db, mesh, pane_screen, portfolio, wake_backoff
 from lib.notify import info, success, warn, error
 from lib.config import host as get_host, hosts as all_hosts, self_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
@@ -283,6 +285,14 @@ def _silent_seconds(updated_at: str) -> float:
     if upd.tzinfo is None:
         upd = upd.replace(tzinfo=timezone.utc)
     return (datetime.now(timezone.utc) - upd).total_seconds()
+
+
+def _ping_interval(task: dict) -> float | None:
+    """Silence after which a live-looking worker gets its status-check ping. None: its
+    tier takes no timed wake. A real event (stall, done, failed) never waits on this."""
+    return wake_backoff.wake_interval(
+        PING_AFTER_S, tier=portfolio.tier_for(task),
+        budget_json=wake_backoff.load_budget(), now=time.time())
 
 
 def _send_ping(task_id: str, message: str) -> bool:
@@ -1216,6 +1226,9 @@ def scan_once() -> dict:
         # genuinely wedged process is now flagged suspect (never reaped)
         # once silence crosses STALL_AFTER_S — see the branch above.
         if _pid_alive(t.get("pid")):
+            continue
+        interval = _ping_interval(t)
+        if interval is None or silent < interval:
             continue
         msg = (f"watchdog ping — silent {int(silent/60)} min. "
                f"Status check? If stuck, call mcp__org__file_blocker_issue.")

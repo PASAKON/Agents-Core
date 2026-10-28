@@ -41,8 +41,11 @@ sys.path.insert(0, str(ROOT))
 from lib import db as db_lib  # noqa: E402
 from lib import mailbox  # noqa: E402
 from lib.config import is_c_level  # noqa: E402
+from lib.logger import get_logger  # noqa: E402
 from tools.agent_transport import current_identity  # noqa: E402
 from tools.org_inspector import detect_host  # noqa: E402
+
+log = get_logger("ceo_report", stdout=False)
 
 # The three outcomes a C-level may close an order with. 'awaiting_reply' is
 # insert-only (relay_to_session sets it; never a valid target status here).
@@ -309,6 +312,23 @@ def _deliver_reply_letter(host: str, body: str, from_role: str,
 # report_to_ceo -- the tool
 # ---------------------------------------------------------------------------
 
+def _hub_order_close(order_id: int, status: str, detail: str, actor: str) -> None:
+    """Close the hub `orders` row CO-<order_id> that relay_to_session opened.
+
+    Best-effort: the ledger row is already closed and the letter sent, so no
+    hub failure (unset ORG_DB_URL, hub down, a CO row that was never mirrored
+    or is already closed) may change what report_to_ceo returns. Only the
+    exception class is logged -- a DB error's text can carry the URL.
+    """
+    try:
+        from lib import portfolio
+        portfolio.order_close(
+            portfolio.ceo_order_hub_id(order_id), f"{status}: {detail[:200]}", actor=actor,
+        )
+    except Exception as e:
+        log.info("hub order close skipped order_id=%s error=%s", order_id, type(e).__name__)
+
+
 def report_to_ceo(order_id: int, status: str, detail: str) -> str:
     """Close out a CEO order relayed via SomPong. Called by the C-level
     session the order was addressed to, using the order id from the
@@ -389,4 +409,5 @@ def report_to_ceo(order_id: int, status: str, detail: str) -> str:
             f"order #{order_id}: reply letter sent, but the ledger could not "
             f"be closed ({closed['reason']}) -- check list_ceo_orders"
         )
+    _hub_order_close(order_id, status, detail, identity.label())
     return f"order #{order_id} closed as {status}"
