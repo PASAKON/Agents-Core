@@ -147,6 +147,7 @@ def env(tmp_path, monkeypatch):
                  "GIT_TERMINAL_PROMPT": "0"}.items():
         monkeypatch.setenv(k, v)
     monkeypatch.setattr(db_mod, "DB_PATH", base / "test_tasks.db")
+    monkeypatch.setenv("XDG_STATE_HOME", str(base / "state"))
     e = ReapEnv(base)
     # remove_worktree() and the reaper look the project up through tools.worktree
     monkeypatch.setattr(worktree_mod, "WORKTREE_DIR", e.worktrees)
@@ -160,6 +161,94 @@ def env(tmp_path, monkeypatch):
 
 
 # --- the original scenarios -------------------------------------------------
+def test_runner_tar_precedes_removal(env, monkeypatch):
+    import tarfile
+    tid = "task-archive"
+    wt = env.worktree(tid)
+    env.row(tid, "done")
+    (wt / "REPORT.md").write_text("precious report")
+    remove = gc_mod.remove_worktree
+    def checked_remove(*args, **kwargs):
+        paths = list((env.base / "state/worktree-reap" / tid).glob("*.tgz"))
+        assert len(paths) == 1
+        with tarfile.open(paths[0]) as archive:
+            assert archive.extractfile("REPORT.md").read() == b"precious report"
+        return remove(*args, **kwargs)
+    monkeypatch.setattr(gc_mod, "remove_worktree", checked_remove)
+    result = reap_worktrees(dry_run=False)
+    row = result["removed"][0]
+    assert hashlib.sha256(Path(row["archive_path"]).read_bytes()).hexdigest() == row["archive_sha256"]
+
+
+def test_archive_failure_keeps_checkout(env, monkeypatch):
+    tid = "task-archive-fail"
+    wt = env.worktree(tid)
+    env.row(tid, "done")
+    (wt / "REPORT.md").write_text("keep")
+    def fail(*args):
+        raise OSError("disk full")
+    monkeypatch.setattr(gc_mod, "_archive_runner_files", fail)
+    result = reap_worktrees(dry_run=False)
+    assert not result["removed"] and wt.exists()
+    assert result["skipped"][0]["action"] == "error"
+
+
+@pytest.mark.parametrize("idle,pushed,clean", [(True, True, True), (False, True, True),
+                                              (True, False, True), (True, True, False)])
+def test_review_idle_conditions(env, idle, pushed, clean):
+    tid = "task-idle"
+    wt = env.worktree(tid, "pushed" if pushed else "local")
+    env.row(tid, "review")
+    if not clean:
+        (wt / "README.md").write_text("dirty")
+    if idle:
+        old = time.time() - 4 * 86400
+        for path in wt.rglob("*"):
+            os.utime(path, (old, old))
+        with db_mod.get_conn() as conn:
+            conn.execute("UPDATE tasks SET updated_at=? WHERE id=?", ("2020-01-01T00:00:00+00:00", tid))
+            conn.commit()
+    result = reap_worktrees(dry_run=False, review_idle=True)
+    assert bool(result["removed"]) == (idle and pushed and clean)
+    assert wt.exists() != (idle and pushed and clean)
+    assert _git(env.repo, "branch", "--list", worktree_mod.branch_name(ROLE, tid))
+
+
+def test_restore_round_trip(env, monkeypatch):
+    tid = "task-restore"
+    wt = env.worktree(tid, "pushed")
+    env.row(tid, "review")
+    head = _git(wt, "rev-parse", "HEAD")
+    worktree_mod.remove_worktree(PROJECT, ROLE, tid)
+    calls = []
+    original = worktree_mod.apply_sparse
+    def sparse(*args):
+        calls.append(args)
+        return original(*args)
+    monkeypatch.setattr(worktree_mod, "apply_sparse", sparse)
+    assert worktree_mod._main(["restore", tid]) == 0
+    assert calls and _git(wt, "rev-parse", "HEAD") == head
+    assert worktree_mod._main(["restore", tid]) == 0
+    _git(wt, "checkout", "-b", "wrong-branch")
+    assert worktree_mod._main(["restore", tid]) == 1
+    assert _git(wt, "branch", "--show-current") == "wrong-branch"
+
+
+def test_review_deleted_remote_branch_is_kept(env):
+    tid = "task-deleted-remote"
+    wt = env.worktree(tid, "pushed")
+    env.row(tid, "review")
+    old = time.time() - 4 * 86400
+    for path in wt.rglob("*"):
+        os.utime(path, (old, old))
+    with db_mod.get_conn() as conn:
+        conn.execute("UPDATE tasks SET updated_at=? WHERE id=?", ("2020-01-01T00:00:00+00:00", tid))
+        conn.commit()
+    _git(env.origin, "update-ref", "-d", "refs/heads/" + worktree_mod.branch_name(ROLE, tid))
+    result = reap_worktrees(dry_run=False, review_idle=True)
+    assert not result["removed"] and wt.exists()
+
+
 
 def test_terminal_clean_worktree_removed(env):
     wt = env.worktree("task-reap0001")

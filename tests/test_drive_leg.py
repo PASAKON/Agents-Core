@@ -70,6 +70,14 @@ def main():
     if not args:
         return 2
     verb = args[0]
+    if verb == os.environ.get("FAKE_RELAY_QUOTA_VERB"):
+        counter = os.path.join(STORE, "_quota_count")
+        count = int(open(counter).read()) if os.path.exists(counter) else 0
+        with open(counter, "w") as fh:
+            fh.write(str(count + 1))
+        if count < int(os.environ.get("FAKE_RELAY_QUOTA_COUNT", "1")):
+            sys.stderr.write("403 RATE_LIMIT_EXCEEDED, userRateLimitExceeded\n")
+            return 1
     folder_id = args[args.index("--drive-root-folder-id") + 1] \
         if "--drive-root-folder-id" in args else "_"
     remotes = [a for a in args[1:] if a.startswith("gdrive:")]
@@ -168,6 +176,145 @@ def _write_session(config_dir: Path, slug: str, uuid: str, age_days: float, *,
 
 
 # =========================================================================== transcripts
+@pytest.mark.parametrize("failure", [None, "md5", "relay"])
+def test_runner_state_verified_only(tmp_path, monkeypatch, fake_relay, failure):
+    home = tmp_path / "home"
+    source = home / ".codex/sessions/old.jsonl"
+    source.parent.mkdir(parents=True)
+    source.write_text("old session")
+    os.utime(source, (1, 1))
+    if failure == "md5":
+        monkeypatch.setenv("FAKE_RELAY_CORRUPT", "1")
+    if failure == "relay":
+        monkeypatch.setenv("DRIVE_LEG_RCLONE", "/bin/false")
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", home=home, runner="codex")
+    assert source.exists() == bool(failure)
+    assert result["failed"] == bool(failure)
+    if not failure:
+        manifest = json.loads(next(fake_relay.rglob("*.manifest.json")).read_text())
+        import hashlib
+        assert manifest["files"] == [{"path": "old.jsonl", "size": 11,
+                                       "md5": hashlib.md5(b"old session").hexdigest()}]
+
+
+def test_runner_secrets_logs_and_dry_run(tmp_path, fake_relay):
+    home = tmp_path / "home"
+    root = home / ".gemini/antigravity-cli"
+    secret_names = [".env", "a.key", "a.pem", "credentials", "rclone.conf", "hosts.yml",
+                    ".credentials.json", "auth-token.json", "oauth-client", "credentials/nested"]
+    # credentials is a directory in this case; all descendants must be skipped.
+    for name in [n for n in secret_names if n != "credentials"]:
+        path = root / "brain" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("secret")
+        os.utime(path, (1, 1))
+    log = root / "log/old.log"
+    log.parent.mkdir(parents=True)
+    log.write_text("log")
+    os.utime(log, (1, 1))
+    kwargs = dict(config_dir=tmp_path / "cfg", home=home, runner="agy")
+    drive_leg.runner_state(**kwargs, dry_run=True)
+    assert log.exists() and not _calls(fake_relay) and not (tmp_path / "cfg").exists()
+    drive_leg.runner_state(**kwargs)
+    assert not log.exists()
+    assert not any("rcat" in c for c in _calls(fake_relay))
+    assert len(list((root / "brain").rglob("*"))) == len(secret_names)
+
+
+@pytest.mark.parametrize("message", ["RATE_LIMIT_EXCEEDED, rateLimitExceeded",
+                                     "403 userRateLimitExceeded", "HTTP 429", "rate-limit"])
+def test_quota_retries_and_cap(monkeypatch, message):
+    sleeps = []
+    monkeypatch.setattr(drive_leg.time, "sleep", sleeps.append)
+    attempts = []
+    def operation():
+        attempts.append(1)
+        if len(attempts) < 3:
+            raise drive_leg.DriveLegError(message)
+        return "ok"
+    assert drive_leg._quota_retry(operation) == "ok"
+    assert len(attempts) == 3 and sleeps[1] > sleeps[0]
+    sleeps.clear()
+    def fail():
+        raise drive_leg.DriveLegError(message)
+    with pytest.raises(drive_leg.DriveLegError):
+        drive_leg._quota_retry(fail)
+    assert len(sleeps) == 5 and max(sleeps) <= 120
+
+
+def test_runner_policy_and_changed_source(tmp_path, monkeypatch, fake_relay):
+    root = tmp_path / "custom"
+    root.mkdir()
+    source = root / "old"
+    source.write_text("original")
+    os.utime(source, (1, 1))
+    policy = tmp_path / "policy.yaml"
+    policy.write_text(f"runners:\n  codex:\n    retention_days: 2\n    paths: [{root}]\n")
+    original = drive_leg.put
+    def put(*args, **kwargs):
+        result = original(*args, **kwargs)
+        source.write_text("new data")
+        return result
+    monkeypatch.setattr(drive_leg, "put", put)
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", runner="codex", policy_path=policy)
+    assert not result["failed"] and source.read_text() == "new data"
+
+
+@pytest.mark.parametrize("verb", ["mkdir", "rcat", "lsjson"])
+@pytest.mark.parametrize("count", [1, 10])
+def test_runner_quota_fake_relay(tmp_path, monkeypatch, fake_relay, verb, count):
+    monkeypatch.setenv("FAKE_RELAY_QUOTA_VERB", verb)
+    monkeypatch.setenv("FAKE_RELAY_QUOTA_COUNT", str(count))
+    monkeypatch.setattr(drive_leg.time, "sleep", lambda _: None)
+    root = tmp_path / ".codex/sessions"
+    root.mkdir(parents=True)
+    source = root / "old"
+    source.write_text("session")
+    os.utime(source, (1, 1))
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", home=tmp_path, runner="codex")
+    assert bool(result["failed"]) == (count == 10)
+    assert source.exists() == (count == 10)
+
+
+def test_runner_part_a_policy(tmp_path, fake_relay):
+    root = tmp_path / "state"
+    root.mkdir()
+    source = root / "old"
+    source.write_text("session")
+    os.utime(source, (1, 1))
+    policy = tmp_path / "policy.yaml"
+    policy.write_text(f"runners:\n  agy-gemini:\n    retention_days: 7\n"
+                      f"    paths: [{{path: '{root}', action: drive}}]\n")
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", home=tmp_path,
+                                    runner="agy", policy_path=policy)
+    assert not result["failed"] and not source.exists()
+
+
+def test_runner_failure_also_keeps_agy_logs(tmp_path, monkeypatch, fake_relay):
+    root = tmp_path / ".gemini/antigravity-cli"
+    for name in ["brain/old", "log/old"]:
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("keep")
+        os.utime(path, (1, 1))
+    monkeypatch.setenv("FAKE_RELAY_CORRUPT", "1")
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", home=tmp_path, runner="agy")
+    assert result["failed"] and (root / "brain/old").exists() and (root / "log/old").exists()
+
+
+def test_runner_symlinks_and_recent_files_stay(tmp_path, fake_relay):
+    root = tmp_path / ".codex/sessions"
+    root.mkdir(parents=True)
+    target = tmp_path / "secret"
+    target.write_text("secret")
+    os.utime(target, (1, 1))
+    (root / "linked").symlink_to(target)
+    (root / "recent").write_text("active")
+    result = drive_leg.runner_state(config_dir=tmp_path / "cfg", home=tmp_path, runner="codex")
+    assert result["deleted_files"] == 0 and not _calls(fake_relay)
+    assert target.exists() and (root / "recent").exists()
+
+
 def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path):
     cfg = tmp_path / "claude_config"
     j_young = _write_session(cfg, "slugA", UUID_A, 1)   # too young (< 7d), must stay

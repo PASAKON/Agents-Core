@@ -45,11 +45,15 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import stat
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
 from datetime import datetime, timezone
+from contextlib import contextmanager
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -493,10 +497,25 @@ def release_terminal_task_locks(dry_run: bool = False) -> list[dict]:
     return released
 
 
+@contextmanager
+def _read_tasks():
+    if db.pg_url():
+        with db.get_conn(readonly=True) as conn:
+            yield conn
+    else:
+        # Quote '#' and '?' in paths (hostile filenames in the reaper tests).
+        conn = sqlite3.connect(db.DB_PATH.resolve().as_uri() + "?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+
 def _all_tasks_with_worktree() -> list[dict]:
     """Every tasks.db row that has a worktree path recorded, regardless of
     status — the raw input to the --reap cross-reference sweep."""
-    with db.get_conn() as conn:
+    with _read_tasks() as conn:
         rows = conn.execute(
             "SELECT id, project, role, status, worktree, updated_at "
             "FROM tasks WHERE worktree IS NOT NULL AND worktree <> ''"
@@ -580,8 +599,8 @@ def _status_entries(wt: Path) -> list[tuple[str, str]] | None:
     return entries
 
 
-def _runner_file_digest(wt: Path, rel: str) -> tuple[int, str]:
-    """(size, sha256 of the first RUNNER_HASH_LIMIT bytes) of wt/rel.
+def _open_runner_file(wt: Path, rel: str):
+    """Open wt/rel as a binary regular file without following symlinks.
 
     Root-run code over a tree another account may write (CTO_Gate_MergeChecklist
     §2b): every component is opened with O_NOFOLLOW relative to the parent's
@@ -603,17 +622,65 @@ def _runner_file_digest(wt: Path, rel: str) -> tuple[int, str]:
         st = os.fstat(ffd)
         if not stat.S_ISREG(st.st_mode):
             raise ValueError("not a regular file")
+        return os.fdopen(ffd, "rb")
+    except Exception:
+        os.close(ffd)
+        raise
+
+
+def _runner_file_digest(wt: Path, rel: str) -> tuple[int, str]:
+    """Return size and SHA-256 of the first RUNNER_HASH_LIMIT bytes."""
+    with _open_runner_file(wt, rel) as source:
+        st = os.fstat(source.fileno())
         h = hashlib.sha256()
         left = RUNNER_HASH_LIMIT
         while left > 0:
-            chunk = os.read(ffd, min(65536, left))
+            chunk = source.read(min(65536, left))
             if not chunk:
                 break
             h.update(chunk)
             left -= len(chunk)
         return st.st_size, h.hexdigest()
-    finally:
-        os.close(ffd)
+
+
+def _archive_runner_files(t: dict, wt: Path, files) -> dict:
+    """P0 shape: task-named tgz of untracked runner files outside the checkout.
+
+    Exclusive names retain previous attempts; 0600 archives may contain private
+    reports. Opening each member uses the same no-symlink guard as inspection.
+    """
+    if not files:
+        return {}
+    root = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    dest = root / "worktree-reap" / t["id"]
+    dest.mkdir(parents=True, exist_ok=True, mode=0o700)
+    fd, name = tempfile.mkstemp(prefix="runner-", suffix=".tgz", dir=dest)
+    path = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output:
+            with tarfile.open(fileobj=output, mode="w:gz") as archive:
+                for rel, size, digest in files:
+                    with _open_runner_file(wt, rel) as source:
+                        before = os.fstat(source.fileno())
+                        info = tarfile.TarInfo(rel)
+                        info.size = before.st_size
+                        info.mode = before.st_mode & 0o777
+                        info.mtime = before.st_mtime
+                        archive.addfile(info, source)
+                        after = os.fstat(source.fileno())
+                        if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                            raise ValueError(f"runner file changed while archiving: {rel}")
+                        if _runner_file_digest(wt, rel) != (size, digest):
+                            raise ValueError(f"runner file changed before archive: {rel}")
+            output.flush()
+            os.fsync(output.fileno())
+        with path.open("rb") as source:
+            digest = hashlib.file_digest(source, "sha256").hexdigest()
+        print(f"  runner-archive {t['id']} {path} sha256={digest}")
+        return {"archive_path": str(path), "archive_sha256": digest}
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
 
 
 def _cwd_holders(wt: Path, proc_dir: str = "/proc") -> list[str] | None:
@@ -727,7 +794,7 @@ def _fetch_origin(repo: Path) -> bool:
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
     env.setdefault("GIT_SSH_COMMAND", "ssh -o BatchMode=yes")
     try:
-        r = subprocess.run(["git", "fetch", "--quiet", "origin"], cwd=str(repo),
+        r = subprocess.run(["git", "fetch", "--quiet", "--prune", "origin"], cwd=str(repo),
                            env=env, capture_output=True, timeout=FETCH_TIMEOUT_S)
     except (OSError, subprocess.SubprocessError):
         return False
@@ -763,7 +830,43 @@ def _removal_check(t: dict, repo: Path) -> tuple[str, str | None, dict]:
     problem = _repo_problem(wt, repo)
     if problem:
         return "skipped_unverifiable", problem, {}
+    if t.get("_review_idle_days") is not None:
+        with _read_tasks() as conn:
+            row = conn.execute("SELECT * FROM tasks WHERE id=?", (t["id"],)).fetchone()
+        fresh = dict(row) if row else None
+        if not fresh or fresh.get("status") != "review":
+            return "skipped_changed", "task is no longer in review", {}
+        problem = _review_idle_problem(fresh, wt, t["_review_idle_days"])
+        if problem:
+            return "skipped_review", problem, {}
     return _inspect_worktree(wt, t["id"])
+
+
+def _review_idle_problem(t: dict, wt: Path, days: float) -> str | None:
+    age = _age_minutes(t.get("updated_at"))
+    if age is None or age < days * 1440:
+        return "review task is not idle long enough"
+    # Include edits to nested files, not only the checkout directory's mtime.
+    cutoff = time.time() - days * 86400
+    for parent, dirs, files in os.walk(wt, followlinks=False):
+        dirs[:] = [d for d in dirs if d != ".git"]
+        for name in files:
+            path = Path(parent) / name
+            if name == ".git" or path.is_symlink():
+                continue
+            if path.stat().st_mtime > cutoff:
+                return "worktree files are not idle long enough"
+    if _status_entries(wt) != []:
+        return "review worktree is not clean"
+    rc, branch = _git(wt, "symbolic-ref", "--short", "HEAD")
+    if rc:
+        return "cannot read review branch"
+    rc, remote = _git(wt, "rev-parse", "--verify",
+                      "refs/remotes/origin/" + os.fsdecode(branch).strip())
+    hc, head = _git(wt, "rev-parse", "--verify", "HEAD")
+    if rc or hc or remote.strip() != head.strip():
+        return "review branch HEAD does not equal origin HEAD"
+    return None
 
 
 def _reap_one(t: dict, wt: Path, repo: Path, entry: dict, *, dry_run: bool,
@@ -786,6 +889,11 @@ def _reap_one(t: dict, wt: Path, repo: Path, entry: dict, *, dry_run: bool,
                 "reason": "status, HEAD or a runner file changed between the two checks"}
     _print_runner_files(t["id"], again["runner"])
     try:
+        entry = {**entry, **_archive_runner_files(t, wt, again["runner"])}
+        action, reason, final = _removal_check(t, repo)
+        if action != "ok" or final != again:
+            return {**entry, "action": "skipped_changed",
+                    "reason": reason or "worktree changed during archive"}
         remove_worktree(t["project"], t["role"], t["id"], delete_branch=False)
         if wt.exists():
             raise RuntimeError(f"worktree still exists after removal: {wt}")
@@ -797,7 +905,8 @@ def _reap_one(t: dict, wt: Path, repo: Path, entry: dict, *, dry_run: bool,
 
 
 def reap_worktrees(*, dry_run: bool = True,
-                   review_stale_days: int = REVIEW_STALE_DAYS) -> dict:
+                   review_stale_days: int = REVIEW_STALE_DAYS,
+                   review_idle: bool = False) -> dict:
     """Cross-reference every tasks.db row that has a worktree against its
     current status and remove the ones that are dead weight.
 
@@ -806,17 +915,20 @@ def reap_worktrees(*, dry_run: bool = True,
         is an ancestor of origin/<base> (the PR merged, only the row is stale).
         pending / in_progress / rate_limited / conflict rows are never looked at.
       * it is clean — apart from the runner's own untracked files
-        (RUNNER_ROOT_FILES, docs/reports/<task-id>/*), which are hashed and
-        printed, not copied;
+        (RUNNER_ROOT_FILES, docs/reports/<task-id>/*), which are archived to
+        $XDG_STATE_HOME/worktree-reap/<task-id>/ before removal;
       * `git rev-list --count HEAD --not --remotes` is 0;
       * no process has its cwd inside it;
       * the row's path IS tools.worktree.worktree_path(project, role, id);
       * the status and cwd checks still pass on a second look right before.
     The branch is never deleted. A folder with no task row is never touched.
-    Each project's origin is fetched once per run; if that fails, the 'review'
+    Each project's origin is fetched once per acting run; dry runs use cached
+    refs without modifying any repository. If fetch fails, the 'review'
     ancestry rule is off for that repo and terminal rows still qualify.
 
     Unmerged 'review' worktrees older than review_stale_days are flagged only.
+    review_idle=True selects review rows only, replacing the merge condition
+    with idle task/files, a strictly clean tree, and exact origin branch equality.
 
     Returns {"removed", "skipped", "flagged_review", "kept_review"}; `removed`
     holds 'would_remove' entries under dry_run.
@@ -826,10 +938,15 @@ def reap_worktrees(*, dry_run: bool = True,
     flagged_review: list[dict] = []
     kept_review: list[dict] = []
     fetched: dict[str, bool] = {}
+    idle_days = float((worktree_mod._load_storage_policy().get("review_worktree") or {}).get("idle_days", 3))
 
     def fetch_once(repo: Path) -> bool:
         key = os.path.realpath(repo)
         if key not in fetched:
+            if dry_run:
+                print(f"reap: cached origin refs in {str(repo)!r} (dry-run; no fetch)")
+                fetched[key] = True
+                return True
             fetched[key] = _fetch_origin(repo)
             print(f"reap: fetch origin in {str(repo)!r}: "
                   + ("ok" if fetched[key] else "FAILED, ancestry rule off for this repo"))
@@ -837,6 +954,8 @@ def reap_worktrees(*, dry_run: bool = True,
 
     for t in _all_tasks_with_worktree():
         status = t["status"]
+        if review_idle and status != "review":
+            continue
         if status not in TERMINAL_STATUSES and status != "review":
             continue
         wt = Path(t["worktree"])
@@ -866,7 +985,14 @@ def reap_worktrees(*, dry_run: bool = True,
         fetch_ok = fetch_once(repo)
 
         why = status
-        if status == "review":
+        if review_idle:
+            if not fetch_ok:
+                skipped.append({**entry, "action": "skipped_unverifiable", "reason": "origin fetch failed"})
+                _reap_line("skipped", entry, "origin fetch failed")
+                continue
+            t = {**t, "_review_idle_days": idle_days}
+            why = f"review idle >= {idle_days:g} days, clean and pushed"
+        elif status == "review":
             try:
                 base = worktree_mod.get_project(t["project"])["default_branch"]
             except Exception:  # noqa: BLE001 - no base branch, no ancestry rule
@@ -947,18 +1073,20 @@ def main() -> int:
     ap.add_argument("--review-stale-days", type=int, default=REVIEW_STALE_DAYS,
                     help=f"[--reap only] flag unmerged 'review' worktrees older "
                          f"than this many days (default {REVIEW_STALE_DAYS})")
+    ap.add_argument("--review-idle", action="store_true",
+                    help="reclaim idle, clean, pushed review checkouts; dry unless --go")
     args = ap.parse_args()
 
-    db.init()
-
-    if args.reap:
+    if args.reap or args.review_idle:
         _print_df("before")
-        result = reap_worktrees(dry_run=not args.go,
-                                review_stale_days=args.review_stale_days)
-        _print_reap_report(result, dry_run=not args.go)
+        result = reap_worktrees(dry_run=not args.go or args.dry_run,
+                                review_stale_days=args.review_stale_days,
+                                review_idle=args.review_idle)
+        _print_reap_report(result, dry_run=not args.go or args.dry_run)
         _print_df("after")
         return 0
 
+    db.init()
     cancelled = gc_stale_tasks(
         pending_minutes=args.pending,
         conflict_minutes=args.conflict,
