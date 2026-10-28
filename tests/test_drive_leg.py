@@ -315,7 +315,9 @@ def test_runner_symlinks_and_recent_files_stay(tmp_path, fake_relay):
     assert target.exists() and (root / "recent").exists()
 
 
-def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path):
+@pytest.mark.parametrize('host', ['contabo', 'mac', 'winbox'])
+def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path, monkeypatch, host):
+    monkeypatch.setenv('ORG_HOST', host)
     cfg = tmp_path / "claude_config"
     j_young = _write_session(cfg, "slugA", UUID_A, 1)   # too young (< 7d), must stay
     j_old = _write_session(cfg, "slugB", UUID_B, 8)     # eligible
@@ -340,6 +342,8 @@ def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path):
     found = set()
     for m in manifests:
         data = json.loads(m.read_text())
+        assert data['machine'] == host
+        assert data['drive']['remote_path'].startswith('gdrive:' + host + '/')
         for f in data["files"]:
             found.add(Path(f["path"]).parts[0].split(".")[0])
     assert found == {UUID_B, UUID_C}

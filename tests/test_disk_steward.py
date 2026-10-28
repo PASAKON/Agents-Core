@@ -104,6 +104,7 @@ def test_dry_run_never_runs(monkeypatch, tmp_path, capsys, free, extra):
 
 
 def test_daily_stamps_and_orphan_close(monkeypatch, tmp_path):
+    monkeypatch.setenv('ORG_DB_URL', 'postgresql://unused-test-only')
     monkeypatch.setattr(ds, 'STATE', tmp_path/'state')
     monkeypatch.setattr(ds, 'lane_usage', lambda _: {})
     monkeypatch.setattr(ds, 'machine', lambda _: {'hq':str(tmp_path), 'home':str(tmp_path), 'claude_config_dir':str(tmp_path/'.claude')})
