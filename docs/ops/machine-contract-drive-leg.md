@@ -117,14 +117,18 @@ inside that tar.
 `uploads()` and `docker_volumes()` contain no delete calls at all, matching their "Never
 deletes" verb descriptions in the brief.
 
-## Contabo cron lines (INSTALLED 2026-09-24 by the CTO, staggered: state-db Sun 02:15, docker-volumes 02:30, uploads 03:00, transcripts 03:30 UTC — one relay stream at a time)
+## Contabo cron lines (transcripts daily at 03:30 UTC; other legs remain Sunday)
+
+Daily transcript cadence prepared 2026-10-28 for DiskSteward P1; not installed by this change.
+The prior weekly lines were installed 2026-09-24. When steward owns the daily legs,
+retire the standalone transcript cron to avoid duplicate runs.
 
 Modeled on `docs/ops/machine-contract-schedules.md`'s existing `machine_doctor.py` cron line
 (same `.venv`, same log-redirection convention). All times UTC (Contabo's crontab convention).
 
 ```cron
-# Claude Code transcripts -> Drive, weekly (archives every eligible day, min-age-days default 7)
-30 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py transcripts >> state/drive-leg.log 2>&1
+# Claude Code transcripts -> Drive, daily (archives every eligible day, min-age-days default 7)
+30 3 * * * cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py transcripts >> state/drive-leg.log 2>&1
 
 # Chat uploads -> Drive, weekly (skips instantly when the folder hasn't changed)
 0 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py uploads >> state/drive-leg.log 2>&1

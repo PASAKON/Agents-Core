@@ -38,14 +38,17 @@ FAKE_RELAY_STORE need an env var at all.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import gzip
 import hashlib
 import io
 import json
 import os
 import re
+import random
 import shutil
 import socket
+import stat
 import subprocess
 import sys
 import tarfile
@@ -55,6 +58,7 @@ import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 # Run as a script (`python3 tools/drive_leg.py …`), the repo root is not on
@@ -86,6 +90,31 @@ class DriveLegError(RuntimeError):
     logged or deleted, so every verb's "delete only after verify" rule holds by construction:
     a caller that deletes only after `put()` returns (never after it raises) cannot delete on
     a failure."""
+
+
+def _quota_retry(operation):
+    """Bounded retries for Drive minute quotas, not permission/relay failures."""
+    for attempt in range(6):
+        try:
+            return operation()
+        except DriveLegError as exc:
+            message = str(exc).lower()
+            quota = any(s in message for s in (
+                "ratelimitexceeded", "rate_limit_exceeded", "rate-limit", "429"))
+            if not quota or attempt == 5:
+                raise
+            delay = min(120.0, 5 * 2 ** attempt + random.uniform(0, 3))
+            print(f"Drive quota: retry {attempt + 1}/5 in {delay:.1f}s", file=sys.stderr)
+            time.sleep(delay)
+
+
+def _relay_run(*args, **kwargs):
+    def run():
+        result = subprocess.run(*args, **kwargs)
+        if result.returncode:
+            raise DriveLegError(f"relay rc={result.returncode}: {result.stderr!r}")
+        return result
+    return _quota_retry(run)
 
 
 # --------------------------------------------------------------------------- env / paths
@@ -219,7 +248,7 @@ def _lsjson(rclone: str, folder_id: str, remote_dir: str, *, dirs_only: bool = F
     if recursive:
         cmd.append("--recursive")
     cmd += ["--drive-root-folder-id", folder_id, remote]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    r = _relay_run(cmd, capture_output=True, text=True, timeout=600)
     if r.returncode != 0:
         raise DriveLegError(f"lsjson rc={r.returncode} for {remote}: {(r.stderr or '').strip()[-400:]}")
     try:
@@ -265,14 +294,54 @@ def put(stream_fn: Callable[[_Sink], None], folder_id: str, remote_dir: str, bas
     remote_manifest = f"{remote_dir}/{manifest_name}" if remote_dir else manifest_name
 
     if remote_dir:
-        r = subprocess.run([rclone, "mkdir", f"{remote_prefix}{remote_dir}",
+        r = _relay_run([rclone, "mkdir", f"{remote_prefix}{remote_dir}",
                             "--drive-root-folder-id", folder_id],
                            capture_output=True, text=True, timeout=120)
         if r.returncode != 0:
             raise DriveLegError(f"mkdir failed for {remote_dir!r}: {(r.stderr or '').strip()[-400:]}")
 
+    sink = _quota_retry(lambda: _stream_upload(rclone, folder_id, remote_prefix + remote_tar, stream_fn))
+
+    objs = _lsjson(rclone, folder_id, remote_dir)
+    match = _find(objs, tar_name)
+    tar_md5 = sink.md5.hexdigest()
+    if not match or match.get("Size") != sink.n or (match.get("Hashes") or {}).get("md5") != tar_md5:
+        raise DriveLegError(
+            f"VERIFY FAILED for {remote_tar}: stream {sink.n} B md5={tar_md5}; drive object={match!r}")
+
+    manifest = dict(manifest)
+    manifest["bytes"] = sink.n
+    manifest["md5"] = tar_md5
+    manifest["sha256"] = sink.sha256.hexdigest()
+    manifest["drive"] = {"folder_id": folder_id, "remote_path": f"{remote_prefix}{remote_tar}",
+                         "id": match.get("ID")}
+    manifest_bytes = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    try:
+        _relay_run([rclone, "rcat", f"{remote_prefix}{remote_manifest}",
+                    "--drive-root-folder-id", folder_id],
+                   input=manifest_bytes, capture_output=True, timeout=300)
+    except DriveLegError as exc:
+        raise DriveLegError(f"manifest upload failed for {remote_manifest}; "
+                            f"archive verified, nothing deleted: {exc}") from exc
+    manifest_md5 = hashlib.md5(manifest_bytes).hexdigest()
+    mobjs = _lsjson(rclone, folder_id, remote_dir)
+    mmatch = _find(mobjs, manifest_name)
+    if not mmatch or (mmatch.get("Hashes") or {}).get("md5") != manifest_md5:
+        raise DriveLegError(
+            f"manifest VERIFY FAILED for {remote_manifest} -- archive verified, manifest not, "
+            f"nothing deleted: drive object={mmatch!r}")
+    _append_ledger(log_path_, source=str(manifest.get("source", "")),
+                   remote=f"{remote_prefix}{remote_tar}", folder_id=folder_id,
+                   drive_id=match.get("ID"), count=manifest.get("count", 0), nbytes=sink.n,
+                   md5=tar_md5, drive_md5=(match.get("Hashes") or {}).get("md5"), who=who)
+    manifest.update(verified=True, tar_name=tar_name, manifest_name=manifest_name,
+                    remote_dir=remote_dir, manifest_id=mmatch.get("ID"))
+    return manifest
+
+
+def _stream_upload(rclone, folder_id, remote_tar, stream_fn):
     with tempfile.TemporaryFile() as errf:
-        proc = subprocess.Popen([rclone, "rcat", f"{remote_prefix}{remote_tar}",
+        proc = subprocess.Popen([rclone, "rcat", remote_tar,
                                  "--drive-root-folder-id", folder_id],
                                 stdin=subprocess.PIPE, stderr=errf)
         sink = _Sink(proc.stdin)
@@ -295,48 +364,7 @@ def put(stream_fn: Callable[[_Sink], None], folder_id: str, remote_dir: str, bas
             errf.seek(0)
             raise DriveLegError(f"relay rcat rc={rc} for {remote_tar}: {errf.read()[-400:]!r}")
 
-    objs = _lsjson(rclone, folder_id, remote_dir)
-    match = _find(objs, tar_name)
-    tar_md5 = sink.md5.hexdigest()
-    if not match or match.get("Size") != sink.n or (match.get("Hashes") or {}).get("md5") != tar_md5:
-        raise DriveLegError(
-            f"VERIFY FAILED for {remote_tar}: stream {sink.n} B md5={tar_md5}; drive object={match!r}")
-
-    manifest = dict(manifest)
-    manifest["bytes"] = sink.n
-    manifest["md5"] = tar_md5
-    manifest["sha256"] = sink.sha256.hexdigest()
-    manifest["drive"] = {"folder_id": folder_id, "remote_path": f"{remote_prefix}{remote_tar}",
-                         "id": match.get("ID")}
-    manifest_bytes = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
-
-    mp = subprocess.run([rclone, "rcat", f"{remote_prefix}{remote_manifest}",
-                        "--drive-root-folder-id", folder_id],
-                       input=manifest_bytes, capture_output=True, timeout=300)
-    if mp.returncode != 0:
-        raise DriveLegError(
-            f"manifest upload failed for {remote_manifest} -- ARCHIVE ITSELF IS VERIFIED, "
-            f"manifest failed, nothing deleted: rc={mp.returncode} "
-            f"{(mp.stderr or b'').decode('utf-8', 'replace')[-400:]}")
-    manifest_md5 = hashlib.md5(manifest_bytes).hexdigest()
-    mobjs = _lsjson(rclone, folder_id, remote_dir)
-    mmatch = _find(mobjs, manifest_name)
-    if not mmatch or (mmatch.get("Hashes") or {}).get("md5") != manifest_md5:
-        raise DriveLegError(
-            f"manifest VERIFY FAILED for {remote_manifest} -- archive verified, manifest not, "
-            f"nothing deleted: drive object={mmatch!r}")
-
-    _append_ledger(log_path_, source=str(manifest.get("source", "")),
-                   remote=f"{remote_prefix}{remote_tar}", folder_id=folder_id,
-                   drive_id=match.get("ID"), count=manifest.get("count", 0), nbytes=sink.n,
-                   md5=tar_md5, drive_md5=(match.get("Hashes") or {}).get("md5"), who=who)
-
-    manifest["verified"] = True
-    manifest["tar_name"] = tar_name
-    manifest["manifest_name"] = manifest_name
-    manifest["remote_dir"] = remote_dir
-    manifest["manifest_id"] = mmatch.get("ID")
-    return manifest
+    return sink
 
 
 # =========================================================================== 1. transcripts
@@ -400,6 +428,8 @@ def _delete_verified(frozen: list[tuple[Path, int, int]], dirs: list[Path] | Non
     scripts/stream_backup_to_drive.py's delete_frozen()."""
     removed = 0
     for path, size, mtime_ns in frozen:
+        if any(p.is_symlink() for p in [path, *path.parents]):
+            continue
         try:
             st = path.stat()
         except FileNotFoundError:
@@ -841,6 +871,155 @@ def blueprints(*, state_dir: Path, config_dir: Path, only_machine: str | None = 
     return report
 
 
+SECRET_PATTERNS = (".env", ".env.*", "*.key", "*.pem", "credentials", "rclone.conf",
+                   "hosts.yml", ".credentials.json", "auth*.json", "oauth*")
+
+
+def _runner_secret(path: Path) -> bool:
+    return any(fnmatch.fnmatchcase(part.lower(), pattern)
+               for part in path.parts for pattern in SECRET_PATTERNS)
+
+
+def _open_runner_source(path: Path):
+    """Open a regular member without following substituted symlink components."""
+    path = path.absolute()
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC
+    fd = os.open(path.anchor, flags | os.O_DIRECTORY)
+    try:
+        for part in path.parts[1:-1]:
+            child = os.open(part, flags | os.O_DIRECTORY, dir_fd=fd)
+            os.close(fd)
+            fd = child
+        source = os.open(path.name, flags | os.O_NONBLOCK, dir_fd=fd)
+    finally:
+        os.close(fd)
+    if not stat.S_ISREG(os.fstat(source).st_mode):
+        os.close(source)
+        raise DriveLegError(f"not a regular source: {path}")
+    return os.fdopen(source, "rb")
+
+
+def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False,
+                 home: Path | None = None, policy_path: Path | None = None,
+                 now: float | None = None, rclone: str | None = None) -> dict:
+    """Freeze old regular files; verify tar AND manifest before deleting any source.
+
+    Policy entries accept retention_days and paths [{path, action: drive|delete}].
+    Plain path strings (archive) and log_paths (discard) are also accepted.
+    No symlinks are followed. Each root gets one uniquely named tar and manifest.
+    AGY log deletion is deferred until all uploads succeed, including relay health.
+    """
+    home = home or Path.home()
+    now = time.time() if now is None else now
+    policy_path = policy_path or ROOT / "config/storage-policy.yaml"
+    policy = yaml.safe_load(policy_path.read_text()) if policy_path.exists() else {}
+    runners = (policy or {}).get("runners", {})
+    defaults = {"codex": ["~/.codex/sessions"], "agy": [
+        "~/.gemini/antigravity-cli/conversations", "~/.gemini/antigravity-cli/brain"]}
+    report = dict(failed=0, deleted_files=0, dry_run=dry_run)
+    pending = []
+    logs = []
+    for name in defaults if runner == "all" else [runner]:
+        settings = (runners.get(name) or (runners.get("agy-gemini") or runners.get("agy-claude")
+                    if name == "agy" else {}) or {})
+        days = float(settings.get("retention_days", 7))
+        if days < 0:
+            raise DriveLegError("retention_days must not be negative")
+        paths = settings.get("paths", defaults[name])
+        log_paths = settings.get("log_paths", ["~/.gemini/antigravity-cli/log"]
+                                 if name == "agy" and "paths" not in settings else [])
+        sources = []
+        for item in paths:
+            if isinstance(item, dict):
+                if item.get("action", "drive") not in ("drive", "delete"):
+                    raise DriveLegError(f"unknown runner path action: {item.get('action')}")
+                sources.append((item["path"], item.get("action") == "delete"))
+            else:
+                sources.append((item, False))
+        sources.extend((p, True) for p in log_paths)
+        for raw, discard in sources:
+            root = Path(str(raw).replace("$HOME", str(home)))
+            if str(root).startswith("~/"):
+                root = home / str(root)[2:]
+            if any(p.is_symlink() for p in [root, *root.parents]):
+                print(f"runner-state skip symlink root: {root}")
+                continue
+            frozen = []
+            for parent, dirs, files in os.walk(root, followlinks=False):
+                dirs[:] = [d for d in dirs if not (Path(parent) / d).is_symlink()]
+                for filename in sorted(files):
+                    path = Path(parent) / filename
+                    if path.is_symlink() or not path.is_file():
+                        continue
+                    if _runner_secret(path):
+                        print(f"runner-state skip secret: {path}")
+                        continue
+                    st = path.stat()
+                    if st.st_mtime < now - days * 86400:
+                        frozen.append((path, st.st_size, st.st_mtime_ns))
+            print(f"runner-state {name}: {root}: {len(frozen)} files, "
+                  f"{sum(s for _, s, _ in frozen)} B, "
+                  f"{'delete logs (no upload)' if discard else 'archive to Runner-State/contabo/' + name}, "
+                  f"older than {days:g} days" + (" [dry-run]" if dry_run else ""))
+            if dry_run or not frozen:
+                continue
+            if discard:
+                logs.extend(frozen)
+                continue
+            # A disk-backed snapshot bounds memory and makes quota retries replayable.
+            # Hash the bytes actually archived, not a second potentially changed read.
+            try:
+                with tempfile.TemporaryFile() as archive:
+                    members = []
+                    with tarfile.open(fileobj=archive, mode="w") as tf:
+                        for path, size, mtime in frozen:
+                            with _open_runner_source(path) as src:
+                                st = os.fstat(src.fileno())
+                                if st.st_size != size or st.st_mtime_ns != mtime:
+                                    raise DriveLegError(f"source changed: {path}")
+                                info = tarfile.TarInfo(str(path.relative_to(root)))
+                                info.size = size
+                                info.mtime = st.st_mtime
+                                info.mode = st.st_mode & 0o777
+                                digest = hashlib.md5()
+                                class Reader:
+                                    def read(self, n):
+                                        data = src.read(n)
+                                        digest.update(data)
+                                        return data
+                                tf.addfile(info, Reader())
+                                after = os.fstat(src.fileno())
+                                if (after.st_size, after.st_mtime_ns) != (size, mtime):
+                                    raise DriveLegError(f"source changed during archive: {path}")
+                                members.append(dict(path=info.name, size=size, md5=digest.hexdigest()))
+                    base = f"{root.name}-{time.time_ns()}"
+                    manifest = build_manifest(name=base, machine="contabo", source=str(root),
+                        files=members, restore=f"Extract tar into {root}")
+                    def stream(sink):
+                        archive.seek(0)
+                        shutil.copyfileobj(archive, sink)
+                    result = put(stream, FOLDER_IDS["family"], f"Runner-State/contabo/{name}",
+                                 base, ".tar", manifest, log_path_=log_path(config_dir),
+                                 who=_default_who(), rclone=rclone)
+                    if result.get("verified") is not True:
+                        raise DriveLegError("archive not verified")
+                    pending.extend(frozen)
+            except (OSError, DriveLegError) as exc:
+                print(f"    FAILED: {exc}")
+                report["failed"] += 1
+    if not dry_run and not report["failed"]:
+        # Even a log-only run must fail closed when the winbox relay is down.
+        if logs and not pending:
+            _lsjson(rclone or rclone_path(), FOLDER_IDS["family"], "")
+        report["deleted_files"] = _delete_verified(pending)
+        for path, size, mtime in logs:
+            removed = _delete_verified([(path, size, mtime)])
+            _append_jsonl(config_dir / "logs" / "runner-state.jsonl",
+                          dict(action="delete-log", path=str(path), removed=removed))
+            report["deleted_files"] += removed
+    return report
+
+
 # =========================================================================== CLI
 # =========================================================================== 6. state-db
 def state_db_index_path(config_dir_: Path) -> Path:
@@ -996,6 +1175,10 @@ def main(argv: list[str] | None = None) -> int:
                                  description="Contabo's Drive leg of the Machine Contract")
     sub = ap.add_subparsers(dest="command", required=True)
 
+    rs = sub.add_parser("runner-state", help="archive old Codex / AGY state to Drive")
+    rs.add_argument("--runner", choices=["codex", "agy", "all"], default="all")
+    rs.add_argument("--dry-run", action="store_true")
+
     t = sub.add_parser("transcripts", help="archive Claude Code session transcripts to Drive")
     t.add_argument("--min-age-days", type=float, default=7)
     t.add_argument("--only-slug")
@@ -1026,6 +1209,9 @@ def main(argv: list[str] | None = None) -> int:
     cfg_dir = config_dir()
 
     try:
+        if args.command == "runner-state":
+            return 1 if runner_state(config_dir=cfg_dir, runner=args.runner,
+                                     dry_run=args.dry_run)["failed"] else 0
         if args.command == "transcripts":
             report = transcripts(config_dir=cfg_dir, min_age_days=args.min_age_days,
                                  only_slug=args.only_slug, max_days=args.max_days,
