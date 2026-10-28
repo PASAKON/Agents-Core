@@ -235,7 +235,12 @@ def _disk_orange_floor_gb(host=None) -> float:
     try:
         from tools.storage_policy import load, host_thresholds
         return float(host_thresholds(load(STORAGE_POLICY), host)['red'])
-    except Exception:  # noqa: BLE001 - PolicyError/KeyError keep the old floor
+    except Exception:  # noqa: BLE001 - a partial policy keeps the old gauge.orange floor
+        pass
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8"))
+        return float((data or {}).get("gauge", {}).get("orange", DEFAULT_DISK_ORANGE_GB))
+    except (OSError, ValueError, TypeError):
         return DEFAULT_DISK_ORANGE_GB
 
 
@@ -2386,7 +2391,9 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
     # runners/branch_poller.remote_pid_alive's liveness probe — so a broken
     # probe can never become a false floor that blocks every remote spawn.
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
-    orange_gb = _disk_orange_floor_gb(resolved_host)
+    # Local spawns keep the zero-argument call (the watchdog and tests patch it that way).
+    orange_gb = (_disk_orange_floor_gb() if resolved_host == this_host
+                 else _disk_orange_floor_gb(resolved_host))
     free_gb: float | None
     if resolved_host == this_host:
         free_gb = _free_gb()

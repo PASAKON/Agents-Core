@@ -48,14 +48,16 @@ def validate_coverage(policy, plans, machines):
             raise PolicyError(f'Invalid machine storage contract: {name}')
 
 def validate_steward(data):
+    # Sections are optional here (older and test policies lack them); the
+    # coverage test requires them in config/storage-policy.yaml.
     for name in ('hosts', 'runners', 'docker', 'review_worktree'):
-        if not isinstance(data.get(name), dict):
+        if name in data and not isinstance(data.get(name), dict):
             raise PolicyError(f'{name} must be a mapping')
-    for name, row in data['hosts'].items():
+    for name, row in (data.get('hosts') or {}).items():
         values = [row.get(k) for k in ('green', 'orange', 'red')]
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values) or not values[0] > values[1] > values[2] >= 0:
             raise PolicyError(f'Invalid host thresholds: {name}')
-    for name, row in data['runners'].items():
+    for name, row in (data.get('runners') or {}).items():
         if row.get('retention_days') != 7 or not isinstance(row.get('paths'), list):
             raise PolicyError(f'Invalid runner: {name}')
         for entry in row['paths']:
@@ -63,11 +65,11 @@ def validate_steward(data):
                 raise PolicyError(f'Invalid runner path: {name}')
             if name.startswith('agy-') and entry['path'].endswith('/log') and entry['action'] != 'delete':
                 raise PolicyError('AGY logs must never upload')
-    if data['runners'].get('jules', {}).get('paths') != []:
+    if 'runners' in data and data['runners'].get('jules', {}).get('paths') != []:
         raise PolicyError('Jules must have no local state')
-    if data['docker'] != dict(keep_rollback_tags=2, build_cache='always', volumes='never', in_use_images='never'):
+    if 'docker' in data and data['docker'] != dict(keep_rollback_tags=2, build_cache='always', volumes='never', in_use_images='never'):
         raise PolicyError('Unsafe docker policy')
-    if data['review_worktree'] != dict(idle_days=3, require_pushed=True, require_clean=True, keep_branch=True):
+    if 'review_worktree' in data and data['review_worktree'] != dict(idle_days=3, require_pushed=True, require_clean=True, keep_branch=True):
         raise PolicyError('Unsafe review_worktree policy')
 
 class PolicyError(Exception):
