@@ -28,6 +28,9 @@ def _disk(monkeypatch, used_pct):
     # 1000 blocks; df's Use% = used / (used + avail); no reserved blocks here
     used = int(used_pct * 10)
     monkeypatch.setattr(rg.os, "statvfs", lambda path: _Statvfs(1000, 1000 - used, 1000 - used, 4096))
+    # These legacy percentage tests explicitly opt into the percentage override.
+    if 'ORG_SPAWN_DISK_MAX_PCT' not in rg.os.environ:
+        monkeypatch.setenv('ORG_SPAWN_DISK_MAX_PCT', '90')
 
 
 def test_gate_off_reads_nothing_and_passes(monkeypatch, tmp_path):
@@ -98,8 +101,8 @@ def test_cli_check_exit_codes(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(rg, "MEMINFO", _meminfo(tmp_path, 100 * 1024))
     monkeypatch.setattr(rg.check, "__defaults__", ("/",))
     monkeypatch.setattr(rg.read, "__defaults__", ("/",))
-    monkeypatch.setattr(rg.check, "__kwdefaults__", {"meminfo": rg.MEMINFO})
-    monkeypatch.setattr(rg.read, "__kwdefaults__", {"meminfo": rg.MEMINFO})
+    monkeypatch.setattr(rg.check, "__kwdefaults__", {"meminfo": rg.MEMINFO, 'kind': '', 'host': None})
+    monkeypatch.setattr(rg.read, "__kwdefaults__", {"meminfo": rg.MEMINFO, 'kind': '', 'host': None})
     _disk(monkeypatch, 50)
     assert rg.main(["check"]) == 1
     assert "RAM available 100 MB" in capsys.readouterr().err

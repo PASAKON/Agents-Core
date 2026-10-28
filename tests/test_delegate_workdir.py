@@ -127,6 +127,7 @@ def test_spawn_iterm_tab_exports_work_dir_next_to_worker_cto_id(monkeypatch):
                               work_dir="/tmp/fake-work/task-cafe1234")
     assert "export WORKER_CTO_ID='pilot-owner'" in captured["script"]
     assert "export WORK_DIR='/tmp/fake-work/task-cafe1234'" in captured["script"]
+    assert 'TMPDIR=' in captured['script'] and '$WORK_DIR/tmp' in captured['script']
 
 
 def test_spawn_iterm_tab_omits_work_dir_when_none(monkeypatch):

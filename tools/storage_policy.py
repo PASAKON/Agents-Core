@@ -13,6 +13,64 @@ import time
 import os
 from pathlib import Path
 import fnmatch
+import platform
+
+ROOT = Path(__file__).resolve().parents[1]
+POLICY_PATH = ROOT / 'config/storage-policy.yaml'
+MACHINES_PATH = ROOT / 'config/machine-contract.yaml'
+
+def host_key(host=None):
+    return host or os.environ.get('ORG_HOST') or {'Darwin': 'mac', 'Windows': 'winbox'}.get(platform.system(), 'contabo')
+
+def host_thresholds(policy=None, host=None):
+    policy = policy or load(POLICY_PATH)
+    machines = (yaml.safe_load(MACHINES_PATH.read_text()) or {}).get('machines') or {}
+    band = (machines.get(host_key(host)) or {}).get('band')
+    if band in (policy.get('hosts') or {}):
+        return policy['hosts'][band]
+    # A host with no machines: row falls back to the legacy single gauge.
+    gauge = policy.get('gauge') or {}
+    return {'green': gauge.get('green', 20), 'orange': gauge.get('yellow', 10), 'red': gauge.get('orange', 5)}
+
+def host_band(free_gb, policy=None, host=None):
+    thresholds = host_thresholds(policy, host)
+    for color in ('red', 'orange', 'green'):
+        if free_gb < thresholds[color]:
+            return {'red': 'red', 'orange': 'orange', 'green': 'yellow'}[color]
+    return 'green'
+
+def validate_coverage(policy, plans, machines):
+    missing = set(plans['buckets']) - set(policy['runners'])
+    if missing:
+        raise PolicyError(f'Missing runners: {sorted(missing)}')
+    for name, row in machines['machines'].items():
+        if row.get('band') not in policy['hosts'] or row.get('scheduler') not in {'systemd', 'launchd', 'task_scheduler'} or row.get('drive_leg') not in {'rclone_via_winbox', 'rest_work_archive', 'rclone_local'}:
+            raise PolicyError(f'Invalid machine storage contract: {name}')
+
+def validate_steward(data):
+    # Sections are optional here (older and test policies lack them); the
+    # coverage test requires them in config/storage-policy.yaml.
+    for name in ('hosts', 'runners', 'docker', 'review_worktree'):
+        if name in data and not isinstance(data.get(name), dict):
+            raise PolicyError(f'{name} must be a mapping')
+    for name, row in (data.get('hosts') or {}).items():
+        values = [row.get(k) for k in ('green', 'orange', 'red')]
+        if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values) or not values[0] > values[1] > values[2] >= 0:
+            raise PolicyError(f'Invalid host thresholds: {name}')
+    for name, row in (data.get('runners') or {}).items():
+        if row.get('retention_days') != 7 or not isinstance(row.get('paths'), list):
+            raise PolicyError(f'Invalid runner: {name}')
+        for entry in row['paths']:
+            if not isinstance(entry.get('path'), str) or entry.get('action') not in {'drive', 'delete'}:
+                raise PolicyError(f'Invalid runner path: {name}')
+            if name.startswith('agy-') and entry['path'].endswith('/log') and entry['action'] != 'delete':
+                raise PolicyError('AGY logs must never upload')
+    if 'runners' in data and data['runners'].get('jules', {}).get('paths') != []:
+        raise PolicyError('Jules must have no local state')
+    if 'docker' in data and data['docker'] != dict(keep_rollback_tags=2, build_cache='always', volumes='never', in_use_images='never'):
+        raise PolicyError('Unsafe docker policy')
+    if 'review_worktree' in data and data['review_worktree'] != dict(idle_days=3, require_pushed=True, require_clean=True, keep_branch=True):
+        raise PolicyError('Unsafe review_worktree policy')
 
 class PolicyError(Exception):
     pass
@@ -89,6 +147,7 @@ def load(path):
         if "dest" not in item:
             raise PolicyError("COLD entry missing dest")
 
+    validate_steward(data)
     return data
 
 def match_path(path, glob_pattern, home):
