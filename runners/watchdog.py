@@ -1370,6 +1370,52 @@ def scan_once() -> dict:
             "work_watch": work_watch_result}
 
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+_GIT_BUSY_NAMES = (
+    "index.lock",
+    "MERGE_HEAD",
+    "CHERRY_PICK_HEAD",
+    "REVERT_HEAD",
+    "rebase-merge",
+    "rebase-apply",
+)
+
+
+def _code_rev(root: Path = REPO_ROOT) -> str | None:
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            timeout=10, capture_output=True, text=True,
+        )
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
+def _git_busy(root: Path = REPO_ROOT) -> bool:
+    dot_git = Path(root) / ".git"
+    try:
+        if dot_git.is_dir():
+            git_dir = dot_git
+        elif dot_git.is_file():
+            git_dir = None
+            for line in dot_git.read_text(encoding="utf-8", errors="replace").splitlines():
+                if line.startswith("gitdir:"):
+                    target = line.partition(":")[2].strip()
+                    if target:
+                        git_dir = Path(root) / target
+                    break
+            if git_dir is None:
+                return False
+        else:
+            return False
+        return any((git_dir / name).exists() for name in _GIT_BUSY_NAMES)
+    except OSError:
+        return False
+
+
 def main() -> int:
     # Org senders refuse a process with no identity (tools/agent_transport.py); the
     # watchdog's pings and kickoff letters go out as cto/watchdog, never as the CEO.
@@ -1400,7 +1446,22 @@ def main() -> int:
 
     info(f"watchdog loop started — interval={args.interval}s, "
          f"ping_after={PING_AFTER_S}s, stall_after={STALL_AFTER_S}s")
+    reload_on = os.environ.get("WATCHDOG_RELOAD_ON_CODE_CHANGE") != "0"
+    start_rev = _code_rev() if reload_on else None
+    if not reload_on:
+        print("watchdog: code reload off (WATCHDOG_RELOAD_ON_CODE_CHANGE=0)")
+    elif start_rev is None:
+        print("watchdog: code reload off (HEAD unknown)")
+
+    first_iteration = True
     while True:
+        if not first_iteration and start_rev is not None and not _git_busy():
+            current_rev = _code_rev()
+            if current_rev is not None and current_rev != start_rev:
+                print(f"watchdog: code changed {start_rev[:12]}..{current_rev[:12]}; "
+                      "exiting for a restart")
+                return 0
+        first_iteration = False
         try:
             out = scan_once()
             if out["pinged"] or out["stalled"] or out["reaped"] or out["surface_reaped"]:
