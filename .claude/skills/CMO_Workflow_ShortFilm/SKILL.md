@@ -124,8 +124,12 @@ and the CEO's own edit needs a day.
   either written or cut on purpose, with the reason.
 - **Length from the words (borrowed from shuohao-skills):** spoken or narrated words ÷ the formula's words/min
   (F1 ~31, F2 ~143) must land within ±10% of the planned runtime; silent spectacle is planned in seconds.
+  These words/min figures are English; a Thai script counts characters at 16.6 chars/s of speech (our Gemini voice,
+  `CMO_Standard_BlackLiquidity_Script`), never words (CMO 2026-10-29).
 - **Shot budget:** each scene's seconds ÷ the formula's shot length (action 2-3 s, narrated holds 4-8 s) = its
   shot count; every generated segment ≤15 s, cut inside it at 2-5 s. Sum the shots for the first credit estimate.
+  The shot sum also sets the Flow spend cards: ≤10 shots per card, why line starting "จริง (ใช้เครดิต ≤N)"
+  (template `state/handoff/2026-10-29/cto-flow-real-card.md`, CMO 2026-10-29).
 - **Output:** `FORMULA-MAP.md` beside the script (beat table + word count + shot budget).
   **Gate:** passes into Step 2's SceneEngine gate; no extra CEO stop.
 
