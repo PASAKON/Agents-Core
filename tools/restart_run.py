@@ -994,6 +994,19 @@ def ask_run(host, argv, dry):
     return True
 
 
+def has_run_inbox_token():
+    from tools import ask_run as inbox
+    if (os.environ.get(inbox.TOKEN_ENV) or '').strip():
+        return True
+    try:
+        return bool(inbox.token_path().read_text(encoding='utf-8').strip())
+    except FileNotFoundError:
+        return False
+    except (OSError, UnicodeError):
+        # A configured but unreadable token is a real notify failure, not a skip.
+        return True
+
+
 def report(args):
     win = args.host == 'winbox'
     entries = json.loads(manifest_file(args.host).read_text(encoding='utf-8'))
@@ -1010,12 +1023,22 @@ def report(args):
         for name in missing:
             print(name)
     if getattr(args, 'notify', False):
+        if not has_run_inbox_token():
+            print(f'notify skipped: no Run Inbox token on {args.host}')
+            return int(bool(missing))
         owners = [r for r in entries if r['role'] in roles.c_level_roles()]
         if not owners:
             # ask_run.card_roles / resolve_requester accept Project Heads.
             owners = [r for r in entries if r['role'] == roles.PH_ROLE]
+        if not owners:
+            plans = sorted(STATE.glob(f'{args.host}-plan-*.json'))
+            plan_path = args.plan if getattr(args, 'plan', None) else (plans[-1] if plans else None)
+            if plan_path:
+                plan = json.loads(plan_path.read_text(encoding='utf-8'))
+                if plan.get('host') == args.host:
+                    owners = [r for r in plan['sessions'] if r['role'] in roles.c_level_roles()]
         requester = (['--role', owners[0]['role'], '--session', pane(owners[0])]
-                     if owners else [])  # Empty manifests use the configured service requester.
+                     if owners else [])  # Legacy plans may still need the service requester.
         missing_owners = [r for r in missing_rows
                           if r['role'] in roles.c_level_roles() and r['role'] != 'coo']
         if missing_owners:

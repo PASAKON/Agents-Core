@@ -19,6 +19,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(autouse=True)
 def isolated(monkeypatch, tmp_path):
+    monkeypatch.setenv('RUN_INBOX_TOKEN', 'test-only-token')
     monkeypatch.setattr(rr, 'STATE', tmp_path / 'restart')
     monkeypatch.setattr(rr, 'ROOT', tmp_path)
     monkeypatch.setattr(rr.subprocess, 'run', Mock(return_value=subprocess.CompletedProcess([], 3)))
@@ -1190,7 +1191,7 @@ def test_winbox_report_counts_registered_sessions_not_panes(winbox, tmp_path, ca
     assert 'กลับมา 1/2\ncmo' in capsys.readouterr().out
 
 
-def test_winbox_report_notify_uses_this_python_and_reports_no_token(winbox, tmp_path, capsys):
+def test_winbox_report_notify_uses_this_python_and_reports_failure(winbox, tmp_path, capsys):
     wmanifest([wentry('full'), wentry('lazy', 'cmo', SID_B)])
     rr.win_live.return_value = {('cmo', SID_B)}
     rr.subprocess.run.side_effect = subprocess.CalledProcessError(3, ['ask_run.py'])
@@ -1201,6 +1202,71 @@ def test_winbox_report_notify_uses_this_python_and_reports_no_token(winbox, tmp_
     assert first[:3] == [sys.executable, 'tools/ask_run.py', 'create'] and '--host' in first
     assert first[first.index('--command') + 1].endswith(r'windows\org-resume-logon.ps1')
     assert first[first.index('--cwd') + 1] == str(tmp_path)
+
+
+@pytest.mark.parametrize('missing', [False, True])
+@pytest.mark.parametrize('host', ['winbox', 'contabo'])
+def test_report_no_token_preserves_session_result(winbox, tmp_path, monkeypatch, capsys, missing, host):
+    from tools import ask_run
+    monkeypatch.delenv('RUN_INBOX_TOKEN')
+    monkeypatch.setattr(ask_run, 'token_path', lambda: tmp_path / 'absent-token')
+    if host == 'winbox':
+        wmanifest([wentry()])
+        rr.win_live.return_value = set() if missing else {('cto', SID_A)}
+        a = wargs(tmp_path, notify=True)
+    else:
+        manifest([entry()])
+        rr.tmux_session.has_session.return_value = not missing
+        a = args(tmp_path, notify=True)
+    assert rr.report(a) == int(missing)
+    assert f'notify skipped: no Run Inbox token on {host}' in capsys.readouterr().out
+    assert not commands()
+
+
+def test_empty_winbox_manifest_uses_saved_plan_requester(winbox, tmp_path):
+    wmanifest([])
+    a = wargs(tmp_path, [wrow(role='cto')], notify=True)
+    (rr.STATE / 'winbox-plan-20261029.json').write_text(a.plan.read_text())
+    a.plan = None
+    assert rr.report(a) == 0
+    command = commands()[0]
+    assert command[command.index('--role') + 1] == 'cto'
+    assert command[command.index('--session') + 1] == f'cto-{SID_A}'
+
+
+@pytest.mark.parametrize('contents,expected', [('', False), ('  \n', False), ('file-token\n', True)])
+def test_notification_token_file(tmp_path, monkeypatch, contents, expected):
+    from tools import ask_run
+    monkeypatch.delenv('RUN_INBOX_TOKEN')
+    path = tmp_path / 'token'
+    path.write_text(contents)
+    monkeypatch.setattr(ask_run, 'token_path', lambda: path)
+    assert rr.has_run_inbox_token() is expected
+
+
+def test_winbox_live_no_charter_rows_enter_manifest(winbox, tmp_path):
+    rows = [
+        dict(role='project_head', name='🖥️ PH#f35 (CTO) - CookieRun',
+             uuid='0b19b335-a2fb-41ec-bc45-03de4ae68058', session_id='4ae68058'),
+        dict(role='cto', name='🖥️ CTO (Kavin)', session_id='57ec0d4e',
+             uuid='00000000-0000-0000-0000-000057ec0d4e'),
+        dict(role='project_head', name='🖥️ PH#f39 (CTO) - LuminaSkies', session_id='43892fb5',
+             uuid='00000000-0000-0000-0000-000043892fb5'),
+    ]
+    for r in rows:
+        r.update(charter=None, status=None, open_tasks=[], live=True, in_turn=False,
+                 C=600, last_active=rr.now().isoformat())
+        r['action'], r['reason'] = rr.restart_plan.decide(r, rr.now())
+        assert r['action'] == 'resume_lazy'
+        if r['role'] == 'project_head':
+            lock = tmp_path / 'state/locks' / f"project_head-{r['session_id']}.spawned_by"
+            lock.parent.mkdir(parents=True, exist_ok=True)
+            lock.write_text('cxo:cto:57ec0d4e')
+            lock.with_suffix('.project').write_text('CookieRun' if r['session_id'] == '4ae68058' else 'LuminaSkies')
+    assert rr.prep(wargs(tmp_path, rows)) == 0
+    entries = json.loads((rr.STATE / 'winbox-resume.json').read_text())
+    assert {r['sid'] for r in entries} == {r['session_id'] for r in rows}
+    assert all(r['mode'] == 'lazy' for r in entries)
 
 
 def test_winbox_report_notify_all_back_asks_a_question(winbox, tmp_path):

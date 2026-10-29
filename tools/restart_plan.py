@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.live_sessions import session_dirs, read_registry, is_alive
+from lib import roles
 
 UTC = timezone.utc
 RUN_CARDS_TIMEOUT_S = 30
@@ -125,11 +126,16 @@ def decide(row, now):
         return 'wait', f"still working: {row['name']}"
     if row.get('status') == 'closed':
         return 'close', 'session marked done'
+    if row.get('parked') or row.get('status') in ('parked', 'saved'):
+        return 'park', 'session explicitly parked or saved'
     if row.get('incomplete'):
         return 'wait', 'incomplete evidence; inspect warnings'
     tasks = row.get('open_tasks', [])
     work = any(t.get('kind', 'task') == 'task' for t in tasks)
     if not work and (row.get('only_waiting_on_ceo') or not row.get('charter')):
+        if (not tasks and row.get('live') and
+                row.get('role') in (*roles.c_level_roles(), roles.PH_ROLE)):
+            return 'resume_lazy', 'live leadership session without charter or task'
         return 'park', 'only waiting on a CEO card' if tasks else 'no open charter or task'
     if not recent(row, now):
         return 'resume_lazy', 'has work; idle more than 60 minutes'
@@ -211,6 +217,10 @@ def build_plan(host, now, out_dir):
         row = {k: live[k] for k in ('role', 'name', 'uuid')}
         sid = live['sid']
         row['session_id'] = sid if re.fullmatch('[0-9a-f]{8}', sid) else live['uuid'][-8:]
+        row['live'] = True  # read_registry includes only live local processes
+        pane = f"{row['role']}-{row['session_id']}"
+        row['parked'] = any((ROOT / 'state/locks' / f'{pane}.{suffix}.parked').exists()
+                            for suffix in ('project', 'spawned_by'))
         paths = [p for d in dirs for p in (d.parent / 'projects').glob(f"*/{live['uuid']}.jsonl")]
         row.update(transcript_path=str(paths[0]) if paths else None, C=None,
                    last_active=None, in_turn=False, open_tasks=[], charter=None, status=None)

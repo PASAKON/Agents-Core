@@ -4,6 +4,7 @@
 # winbox-restart.sh --unregister-logon-task --sha <40-hex> [--dry-run]
 #
 # SafeRestart for winbox, run on Contabo by a CEO-approved Run card:
+# Card command must be plain one-line `bash scripts/winbox-restart.sh --sha <sha>`; put cwd in the card's cwd field: any prefix makes its own card look busy and refuses (exit 3).
 #   1. the winbox clone must be exactly at --sha with no changed tracked file;
 #   2. no Run card may be running on winbox;
 #   3. MooniexOrgResume (windows\register-org-resume.ps1) must be registered, or the
