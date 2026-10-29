@@ -130,7 +130,7 @@ Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (
 
 - MT5 on winbox runs PH ExpertAdvisor's EA: a dry run from 29 Oct, a real-money account from 30 Oct.
 - Before any winbox reboot (`scripts/winbox-restart.sh`, `shutdown /r`, an update, a card),
-  `ssh winbox powershell -NoProfile -File C:\Users\passg\ea-live\ea-live.ps1 flat` must exit 0.
+  `ssh winbox powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\passg\ea-live\ea-live.ps1 flat` must exit 0.
   The EA closes its trades at 06:50 TH, so plan a reboot for 06:50–07:00 TH.
 - Never kill `terminal64.exe` (MT5), by name or by pid. Never run the MT5 Strategy Tester on
   winbox while the EA is live: it shares the live install and data folder.
