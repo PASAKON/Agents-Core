@@ -74,16 +74,18 @@ HOST_ORDER = ("contabo", "mac", "winbox")
 # The bracket before the id is optional and never part of the role: a Project
 # Head's lane, "CONTABO Project Head (CTO) #3c1f65ae (OrgRestructure)" (org
 # restructure P2), or a C-level's persona, "CONTABO COO (SomPong) #a7eb4963"
-# (CEO 2026-10-14 session names). A name without one parses as before.
+# (CEO 2026-10-14 session names). A name without one parses as before. The persona's
+# emoji may come with a plain space where its ZWJ was ("👨 💻", winbox 29 Oct): the
+# role is still read, never from the emoji.
 _NAME_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)"
-    r"(?:\s+\((?:[^\w\s():]+: )?[A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
+    r"(?:\s+\((?:[^\w\s():]+(?: [^\w\s():]+)*: )?[A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
 # CEO 2026-10-14: a C-level's name is "<ROLE> (<Name>)", e.g. "CTO (Kavin)", with no
 # machine and no #id; a role without a persona is the bare role, "CFO". Text after
 # " — " is the human topic (session-rename.sh). The role and id come from the
 # session record instead (_ids_from_record), never from this name alone.
 _SHORT_NAME_RE = re.compile(
-    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\((?:[^\w\s():]+: )?([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
+    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\((?:[^\w\s():]+(?: [^\w\s():]+)*: )?([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
 # The launchers run every org session in a tmux session named "<role>-<sid>"
 # (cxo-claude.sh, cto-claude.sh, spawn-ph.sh); Claude Code records it in the
 # session file as "<tmux session>:@<window>.%<pane>".
@@ -247,6 +249,9 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
     # Only a listed role: a worker's tmux ("wd-<sid>") says nothing about its role.
     if m and is_listed(m.group(1)) and m.group(1) != "ceo" and session_id.endswith(m.group(2)):
         return m.group(1), m.group(2), True
+    fresh = _fresh_role(tmux, session_id)
+    if fresh:
+        return fresh, session_id[-8:], True
     role, sid = parse_name(name, session_id)
     fixed = _FIXED_TMUX_ROLE.get(tmux.split(":", 1)[0]) if tmux else None
     if fixed and _launcher_uuid(fixed, session_id):
@@ -258,6 +263,17 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
     if w and (sid == w.group(1) or (len(sid) == 3 and w.group(1).startswith(sid))):
         return role, w.group(1), True
     return role, sid, False
+
+
+def _fresh_role(tmux, session_id):
+    """Only a roster role's exact fresh tmux and securely read UUID may agree."""
+    from lib import roles
+    m = re.match(r"^([a-z]+)-fresh:", tmux) if isinstance(tmux, str) else None
+    if (m and m[1] != 'ceo' and m[1] in roles.c_level_roles()
+            and re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', session_id)
+            and read_lock(LOCKS_DIR / f'{m[1]}-fresh.uuid') == session_id):
+        return m[1]
+    return None
 
 
 def address_for(role: str, name: str) -> str:
@@ -515,6 +531,7 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
         "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
         "renamed_at": _ms_to_dt(data.get("nameSince")),
         "bridge_id": _bridge_id(data.get("bridgeSessionId")),
+        "launcher_id": "fresh" if _fresh_role(data.get("tmux"), session_id) == role else None,
         "_updated": data.get("updatedAt") if isinstance(data.get("updatedAt"), (int, float)) else 0,
     }
 

@@ -41,11 +41,13 @@ for a in "$@"; do
 done
 
 # Resolve explicit resume targets before any session or tab side effects.
+RESUME_UUID=""
 for ((i=0; i<${#ARGS[@]}; i++)); do
   case "${ARGS[i]}" in
     -r|--resume)
       if ((i+1 < ${#ARGS[@]})) && [[ "${ARGS[i+1]}" != -* ]]; then
         ARGS[i+1]="$(bash "$ROOT/scripts/resolve-resume-id.sh" cto "${ARGS[i+1]}")" || exit 2
+        RESUME_UUID="${ARGS[i+1]}"
         i=$((i+1))
       fi
       ;;
@@ -141,6 +143,10 @@ fi
 # without ever writing to the real state/locks/ (ADR 0021).
 LOCKS_DIR="${CTO_CLAUDE_LOCKS_DIR:-$ROOT/state/locks}"
 mkdir -p "$LOCKS_DIR"
+# SafeRestart's fresh launcher keeps the conversation, including its UUID tail.
+if [ "$CTO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
+  CTO_UUID="$RESUME_UUID"
+fi
 UUID_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.uuid"
 printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
 
@@ -463,6 +469,12 @@ for a in ${ARGS[@]+"${ARGS[@]}"}; do
   esac
 done
 
+SESSION_ID_ARGS=(--session-id "$CTO_UUID")
+if [ "$CTO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
+  SESSION_ID_ARGS=()
+  FORK_ARGS=()
+fi
+
 # An "update available" prompt is a startup-level interrupt, not a tool
 # permission check, so neither --permission-mode nor --allowed-tools reaches
 # it -- it can block an unattended session on a keypress nobody is there to
@@ -534,7 +546,7 @@ claude \
   ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
   ${REMOTE_CONTROL_ARGS[@]+"${REMOTE_CONTROL_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
-  --session-id "$CTO_UUID" \
+  ${SESSION_ID_ARGS[@]+"${SESSION_ID_ARGS[@]}"} \
   ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \
   ${ARGS[@]+"${ARGS[@]}"}
 exit $?

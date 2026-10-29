@@ -105,7 +105,20 @@ def identity(row):
 
 def pane(row):
     role, sid = identity(row)
+    if fresh_launcher(row):
+        return f"{role}-fresh"
     return f"{role}-{sid}"
+
+
+def fresh_launcher(row):
+    role, sid = identity(row)
+    if row.get('launcher_id') is None:
+        return False
+    if (row['launcher_id'] != 'fresh' or role not in roles.c_level_roles() or role == 'ceo'
+            or not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', row.get('uuid') or '')
+            or not row['uuid'].endswith(sid)):
+        raise ValueError('invalid fresh launcher identity')
+    return True
 
 
 def run(command, dry=False):
@@ -568,6 +581,8 @@ def when(value):
 
 def saved(row, host='contabo', since=None):
     role, sid = identity(row)
+    if fresh_launcher(row):
+        sid = 'fresh'
     if host == 'winbox':
         # No tmux pane to disappear: only the hub record says /session-save finished, and
         # an old "saved" row of a session that is running again must not count, so the
@@ -619,6 +634,8 @@ def launcher(row, host):
         variable = 'CTO_SESSION_ID' if role == 'cto' else 'CXO_SESSION_ID'
         command = (['bash', 'scripts/cto-claude.sh'] if role == 'cto' else
                    ['bash', 'scripts/cxo-claude.sh', '--role', role])
+        if fresh_launcher(row):
+            return f'export {variable}=fresh && exec {shlex.join(command + ["--resume", row["uuid"]])}'
         return f'export {variable}={shlex.quote(sid)} && exec {shlex.join(command + ["--resume", sid])}'
     if role == 'cto':
         return ['bash', 'scripts/spawn-cto.sh', '--resume', sid, '--id', sid]
@@ -698,6 +715,8 @@ def prep(args):
                 project = path.read_text(encoding='utf-8').strip() if path.exists() else None
             entry = dict(sid=sid, role=role, name=row['name'], project=project,
                          mode='lazy' if action == 'resume_lazy' else 'full')
+            if fresh_launcher(row):
+                entry.update(launcher_id='fresh', uuid=row['uuid'])
             if win:
                 # cxo-claude.ps1 --resume takes the full conversation id, and a Project Head
                 # needs its lane back: both are known now and gone with the session's files.
@@ -871,7 +890,7 @@ def resume(args):
                 win_restore_owner(row, args.dry_run)
             if isinstance(command, str):
                 role, sid = identity(row)
-                unit = f'org-{role}-{sid}.scope'
+                unit = f'org-{pane(row)}.scope'
                 active = subprocess.run(['systemctl', 'is-active', '--quiet', unit],
                                         capture_output=True, timeout=30)
                 if active.returncode == 0:
