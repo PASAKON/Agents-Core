@@ -1,0 +1,20 @@
+# Installed at /etc/systemd/system/ceo-deadline-feed.service (Contabo; copy this file).
+#
+# Turns the CEO's LungNote to-dos due in the next 24 h into kind=deadline rows on the Console's CEO
+# mail API (tools/email_ceo.py deadlines), so the 08:00 digest lists them (CEO 2026-10-02, skill
+# ALL_Protocol_EmailCEO). Sends no mail itself. LungNote creds come from Infisical LungNote-MCP/prod
+# through infisical_setup.py with the box identity `contabo`; the Run token from root's
+# ~/.config/mooniex/run-inbox.token (tools/ask_run.py). Started by ceo-deadline-feed.timer.
+[Unit]
+Description=CEO deadline feed (LungNote due in 24 h -> Console digest)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run LungNote-MCP prod --as contabo -- /usr/bin/python3 tools/email_ceo.py deadlines
+TimeoutStartSec=120
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict

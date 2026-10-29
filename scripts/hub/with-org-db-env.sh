@@ -10,6 +10,7 @@
 # Order (docs/design/org-mesh-w18-contabo-consumers.md):
 #   (a) the hub env file exists: source it. The Mac's file carries ORG_DB_URL.
 #       Contabo's file carries only POSTGRES_* and no ORG_DB_URL.
+#   (a2) ORG_DB_URL is still unset and MOONIEX_ORG_DB_URL_FILE is readable: read it (the COO).
 #   (b) ORG_DB_URL is still unset and this host's Infisical identity file exists
 #       (/etc/infisical/<host>.env): run the command through
 #       `tools/infisical_setup.py run Agents-Core prod`, which puts the project's
@@ -26,6 +27,7 @@
 #   INFISICAL_CRED_DIR         identity file directory (default /etc/infisical), the
 #                              same override tools/infisical_setup.py reads
 #   MOONIEX_INFISICAL_ID_FILE  identity file path, wins over the two lines above
+#   MOONIEX_ORG_DB_URL_FILE    leg (a2): a file holding only the DSN
 set -eo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -36,6 +38,15 @@ if [ -f "$ENV_FILE" ]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+fi
+
+# (a2) a non-root session that has no identity of its own (the COO, user `sompong`) gets a file a
+#      root service wrote at start from Infisical Org-Coo: the DSN of the limited role org_coo
+#      (deploy/hub/org_coo_role.sql, scripts/coo-org-db-cred.sh). The value goes into this
+#      command's environment only, never the session's own (CEO 2026-10-02).
+if [ -z "${ORG_DB_URL:-}" ] && [ -n "${MOONIEX_ORG_DB_URL_FILE:-}" ] && [ -r "$MOONIEX_ORG_DB_URL_FILE" ]; then
+  ORG_DB_URL="$(cat "$MOONIEX_ORG_DB_URL_FILE")"
+  export ORG_DB_URL
 fi
 
 if [ -z "${ORG_DB_URL:-}" ]; then

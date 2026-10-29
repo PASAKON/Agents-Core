@@ -6,7 +6,7 @@ aka: [CTO_Flow_Omni1.1_Continuity]
 description: >-
   GATE — Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1
   Flash, องค์ประกอบ mode): one table of time, place, who, wardrobe and props per
-  shot, and flags for what cost re-shoots on «จุดจบของเจ้าหนี้นอกระบบ» (night on a
+  shot, and flags for what cost re-shoots on "จุดจบของเจ้าหนี้นอกระบบ" (night on a
   day plate, a healthy character on a sickbed, what Flow silently deletes, fast
   lines, REF_1 close-ups); the asset sheet every prompt quotes, and which props
   need an Element. Trigger on /CMO_Gate_Flow_Omni1.1_Continuity and proactively
@@ -214,7 +214,7 @@ how to read the feed instead, is `CMO_Gate_Flow_Omni1.1_FilmQC` rule 2.
 
 ### A uniform plate + the word "police" (2026-09-23)
 
-Measured on «บัญชี»: shot 179 twice, 149 and 151 once each.
+Measured on "บัญชี": shot 179 twice, 149 and 151 once each.
 
 **The A/B that found it** (CEO-ordered, 360p/4s, 3 arms, one variable each):
 
@@ -243,7 +243,7 @@ replaced by 99770187.]
 
 ### A child and money in one prompt — in the picture OR in the words (2026-09-25/26)
 
-Measured on «ตาชั่งของเสี่ย» ACT1/ACT2 at 720p, 12 credits a deleted take; `pull` afterwards said
+Measured on "ตาชั่งของเสี่ย" ACT1/ACT2 at 720p, 12 credits a deleted take; `pull` afterwards said
 "card not found" every time (deleted, not slow).
 
 | shot | who is in frame | money | result |
@@ -272,7 +272,7 @@ suspect and go solo early.
 
 ### A child's own plates, flagged part-way through a film (2026-09-26)
 
-«ตาชั่งของเสี่ย»'s 11-year-old passed through ACT1–ACT2 with his chips (`@tor__face`, `@tor__home`); later
+"ตาชั่งของเสี่ย"'s 11-year-old passed through ACT1–ACT2 with his chips (`@tor__face`, `@tor__home`); later
 that night every prompt carrying them with his face in frame was deleted — ACT3 57a, 58a, 64 at 720p and
 three 360p arms (a hug, no touching, just showing a notebook): 6 of 6, with no money and no other
 trigger. The same shots with his chips removed and the boy in words only rendered (9274, 9269), and so
@@ -283,7 +283,7 @@ to try once a child's takes start vanishing, not a law.
 
 ### In an arrest scene: handcuffs, and a uniform next to police lights (2026-09-23)
 
-Measured on «บัญชี»'s arrest, 3 shots at 720p plus 8 arms at 360p/4s (4 credits each), one variable per
+Measured on "บัญชี"'s arrest, 3 shots at 720p plus 8 arms at 360p/4s (4 credits each), one variable per
 arm:
 
 | arm | uniform (face plate + wardrobe plate) | handcuffs | police lights | result |
@@ -306,7 +306,7 @@ in a shot without the officer (a bystander watching the car leave).
 
 ## Anything that must look a specific way needs an Element, not a sentence [FLOW]
 
-**Measured 2026-09-22, «จุดจบของเจ้าหนี้นอกระบบ», 6 clips lost.** Every money
+**Measured 2026-09-22, "จุดจบของเจ้าหนี้นอกระบบ", 6 clips lost.** Every money
 shot in Act 3 rendered a **recognisable Thai 500-baht note carrying the royal
 portrait** — in a drama about illegal moneylending. The prompt had asked for the
 opposite, positively *and* negatively, in 40 careful words:
@@ -464,7 +464,7 @@ against (`CMO_Gate_Flow_Omni1.1_FilmQC` Workflow 2).
 
 ### The set drifts exactly as much as the face does, and for the same reason (2026-09-18, Act 1 shoot)
 
-First 15 shots of «บัญชี» Act 1, checked frame by frame:
+First 15 shots of "บัญชี" Act 1, checked frame by frame:
 
 | what drifted | count | why |
 |---|---|---|
@@ -540,6 +540,6 @@ possible, and it is cheap — it is written once and read forever.
 - 2026-09-27 [MISSING] §REF_1 drift, result of the turban fix above — **restating the headwear in the action held it.** The re-fires that carried "her red-and-white checked cloth still wrapped around her head like a turban" beside her action kept the turban in 13, 43 and 45 (QC stage 2, reshoot4/6). Two things did NOT hold: (1) her "very dark sun-baked skin" came back medium-tan and her hands grey in close-ups (13, 43, 45 and batch 2), and (2) the son's red-and-white head cloth, which lives only in his state plate and not in the action, drifts in and out between shots (none in 43, a headband in 45 and 63). Restate the son's head cloth in the action the same way, or accept it as a costume change · evidence: task-c816fbc0 tmp/qcr6, tmp/qcr8, subagent QC 2026-09-27 16:2x · status: pending
 - 2026-09-28 [MISSING] §dialogue in one shot — **too much speech for the clip moves the first speaker's last phrase into the second speaker's VOICE.** ep4 shot 21: mother 6 s + son 1.5 s in 8 s. Flow voiced her closing "คุ้มอยู่ลูก" in the son's baritone and synced his mouth to it. Single-variable A/B, 3 takes per arm, 360p: control 4/6 wrong (blind eye) · son "lips pressed" 2/3 · son not crying 1/3 · house listener-reacts line removed 2/3 · mother alone (son's line cut) 0/3 · mother's line shortened 0/3. Direction words are not the cause, and neither is time: the same two lines at 10 s were still wrong 2/3. The trigger is the second speaker's line following the long line inside the same clip; the mother's line alone, or shortened, stays in her mouth. Fix to test at 720p: split into two shots (her line alone, then his reply) · evidence: task-c816fbc0, scratchpad ab/S21_voice.tsv + eye21_verdict.tsv · rule 10 (CEO ruling 2026-09-28) · status: promoted
 - 2026-09-28 [MISSING] §dialogue in one shot — result of the split proposed in the note above: ep4 shot 21 fired as 21a (the mother's full line alone, 8 s) and 21b (the son's reply alone, 4 s, her lips pressed, "saying nothing the whole clip"), 720p ×2 each, 38 cr. Voice pitch, the face checker and the cut count are clean on 4/4: 21a's closing phrase is in her voice (182–218 Hz), 21b is in his (143–146 Hz), and nothing was cut. Keep the CEO's words and split the lines by speaker; do not cut the line and do not add time. n=1 shot. The CEO's eye has not signed off yet · evidence: task-c816fbc0, Work/task-c816fbc0/clips/S21/X{A,B}{1,2}, scratchpad ab/S21_voice.tsv, credit-ledger 42a04524 · rule 10 (CEO ruling 2026-09-28) · status: promoted
-- 2026-10-02 [MISSING] §carried props — when a prop that a character wears is the story beat (Mimi carries the brother's flip-flop), the model still draws the character wearing both: EP4 shots 11/12/14 show both blue flip-flops on his feet while Mimi holds a blue one. If the beat needs it, write «one bare foot, the other flip-flop is in the dog's mouth» in the shot's action; a contact sheet at 5 s catches it only when the feet are in frame · evidence: EP4 contact sheet + shot-11 strip 10-02 · status: pending (n=1)
+- 2026-10-02 [MISSING] §carried props — when a prop that a character wears is the story beat (Mimi carries the brother's flip-flop), the model still draws the character wearing both: EP4 shots 11/12/14 show both blue flip-flops on his feet while Mimi holds a blue one. If the beat needs it, write "one bare foot, the other flip-flop is in the dog's mouth" in the shot's action; a contact sheet at 5 s catches it only when the feet are in frame · evidence: EP4 contact sheet + shot-11 strip 10-02 · status: pending (n=1)
 - 2026-10-01 [MISSING] §What Flow silently deletes — Thai lines refused on Omni 1.1 Flash (film 5, scam theme): บัญชี/เปิดบัญชี, ยืมชื่อ, ค่าหัว, ค่าแผงค้าง, a scam caller giving instructions ("โทรไปบอกว่า…พัวพันคดี"), ติดพนันบอล, an amount inside a scam call. Refusal shows as flow_shoot "submit produced no card"; never charged · evidence: docs/scripts/ep5-EP1-flow-rewrites.md, ledger 70daede6 · status: pending (moved 2026-10-03 from the CTO_Flow_Omni1.1_Ops redirect stub, where it landed by mistake) · evidence: e35d2164, ep5 EP1 shoot 2026-10-01 · status: pending
 - 2026-10-03 [MISSING] §What Flow silently deletes — film 5 EP3: S59 (the mother phoning a help centre about her son's lost tuition) was deleted 4 times. That was two wordings, then the same call restaged as bright, standing, nobody hiding, with the line softened to "ฉันมีเรื่องด่วนค่ะ เรื่องค่าเทอมของลูกฉันค่ะ". So the staging was not the trigger; the beat itself (a victim calling a hotline about lost money) seems to be. Newly suspected words, n=1 each: สายด่วน, คนแปลกหน้า, ศูนย์บัตร, ใช้ไม่ได้แล้ว, โดนแจ้ง. Passed: โรงพัก (S71/S72), แจ้ง alone (S76), ส่งค่าเทอม (S67), and ศูนย์ช่วยเหลือ inside S70, where the mother only tells her son she called it. After a beat is deleted twice, cut the shot if a neighbour carries it (S60 kept the call) · evidence: cto-cb63de3a, commits 694047a6 59249b78 · status: pending

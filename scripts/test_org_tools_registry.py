@@ -90,6 +90,9 @@ def test_registry_names_match_prod() -> bool:
         # Run Inbox P1b: thin async wrappers over tools/ask_run.py, covered by
         # tests/test_ask_run.py through FastMCP's own call_tool.
         "ask_run", "ask_run_wait", "start_clevel_remote",
+        # CEO mail (2026-10-02): thin async wrapper over tools/email_ceo.py,
+        # covered by tests/test_email_ceo.py.
+        "email_ceo",
         # Run Inbox question cards (docs/design/run-inbox/QUESTIONS.md §9): the
         # requester side, covered by tests/test_ask_run_questions.py.
         "ask_ceo",

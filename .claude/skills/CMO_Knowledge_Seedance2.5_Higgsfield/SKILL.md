@@ -10,7 +10,7 @@ description: >-
   after any error), Confirm Rights, the one-at-a-time Unlimited slot, the desktop-width lock, the
   Lexical prompt box and the duration slider, Elements and @Image1 references, a previz attached as
   @Video 1, what the face/copyright scanner kills, reference caps, model tiers and cost per second,
-  the review loop, render-wait and wave rules for operators, and the «Sorry, Sir» A/B ledger
+  the review loop, render-wait and wave rules for operators, and the "Sorry, Sir" A/B ledger
   (AB-LEDGER.md). Trigger on "Higgsfield", "Seedance", "Unlimited mode", "AI video generation
   credits", "jump-cut pass", "Confirm Rights", "ยิง Seedance", "ยิง Higgsfield", a Higgsfield History
   Recreate or Rerun button and /CMO_Knowledge_Seedance2.5_Higgsfield. Do NOT fire for Google Flow
@@ -25,8 +25,8 @@ audience: [cto, cmo, cfo, cgo, browser_operator]
 
 # Seedance 2.5 on Higgsfield
 
-Measured on higgsfield.ai, 2026-08-12 → 2026-09-11: the Valder waves, «Sorry, Sir» (The Valder
-Collection No.7) and «Do Not Disturb», on Seedance 2.5 (Unlimited and credit lanes), the 2.0 /
+Measured on higgsfield.ai, 2026-08-12 → 2026-09-11: the Valder waves, "Sorry, Sir" (The Valder
+Collection No.7) and "Do Not Disturb", on Seedance 2.5 (Unlimited and credit lanes), the 2.0 /
 2.0 Fast / 2.0 Mini tiers, and Higgsfield's image models for plates. Every rule below was learned
 from a real incident in this org, not written speculatively.
 
@@ -36,7 +36,7 @@ judging by eye, the continuity check, what the director decides, the A/B entry, 
 is `CMO_Knowledge_Film_Production`; how a prompt file is laid out is `CMO_Standard_Film_PromptFormat`. Follow
 `BROWSER_OPERATOR_Protocol_Playbook`'s general discipline (text-first, zoom over screenshots, replay scripts) and
 `CXO_Protocol_DevSpawn`'s spawn steps first — this skill adds the Higgsfield layer on top. The
-«Sorry, Sir» A/B ledger lives beside this file: `AB-LEDGER.md`.
+"Sorry, Sir" A/B ledger lives beside this file: `AB-LEDGER.md`.
 
 What it gives any C-level (CTO, CMO, CFO, CGO) driving or delegating Higgsfield video generation:
 the exact button-level rules, editor gotchas, and wait pattern that prevent (a) accidentally
@@ -165,8 +165,8 @@ Current mapping (CEO, 2026-08-30):
 
 | Film | Project URL |
 |---|---|
-| **«Sorry, Sir» / The Valder Collection No.7** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` |
-| **«Do Not Disturb» (DND)** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival` |
+| **"Sorry, Sir" / The Valder Collection No.7** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` |
+| **"Do Not Disturb" (DND)** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival` |
 
 The two URLs differ by one character. Read the whole path, not the prefix.
 
@@ -175,7 +175,7 @@ project binds the right characters, the right room and the right props, and come
 completely correct. Reviewing the footage will never reveal it. The URL is the only tell, and the
 cost is discovering weeks later that a film's material is scattered across two projects.
 
-Measured 2026-08-29/30: the three original «Sorry, Sir» task briefs carried the project URL; every
+Measured 2026-08-29/30: the three original "Sorry, Sir" task briefs carried the project URL; every
 brief written after them dropped it. The early waves survived only because a browser tab happened
 to be sitting in the right project already. The moment an operator opened its own tab,
 generations began landing outside the film's project and nobody noticed until the CEO checked.
@@ -291,7 +291,7 @@ generate check — and it is the only place that table lives.
    C-level cannot do it from outside, and reaping the worker just loses the staged next clip.
 
    **A paid GPT Image 2 generation does NOT contend for that slot**, and holding image work behind
-   a rendering video wastes hours. Measured 2026-08-28 on the «Sorry, Sir» wave: Scene 2 fired as
+   a rendering video wastes hours. Measured 2026-08-28 on the "Sorry, Sir" wave: Scene 2 fired as
    an Unlimited Seedance video at 05:50 and was still rendering at 06:30, and during that window
    **two separate operators each fired and completed a paid image plate** — `char_grandmother`
    (asset `5dd23a87`) and `char_gentleman`. Neither saw a concurrency toast. The slot is scoped to
@@ -390,7 +390,7 @@ generate check — and it is the only place that table lives.
      first line — at the time it was blamed on keystroke truncation. Treat a mysteriously empty or
      partial saved prompt as decoy-editor first, `type()` second.
    - **DURATION IS NOT A TEXT FIELD AT ALL — IT IS A RADIX ARIA SLIDER. Never type into it.**
-     Measured 2026-08-28 on the «Sorry, Sir» wave, at a cost of four unusable clips and four wrong
+     Measured 2026-08-28 on the "Sorry, Sir" wave, at a cost of four unusable clips and four wrong
      diagnoses.
 
      The signature that something was wrong: **two fixed output values, no error anywhere.**
@@ -562,7 +562,7 @@ Two consequences an operator must internalise:
 - **On a VIDEO generate, any live number at all means STOP.** The only safe reading is
   struck-through-then-zero.
 - **On an IMAGE generate, a small live number is CORRECT, not a fault.** About 3 credits (~3 at
-  2K/Medium, ~2 at 1K/Medium) is what a GPT Image 2 plate cost and what every plate in «Sorry, Sir»
+  2K/Medium, ~2 at 1K/Medium) is what a GPT Image 2 plate cost and what every plate in "Sorry, Sir"
   cost. An operator that halts on it is halting on normal operation.
 
 [SUPERSEDED] the 2026-08-27 heading "IMAGES ALWAYS COST CREDITS": Kling O1 images are free with
@@ -812,7 +812,7 @@ image. **"แม้แต่ตัวประกอบ ก็ต้องมี
 Group plates still have one honest use: an undifferentiated mass in the deep background that
 performs no action. The moment a body needs to do something specific, it needs its own plate.
 
-## The face and copyright scanner (measured on «Sorry, Sir»)
+## The face and copyright scanner (measured on "Sorry, Sir")
 
 ### One face per plate — what the scanner kills
 
@@ -973,7 +973,7 @@ stops it:
   slot has already been spent producing it.
 
 **Re-verify the full spec immediately before every Generate click**, the same way the price check
-is done — not just the Unlimited toggle. For «Sorry, Sir» the locked spec was **20s / 720p /
+is done — not just the Unlimited toggle. For "Sorry, Sir" the locked spec was **20s / 720p /
 Seedance 2.5 / High / Sound ON** (CEO: *"ปรับ ค่าเป็น 20s 720p Seedance 2.5 High 1/4 SOund ON
 Seedance 2.5 เสมอ"*). A 1080p drift was caught the same way on S19 (AB-LEDGER 2026-09-10 10:05).
 
@@ -1104,7 +1104,7 @@ colour is the fastest, cheapest check available and it is visible without zoomin
 
 **Check the tag colour before every Generate.** A red tag means the model never sees that
 reference — it silently generates from the prose alone, produces something plausible, and the
-failure is invisible in the output. **Element naming is not uniform** either: on «Sorry, Sir» most
+failure is invisible in the output. **Element naming is not uniform** either: on "Sorry, Sir" most
 Elements carried a shared prefix, one did not, and the mention silently failed to bind. Read the
 real mention off the panel.
 
@@ -1221,7 +1221,7 @@ first-generation Element is safe; a re-pointed one is not.
 
 ### Higgsfield Soul does not accept reference images at all
 
-Measured 2026-08-27 on the «Absence of Meaning» plate chain. **Soul Cinema cannot take Element
+Measured 2026-08-27 on the "Absence of Meaning" plate chain. **Soul Cinema cannot take Element
 references.** This is not a technique problem — the capability is absent from that composer.
 
 Both paths were tried, one clean attempt each, and both failed:
@@ -1466,7 +1466,7 @@ tag, the negatives and the 60-second pre-fire read are `CMO_Standard_Film_Prompt
 
 ### IRON RULE OF PROMPT WRITING — every character appears EXACTLY ONCE
 
-CEO-set 2026-08-30 («ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย») after duplicate characters appeared
+CEO-set 2026-08-30 ("ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย") after duplicate characters appeared
 across MULTIPLE scenes — S4 rendered two Dupes with two carts, and it was not an isolated case.
 Seedance duplicates a character whenever the prompt gives it two independent reasons to draw the
 same person (a binding + an unbound description, a group noun + a named member, or — the worst case
@@ -1689,7 +1689,7 @@ and `CXO_Protocol_DevSpawn`. The rest was measured on Higgsfield waves.
 ### Never let the generation slot sit idle
 
 Where video generation is unlimited, **a clip costs nothing and an idle slot costs time — and time
-is the only thing a deadline actually spends.** CEO rule, 2026-08-14, and again on «Sorry, Sir» in
+is the only thing a deadline actually spends.** CEO rule, 2026-08-14, and again on "Sorry, Sir" in
 four words — *"อย่าให้คิว Generate ว่าง"* — after I paused a video lane to avoid making clips that
 would later be re-shot. He was right: a re-shot clip is free; the hour the slot sat empty is not.
 Seedance 2.0 / 1080p / 15s runs **~30 minutes per clip on average** — the CEO's own figure, stated
@@ -1749,7 +1749,7 @@ it before firing wastes ten to fifteen minutes of a slot that, near a deadline, 
   handed to one task instead of split into three ~5-clip waves; the CEO caught it live and had it
   split mid-flight. When writing a task brief, count the clips before delegating — if it's more than
   ~5, split it before spawning, not after.
-  **The floor is not one.** Measured 2026-08-30 on «Sorry, Sir»: an operator shot one scene, cited
+  **The floor is not one.** Measured 2026-08-30 on "Sorry, Sir": an operator shot one scene, cited
   "the wave cap", and submitted its report, leaving the account's single generation slot idle across
   a full respawn. At one scene per worker every scene pays that respawn, which on a deadline is the
   most expensive thing an operator can do. Run the wave out to the cap unless something actually

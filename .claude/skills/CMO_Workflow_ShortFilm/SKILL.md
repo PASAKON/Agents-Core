@@ -21,7 +21,7 @@ audience: [cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, vide
 
 # The short-film workflow
 
-Written from «Sorry, Sir» (Seedance 2.5, Aug–Sep 2026), «Do Not Disturb» (Seedance), «จุดจบของเจ้าหนี้นอกระบบ»
+Written from "Sorry, Sir" (Seedance 2.5, Aug–Sep 2026), "Do Not Disturb" (Seedance), "จุดจบของเจ้าหนี้นอกระบบ"
 (Google Flow) and THE SHADOW BELOW (MiniMax H3 previz → Wan 3.0 finals, steps 0–13 in five days,
 23–27 Sep 2026). This file holds the ORDER, the GATE that ends each step, and the POINTER to the skill
 or tool that owns it. It repeats no rule from those skills (CEO 2026-09-25: film skills are engine-scoped
@@ -103,7 +103,7 @@ and the CEO's own edit needs a day.
 ### Step 1 · Market and idea
 - **Do:** check the demand before the competition (few rivals usually means few viewers, not an opening): what is
   watched in this genre on the target platform (top videos, views against age), what our own past films
-  earned (Studio analytics for «Sorry, Sir», «Do Not Disturb»), and for a challenge the judging criteria
+  earned (Studio analytics for "Sorry, Sir", "Do Not Disturb"), and for a challenge the judging criteria
   and the entries already posted. Study reference trailers with `video-ad-analysis`; frame ideas with
   `content-idea-generator` and `marketing-principles`. Copy a genre's identity, not just its layout
   (Thai lakorn titles are custom logos; a stock font reads as a news thumbnail).
@@ -240,23 +240,23 @@ and the CEO's own edit needs a day.
   back of the head). The rule and its tests are `CMO_Standard_Story_FamilyDogSeries` §2 item 10.
 - **Edit:** the CEO cuts in CapCut. Send him an edit kit (keepers, music, credits roll, subtitle file) over
   Drive or Taildrop, and remind him to delete the kit on the Mac afterwards.
-- **The «บ้านนี้มีมีมี่» cut (CEO 2026-10-01: v2 approved, "save เป็น workflow"):** one manifest per episode, built by
+- **The "บ้านนี้มีมีมี่" cut (CEO 2026-10-01: v2 approved, "save เป็น workflow"):** one manifest per episode, built by
   `tools/film_cut_assemble.py <manifest> --var PROD=… --var CARDS=… --var OUT=…` (ffmpeg only, 0 tokens; the EP1 manifest is
   `docs/scripts/khaoniao-ep1-cut-manifest.json` and re-renders the approved cut bit-for-bit, video md5 equal). The recipe:
   1. **Trim the first shot's lead-in** so frame 0 is inside the hook: dump the first 2 s as 50 ms RMS, start at the first
      sound burst (EP1: 0.8 s), then check a face is on screen by ~0.3 s.
-  2. **Time label** («เมื่อเช้า») = transparent PNG from `docs/reports/khaoniao-family-style/cover/card.html?mode=morning`,
+  2. **Time label** ("เมื่อเช้า") = transparent PNG from `docs/reports/khaoniao-family-style/cover/card.html?mode=morning`,
      laid over the first 2.4 s of the flashback shot, fade 0.3 s in and out, placed at y=60 (lower covers the heads).
   3. **Title card** (`mode=title`, 2.6 s) right after a shot that leaves a question open, placed so **1:00 falls inside it**
      (the manifest's `mid_roll_s` check prints what lands there); never before 3 s.
-  4. **End card** (`mode=end`, 3.5 s): the page mark + only a promise we keep («ติดตามตอนใหม่ทุกวัน 19:30»).
+  4. **End card** (`mode=end`, 3.5 s): the page mark + only a promise we keep ("ติดตามตอนใหม่ทุกวัน 19:30").
   5. Then the music step below, a 540x960 crf-28 preview (3 min ≈ 14 MiB; the chat send limit is 30 MiB) and the full file
      to `Assets/Agents/Core/khaoniao-family/ep1/` + the winbox cut folder.
   Cards render on winbox with `render_cards.py` (Chrome headless; real Itim from Google Fonts; `--default-background-color=00000000`
   gives the transparent label). Traps: a space between inline-block Thai spans collapses (use `&nbsp;`); the page-mark PNG is
   mostly transparent padding (size it at 2400 px or the name prints tiny); look at the cards once on one sheet over a real frame.
 - **Music:** Flow Music tracks with the rights record (`MUSIC-RIGHTS.md`, `MUSIC-LEDGER.json`).
-  **The «บ้านนี้มีมีมี่» recipe (CEO 2026-10-01, "ผ่านแล้ว … ต้องใส่เพลงด้วยแบบนี้เลย"): every episode of that channel
+  **The "บ้านนี้มีมีมี่" recipe (CEO 2026-10-01, "ผ่านแล้ว … ต้องใส่เพลงด้วยแบบนี้เลย"): every episode of that channel
   carries a quiet solo-piano bed made exactly like M1.** One track per episode:
   1. *Make it* (zero-model, 5 credits from the separate Flow Music pool of 30,000/month, ~50 s):
      `tools/flow_music.py <prompts.json> --out <dir> --max-credits 5 --length 3:00 --no-title --cdp-url http://127.0.0.1:9224`
@@ -274,9 +274,9 @@ and the CEO's own edit needs a day.
 - **Grade:** `docs/prompts/ilag-topview/looks.py` builds custom 3D LUTs and a comparison sheet; the CEO
   picks; applied with ffmpeg `lut3d` (trilinear).
 - **Subtitles:** `docs/prompts/ilag-topview/finish.py --subs-only` (faster-whisper word timings matched to
-  the script) → hand-check every cue against the audio → burn in the «Sorry, Sir» style (Arial 78 at 4K,
+  the script) → hand-check every cue against the audio → burn in the "Sorry, Sir" style (Arial 78 at 4K,
   white, no outline, centred, MarginV 174) → a 5-second 720p sample to the CEO before the full render.
-- **End credits:** `docs/prompts/ilag-topview/credits.py` (the «Sorry, Sir» roll: font, order, 7 px per
+- **End credits:** `docs/prompts/ilag-topview/credits.py` (the "Sorry, Sir" roll: font, order, 7 px per
   frame at 4K). **Before appending anything, look at the last minute of the CEO's cut**: THE SHADOW BELOW's
   cut already held the credits and the film shipped them twice (`CMO_Knowledge_Film_Production` field note
   2026-09-27).
@@ -337,6 +337,9 @@ Last agent: <session id> · Next action: <one line>
 - 2026-10-03 [MISSING] before a render wave, read the engine's quality default and per-quality price into REFS — on champa Seedance 2.0 the menu defaults to 720p (480p/720p free on Unlimited, 1080p = 106 credits per 15 s clip), and card meta reads `Standard` whatever is picked; the CTO first told the CEO the clips were 480p, a claim nobody had measured · evidence: last-bell NOTES §Rough cut v1, 47 clips fired before the check · status: pending
 - 2026-10-04 [MISSING] Step 8 — the step named only the Flow lakorn gate; a champa Seedance short movie fails in the picture (weather from a reference, creature geometry, named states) where that gate's cheap stage is blind: 0 defects at stage 1 vs 15 of 41 shots failing by eye on THE LAST BELL. Pointer added to the new gate CMO_Gate_Champa_Seedance2.0_ShortMovieQC · evidence: session cto-671f688f, commit e5e898f3 · status: promoted
 - 2026-10-04 [COSTLY] Step 2 — THE LAST BELL went to the queue (40 shots, 2026-10-03) on a bible still marked "plot draft v1, not yet a locked script" and without `CMO_Gate_Story_SceneEngine`; the audit found scenes A, C and D failing (inert twist: the Naga only hurt the villain, the storm came before the bell, the chain broke after the Naga was loose). Round 2 needed 9 new shots plus re-cuts. Prevented by: the builder (`build_shots.py`) refusing to emit prompts while BIBLE.md says draft or no per-scene engine table exists · evidence: docs/prompts/last-bell/STORY-AUDIT-2026-10-04.md, STORY-V2.md (origin 2d339689) · status: pending
+- 2026-10-13 [MISSING] Step 8 QC (EP6) — look at every RECURRING ACCESSORY on the contact sheet, not just faces: the brother's square black-rimmed glasses were in the character plate but shot 12's text only said "stocky man", and the render came out bare-faced (v1). Fixed by writing "wearing his square black-rimmed glasses … stay on his nose the whole time" into that shot's text; the v2 reshoot (15 cr, 1 of max 3) kept them. Put the accessory in the shot text of any close or profile shot · evidence: cmo-c7879552 EP6 shot 12 v1 vs v2, ledger row 19:20 · status: pending
+- 2026-10-13 [WRONG] Step 8 transcript QC — `film_transcript.py` flags short Thai interjections as Japanese with the `small` model (EP6: "เฮ้ย"→"はい" shot 4, "อ้าว"→"あ!" shot 13). Re-hearing just that segment with `medium`, language th, word confidences gave "เฮ้ย" and "อ้าว" (0.99), so it is the language-ID, not stray Japanese speech: re-hear the 2 s segment before reshooting. Also `film_transcript.py`'s scripted column reads only banchi-ACT*, so khaoniao episodes need a wrapper pointing `scripted_lines` at the episode's data file; run it with `.venv/bin/python` (system python3 has no faster-whisper) and never name a scratch file `re.py` · evidence: cmo-c7879552 EP6 shots 4 and 13, `ep6/seg/re.log` · status: pending
+- 2026-10-13 [COSTLY] Step 9 · Edit — to put a CCTV/phone inset on a shot where the phone screen faces away, `film_cut_assemble.py` has no video overlay: prebuild the shot with ffmpeg (second clip scaled 300×533, gray + noise + scanlines, white border, `overlay=…:enable='between(t,a,b)'`, audio from the main clip) and use that file as the segment. Trim dead air at shot heads/tails (read the first/last speech time from the transcript TSV) so the title card lands on the 60 s mid-roll mark after a 2.3 s hook · evidence: cmo-c7879552 EP6 cut manifest `docs/scripts/mimi-ep6-cut-manifest.json` · status: pending
 - 2026-10-09 [WRONG] Step 2, multi-language scripts — the Thai script v0 for The Old Telling EP1 was a literal translation of English ideas ("the version they softened" became "ฉบับก่อนถูกทำให้เบาลง", which a native reader takes as "made lighter in weight"); the CEO, a native Thai reader, could not follow it. Rule candidate (n=1, so a note, not a rule): write ONE beat sheet (facts, image order, hook shape, turn, ending), then write each language fresh from the beat sheet, never from another language's text, and give each language its own tagline and its own "what everybody already knows" anchor. Check: the CEO reads Thai; ES, DE, JA need a native reviewer or a Thai back-translation for the CEO · evidence: docs/prompts/the-old-telling-ep1/SCRIPT-TH.md v0 vs v1, wiki decisions/2026-10-09-the-old-telling-mythology-series.md section Localisation · status: promoted (into CMO_Standard_TheOldTelling_Script, CEO 2026-10-09)
 - 2026-10-09 [MISSING] Step 1/2, rival script research — no step says how to read a rival's scripts. Worked: channel id from `externalId` on the about page; Popular playlist `UULP<id[2:]>`; `yt-dlp --skip-download --write-auto-subs --sub-langs "en.*" --sub-format json3` (use the plain `.en.json3`, not `-orig`); then count per video: where the title line lands, hook type, chapters, "but/however" per 1,000 words, words per minute, how it ends. Cost: 5 videos about 20 minutes, $0. The 5 videos were 15 to 55 min explainers, so the result describes that format only · evidence: Wikis/research/2026-10-09-cmo-mysteries-of-mythology-top5-script-teardown.md, memory reference_youtube_popular_uploads_pull · status: pending
 - 2026-10-09 [MISSING] Step 2 — a script in language X reached the CEO twice (v0 literal, v1 plain) before anyone compared it with the top-viewed originals in that language; the CEO, a native reader, rejected both ("ไม่น่าติดตามเลย"). A 25-minute, $0 check done first (8 Thai originals, auto-captions, count habits: cold open, viewer question, numbers, dialogue, register) found the habits v1 lacked and a bigger fact: the first story had almost no Thai audience (Orpheus 11K to 20K against 1.1M to 7.3M for curses and monsters). Rule candidate (n=1): before a script in a new language goes to the CEO, read the top 5 to 8 originals in that language and check the draft against their habits and the story's demand in that language · evidence: Wikis/research/2026-10-09-cmo-thai-mythology-channels-style-teardown.md, docs/prompts/the-old-telling-ep1/SCRIPT-TH.md v1 vs v2 · status: promoted (into CMO_Standard_TheOldTelling_Script, CEO 2026-10-09)

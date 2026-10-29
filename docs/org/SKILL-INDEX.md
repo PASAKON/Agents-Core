@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-63 org skills by kind — Rules 8 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 6 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+64 org skills by kind — Rules 8 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -50,7 +50,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
-| `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page «บ้านนี้มีมีมี่»: 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
+| `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |
 
 ## Procedure
@@ -77,8 +77,9 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Standard_BlackLiquidity_Script` | CMO | cmo, cto, script_writer, developer | Write the Thai script for a BLACK LIQUIDITY episode — the AI-avatar TikTok channel that exposes Forex and Ponzi scams. Use this whenever… |
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
-| `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีมีมี่» — who Mimi the black dog is, the CEO's… |
-| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
+| `CMO_Standard_HumanVoice_TH` | CMO | cmo, content_strategist, script_writer, browser_operator | Final pass on Thai text we publish for outsiders (captions, first comments, comment replies, LINE groups, chatbot templates): Thai AI… |
+| `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page 'บ้านนี้มีมีมี่' — who Mimi the black dog is, the CEO's… |
+| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page "ละครสั้นคุณธรรม" — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
 | `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
 | `CTO_Standard_Bedrock_WorkLayout` | CTO | cto | How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. |
 
@@ -88,7 +89,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Gate_Champa_Seedance2.0_ShortMovieQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for every clip of a SHORT MOVIE (one continuous story world, creatures, VFX, English dialogue) shot on champa Seedance… |
 | `CMO_Gate_Flow_Omni1.1_Continuity` | CMO | cmo, cto, script_writer, browser_operator | Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1 Flash, องค์ประกอบ mode): one table of time, place, who… |
-| `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of «จุดจบของเจ้าหนี้นอกระบบ»… |
+| `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of "จุดจบของเจ้าหนี้นอกระบบ"… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
 | `CTO_Gate_MergeChecklist` | CTO | cto | Pre-merge verification gate — refuses merge_task if any check fails. |
 | `CXO_Gate_RouteFirst` | CTO | cxo | Before every delegate_task of a worker job: outside runners first (IRON §59 rule 7). What route.check_override v2 and the router enforce… |

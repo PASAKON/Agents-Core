@@ -20,7 +20,7 @@ audience: [cmo, cto, cxo, script_writer]
 
 # Running a multi-shot AI film
 
-Paid for on «Sorry, Sir» (Seedance 2.5, Higgsfield), «จุดจบของเจ้าหนี้นอกระบบ» (Google Flow) and the ILAG
+Paid for on "Sorry, Sir" (Seedance 2.5, Higgsfield), "จุดจบของเจ้าหนี้นอกระบบ" (Google Flow) and the ILAG
 trailer (MiniMax H3). These are the rules that did not depend on the engine. Engine facts are in the
 engine skills; this file never repeats them. The ordered day-by-day pipeline (brief → idea → story → plates →
 previz → prompts → waves → QC → finish → posters → rules → publish → filing) is `CMO_Workflow_ShortFilm`.
@@ -41,7 +41,7 @@ saturated colour per person, so two characters never read alike.
 
 - The first commit of a new film's prompt directory is CAST.md. A prompt that binds a reference absent
   from CAST.md fails lint.
-- Two references for one character is a defect in CAST.md, not a style choice («Sorry, Sir» shipped two
+- Two references for one character is a defect in CAST.md, not a style choice ("Sorry, Sir" shipped two
   registrars and two grandmother wardrobes into Draft 3 because no single page showed the split).
 - The check is "does every character line in this paste block match its row?": grep the FLATTENED paste
   block (phrases wrap across lines) for each character's colour and carried object.

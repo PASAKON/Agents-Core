@@ -1,4 +1,4 @@
-# A/B LEDGER — «Sorry, Sir» prompt fixes on Seedance, failing prose vs passing prose
+# A/B LEDGER — "Sorry, Sir" prompt fixes on Seedance, failing prose vs passing prose
 
 Kept per `CMO_Knowledge_Film_Production` §11 (who writes an entry and what it quotes).
 Moved here from `ai-film-production/` on 2026-09-25: the ledger belongs to the
@@ -843,7 +843,7 @@ to "prefer prose for her in this scene; if a future sheet needs the Element, exp
 - Worker **task-41684e16** on winbox: S0b harvest (done by its predecessor) → S22 → S2R-Q → S2PT take 4.
 ## 2026-09-10 22:00 — session cto-c5bdcad2 PARKED (CEO ran /session-save)
 - Save file: `~/.claude/session-data/2026-09-10-c5bdcad2-session.tmp` (8,367 B), copied to Contabo at the same path so `/session-merge cto c5bdcad2` in `cto-e1e3d3ef` picks it up.
-- LungNote park: todo `a669fbb2-13a5-4202-aca5-2a4fecb7f74a`, open. **Two earlier attempts were malformed** (closing tags leaked into the text field and `due_at` came back null); both deleted with a reason. The third carries the full substance but `due_at` still did not stick — it is a trail marker, not a dated reminder. The other dated «Sorry, Sir» deadlines already in LungNote will surface at the next `/session-open` regardless.
+- LungNote park: todo `a669fbb2-13a5-4202-aca5-2a4fecb7f74a`, open. **Two earlier attempts were malformed** (closing tags leaked into the text field and `due_at` came back null); both deleted with a reason. The third carries the full substance but `due_at` still did not stick — it is a trail marker, not a dated reminder. The other dated "Sorry, Sir" deadlines already in LungNote will surface at the next `/session-open` regardless.
 - **Left running on purpose:** worker `task-41684e16` on winbox — S22 fired ~21:55, then S2R-Q, then S2PT take 4. Its monitor dies with this session, so the next session must re-arm one and pick up the reviews.
 - Day totals: **6 clips filed to Fix-2**, **12 editor rows sent on LINE**, **379 credits**, ~150 commits, Contabo made CTO-capable end to end.
 ## 2026-09-10 23:20 — S22 "THE CRATE" take 1 PASS · the door deviation is an improvement · grade is the one real miss

@@ -10,7 +10,7 @@ audience: [cmo, cto]
 
 # Blender Previz — free camera truth before paid generation
 
-Born 2026-08-30 on «Sorry, Sir»: the CEO's insight is that the expensive
+Born 2026-08-30 on "Sorry, Sir": the CEO's insight is that the expensive
 failure mode of AI video is CAMERA grammar (a prose "ONE LOCKED SHOT" is a
 request; a reference video is geometry), and Blender iterations cost nothing
 while a wrong Seedance take costs a 20–50-minute slot. So: prove the camera
@@ -135,7 +135,7 @@ colour, z≈2.2) with its own `TRACK_TO` at the camera (`TRACK_Z`, `UP_Y`) so
 labels billboard — this is what lets the CEO read a gray previz.
 
 Scene conventions from the hall build: metres, 24 fps, film geography is
-LAW — in «Sorry, Sir» the crack wall is the END wall OPPOSITE the red door,
+LAW — in "Sorry, Sir" the crack wall is the END wall OPPOSITE the red door,
 not a side wall (CEO caught this in v1; check the film's canon before
 placing hero geometry).
 

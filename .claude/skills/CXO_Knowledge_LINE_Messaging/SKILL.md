@@ -71,7 +71,7 @@ and `pin` touch the outside world, and they are separate words on purpose.
 1. **`open "<name>"`, then read the screenshot.** The chat header must read the
    person you meant. Do not skip this because the right chat "should" still be
    open — the list reorders constantly.
-2. **Write the message to a local file and `stage` it.** Never pass Thai text as
+2. **Write the message to a local file and `stage` it.** (Text a real person will read passes `CMO_Standard_HumanVoice_TH` first: CEO 2026-10-14, every outward message.) Never pass Thai text as
    a command argument (see rule 3).
 3. **`send`**, then read the screenshot. Confirm the bubble is there and the
    Thai renders.

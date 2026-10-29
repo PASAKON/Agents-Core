@@ -4,7 +4,7 @@ name: Mimi page week
 skill: CMO_Workflow_MimiPage_Weekly
 owner: CMO
 goal: Ship one week of the Mimi page — 3 video episodes (Fri-Sun) and 4 designed posts (Mon-Thu), all scheduled, then supervised.
-output: Three Reels and four poster posts live on the Page «บ้านนี้มีมีมี่» at 19:30 Thai time, each with a first comment and a numbers row.
+output: Three Reels and four poster posts live on the Page "บ้านนี้มีมีมี่" at 19:30 Thai time, each with a first comment and a numbers row.
 host: contabo
 trigger:
   kind: manual

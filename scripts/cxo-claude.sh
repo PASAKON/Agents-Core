@@ -321,6 +321,12 @@ if [ "$ROLE" = "coo" ]; then
     "WIKI_ROOT_ORG=$WIKI_ROOT_ORG" "WIKI_ROOT_MOONIEX=$WIKI_ROOT_MOONIEX"
     "DISABLE_AUTOUPDATER=1" "CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1"
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW=${CLAUDE_CODE_AUTO_COMPACT_WINDOW:-300000}"
+    # The inbox runs from a root-owned release with its state under /var/lib (CEO 2026-10-02,
+    # scripts/sompong-inbox-deploy.sh); the channel server and the family-gate hook find it here.
+    "SOMPONG_INBOX_SOCKET=${SOMPONG_INBOX_SOCKET:-/var/lib/sompong-inbox/inbox.sock}"
+    # The org MCP reads the DSN of the limited role org_coo from this file, written by
+    # mooniex-sompong.service at start (scripts/coo-org-db-cred.sh, scripts/hub/with-org-db-env.sh).
+    "MOONIEX_ORG_DB_URL_FILE=${MOONIEX_ORG_DB_URL_FILE:-/run/sompong-coo/org-db.url}"
   )
   [ -z "${LUNGNOTE_MCP_NODE:-}" ] || COO_ENV+=("LUNGNOTE_MCP_NODE=$LUNGNOTE_MCP_NODE")
 fi

@@ -1,0 +1,12 @@
+# Installed at /etc/systemd/system/ceo-deadline-feed.timer. 07:50 Bangkok, ten minutes before the
+# Console's ceo-digest.timer (08:00 Asia/Bangkok), whatever the box's own zone.
+[Unit]
+Description=CEO deadline feed at 07:50 Asia/Bangkok
+
+[Timer]
+OnCalendar=*-*-* 07:50:00 Asia/Bangkok
+Persistent=true
+Unit=ceo-deadline-feed.service
+
+[Install]
+WantedBy=timers.target

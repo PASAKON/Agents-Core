@@ -29,8 +29,33 @@ Owner: CMO. Written 27 Oct 2026 from PH CnDrama #3511068d's EP01 (v2 26 Oct, v3 
 - Loudness: -14 LUFS for the master and for every audio track.
 
 ## The voice
-- Narrator: ElevenLabs v4 on fal (`elevenlabs/tts/eleven-v4`), voice `Brian`, `stability` 0.5, Thai. It is the same
-  voice on every EP.
+- **Narrator (CEO 2026-10-27 ~15:35 TH, in chat: "voice2.mp3 ดีมาก เคาะอันนี้"):** Gemini 3.8 Flash TTS on fal
+  (`fal-ai/gemini-3.8-flash-tts`, run through `tools/fal_tts.py` on a spend card), preset voice `Algenib`, Thai. The
+  persona lives in `style_instructions`: "Speak as a Thai grandfather in his sixties telling an old legend at night.
+  Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody." plus one pace sentence and
+  "Native central Thai accent." The reference take is
+  `/opt/MoonieXHQ/Work/jade-tally-brand/voice/out/deliver/voice2.mp3`; the measurements are in `voices_vs_dodi.jpg`
+  in the same `out/` folder.
+- **Pace (CEO, same chat ~15:40 TH: "เอาให้พอๆ กับที่เขาเล่า ไม่เร็วไม่ช้าเกินไป" and "ไม่เร่งสปีด mp3 นะ ให้ generate
+  ใหม่"):** DODI ดูดิ's pace, about 10 Thai characters a second with pauses of about one breath. The pace comes from
+  the prompt. A take is never time-stretched afterwards; a take at the wrong pace is generated again. The pace
+  sentence comes from job5 (RUN-20261027-0915-f4ce, take C: 9.6 chars/s, median pitch 115 Hz, the voice of
+  voice2.mp3 kept): "Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller
+  reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences." It goes
+  between "Calm low melody." and "Native central Thai accent." The exact call is `v2p_C_a` in
+  `/opt/MoonieXHQ/Work/jade-tally-brand/voice/job5.json`; the reference take is `out/deliver/voice2_paceC.mp3`. The
+  CEO got takes C and D at 16:21 TH; C stands unless he picks D.
+  - Take D, used only if he picks it: "Tell it at a quick, confident pace, a little faster than everyday speech but
+    always clear. Join the phrases smoothly with almost no gaps, and take only a very short breath between
+    sentences." 10.0 chars/s, but the pitch rose to 124 Hz and it sounds brighter.
+  - Too slow, never reuse: "slow short phrases" (voice2.mp3, 7.7 chars/s), "a natural, steady storytelling pace"
+    (8.3) and "a lively, flowing storytelling pace, a little brisker than everyday speech" (8.8).
+  - Check every take before the cut: 9 to 11 chars/s (the script's characters over the take's length, silence at
+    both ends trimmed) and a median pitch within about 10 Hz of 115 Hz. Outside that, generate it again. The
+    measuring scripts are in `/opt/MoonieXHQ/Work/jade-tally-brand/voice/tools/`.
+- It is the same voice on every EP, EP01 included: EP01 v3, narrated by `Brian`, is re-voiced before it goes public.
+- `[SUPERSEDED 2026-10-27]` "Narrator: ElevenLabs v4 on fal (`elevenlabs/tts/eleven-v4`), voice `Brian`, `stability`
+  0.5, Thai". The CEO found it not natural (27 Oct ~12:20 TH) and picked from three Gemini 3.8 voices.
 - English: from EP02 on, the EN script is written to the TH shot timing. EP01's EN track is re-fitted to the TH picture
   in a job of its own (fal, on a spend card).
 
@@ -53,3 +78,5 @@ Owner: CMO. Written 27 Oct 2026 from PH CnDrama #3511068d's EP01 (v2 26 Oct, v3 
 2. The words blush, หน้าแดง and หูแดง never appear in a prompt, script, title or description.
 3. No `« »` and no em dash in any public text. Run `scripts/check-post-text.sh` before every upload.
 4. Every frame comes from our own renders. Another channel's footage is never the base we cut from.
+5. The narrator is never a clone of a real person's voice. DODI ดูดิ is a target in numbers only (pitch, range,
+   pace, pauses, loudness range); its audio is never fed to any TTS or voice tool.

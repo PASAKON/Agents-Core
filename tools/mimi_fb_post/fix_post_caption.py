@@ -49,8 +49,11 @@ def parse_rows(txt):
 
 
 def find_row(rows):
+    import datetime
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7)))  # Facebook words today/tomorrow relatively
+    rel = ("วันนี้" if str(now.day) == str(day) else "พรุ่งนี้" if str((now + datetime.timedelta(days=1)).day) == str(day) else None)
     for k, (c, d) in enumerate(rows):
-        if wd in d or d.startswith(f"{day} ต.ค."):
+        if wd in d or d.startswith(f"{day} ต.ค.") or (rel and d.startswith(rel)):
             return k, c, d
     return None, None, None
 

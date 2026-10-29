@@ -291,6 +291,26 @@ async def ask_run_wait(
     )
 
 
+@mcp.tool(description=reg.BY_NAME["email_ceo"].description)
+async def email_ceo(
+    kind: str,
+    title: str,
+    need: str = "",
+    why: str = "",
+    if_not: str = "",
+    link: str = "",
+    ref: str = "",
+    due: str = "",
+    session: str = "",
+    role: str = "",
+    dry_run: bool = False,
+) -> str:
+    return await reg.dispatch(
+        "email_ceo", kind=kind, title=title, need=need, why=why, if_not=if_not, link=link,
+        ref=ref, due=due, session=session, role=role, dry_run=dry_run,
+    )
+
+
 # Envelope mail (org restructure P1): the two letter readers are served only
 # when ORG_MAIL_ENVELOPE is on in this server's env, so with the flag off a
 # session's tool list is what it was. Defined either way, so the registry

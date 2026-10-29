@@ -4,14 +4,14 @@ kind: standard
 owner: CMO
 aka: [CTO_Story_ThaiMoralDrama]
 description: >
-  STANDARD — The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai
+  STANDARD — The story format for the ILAG Studio Facebook page "ละครสั้นคุณธรรม" — Thai
   stand-alone moral short films in the ฟ้ามีตา tradition, 8–12 minutes, one
   complete story per episode, made with AI video. Covers the beat structure, the
   rules about who the wrongdoer is and how karma lands, the requirement that the
   spoken lines alone carry the whole story, how dialogue and action lines are
   written, length, and the Structure gate. Trigger on /CMO_Standard_Story_ThaiMoralDrama and
   whenever anyone writes, audits, expands or briefs a story for that page, or
-  mentions ฟ้ามีตา, ละครสั้นคุณธรรม, «บัญชี», «เงินที่พ่อตั้งใจหา», or a new
+  mentions ฟ้ามีตา, ละครสั้นคุณธรรม, "บัญชี", "เงินที่พ่อตั้งใจหา", or a new
   episode for the ILAG drama channel. Use ALONGSIDE `CMO_Gate_Story_SceneEngine`, which
   owns scene-level structure (Goal/Obstacle/Tactic/Reversal/Value Shift) and is
   never replaced by this file — this one owns the episode shape and the format's
@@ -27,7 +27,7 @@ audience: [cmo, cto, script_writer]
 # ละครสั้นคุณธรรม — the format
 
 Derived 2026-09-18 from four real ฟ้ามีตา episodes (ศาลเตี้ย · เด็กในบ้าน ·
-ปีศาจ · เจ้าที่) plus the CEO's own rulings while «บัญชี» was being written.
+ปีศาจ · เจ้าที่) plus the CEO's own rulings while "บัญชี" was being written.
 Everything marked **CEO** is a ruling, not a suggestion.
 
 ฟ้ามีตา has run since 9 June 2007 on Channel 7, Saturdays 14:30, sixty minutes
@@ -90,7 +90,7 @@ forever, which is exactly what he inflicted on others. พิม's entire punish
 realising she is the villain.
 
 The law may appear, but **it is never the thing that arrives to fix the story.**
-In «บัญชี» a policeman makes the arrest — and he works only because he has eaten
+In "บัญชี" a policeman makes the arrest — and he works only because he has eaten
 free at the father's shop since he was a boy. **The good the hero did years ago
 is the mechanism.** Strip that out and the same scene is a deus ex machina.
 
@@ -116,13 +116,13 @@ material change: the money back, the illness treated, the shop alive, the child
 employed. **A good man who ends the film exactly as poor as he started has lost,
 whatever the last shot implies.**
 
-This rule killed a draft of «บัญชี» in which the hero, having proved he was
+This rule killed a draft of "บัญชี" in which the hero, having proved he was
 cheated, refused the money back on principle. That is an art-film ending in a
 morality-tale format.
 
 ### 9. Show it, never claim it (CEO)
 A line asserting something about a character is worth nothing without a scene
-that proves it. «บัญชี» had a policeman saying he had eaten free at this shop his
+that proves it. "บัญชี" had a policeman saying he had eaten free at this shop his
 whole life — and the audience had never once seen the father refuse his money.
 
 **Every claim in dialogue needs a scene.** Better: play it twice, and make the
@@ -224,7 +224,7 @@ how good the shots are.
 ### The rule and the test are not the same thing, and confusing them cost a day
 
 This file used to carry only the test. On 2026-09-18 that was enough to let Act 1
-of «บัญชี» reach camera **50% silent, with two unbroken 48-second stretches** in
+of "บัญชี" reach camera **50% silent, with two unbroken 48-second stretches** in
 which a job rejection was hidden and a debt was split into three piles — both
 plot the audience could only get by watching.
 
@@ -260,7 +260,7 @@ Consequences that bite in practice:
 
 - **A reversal staged as an image is a failed reversal.** An insert of a bedframe
   covered in tally marks "carrying the whole turn with no line of exposition" was
-  written into «บัญชี» and had to be thrown out. The marks stayed; the words that
+  written into "บัญชี" and had to be thrown out. The marks stayed; the words that
   introduce them are what do the work.
 - **Every number is spoken.** Amounts, dates, counts: not shown on a screen, not
   read off a phone or a note. Not because the model cannot draw them (on Flow it
@@ -272,7 +272,7 @@ Consequences that bite in practice:
 
 ### Plausibility is part of the dialogue, not a note on it
 
-Three holes that had to be closed in «บัญชี», as a checklist for the next script:
+Three holes that had to be closed in "บัญชี", as a checklist for the next script:
 
 1. **How does the character get access?** The son reads his father's bank
    history because he installed the app years ago and his father hands him the
@@ -296,7 +296,7 @@ already carry. If it costs shots, it is the first thing cut.
 
 > "ตัวละครดูไร้อารมณ์ โทนเสียงเป็นเรียบๆ ไม่มี ประจบประแจง โกรธ โมโห ร้องไห้ และการแสดงสีหน้า และการกระทำ เลย"
 
-**Measured on «จุดจบของเจ้าหนี้นอกระบบ».** Of 417 spoken lines in the ACT1–7 data files, 4 (1%) carried a
+**Measured on "จุดจบของเจ้าหนี้นอกระบบ".** Of 417 spoken lines in the ACT1–7 data files, 4 (1%) carried a
 strong emotion direction. The most common directions were quiet ×25, steady ×16, even ×14, flat ×13 and
 quieter ×11. The voice blocks pasted into every line also carried mood: "tired man", "calm man", "who never
 has to raise it". The script asked for flat, and it got flat. How far Veo goes when asked for more is not
@@ -324,7 +324,7 @@ First script under this rule: `docs/scripts/taachang-SCRIPT-v2.md`.
 > จะต้องมีอะไร ทำตามบทของตัวเอง ไม่ยืนนิ่ง รอคนพูดจบ"
 
 Then, after watching the S1–S5 test in Flow: *"อนุมัติการเขียน Prompt ตัวละคร Acting ล้นๆ ได้เลย จดเป็น Skill ไว้"*.
-**Proven on Flow · Omni 1.1 Flash, 720p, film 4 «ขายฝากนาแม่» S1–S5.** Other engines are untested.
+**Proven on Flow · Omni 1.1 Flash, 720p, film 4 "ขายฝากนาแม่" S1–S5.** Other engines are untested.
 
 Every shot is written this way from now on. Three changes to the shot prompt:
 
@@ -385,7 +385,7 @@ worked. What differs is where the model puts the performance.
 4. **Every speaker change costs a beat.** Two speakers in a 6s shot is fine;
    three lines across two changes needs 10s, not 8.
 5. **Name the speakers in the action line in the order they speak.** The model plays the action line's
-   order, not the dialogue block's: «ตาชั่งของเสี่ย» S37 had the grandmother's line first, the action named
+   order, not the dialogue block's: "ตาชั่งของเสี่ย" S37 had the grandmother's line first, the action named
    the boy first, and the take gave his line first; "the old woman speaks first …; only after she has
    finished, the boy …" fixed it on the next take (558ed6fa, 2026-09-26).
 6. One more, from the same measurement: the reference reel runs music and
@@ -410,7 +410,7 @@ Thai speaker would take a breath:
 **Where it matters most:** a word followed straight away by the same word, or by its
 own echo (ผมผม, ของเขาเขา, ยายยาย). Split those every time.
 
-**Evidence:** the CEO heard it in «น้ำไม่เลือกบ้าน» S13
+**Evidence:** the CEO heard it in "น้ำไม่เลือกบ้าน" S13
 (`docs/scripts/ep3-sabiang-SCRIPT-v1.md`). Check each line against the rule before
 writing it into a data file; a clip already shot is not re-shot for spacing alone.
 
@@ -521,7 +521,7 @@ Steps 1–11 cost nothing. Step 12 costs credits. The order is the point.
 
 ## Structure gate — before the first shot is written (CEO 2026-09-23)
 
-The CEO approved these after «จุดจบของเจ้าหนี้นอกระบบ», where four whole threads —
+The CEO approved these after "จุดจบของเจ้าหนี้นอกระบบ", where four whole threads —
 the hook, the police line, the lender's ending, the happy ending — were ordered by
 the CEO AFTER a full cut existed, and each cost an insert, a re-shoot and a re-cut.
 Every item is about the story, so it holds on any generator; only 8 depends on
@@ -593,7 +593,7 @@ The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
 - Nothing from the ending. The comment is read before the film is watched.
 - No engagement bait: no "พิมพ์ 1", "แท็กเพื่อน" or "แชร์เลย", because Facebook ranks those posts lower.
 - Promise only what is true. Do not write "ทุกสัปดาห์" while there is no schedule.
-- Run it through `scripts/check-post-text.sh` (docs/promo/WRITING-RULES.md).
+- Run it through `scripts/check-post-text.sh` (docs/promo/WRITING-RULES.md), after the last pass `CMO_Standard_HumanVoice_TH`.
 
 ## Field notes
 

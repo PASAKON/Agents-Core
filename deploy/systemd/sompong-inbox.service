@@ -1,0 +1,47 @@
+[Unit]
+Description=SomPong inbox (durable wake queue + local channel socket) for the always-on COO session
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Root, because the Infisical machine identity (/etc/infisical/contabo.env) is root 0600 and the
+# inbox is the ONLY process that may hold SOMPONG_EA_WAKE_KEY / SOMPONG_INTERNAL_KEY. The COO
+# session runs as the unix user `sompong` and reaches the inbox through /var/lib/sompong-inbox/inbox.sock
+# (0600, owner = SOMPONG_SOCKET_OWNER).
+#
+# Root runs a ROOT-OWNED RELEASE, never the SomPong repo (CEO 2026-10-02: SomPong edits itself
+# freely; anything that runs as root needs his Face ID). `sompong` owns the repo, so a unit that ran
+# it would run whatever SomPong last wrote, as root, on the next restart. A release is a `git archive`
+# of one commit under /opt/sompong-inbox/releases/<sha>, made by scripts/sompong-inbox-deploy.sh,
+# which runs as root only through a red Run Inbox card. The state lives under /var/lib for the same
+# reason: a root-owned parent, so `sompong` cannot swap a path the inbox opens or chowns.
+# This file is the source of truth (Agents-Core deploy/systemd); the copy in the SomPong repo's ops/ is
+# not installed on Contabo any more.
+User=root
+Group=root
+WorkingDirectory=/opt/sompong-inbox/current
+StateDirectory=sompong-inbox
+StateDirectoryMode=0755
+Environment=TZ=Asia/Bangkok
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=SOMPONG_STATE_DIR=/var/lib/sompong-inbox
+Environment=SOMPONG_SOCKET_OWNER=sompong
+# Same pattern as mooniex-line-queue.service's Infisical drop-in (PLAN section 5): the keys are read
+# with this machine's identity, exec'd into the inbox's environment, and never touch disk.
+# Required in Infisical project MoonieX-SomPong / prod: SOMPONG_EA_WAKE_KEY, SOMPONG_INTERNAL_KEY.
+# Optional there: SOMPONG_CEO_TELEGRAM_CHAT_ID, SOMPONG_CEO_LINE_USER_ID.
+ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run MoonieX-SomPong prod --as contabo -- /usr/bin/python3 -m inbox
+# Stopping or crashing the inbox loses nothing: every accepted event is already in inbox.db.
+# ClaudeFlow gets a refused connection (and retries) while it is down.
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/sompong-inbox
+
+[Install]
+WantedBy=multi-user.target

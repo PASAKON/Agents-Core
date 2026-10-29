@@ -107,6 +107,12 @@ PROJECTS: dict[str, list[str]] = {
     "MoonieX-Option": ["dev", "prod"],
     "MoonieX-AlphaTrader": ["dev", "prod"],
     "MoonieX-LineAutomation": ["dev", "prod"],
+    "MoonieX-SomPong": ["dev", "prod"],  # the COO session inbox (CEO 2026-10-01)
+    # What the COO session (unix user `sompong`, not root) may hold: ORG_DB_URL of the limited
+    # Postgres role org_coo (deploy/hub/org_coo_role.sql), never the hub superuser in Agents-Core.
+    # Read by `contabo` when mooniex-sompong.service starts and handed over as one file in /run
+    # (scripts/coo-org-db-cred.sh); `sompong` has no identity of its own (CEO 2026-10-02).
+    "Org-Coo": ["prod"],
     "MoonieX-Console": ["dev", "prod"],
     "MoonieX-ComfyRunpod": ["dev", "prod"],
     "MoonieX-CookierunBot": ["dev", "prod"],
@@ -137,7 +143,8 @@ PROJECT_FOLDERS: dict[str, list[str]] = {
 MACHINES: dict[str, list[str]] = {
     # NODE_PROJECT: the hub reads the node token there and hands it to approved nodes (CEO 2026-10-03).
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
-                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", NODE_PROJECT],
+                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", "MoonieX-SomPong",
+                "Org-Coo", NODE_PROJECT],  # Org-Coo: handed to the COO session as one file (CEO 2026-10-02)
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
     # Agents-Core back for W3.4 (CEO approval 2026-10-03): winbox reads ORG_DB_URL through
     # `run Agents-Core prod --as winbox`, never an org-db.env. Option = IQ demo trader (CEO 2026-10-01)
