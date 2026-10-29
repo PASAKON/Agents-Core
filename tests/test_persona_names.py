@@ -77,3 +77,15 @@ def test_send_resolves_both_generations_before_routing(monkeypatch, role, person
     for label in (persona, f"{emoji}: {persona}"):
         with pytest.raises(RuntimeError, match="resolved target"):
             send_to_cxo.send(f"\U0001F310 {role.upper()} ({label})", "test")
+
+
+@pytest.mark.parametrize("name,role", [
+    ("\U0001F5A5️ CTO (\U0001F468 \U0001F4BB: Kavin)", "cto"),
+    ("\U0001F310 CMO (\U0001F469\U0001F3FB \U0001F3A8: Ging) — topic", "cmo"),
+    ("\U0001F310 COO (\U0001F468\U0001F3FD \U0001F4BC: SomPong)", "coo"),
+])
+def test_persona_with_a_space_for_the_zwj_still_parses(name, role):
+    # winbox 29 Oct: "CTO (👨 💻: Kavin)" read as role unknown, so a reboot would not resume it.
+    uuid = "c8dfed53-0000-4000-8000-00005" + "7ec0d4e"
+    assert ls.parse_name(name, uuid)[0] == role
+    assert ls.parse_name("CTO (\U0001F468  \U0001F4BB: Kavin)", uuid)[0] != "cto"

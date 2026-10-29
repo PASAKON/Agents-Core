@@ -74,16 +74,18 @@ HOST_ORDER = ("contabo", "mac", "winbox")
 # The bracket before the id is optional and never part of the role: a Project
 # Head's lane, "CONTABO Project Head (CTO) #3c1f65ae (OrgRestructure)" (org
 # restructure P2), or a C-level's persona, "CONTABO COO (SomPong) #a7eb4963"
-# (CEO 2026-10-14 session names). A name without one parses as before.
+# (CEO 2026-10-14 session names). A name without one parses as before. The persona's
+# emoji may come with a plain space where its ZWJ was ("👨 💻", winbox 29 Oct): the
+# role is still read, never from the emoji.
 _NAME_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)"
-    r"(?:\s+\((?:[^\w\s():]+: )?[A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
+    r"(?:\s+\((?:[^\w\s():]+(?: [^\w\s():]+)*: )?[A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
 # CEO 2026-10-14: a C-level's name is "<ROLE> (<Name>)", e.g. "CTO (Kavin)", with no
 # machine and no #id; a role without a persona is the bare role, "CFO". Text after
 # " — " is the human topic (session-rename.sh). The role and id come from the
 # session record instead (_ids_from_record), never from this name alone.
 _SHORT_NAME_RE = re.compile(
-    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\((?:[^\w\s():]+: )?([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
+    r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\((?:[^\w\s():]+(?: [^\w\s():]+)*: )?([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
 # The launchers run every org session in a tmux session named "<role>-<sid>"
 # (cxo-claude.sh, cto-claude.sh, spawn-ph.sh); Claude Code records it in the
 # session file as "<tmux session>:@<window>.%<pane>".
