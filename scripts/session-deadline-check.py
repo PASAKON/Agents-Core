@@ -30,6 +30,9 @@ Design
 import os
 import sys
 import json
+import subprocess
+import time
+from pathlib import Path
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -72,7 +75,31 @@ def load_env(path):
     return env
 
 
+def kit_line():
+    root = Path(__file__).resolve().parents[1]
+    deadline = time.monotonic() + 25
+    try:
+        for command in ('pull', 'check'):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError()
+            result = subprocess.run(
+                [sys.executable, str(root / 'tools/kit_sync.py'), command],
+                cwd=root, capture_output=True, text=True,
+                timeout=min(15, remaining) if command == 'pull' else remaining,
+            )
+            if result.returncode:
+                raise RuntimeError('kit command failed')
+        lines = result.stdout.strip().splitlines()
+        if len(lines) != 1:
+            raise ValueError('invalid kit check output')
+        print(lines[0])
+    except Exception as exc:
+        print(f'kit check skipped: {type(exc).__name__}')
+
+
 def main():
+    kit_line()
     env = load_env(ENV_PATH)
     url = env.get("SUPABASE_URL")
     key = env.get("SUPABASE_SECRET_KEY")
