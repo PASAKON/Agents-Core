@@ -49,6 +49,13 @@ The library holds 66 ready cinematic prompt templates across 3 categories, 12 su
    .venv/bin/python .claude/skills/CMO_Knowledge_CinematicPrompts/scripts/pick.py lint
    ```
 
+## When to use the library way (CMO ruling, 29 Oct 2026)
+
+- **1-2 person story shots** (confrontation, confession, handover, reveal): build from a library entry: its lens, keyed light, grade and timed beats, keeping every house rule line of the target model.
+- **Crowds (3+ people) and physics gags** (objects changing path, impossible motion): stay with the plain EP1 Flow way (`CMO_Standard_Film_PromptFormat`, flat staging, few beats). Dense prompts there raise face drift, limb fusion and object morphing on Flow Omni 1.1.
+- ILAG shots keep the 3-person cap: a crowd beat is split into shots of ≤3 people before it is written.
+- Evidence: M4 proof `/opt/MoonieXHQ/Work/cineprompt/m4/M4-PROOF.md` (ILAG EP2, 5 shots, text only, nothing rendered); CMO e785343f letter 2026-10-29 15:20 TH, answer A.
+
 ## 3 · How to Adapt an Entry
 
 1. **House Format (`CMO_Standard_Film_PromptFormat`)**:
@@ -83,6 +90,7 @@ Options:
 - `--with-data`: fetch `data_url` payloads when applicable.
 
 **Reviewing Update Output**:
+- No timer (CMO 29 Oct): run the script by hand, about weekly.
 - The script generates `/opt/MoonieXHQ/Work/cineprompt/updates/review-<YYYY-MM-DD>.md`.
 - Inspect each changed source: note `license` and `copy_ok`.
 - For `ideas_only` or `templates_only` entries, extract concepts or staging ideas only; rewrite completely in original words and run `pick.py lint`.
