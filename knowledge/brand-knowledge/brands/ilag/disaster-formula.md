@@ -15,7 +15,8 @@ characters, places or titles of theirs go into ours. Evidence: docs/reports/film
 | Ending | cliffhanger "Part 2" | rescue + what happened after, "the place today" |
 | AI risk | lip-sync and acting in many short lines | almost none: no lip-sync needed |
 
-F2 is the cheaper and safer first pilot: narration hides AI's weak acting and the views were 5x higher.
+F2 is the cheaper and safer first pilot: narration hides AI's weak acting, and the model film had ~5x the views (2.9M vs 605k).
+Assumed: one film per format, so this is a hint, not proof.
 
 ## F1 beat sheet (percent of runtime)
 | % | Beat | Rule |
@@ -65,3 +66,7 @@ F2 is the cheaper and safer first pilot: narration hides AI's weak acting and th
 2. Hook in 5 s with picture only. Title after the cold open.
 3. One loved person in danger, one human villain (F1); one group and one betrayal (F2).
 4. Write for Flow: every shot a self-contained prompt; keep faces few and wide in F1.
+5. F2 real events: tick YouTube's "altered or synthetic content" disclosure on every upload (a realistic AI
+   re-enactment of a real event needs it), and put "AI re-enactment" in the description and on the date card (CMO 2026-10-29).
+6. Real victims: no gore, no mocking, no invented names for real people who died. Use real names only from public
+   history and cite the source in the description (CMO 2026-10-29).
