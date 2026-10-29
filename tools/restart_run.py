@@ -234,25 +234,49 @@ def win_send(row, text):
     return True
 
 
-def win_preflight(rows):
+def win_resumable(entry):
+    """Whether a manifest entry can be reopened from its JSONL (--resume <uuid>) without typing."""
+    if not entry or not entry.get('uuid'):
+        return False
+    try:
+        win_launcher(entry)
+    except ValueError:
+        return False
+    return True
+
+
+def win_preflight(rows, manifest=None):
     """Before the first real keystroke: this is the console session, the desktop is ours,
     and every tab we will type into is found exactly once and in front (wake.ps1 -DryRun
-    types nothing). One missing tab must stop the restart before any session is saved."""
+    types nothing). A registered, live, resumable session with no matching tab (wake exit 2)
+    is marked `untyped` and saved by its JSONL instead; any other missing tab must stop the
+    restart before any session is saved."""
     if win_session_id() in (None, 0):
         raise ValueError('winbox prep types into Windows Terminal tabs: run it in the console '
                          'session (scripts/winbox-restart.sh does), not over plain ssh')
     if not win_gate():
         return 3
+    entries = ({e['sid']: e for e in manifest} if manifest is not None else
+               {identity(r)[1]: r for r in rows if r.get('action') not in ('close', 'park')})
+    live_set = None
     bad = False
     for row in rows:
         code, out = win_wake(row, 'preflight', True)
-        if code != 0:
-            print(f"tab_not_found: {row['name']} {win_tab_token(row)}: wake exit {code}: {out}")
-            bad = True
+        if code == 0:
+            continue
+        role, sid = identity(row)
+        if code == 2 and 'ambiguous' not in out.lower() and 'more than one' not in out.lower():
+            if live_set is None:
+                live_set = win_live()
+            if (role, sid) in live_set and win_resumable(entries.get(sid)):
+                row['untyped'] = True
+                continue
+        print(f"tab_not_found: {row['name']} {win_tab_token(row)}: wake exit {code}: {out}")
+        bad = True
     return 1 if bad else 0
 
 
-def win_record(row, status, dry_run):
+def win_record(row, status, dry_run=False):
     """winbox has no session-kill: /session-save cannot end a claude.exe here. Record why the
     session is going down and leave the process to the reboot, so its .uuid, .lock and (for a
     Project Head) .project/.spawned_by files, which cxo-claude.ps1 deletes on a clean exit,
@@ -388,6 +412,8 @@ def win_plan_lines(plan, actions, cannot):
                'wait': 'mid-turn: a real run waits up to --wait-max, then stops with exit 3'}.get(label, '')
         if label == 'save+reopen':
             why = {'compact_then_resume': '/compact first', 'resume_lazy': 'lazy: no continue message'}.get(action, '')
+            if row.get('untyped'):
+                why = f"would save by jsonl (no tab): {row['name']}" + (f'; {why}' if why else '')
         who = row['name'] if f'#{sid}' in row['name'] else f"{role} #{sid}  {row['name']}"
         lines.append(f"  {label:<18} {who}" + (f'  ({why})' if why else ''))
     return lines
@@ -681,7 +707,16 @@ def prep(args):
                 print(f"cannot_resume: {entry['name']}: {exc}")
                 cannot[entry['sid']] = str(exc).split(':')[0]
         unreachable = bool(cannot)
+        typed = [r for r in plan['sessions'] if not managed(r) and not worker(r) and r['action'] != 'close']
+        entries = {e['sid']: e for e in manifest}
         if args.dry_run:
+            live_set = win_live()
+            for row in typed:
+                role, sid = identity(row)
+                if not row.get('untyped') and (role, sid) in live_set and win_resumable(entries.get(sid)):
+                    code, out = win_wake(row, 'preflight', True)
+                    if code == 2 and 'ambiguous' not in out.lower() and 'more than one' not in out.lower():
+                        row['untyped'] = True
             print('-- what a real run does, per session')
             print('\n'.join(win_plan_lines(plan, actions, cannot)) or '  (no sessions)')
         if blocked:
@@ -689,12 +724,11 @@ def prep(args):
         if unreachable:
             print('nothing was typed, saved or closed: fix the sessions above or leave them out of the restart')
             return 1
-        typed = [r for r in plan['sessions'] if not managed(r) and not worker(r) and r['action'] != 'close']
         if args.dry_run:
             for row in typed:
                 print(f"would preflight tab {win_tab_token(row)}: wake.ps1 -DryRun (types nothing)")
         elif typed:
-            code = win_preflight(typed)
+            code = win_preflight(typed, manifest)
             if code:
                 print('preflight failed: nothing was saved or closed and no marker was written')
                 return code
@@ -732,6 +766,14 @@ def prep(args):
                     win_record(row, 'closed', args.dry_run)
                 else:
                     run(['bash', 'scripts/session-kill.sh', '--status', 'closed', pane(row)], args.dry_run)
+                continue
+            if win and row.get('untyped'):
+                if args.dry_run:
+                    print(f"would save by jsonl (no tab): {row['name']}")
+                    continue
+                win_record(row, 'force_saved')
+                print(f"no_tab_saved_by_jsonl: {row['name']}")
+                gone(row, 'winbox')
                 continue
             compact_ok = True
             if action == 'compact_then_resume':
