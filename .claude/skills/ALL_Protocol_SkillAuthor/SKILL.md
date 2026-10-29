@@ -13,6 +13,7 @@ audience: [all]
 improved_by:
   - {role: cto, date: "2026-09-27", what: "kinds, naming, create/update/rename procedures, templates (CEO rulings 2026-09-27)"}
   - {role: cto, date: "2026-10-02", what: "Workflow template binds to flow.yaml (references/workflow-flow.md), lint code 18 (CEO ruling 2026-10-02)"}
+  - {role: cto, date: "2026-10-30", what: "§4 PH route: a PH writes a skill on a branch, its lane reviewer merges it (CEO 2026-10-30)"}
 ---
 
 # Skill Author — how the org makes and keeps a skill
@@ -120,6 +121,15 @@ a Workflow's `flow.yaml` breaks a rule F1–F14 of `references/workflow-flow.md`
 8. **Commit** (named paths only, §6 step 6) `skill(<name>): new — <what> — evidence <task-id / sha / the CEO's
    words>`, push, tell the CEO in one line, and add a pointer in the matching memory index when it matters
    across sessions.
+
+**A PH writes a skill (CEO 2026-10-30, any host).** CEO: "และ เพิ่มเติม PH ในแต่ละเครื่องเมื่อเจอ บัค สามารถ ส่ง Github issue ได้เลย และ สามารถ เขียน Skills เรียนรู้ ได้ในแต่ ละสายงานและ Project ของตัวเอง เพื่อส่งมา ให้ CTO หรือ CMO ตรวจ และ ใช้เป็น Skill กับ Worker อื่นๆ ได้เลย". Steps 1–7 are the same. In step 8
+the PH does not push to main and does not tell the CEO. It commits on a branch (in Agents-Core
+`kit/<host>/<sid8>-<skill>`, in a project repo a feature branch), opens a PR and sends one `report` letter with
+the PR number to its lane's reviewer: CTO Main for the CTO lane, the CMO for the CMO lane. A lane skill lives in
+Agents-Core; a skill only one project uses lives in that project repo's `.claude/skills/`. After the review CTO Main
+merges Agents-Core (a CMO-lane skill once the CMO has passed it) and the PH merges its own project repo. Every
+worker spawned after the merge has the skill, because worktrees start from `origin/main`. A change to the rule of
+an existing skill still needs ADR 0026 evidence.
 
 ## 5 · Update — six steps
 

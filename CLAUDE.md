@@ -116,6 +116,30 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
   `git fetch -q origin main && git diff --stat HEAD origin/main -- .claude/skills/<name>`.
   A `KIT STALE` line at session start means `git pull --ff-only` first.
 
+## Which host runs the work (CEO 2026-10-30, every role, every machine)
+
+CEO, 30 Oct ~02:30 TH: "เอาจริงๆ ไม่ควรเลือก MAC หรือ WINDOW ก่อน ควรกระจายเท่าๆ กัน ให้มันไม่เต็ม เหลือไว้เผือ ฉุก เฉินเล้กน้อย เช่น Contabo ใช้ ประาน 80% ก็เริ่ม กระจาย Winbox กับ MAC เท่าๆ กันได้เลย". Plan: `state/ph-briefs/hostspawn-host-fill-plan.md`; the code is
+PH HostSpawn's (#a08).
+- A host's fill is the highest of its RAM used %, CPU % and disk used %.
+- Contabo takes new work while its fill is under 80%. From 80%, the work goes to whichever of winbox and the Mac
+  is online and less full; a tie goes to the one running fewer workers. No host takes new work at 80% or more:
+  the last 20% is kept for emergencies. When no host can take a task, the task waits in the queue.
+- A task or a PH that names its host keeps it, except: ExpertAdvisor never runs on winbox; winbox keeps 4 GB of
+  RAM free for the live EA (§winbox below); renders stay on Contabo until the winbox render test has passed.
+- Until the router is switched on, pick by hand. `tools/host_fill.py` (PH HostSpawn B1, 30 Oct) prints each
+  host's fill and whether it is online. Pass `host=` to `create_task` and `--host` to `spawn_ph`.
+- Code comes back only through git: branch, PR, merge. Media never goes in git: it goes to Drive, is checked by
+  md5 and is then deleted on the host that made it. Nothing is copied between hosts by hand.
+
+## The CTO runs only on Contabo (CEO 2026-10-30, every role, every machine)
+
+CEO, 30 Oct ~02:30 TH: "และ CTO ควรมี อยู่แค่ Contabo เครื่องเดียว MAC และ Window ไม่ควรมี ถ้ามี งานต้อง Merge บน MAC หรือ Winbox ส่ง มาให้ CTO บน Contabo ช่วยดูให้ ผ่านระยะไกลไก้ไมน่าจะมีปัญหา" · "C level Spawn PH ต่างเครื่องได้" · "และ เพิ่มเติม PH ในแต่ละเครื่องเมื่อเจอ บัค สามารถ ส่ง Github issue ได้เลย และ สามารถ เขียน Skills เรียนรู้ ได้ในแต่ ละสายงานและ Project ของตัวเอง เพื่อส่งมา ให้ CTO หรือ CMO ตรวจ และ ใช้เป็น Skill กับ Worker อื่นๆ ได้เลย".
+- Never start a CTO session on the Mac or winbox. Merge work from there takes the kit hub route above: a branch,
+  a PR and one `report` letter to CTO Main, which reviews the PR and merges it on GitHub.
+- A C-level may open a PH on any host. A PH still merges its own project's PRs (IRON §62); a shared file or a
+  conflict goes to CTO Main.
+- A PH on any host files GitHub issues and writes skills: `roles/project_head.md`, row "Bugs and skills".
+
 ## Messaging another session (CEO 2026-10-13, every C-level, every machine)
 
 Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (one call, every host, under 1k tokens) and send only to a name it prints, verbatim — never to a name from memory or an old ListAgents list; "N agents are named X" → re-send with the `[ref]` the error marks active. Design + rollout: `docs/ops/live-sessions.md`.
