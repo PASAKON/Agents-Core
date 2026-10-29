@@ -1269,10 +1269,23 @@ def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = F
     return result
 
 
+def lineposter(*, config_dir: Path, dry_run: bool = False, rclone: str | None = None,
+               source: Path | None = None) -> dict:
+    """Weekly upload-only snapshot; exclude secrets, verify tar and manifest by ID."""
+    from tools.disksteward_p2 import backup, LINEPOSTER
+    if dry_run:
+        print('LinePoster: dated tar + manifest -> BACKUP/MoonieX HQ/Projects/contabo/LinePoster/; no deletion [dry-run]')
+        return dict(dry_run=True)
+    return backup(source or LINEPOSTER, 'Projects/contabo/LinePoster',
+                  config_dir=config_dir, rclone=rclone)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="drive_leg.py",
                                  description="Contabo's Drive leg of the Machine Contract")
     sub = ap.add_subparsers(dest="command", required=True)
+    lp = sub.add_parser('lineposter', help='weekly upload-only LinePoster backup')
+    lp.add_argument('--dry-run', action='store_true')
 
     rs = sub.add_parser("runner-state", help="archive old Codex / AGY state to Drive")
     rs.add_argument("--runner", choices=["codex", "agy", "all"], default="all")
@@ -1308,6 +1321,9 @@ def main(argv: list[str] | None = None) -> int:
     cfg_dir = config_dir()
 
     try:
+        if args.command == 'lineposter':
+            lineposter(config_dir=cfg_dir, dry_run=args.dry_run)
+            return 0
         if args.command == "runner-state":
             return 1 if runner_state(config_dir=cfg_dir, runner=args.runner,
                                      dry_run=args.dry_run)["failed"] else 0
