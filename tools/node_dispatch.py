@@ -216,8 +216,62 @@ def _git_version() -> str | None:
     return (r.stdout.strip() or None) if r.returncode == 0 else None
 
 
+def _fill_facts() -> dict:
+    """Lightweight resource readings; missing sensors stay unknown.
+
+    No process enumeration or application probes, especially on winbox.
+    """
+    facts = {"ram_total_gb": None, "ram_free_gb": None, "cpu_pct": None,
+             "disk_total_gb": None, "free_gb": None}
+    try:
+        volume = "C:/" if _is_windows() else (
+            "/System/Volumes/Data" if sys.platform == "darwin" else "/")
+        disk = shutil.disk_usage(volume)
+        facts.update(disk_total_gb=disk.total / 1024 ** 3,
+                     free_gb=disk.free / 1024 ** 3)
+    except OSError:
+        pass
+    try:
+        if _is_windows():
+            script = ("$m=Get-CimInstance Win32_OperatingSystem; "
+                      "$c=Get-CimInstance Win32_Processor; "
+                      "@{total=$m.TotalVisibleMemorySize; free=$m.FreePhysicalMemory; "
+                      "cpu=($c | Measure-Object LoadPercentage -Average).Average} "
+                      "| ConvertTo-Json -Compress")
+            r = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive",
+                                "-Command", script], capture_output=True, text=True,
+                               timeout=5, check=True)
+            values = json.loads(r.stdout)
+            facts.update(ram_total_gb=float(values["total"]) / 1024 ** 2,
+                         ram_free_gb=float(values["free"]) / 1024 ** 2,
+                         cpu_pct=float(values["cpu"]))
+        elif sys.platform == "darwin":
+            total = float(subprocess.run(
+                ["sysctl", "-n", "hw.memsize"], capture_output=True, text=True,
+                timeout=2, check=True).stdout) / 1024 ** 3
+            pressure = subprocess.run(["memory_pressure"], capture_output=True,
+                                      text=True, timeout=2, check=True).stdout
+            free_pct = float(re.search(r"free percentage:\s*([\d.]+)%", pressure).group(1))
+            facts.update(ram_total_gb=total, ram_free_gb=total * free_pct / 100)
+        else:
+            memory = dict(line.split(":", 1) for line in
+                          Path("/proc/meminfo").read_text().splitlines())
+            # Free RAM is the old probe's MemAvailable reading (set below), one source.
+            facts["ram_total_gb"] = float(memory["MemTotal"].split()[0]) / 1024 ** 2
+    except Exception:
+        # A probe never fails over a reading (same rule as _cpu_facts).
+        pass
+    if facts["ram_free_gb"] is None:
+        # Keep the old probe's reading: the winbox 4 GB floor depends on it.
+        facts["ram_free_gb"] = _ram_free_gb()
+    if not _is_windows():
+        _, load = _cpu_facts()
+        facts["cpu_pct"] = None if load is None else load * 100
+    return facts
+
+
 def _running_workers(host: str) -> int:
-    with db.get_conn() as conn:
+    with db.get_conn(readonly=True) as conn:
         rows = conn.execute(
             "SELECT pid FROM tasks WHERE host=? AND status='in_progress'", (host,)
         ).fetchall()
@@ -451,8 +505,6 @@ def verb_probe() -> dict:
         "host": host,
         "os": _os_name(),
         "agents_root": str(ROOT),
-        "free_gb": round(shutil.disk_usage(ROOT).free / 1024 ** 3, 1),
-        "ram_free_gb": _ram_free_gb(),
         "running": _running_workers(host),
         "version": _git_version(),
         "cpus": cpus,
@@ -463,6 +515,7 @@ def verb_probe() -> dict:
         "provides_measured": provides_measured,
         "probe_errors": probe_errors,
     }
+    facts.update(_fill_facts())
     # Probe fields only. `status` is left alone on purpose: it is the join
     # state machine's (pending_identity -> online), not a measurement.
     db.upsert_host(
