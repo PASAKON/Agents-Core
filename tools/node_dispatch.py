@@ -54,6 +54,7 @@ from lib import config, db, mailbox, proc, roles, session_names  # noqa: E402
 
 ACTOR = "node_dispatch"
 MESH_PROBE_DIR = ROOT / "state" / "mesh-probe"
+MAINTENANCE_AUDIT_DIR = ROOT / 'state' / 'mesh-audit'
 MAX_COMMAND_CHARS = 256
 MAX_LOG_ARGS = 8
 MAX_ERROR_CHARS = 500
@@ -644,7 +645,12 @@ def verb_kill_worker(task_id: str) -> dict:
     return result
 
 
-def verb_publish_branch(task_id: str) -> dict:
+def verb_publish_branch(task_id: str, metadata: str | None = None) -> dict:
+    if metadata is not None:
+        from tools import remote_maintenance
+        if remote_maintenance.decode(metadata).get('id') != task_id:
+            raise Refusal('metadata task mismatch')
+        return remote_maintenance.publish(metadata)
     task = _task_on_this_host(task_id)
     if task["status"] != "review":
         raise Refusal(f"task {task_id} is {task['status']}, publish_branch needs review")
@@ -658,9 +664,11 @@ def verb_publish_branch(task_id: str) -> dict:
         raise Refusal(f"worktree {_show(worktree)} is outside the worktrees root")
     if not worktree.is_dir():
         raise Refusal(f"worktree {_show(worktree)} does not exist")
+    from tools.remote_maintenance import outgoing_check
+    head = outgoing_check(worktree, branch)
     # Never the base branch (BRANCH_RE forces agent/...), never --force.
     r = subprocess.run(
-        ["git", "push", "origin", branch], cwd=str(worktree),
+        ["git", "push", "origin", head + ':refs/heads/' + branch], cwd=str(worktree),
         capture_output=True, text=True, timeout=GIT_PUSH_TIMEOUT_S,
         stdin=subprocess.DEVNULL, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
     )
@@ -1555,7 +1563,25 @@ def verb_deliver_letter(letter_id: str) -> dict:
 # Dispatch table -- the security core. An unknown verb is a refusal.
 # ---------------------------------------------------------------------------
 
+def verb_steward_reap(payload):
+    from tools.remote_maintenance import reap
+    return reap(payload)
+
+
+def verb_worker_completion(payload):
+    from tools.remote_maintenance import completion
+    return completion(payload)
+
+
+def verb_publish_ph(payload):
+    from tools.remote_maintenance import publish
+    return publish(payload, ph=True)
+
+
 HANDLERS = {
+    "steward_reap": verb_steward_reap,
+    "worker_completion": verb_worker_completion,
+    "publish_ph": verb_publish_ph,
     "probe": verb_probe,
     "kit": verb_kit,
     "pid_alive": verb_pid_alive,
@@ -1570,6 +1596,9 @@ HANDLERS = {
 
 # Exact argument patterns, in order. start_clevel has its own parser above.
 _ARGSPEC = {
+    "steward_reap": (re.compile(r'[A-Za-z0-9_=-]{1,7500}'),),
+    "worker_completion": (re.compile(r'[A-Za-z0-9_=-]{1,7500}'),),
+    "publish_ph": (re.compile(r'[A-Za-z0-9_=-]{1,7500}'),),
     "probe": (),
     "kit": (),
     "pid_alive": (TASK_ID_RE,),
@@ -1584,6 +1613,15 @@ _TASK_VERBS = frozenset({"pid_alive", "spawn_worker", "kill_worker", "publish_br
 
 
 def _check_args(verb: str, args: list[str]) -> tuple:
+    if verb == 'publish_branch' and len(args) == 2:
+        if not TASK_ID_RE.fullmatch(args[0]) or not re.fullmatch(r'[A-Za-z0-9_=-]{1,7500}', args[1]):
+            raise Refusal('malformed publish metadata')
+        try:
+            from tools.remote_maintenance import decode
+            decode(args[1])
+        except (ValueError, TypeError) as exc:
+            raise Refusal('invalid publish metadata') from exc
+        return tuple(args)
     if verb == "start_clevel":
         return _parse_start_clevel(args)
     spec = _ARGSPEC[verb]
@@ -1612,6 +1650,13 @@ def _audit(verb, args: list, ok: bool, error: str | None, *,
     }
     if raw is not None:
         payload["raw"] = _redact(raw[:MAX_COMMAND_CHARS])
+    if verb in {'steward_reap', 'worker_completion', 'publish_ph', 'publish_branch'} and _self_host() in {'winbox', 'mac'}:
+        # These verbs must not need a DB secret on the worker host.
+        audit_dir = MAINTENANCE_AUDIT_DIR
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        with (audit_dir / 'maintenance.jsonl').open('a', encoding='utf-8') as stream:
+            stream.write(json.dumps(payload) + '\n')
+        return
     try:
         with db.get_conn() as conn:
             db.log_event(conn, task_id, ACTOR, "dispatch", payload)
@@ -1657,7 +1702,8 @@ def parse_command(raw: str) -> list[str]:
     """SSH_ORIGINAL_COMMAND -> [verb, *args], or Refusal."""
     if not isinstance(raw, str) or not raw.strip():
         raise Refusal("empty command")
-    if len(raw) > MAX_COMMAND_CHARS:
+    metadata_verb = raw.split(' ', 1)[0] in {'steward_reap', 'worker_completion', 'publish_ph', 'publish_branch'}
+    if len(raw) > (8192 if metadata_verb else MAX_COMMAND_CHARS):
         raise Refusal(f"command longer than {MAX_COMMAND_CHARS} chars")
     if any(ord(c) < 32 or ord(c) == 127 for c in raw):
         raise Refusal("control character (NUL, newline, tab, ...) in command")

@@ -124,6 +124,8 @@ def test_dry_run_never_runs(monkeypatch, tmp_path, capsys, free, extra):
 
 
 def test_daily_stamps_and_orphan_close(monkeypatch, tmp_path):
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, 'hub_reap', lambda **kw: 0)
     monkeypatch.setenv('ORG_DB_URL', 'postgresql://unused-test-only')
     monkeypatch.setattr(ds, 'STATE', tmp_path/'state')
     monkeypatch.setattr(ds, 'lane_usage', lambda _: {})
