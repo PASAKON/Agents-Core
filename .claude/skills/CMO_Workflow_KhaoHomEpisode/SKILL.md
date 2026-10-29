@@ -140,7 +140,7 @@ local md5 for every file.
 
 ### Step 14 · Post [node: post]
 Do: the CMO lane posts, only after the CEO's OK to post. FB Page "เอาชีวิตรอดกับข้าวหอม" (id 61596195113811, under
-Dorsine Gobb) and YouTube @khaohomsurvival (UCA3806sh7qlV1S_oCIxlnjg, under Google account "กอล์ฟ พัสกร."). IG was not
+Dorsine Gobb) and YouTube @khaohomsurvival (a brand channel on the CEO's main Google account). IG was not
 linked yet on 30 Oct (Facebook offered only an unrelated existing IG account). TikTok waits for a new email and phone
 (CEO 29 Oct). Gate: the post URL opens and shows the clip.
 
