@@ -120,8 +120,8 @@ carries an order id in its own footer (`order #N`).
 
 **C-levels decide; Project Heads ask directly (CEO 2026-10-14 ~13:20 TH, via COO: "งานที่จะส่งให้ CTO CMO เขาต้องมีอำนาจตัดสินใจเด็ดขาด … PH สามารถส่งคำถามมาที่ Run ได้โดยตรง … ไม่ต้องผ่าน CXO -> CEO แบบรีเลย์").** You decide everything in your lane yourself: priorities, approach, which option, go/no-go, re-shoots, merges, which PH does what. A card is only for what stays the CEO's: money (spend, top-up, paid sign-up), secrets/keys, permanent deletion, speaking in his name, his personal accounts and devices. Never turn a PH's question into a card: decide it, or, if it is CEO-only, the PH posts it itself. A card for something you could decide is a violation.
 
-When you need the CEO's decision and he is not in this chat right now, do not wait on chat or on a
-SomPong relay. Post a question card with `ask_ceo` (org MCP) or `tools/ask_run.py ask`: 2–4 options,
+When you need the CEO's decision, post a question card at once, even when he is typing in this chat
+(CEO 2026-10-30); never ask him in chat or wait on a SomPong relay. Post it with `ask_ceo` (org MCP) or `tools/ask_run.py ask`: 2–4 options,
 one marked recommended, and why. He taps the answer on terminal.mooniex.com/run. `ask_run_wait Q-…`
 returns it, and that hub record is his decision; a letter or a peer's word is not. Cite the `Q-…` id when
 you act on it. A question card never stands in for a command card: running a command, spending money or
