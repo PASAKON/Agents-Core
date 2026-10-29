@@ -220,6 +220,8 @@ def build_plan(host, now, out_dir):
         sid = live['sid']
         row['session_id'] = sid if re.fullmatch('[0-9a-f]{8}', sid) else live['uuid'][-8:]
         row['live'] = True  # read_registry includes only live local processes
+        if live.get('verified') and live.get('launcher_id') == 'fresh':
+            row['launcher_id'] = 'fresh'
         pane = f"{row['role']}-{row['session_id']}"
         row['parked'] = any((ROOT / 'state/locks' / f'{pane}.{suffix}.parked').exists()
                             for suffix in ('project', 'spawned_by'))
@@ -234,9 +236,15 @@ def build_plan(host, now, out_dir):
             warnings.append(f"{row['session_id']}: transcript unavailable or invalid")
         row['incomplete'] = hub is None or row['C'] is None or row['last_active'] is None
         if hub:
-            for session in hub['c_level_sessions']:
-                if session.get('session_id') == row['session_id'] and session.get('role') == row['role']:
+            # Prefer the launcher identity; UUID-tail records may describe an older fork.
+            for lookup in dict.fromkeys((row.get('launcher_id'), row['session_id'])):
+                if lookup is None:
+                    continue
+                session = next((s for s in hub['c_level_sessions']
+                                if s.get('session_id') == lookup and s.get('role') == row['role']), None)
+                if session is not None:
                     row.update(status=session.get('status'), charter=session.get('charter'))
+                    break
             for table, items in hub.items():
                 if table in ('c_level_sessions', 'paid_generations', 'generations', 'merges'):
                     continue

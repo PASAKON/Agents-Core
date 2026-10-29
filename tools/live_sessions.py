@@ -249,6 +249,9 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
     # Only a listed role: a worker's tmux ("wd-<sid>") says nothing about its role.
     if m and is_listed(m.group(1)) and m.group(1) != "ceo" and session_id.endswith(m.group(2)):
         return m.group(1), m.group(2), True
+    fresh = _fresh_role(tmux, session_id)
+    if fresh:
+        return fresh, session_id[-8:], True
     role, sid = parse_name(name, session_id)
     fixed = _FIXED_TMUX_ROLE.get(tmux.split(":", 1)[0]) if tmux else None
     if fixed and _launcher_uuid(fixed, session_id):
@@ -260,6 +263,17 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
     if w and (sid == w.group(1) or (len(sid) == 3 and w.group(1).startswith(sid))):
         return role, w.group(1), True
     return role, sid, False
+
+
+def _fresh_role(tmux, session_id):
+    """Only a roster role's exact fresh tmux and securely read UUID may agree."""
+    from lib import roles
+    m = re.match(r"^([a-z]+)-fresh:", tmux) if isinstance(tmux, str) else None
+    if (m and m[1] != 'ceo' and m[1] in roles.c_level_roles()
+            and re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', session_id)
+            and read_lock(LOCKS_DIR / f'{m[1]}-fresh.uuid') == session_id):
+        return m[1]
+    return None
 
 
 def address_for(role: str, name: str) -> str:
@@ -517,6 +531,7 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
         "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
         "renamed_at": _ms_to_dt(data.get("nameSince")),
         "bridge_id": _bridge_id(data.get("bridgeSessionId")),
+        "launcher_id": "fresh" if _fresh_role(data.get("tmux"), session_id) == role else None,
         "_updated": data.get("updatedAt") if isinstance(data.get("updatedAt"), (int, float)) else 0,
     }
 
