@@ -13,7 +13,7 @@ import sys
 import shlex
 import urllib.request
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path, PureWindowsPath
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +24,108 @@ from tools import storage_policy as policy
 STATE = ROOT / 'state/storage'
 HUB_DIRS = (Path('/opt/usage/disk'), Path('/opt/disk-monitor'))
 GB = 1024**3
+M4_DUE = datetime.fromisoformat('2026-11-02T23:00+07:00')
+M4_HISTORY_DIR = Path('/opt/usage/disk')
+M4_HOSTS = ('contabo', 'mac', 'winbox')
+M4_CTO_SID = 'd405e3e2-5e46-406d-b9ae-a6f2f69c4825'
+
+
+def _m4_rows(path):
+    try:
+        with path.open(encoding='utf-8') as source:
+            for line in source:
+                if line.strip():
+                    yield json.loads(line)
+    except FileNotFoundError:
+        return
+
+
+def _m4_letter():
+    start, end = (M4_DUE - timedelta(days=7)).timestamp(), M4_DUE.timestamp()
+    thai = lambda ts: datetime.fromtimestamp(ts, M4_DUE.tzinfo).isoformat(timespec='seconds')
+    counts = dict.fromkeys(M4_HOSTS, 0)
+    for row in _m4_rows(STATE / 'steward.jsonl'):
+        if row.get('host') in counts and row.get('ts'):
+            ts = datetime.fromisoformat(row['ts'])
+            if ts.tzinfo is not None and start <= ts.timestamp() <= end:
+                counts[row['host']] += 1
+    lines = [f'ช่วง {thai(start)} ถึง {thai(end)} (GB = 1024³ bytes)',
+             'เครื่อง | ต่ำสุด GB | เวลาต่ำสุด (ไทย) | ตัวอย่าง | ล่าสุด (ไทย) | ticks']
+    longest = 0
+    contabo_min = None
+    for host in M4_HOSTS:
+        samples = sorted((row['t'], row['free']) for row in
+                         _m4_rows(M4_HISTORY_DIR / f'{host}.hist.jsonl')
+                         if start <= row['t'] <= end)
+        if not samples:
+            lines.append(f'{host} | no data | no data | 0 | no data | {counts[host]}')
+            continue
+        when, free = min(samples, key=lambda sample: sample[1])
+        lines.append(f'{host} | {free / GB:.1f} | {thai(when)} | {len(samples)} | '
+                     f'{thai(samples[-1][0])} | {counts[host]}')
+        if host == 'contabo':
+            contabo_min = free / GB
+            run_start = None
+            for ts, value in samples:
+                if value >= 15 * GB:
+                    if run_start is None:
+                        run_start = ts
+                    longest = max(longest, (ts - run_start) / 3600)
+                else:
+                    run_start = None
+    passed = longest >= 72 and all(counts.values())
+    lines.append(f'Contabo: ช่วงตัวอย่างต่อเนื่อง ≥15 GB ยาวที่สุด {longest:.1f} ชั่วโมง')
+    lines.append('ผล M4: ' + ('ผ่าน' if passed else 'ไม่ผ่าน') +
+                 ' (ต้อง ≥15 GB ต่อเนื่อง 72 ชั่วโมง และมี ticks ครบ 3 เครื่อง)')
+    if contabo_min is not None and contabo_min < 15:
+        subject = f'DiskSteward M4: Contabo min {contabo_min:.1f} GB (<15) → P5 disk card'
+        lines.append('ขั้นต่อไปของ CTO Main: P5 (การ์ด CEO ขอขยายดิสก์)')
+    else:
+        subject = 'DiskSteward M4: ' + ('PASS' if passed else 'FAIL / insufficient data')
+    return subject[:80], '\n'.join(lines)
+
+
+def m4_report(now=None, dry_run=False, host=None):
+    now = now or datetime.now(timezone.utc)
+    host = policy.host_key(host)
+    row = dict(name='m4-report', host=host, ts=now.isoformat(), status='skipped',
+               rc=None, bytes_before=None, bytes_after=None)
+    stamp = STATE / 'm4-report.sent'
+
+    def deliver():
+        if stamp.exists():
+            row['reason'] = 'already sent'
+            return
+        subject, body = _m4_letter()
+        if dry_run:
+            row.update(status='planned', subject=subject, body=body)
+            return
+        from lib import mailbox
+        mailbox.send('cto', M4_CTO_SID, body, 'system', 'disk-steward',
+                     kind='report', subject=subject)
+        temp = stamp.with_suffix('.tmp')
+        temp.write_text(json.dumps(dict(subject=subject, time=now.isoformat()),
+                                   ensure_ascii=False), encoding='utf-8')
+        temp.replace(stamp)
+        row.update(status='run', rc=0, subject=subject)
+
+    try:
+        if host != 'contabo':
+            row['reason'] = 'contabo only'
+        elif now < M4_DUE:
+            row['reason'] = 'not due'
+        elif dry_run:
+            deliver()
+        else:
+            import fcntl
+            STATE.mkdir(parents=True, exist_ok=True)
+            with (STATE / 'm4-report.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                deliver()
+    except Exception as exc:
+        row.update(status='failed', rc=1, error=type(exc).__name__)
+    record(row, dry_run)
+    return int(row['status'] == 'failed')
 
 
 def live_cwds():
@@ -389,6 +491,8 @@ def tick(host=None, dry_run=False, simulate_free=None):
         failed = True
         record(dict(name='letters', status='failed', rc=1, error=type(exc).__name__,
                     bytes_before=None, bytes_after=None), dry_run)
+    if host == 'contabo':
+        failed = bool(m4_report(dry_run=dry_run, host=host)) or failed
     if not dry_run:
         STATE.mkdir(parents=True, exist_ok=True)
         temp = stamp_file.with_suffix('.tmp')
@@ -440,7 +544,14 @@ def main(argv=None):
     p.add_argument('--simulate-free', type=float)
     p.add_argument('--host', choices=list(policy.load(policy.POLICY_PATH)['hosts']))
     sub.add_parser('report')
+    p = sub.add_parser('m4-report')
+    p.add_argument('--now', type=datetime.fromisoformat)
+    p.add_argument('--dry-run', action='store_true')
     args = parser.parse_args(argv)
+    if args.verb == 'm4-report':
+        if args.now is not None and args.now.tzinfo is None:
+            parser.error('--now must include a timezone')
+        return m4_report(now=args.now, dry_run=args.dry_run)
     if args.verb == 'report':
         report()
         return 0
