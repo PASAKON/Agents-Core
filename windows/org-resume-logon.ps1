@@ -153,7 +153,7 @@ function Resume-Sessions {
         # 5. the report; a missing Run Inbox token must not turn a good resume into a failure
         if (-not $DryRun) {
             $reportCode = Invoke-Py @('report', '--notify')
-            Log "report exit $reportCode (non-zero: sessions missing, or no Run Inbox token yet)"
+            Log "report exit $reportCode (non-zero: sessions missing or notification failed; absent token skips notification)"
         }
         return $code
     }

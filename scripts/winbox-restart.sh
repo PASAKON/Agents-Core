@@ -4,6 +4,7 @@
 # winbox-restart.sh --unregister-logon-task --sha <40-hex> [--dry-run]
 #
 # SafeRestart for winbox, run on Contabo by a CEO-approved Run card:
+# Card command must be plain one-line `bash scripts/winbox-restart.sh --sha <sha>`; put cwd in the card's cwd field: any prefix makes its own card look busy and refuses (exit 3).
 #   1. the winbox clone must be exactly at --sha with no changed tracked file;
 #   2. no Run card may be running on winbox;
 #   3. MooniexOrgResume (windows\register-org-resume.ps1) must be registered, or the
@@ -33,7 +34,8 @@
 # C:\Users\passg\mooniex\repo\MoonieX-Agents).
 # WINBOX_POLL_SEC (default 5) paces the wait for the console-session task; tests lower it.
 # Exit: 0 done (rebooting; or the logon task is now in the state asked for) | 1 prep/rollback failed | 2 usage or the clone is wrong |
-#       3 refused (CEO hold, running card, safety gate) | 4 the logon task is missing.
+#       3 refused (CEO hold, running card, safety gate) | 4 the logon task is missing |
+#       5 the ExpertAdvisor EA is not flat (or winbox cannot say).
 set -euo pipefail
 
 HOST="${WINBOX_HOST:-winbox}"
@@ -180,6 +182,28 @@ if ssh_out "schtasks /query /tn $LOGON_TASK" >/dev/null 2>&1; then
 else
   refuse "$LOGON_TASK is not registered on winbox: sessions would be saved and never reopened. Register it first with a CEO card: bash scripts/winbox-restart.sh --register-logon-task --sha ${sha:-<40-hex>}" 4
 fi
+
+# ---- 3b. the MT5 EA has no open position ------------------------------------------------
+# PH ExpertAdvisor runs an EA in MT5 (terminal64) on winbox. A reboot with a position open
+# leaves it unmanaged, so ea-live.ps1 flat must exit 0 first. No ea-live.ps1 = no EA: skip.
+# Nothing here or in prep stops terminal64; only the reboot itself ends it.
+EA_PS1='C:\Users\passg\ea-live\ea-live.ps1'
+ea_state=$(ssh_out "if exist $EA_PS1 (echo EA_PRESENT) else (echo EA_ABSENT)" 2>&1) ||
+  ea_state="ssh failed: $ea_state"
+case "$ea_state" in
+  EA_ABSENT) ok "no $EA_PS1 on winbox: EA flat check skipped" ;;
+  EA_PRESENT)
+    ea_code=0
+    ea_out=$(ssh_out "powershell -NoProfile -File $EA_PS1 flat" 2>&1) || ea_code=$?
+    if (( ea_code == 0 )); then
+      ok "EA is flat (ea-live.ps1 flat exit 0)"
+    else
+      [[ -n "$ea_out" ]] && printf '%s\n' "$ea_out"
+      echo "EA not flat"
+      refuse "ea-live.ps1 flat exited $ea_code: an EA position may be open; no reboot" 5
+    fi ;;
+  *) refuse "cannot tell whether the EA is flat ($ea_state): no reboot" 5 ;;
+esac
 fi   # mode == restart
 
 # ---- the one-shot interactive task: restart_run.py in the console session ---------------
