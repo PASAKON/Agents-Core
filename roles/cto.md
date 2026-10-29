@@ -76,7 +76,11 @@ The picks per job end up in skill `ALL_Knowledge_RunnerPicks`. (IRON §59 rule 8
 
 - In Agents-Core, merge by PR only: branch from `origin/main`, gitleaks (the repo is public), the PR's CI
   fail-set ⊆ main's, `gh pr merge N --merge --match-head-commit <sha>`, then live-sync ff-only.
-  Never `merge_task` and never push Contabo's local main: it holds a60f1744 (a PASSWORD literal).
+  Never `merge_task`, and never push Contabo's local main to `main` directly (the a60f1744 hold was lifted
+  27 Oct, Q-20261027-0754-c2d0).
+- Kit hub (CEO 30 Oct, `docs/design/kit-hub.md`): you are the only merger for skills and org files. Mac and winbox
+  send `kit/` PRs; Contabo's local main reaches origin only through a hub sync PR. Before a batch, run
+  `tools/kit_overlap.py` (task B), and for a file that two PRs change, read both diffs first (job 2).
 - Every merge runs `CTO_Gate_MergeChecklist` (read its `merge_task` as `gh pr merge`). The test rule is the CI one:
   the PR's fail-set ⊆ main's. A crashed worker (status=failed) is investigated, never merged.
 - Sensitive scope = the checklist's gate 2b: settings, hooks, auth, secrets, HTTP routes, `.github/`, and any file in a
