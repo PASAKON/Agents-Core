@@ -32,7 +32,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import pwd
 import re
 import subprocess
 import sys
@@ -42,6 +41,11 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    import pwd
+except ImportError:  # Windows: lib.org_tools_registry imports this module on every host,
+    pwd = None        # so a bare `import pwd` stopped every winbox session's launcher (30 Oct)
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -262,7 +266,7 @@ def feed_merged(*, dry_run: bool = False, now: datetime | None = None,
     env.setdefault("CXO_ROLE", "cto")
     try:
         if not env.get("HOME"):
-            env["HOME"] = pwd.getpwuid(os.getuid()).pw_dir
+            env["HOME"] = pwd.getpwuid(os.getuid()).pw_dir if pwd else os.path.expanduser("~")
         window = f"{(now - timedelta(hours=24)).isoformat()}..{now.isoformat()}"
         result = (runner or subprocess.run)(
             ["gh", "search", "prs", "--owner", "PASAKON", "--merged", "--merged-at", window,
