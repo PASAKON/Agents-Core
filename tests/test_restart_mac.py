@@ -24,7 +24,8 @@ def stub(path, body):
 
 # --- static checks -------------------------------------------------------------------------
 
-@pytest.mark.parametrize('script', [RESUME, RESTART], ids=lambda p: p.name)
+@pytest.mark.parametrize('script', [RESUME, RESTART, REPO / 'scripts/mac-restart-detach.sh',
+                                    REPO / 'scripts/install-mac-resume.sh'], ids=lambda p: p.name)
 def test_bash_syntax(script):
     result = subprocess.run(['bash', '-n', str(script)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
@@ -174,7 +175,7 @@ def test_restart_schedules_the_shutdown_only_after_prep_succeeds(tmp_path):
     assert result.returncode == 0, result.stderr
     assert len(calls) == 3
     assert 'git rev-parse HEAD' in calls[0]
-    assert 'cd /Users/gob/Projects/Agents' in calls[1]
+    assert 'cd /Users/gob/MoonieXHQ/Agents/Core' in calls[1]
     assert 'bash scripts/hub/org-python.sh tools/restart_run.py --host mac prep --wait-max 600' in calls[1]
     assert '--dry-run' not in calls[1]
     assert calls[2].endswith('sudo -n shutdown -r +1 </dev/null >/dev/null 2>&1')
@@ -258,3 +259,99 @@ def test_restart_rejects_bad_arguments_before_any_ssh(tmp_path, argv):
     result, calls = run_restart(tmp_path, *argv)
     assert result.returncode == 2
     assert calls == []
+
+
+def test_install_renders_and_bootstraps_template(tmp_path):
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    stub(bindir / 'launchctl', 'printf "%s\\n" "$#" > "$CALL_LOG"\n')
+    home = tmp_path / 'home'
+    env = dict(os.environ, HOME=str(home), PATH=f'{bindir}:' + os.environ['PATH'],
+               CALL_LOG=str(tmp_path / 'calls'))
+    result = subprocess.run(['bash', str(REPO / 'scripts/install-mac-resume.sh')],
+                            env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    output = home / 'Library/LaunchAgents/com.mooniex.org-resume.plist'
+    assert '__REPO__' not in output.read_text()
+    data = plistlib.loads(output.read_bytes())
+    assert data['WorkingDirectory'] == str(REPO)
+    assert data['ProgramArguments'][1] == str(RESUME)
+    assert (tmp_path / 'calls').read_text().strip() == '3'
+
+
+def run_detached(tmp_path, *flags, **overrides):
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    scripts = tmp_path / 'scripts/hub'
+    scripts.mkdir(parents=True)
+    stub(bindir / 'git', 'echo "$STUB_HEAD"\n')
+    # Stubs log argument counts only, never environment values or command arguments.
+    stub(bindir / 'launchctl', '''
+printf '%s\\n' "$#" >> "$CALL_LOG"
+case "$1" in
+  list) exit "${DUPLICATE_RC:-1}" ;;
+  remove) exit 0 ;;
+  submit)
+    shift 3
+    out=$2
+    shift 4
+    [ "$1" = -- ] || exit 99
+    shift
+    "$@" > "$out" 2>&1
+    exit 0 ;;
+esac
+exit 99
+''')
+    stub(bindir / 'sudo', '''
+printf '%s\\n' "$#" >> "$SUDO_LOG"
+shift
+"$@"
+''')
+    stub(bindir / 'shutdown', 'printf "%s\\n" "$#" >> "$SHUTDOWN_LOG"\n')
+    stub(scripts / 'org-python.sh', '''
+printf '%s\\n' "$#" >> "$PREP_LOG"
+for arg; do
+  case "$arg" in
+    --dry-run) touch "$DRY_MARKER" ;;
+    --cards-checked) touch "$CARDS_MARKER" ;;
+  esac
+done
+exit "${PREP_RC:-0}"
+''')
+    env = dict(os.environ, PATH=f'{bindir}:' + os.environ['PATH'], STUB_HEAD=SHA,
+               CALL_LOG=str(tmp_path / 'calls'), SUDO_LOG=str(tmp_path / 'sudo'),
+               SHUTDOWN_LOG=str(tmp_path / 'shutdown'), PREP_LOG=str(tmp_path / 'prep'),
+               DRY_MARKER=str(tmp_path / 'dry'), CARDS_MARKER=str(tmp_path / 'cards'))
+    env.update(overrides)
+    return subprocess.run(['bash', str(RESTART), '--detach', '--repo', str(tmp_path),
+                           '--sha', SHA, *flags], env=env, capture_output=True, text=True)
+
+
+def test_detach_refuses_duplicate(tmp_path):
+    result = run_detached(tmp_path, DUPLICATE_RC='0')
+    assert result.returncode == 7
+    assert 'already exists' in result.stderr
+    assert (tmp_path / 'calls').read_text().splitlines() == ['2']
+    assert not (tmp_path / 'prep').exists()
+
+
+@pytest.mark.parametrize('dry,prep_rc', [(True, 0), (False, 0), (False, 3), (False, 1)])
+def test_detached_job_gates_shutdown_and_cleans_up(tmp_path, dry, prep_rc):
+    flags = ['--cards-checked'] + (['--dry-run'] if dry else [])
+    result = run_detached(tmp_path, *flags, PREP_RC=str(prep_rc))
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / 'cards').exists()
+    assert (tmp_path / 'dry').exists() == dry
+    assert (tmp_path / 'shutdown').exists() == (not dry and prep_rc == 0)
+    assert (tmp_path / 'sudo').exists() == (not dry and prep_rc == 0)
+    assert not list((tmp_path / 'state/restart').glob('mac-prep-job.*'))
+    logs = list((tmp_path / 'state/restart').glob('mac-prep-*.log'))
+    assert len(logs) == 1
+    assert f'job exit: {prep_rc}' in logs[0].read_text()
+    assert (tmp_path / 'calls').read_text().splitlines() == ['2', '10', '2']
+
+
+def test_detach_sha_mismatch_never_submits(tmp_path):
+    result = run_detached(tmp_path, STUB_HEAD=OTHER_SHA)
+    assert result.returncode == 4
+    assert not (tmp_path / 'calls').exists()
