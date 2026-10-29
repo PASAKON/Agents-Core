@@ -93,12 +93,12 @@ try {
   }
   & \$python -m pip install --quiet pyyaml *>\$null
   if (\$LASTEXITCODE -ne 0) { throw 'PyYAML installation failed' }
-  Push-Location \$dedicated
+  Push-Location \$dedicated -ErrorAction Stop
   try {
     \$versions = & \$python -c "import sys, yaml; from tools import disk_steward; print('Python', sys.version.split()[0], 'PyYAML', yaml.__version__)"
     if (\$LASTEXITCODE -ne 0) { throw 'Steward import check failed' }
     [Console]::Error.WriteLine(\$versions)
-  } finally { Pop-Location }
+  } finally { Pop-Location -ErrorAction Stop }
   Write-Output \$dedicated
 } catch { Write-Error \$_ -ErrorAction Continue; exit 1 }
 PS
