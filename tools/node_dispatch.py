@@ -260,6 +260,9 @@ def _fill_facts() -> dict:
                          ram_free_gb=float(memory["MemAvailable"].split()[0]) / 1024 ** 2)
     except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError):
         pass
+    if facts["ram_free_gb"] is None:
+        # Keep the old probe's reading: the winbox 4 GB floor depends on it.
+        facts["ram_free_gb"] = _ram_free_gb()
     if not _is_windows():
         _, load = _cpu_facts()
         facts["cpu_pct"] = None if load is None else load * 100
