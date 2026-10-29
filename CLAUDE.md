@@ -173,11 +173,15 @@ Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (
     or its .ex5/.set files change. That restart is part of the EA's design.
 - Anything that has to break one of these goes to CTO Main first.
 
-## Questions to the CEO go on a question card (CEO 2026-10-13, every C-level)
+## Questions to the CEO go on a question card at once (CEO 2026-10-13 and 2026-10-30, every C-level and PH)
 
-A question for the CEO (a choice, a go/no-go, "which one?") that he is not answering in your chat right
-now goes on a Run Inbox **question card**: org MCP `ask_ceo`, CLI `tools/ask_run.py ask`. Do not leave it
-waiting in chat or hand it to SomPong to relay. He taps an answer on terminal.mooniex.com/run, and
+CEO, 30 Oct ~04:15 TH, after a PH asked him in chat: "อยากให้การใช้งาน RUn ใช้งานได้ทันที เมื่อติด Blocker นะ ยิ่ง PH ยิ่งควร … บังคับใช้ ทั้ง CXO และ PH เลย".
+A question for the CEO (a choice, a go/no-go, "which one?", "is this the right account?") goes on a Run
+Inbox **question card** the moment you have it, **even when he is typing in your chat**: org MCP `ask_ceo`,
+CLI `tools/ask_run.py ask`. Never ask it in chat, never leave it waiting there, and never hand it to SomPong
+to relay. A blocker that needs his hands (a decision, a tap, a login) goes on its card the same way.
+The Stop hook `scripts/hook-phone-only-commands.py` refuses a C-level or PH reply that asks him something
+with no card, or no `blocker` letter, in the same turn. He taps an answer on terminal.mooniex.com/run, and
 `ask_run_wait Q-…` returns it. Only he can answer, and that hub record is his decision: cite the `Q-…` id
 when you act on it. **A question card never replaces a command card.** Anything that runs a command,
 spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill

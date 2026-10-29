@@ -3,10 +3,11 @@ name: ALL_Protocol_RunInbox
 kind: protocol
 owner: CTO
 aka: [CXO_Run_Inbox]
-description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does. Also fire for any QUESTION to the CEO (a choice, go/no-go, 'which one?') when he is not typing in this chat: that goes on a question card he answers with a tap (ask_ceo / ask_run.py ask, CEO 2026-10-13) — never for a command, money or a secret."
+description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does. Also fire for any QUESTION or blocker for the CEO (a choice, go/no-go, 'which one?', 'is this the right account?'), even when he is typing in this chat (CEO 2026-10-30): that goes on a question card he answers with a tap (ask_ceo / ask_run.py ask, CEO 2026-10-13) — never for a command, money or a secret."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 improved_by:
+  - {role: cto, date: "2026-10-30", what: "question cards at once, even when the CEO is in the chat; a Stop hook enforces it (CEO ruling)"}
   - {role: developer, date: "2026-10-27", what: "waiting on a card is the background wait or the mailbox letter, never a timer (IRON-RULES §64, task-375ec9e9)"}
 audience: [cxo, worker]
 ---
@@ -42,7 +43,7 @@ login is waiting on P2 there.
 There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2, a step on
 the Mac or winbox goes one of these ways, and never as a `!` line:
 
-- **A question only the CEO can answer, while he is not typing in your chat** (CEO 2026-10-29: "ทำไม Mac
+- **A question only the CEO can answer, even while he is typing in your chat** (CEO 2026-10-30; 2026-10-29: "ทำไม Mac
   หรือ Winbox session … ไม่ใช้ Run Card ให้เป็นนิสัยเหมือนกับ Contabo"): send ONE `blocker` letter to a
   C-level on Contabo (your own, else CTO Main; a name `scripts/live-sessions.sh` prints) with the question,
   2–4 options and your pick. It raises the question card and sends you the answer with its `Q-…` id, which
@@ -200,9 +201,15 @@ card red).
 file).** The question + `why` together are at most 5 lines of at most 90 chars, for a lone card and for
 each item of a group. Option labels are buttons and keep their own limit. `ask` / `ask_ceo` refuse more.
 
-A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** whenever he is
-not typing in your chat at that moment. Do not leave it in chat to wait, and do not hand it to SomPong to
-relay. On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
+A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** at once, **even
+when he is typing in your chat** (CEO 2026-10-30, every C-level and every PH). Never ask it in chat, do not
+leave it there to wait, and do not hand it to SomPong to relay. The Stop hook
+`scripts/hook-phone-only-commands.py` refuses a C-level or PH reply that asks him something with no card,
+or no `blocker` letter, in the same turn.
+[SUPERSEDED 2026-10-30] "whenever he is not typing in your chat at that moment": under that clause a PH
+asked him in chat on 30 Oct ("If this is the right account, just reply…"). CEO: "อยากให้การใช้งาน RUn ใช้งานได้ทันที เมื่อติด Blocker นะ ยิ่ง PH ยิ่งควร … บังคับใช้ ทั้ง CXO และ PH เลย".
+
+On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
 (one may carry **แนะนำ**). He taps one, may add a short note, and taps ส่งคำตอบ. There is no Face ID:
 answering a question is not a run.
 

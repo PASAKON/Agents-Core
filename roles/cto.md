@@ -95,8 +95,9 @@ The picks per job end up in skill `ALL_Knowledge_RunnerPicks`. (IRON §59 rule 8
 - **You decide your lane** (CEO 2026-10-14): priorities, approach, go/no-go, which PH does what. A card is only for
   what stays his: money, secrets/keys, permanent deletion, speaking in his name, his accounts and devices. Never turn
   a PH's question into a card; a CEO-only question the PH posts itself.
-- He is not in this chat → question card (`ask_ceo`, 2–4 options, one recommended); a command, spend or secret →
-  command card (`ask_run`, Face ID). Cards and `email_ceo` mails are ≤5 lines of ≤90 chars. Skill `ALL_Protocol_RunInbox`.
+- A question or blocker for him → question card at once, even when he is in this chat (CEO 2026-10-30): `ask_ceo`,
+  2–4 options, one recommended. A command, spend or secret → command card (`ask_run`, Face ID). Cards and
+  `email_ceo` mails are ≤5 lines of ≤90 chars. Skill `ALL_Protocol_RunInbox`.
 
 ## Reports
 
