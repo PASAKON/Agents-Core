@@ -52,12 +52,15 @@ CARD_ID = re.compile(r"(?:Q|QG|RUN)-\d{8}-\d{4}-[0-9a-f]{4}|rq-[0-9a-f]{8}")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
 QUOTED = re.compile(r'"[^"\n]*"|\u201c[^\u201d\n]*\u201d')
 ENDS_WITH_QUESTION = re.compile(r"[?？]\s*$")
-ADDRESSES_CEO = re.compile(r"คุณ|ท่าน|\byou\b|\byour\b", re.IGNORECASE)
+ADDRESSES_CEO = re.compile(r"คุณ|ท่าน|พี่|\byou\b|\byour\b", re.IGNORECASE)
+# "ไม่ต้องทำอะไรครับ" is a statement: an ไม่ within NEGATION_REACH characters before the
+# question word cancels this one pattern.
+OPEN_ASK = re.compile(r"(ไหน|อะไร|ยังไง|อย่างไร|เมื่อไหร่|เมื่อไร)\s*(ดี)?\s*(ครับ|คะ|ค่ะ)\s*[?？]?\s*$")
+NEGATION_REACH = 15
 ASKS = [re.compile(p, re.IGNORECASE) for p in (
     # Thai
     r"(ไหม|มั้ย|มั๊ย|หรือเปล่า|รึเปล่า|หรือไม่|หรือยัง)\s*(ครับ|คะ|ค่ะ|คับ)",
     r"(ไหม|มั้ย|มั๊ย|หรือเปล่า|รึเปล่า)\s*[?？]",
-    r"(ไหน|อะไร|ยังไง|อย่างไร|เมื่อไหร่|เมื่อไร)\s*(ดี)?\s*(ครับ|คะ|ค่ะ)\s*[?？]?\s*$",
     r"(เลือก|ตอบ|พิมพ์|ยืนยัน|อนุมัติ)[^\n]{0,40}?(ได้เลย|ด้วย|หน่อย)\s*(ครับ|คะ|ค่ะ|นะครับ|นะคะ)",
     r"รอ\s*(คำตอบ|คำยืนยัน|การตัดสินใจ)\s*(จาก)?\s*(คุณ|ท่าน|CEO)",
     # English
@@ -68,7 +71,8 @@ ASKS = [re.compile(p, re.IGNORECASE) for p in (
     r"\blet me know\b",
     r"\bplease (confirm|approve|choose|pick|decide|reply|answer)\b",
     r"\b(which|what) (one|option|account|version)\b[^\n]{0,60}\?",
-    r"\byour (call|decision|choice|go-ahead|approval)\b",
+    r"\byour (call|decision|choice|go-ahead)\b",
+    r"\bneeds? your (approval|go-ahead|ok)\b",
     r"\b(ok|okay) to\b[^\n]{0,60}\?",
 )]
 
@@ -178,9 +182,16 @@ def _raises_card(text: str, tools: list[dict]) -> bool:
     return False
 
 
+def _is_ask(line: str) -> bool:
+    m = OPEN_ASK.search(line)
+    if m and "ไม่" not in line[max(0, m.start() - NEGATION_REACH):m.start()]:
+        return True
+    return any(rx.search(line) for rx in ASKS)
+
+
 def question_offenders(text: str, tools: list[dict]) -> list[str]:
     """Lines of the turn that ask the CEO something in chat, when the turn raised no
-    card. Fenced code, `>` lines, inline code and quoted words are not scanned."""
+    card. Fenced code, `>` lines, table rows, inline code and quoted words are not scanned."""
     if _raises_card(text, tools):
         return []
     hits: list[str] = []
@@ -189,10 +200,10 @@ def question_offenders(text: str, tools: list[dict]) -> list[str]:
         if FENCE.match(line):
             in_fence = not in_fence
             continue
-        if in_fence or line.lstrip().startswith(">"):
+        if in_fence or line.lstrip().startswith((">", "|")):
             continue
         bare = QUOTED.sub(" ", INLINE_CODE.sub(" ", line))
-        if any(rx.search(bare) for rx in ASKS) or (
+        if _is_ask(bare) or (
                 ENDS_WITH_QUESTION.search(bare) and ADDRESSES_CEO.search(bare)):
             hits.append(line.strip())
     return hits

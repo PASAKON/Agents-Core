@@ -269,3 +269,26 @@ def test_ask_before_the_last_real_user_message_is_ignored(tmp_path):
 def test_ask_before_a_tool_result_in_the_same_turn_still_blocks(tmp_path):
     recs = [_user("q"), _assistant("Should I post it now?"), _tool_result(), _assistant("done")]
     assert _run(tmp_path, recs, env=CTO)["decision"] == "block"
+
+
+# ------------------------------------------- CTO review fixes (false positives on real turns)
+@pytest.mark.parametrize("text", [
+    "| clip.mp4 | น้ำไหล ลุยได้ไหม? | 56 s |",                    # a table row holding a clip title
+    "  | clip.mp4 | Should I post it now? | 56 s |",
+    "ระหว่างนี้พี่ไม่ต้องทำอะไรครับ",                              # a statement, not a question
+    "ไม่มีอะไรค้างครับ",
+    "I've recorded your approval: up to 1,600 credits",
+])
+def test_review_false_positives_pass(tmp_path, text):
+    assert _run(tmp_path, [_user("q"), _assistant(text)], env=CTO) is None
+
+
+@pytest.mark.parametrize("text", [
+    "จะเอาแบบไหนครับ",
+    "พี่จะเอาอันไหน?",
+    "this needs your approval",
+    "This needs your go-ahead.",
+    "| a | b |\nShould I post it now?",                           # only the table row is skipped
+])
+def test_review_asks_still_block(tmp_path, text):
+    assert _run(tmp_path, [_user("q"), _assistant(text)], env=CTO)["decision"] == "block"
