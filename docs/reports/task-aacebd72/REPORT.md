@@ -22,7 +22,7 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
 ## Commits
 - 9b74453c: hook-phone-only-commands: block a C-level or PH that asks the CEO in chat with no question card
 - 98499d8c: ask_run wait: accept --timeout as an alias of --max-wait
-- the commit that adds tools/mail_wake.py, its tests, the `_ALLOWED_SUBSETS` row and this report (sha is in `git log`)
+- be19b407: mail_wake: wake the session that waits on an unread mailbox letter (tools/mail_wake.py, its tests, the `_ALLOWED_SUBSETS` row, this report)
 
 ## Tests
 - ran: `.venv/bin/python -m pytest tests/test_hook_phone_only_commands.py tests/test_mail_wake.py tests/test_ask_run.py`
