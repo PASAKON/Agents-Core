@@ -222,6 +222,11 @@ _ALLOWED_SUBSETS = {
     # on, so its memory counts; cgo sessions are still not capped (see
     # tools/session_name.py's docstring). A capacity decision, not a roster copy.
     ("tools/session_cap.py", ("cto", "cmo", "cfo", "coo", "cxo")),
+    # The Stop hook that refuses a CEO question in chat with no card applies to c_level_roles()
+    # minus coo (SomPong talks to the CEO on LINE/Telegram) plus project_head, and stays
+    # stdlib-only so it cannot import lib/roles.py. tests/test_hook_phone_only_commands.py
+    # compares this set with c_level_roles(), so it cannot drift.
+    ("scripts/hook-phone-only-commands.py", ("cto", "cmo", "cgo", "cfo", "project_head")),
 }
 _QUOTED_SEQ = re.compile(
     r"[(\[{]\s*((?:[\"'][A-Za-z_ ]+[\"']\s*,\s*){2,}[\"'][A-Za-z_ ]+[\"'])\s*,?\s*[)\]}]")

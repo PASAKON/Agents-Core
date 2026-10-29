@@ -208,7 +208,8 @@ def decide(payload: dict, env=os.environ) -> dict | None:
         return None
     text, tools = turn(Path(tp))
     reasons = [REASON.format(hit=h[:160]) for h in offenders(text)[:1]]
-    if env.get("CXO_ROLE", "") in QUESTION_ROLES and env.get("CARD_GUARD", "").lower() != "off":
+    asks_ceo = env.get("CXO_ROLE", "").strip().lower() in QUESTION_ROLES
+    if asks_ceo and env.get("CARD_GUARD", "").lower() != "off":
         try:
             reasons += [QUESTION_REASON.format(hit=h[:160]) for h in question_offenders(text, tools)[:1]]
         except Exception as e:  # a bug here must not take the `!` check down with it
