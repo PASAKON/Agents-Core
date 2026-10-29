@@ -367,6 +367,162 @@ ALL_TOGGLE_LABELS = {
 }
 
 
+def test_run_accepts_landscape_aspect():
+    args = flow_shoot.build_parser().parse_args([
+        "run", "--sheet", "sheet.md", "--ledger", "ledger.tsv", "--dest", "out",
+        "--max-credits", "5", "--aspect", "16:9",
+    ])
+    assert args.aspect == "16:9"
+
+
+@pytest.mark.parametrize("command", ["run", "pull"])
+def test_aspect_parser(command):
+    parser = flow_shoot.build_parser()
+    argv = [command, "--sheet", "sheet.md", "--ledger", "ledger.tsv", "--dest", "out"]
+    assert parser.parse_args(argv).aspect == "9:16"
+    assert parser.parse_args(argv + ["--aspect", "16:9"]).aspect == "16:9"
+    for extra in (["--aspect", "4:3"], ["--aspect", "1:1"], ["--asp", "16:9"], ["-a", "16:9"]):
+        with pytest.raises(SystemExit) as exc:
+            parser.parse_args(argv + extra)
+        assert exc.value.code == 2
+
+
+@pytest.mark.parametrize("aspect", ["9:16", "16:9"])
+@pytest.mark.parametrize("selected", ["9:16", "16:9", None])
+@pytest.mark.parametrize("panel_open", [True, False])
+def test_read_settings_selected_aspect(aspect, selected, panel_open):
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(
+        panel=_FakePanel({selected} if selected else set()) if panel_open else None,
+        body=selected or "",
+    )
+    assert browser.read_settings(8, aspect=aspect)["aspect"] is (aspect == selected)
+
+
+@pytest.mark.parametrize("aspect", [None, "16:9"])
+def test_set_settings_clicks_chosen_aspect(monkeypatch, aspect):
+    clicked = []
+
+    class Clickable:
+        @property
+        def first(self):
+            return self
+
+        def click(self, **kwargs):
+            pass
+
+    class Panel(_FakePanel, Clickable):
+        def filter(self, has_text):
+            panel = self
+
+            class Toggle(_FakeToggleLocator):
+                def click(self, **kwargs):
+                    clicked.append(has_text)
+                    if has_text in ("9:16", "16:9"):
+                        panel._checked_labels -= {"9:16", "16:9"}
+                    panel._checked_labels.add(has_text)
+
+            return Toggle(True, has_text in self._checked_labels)
+
+    class Page(_FakePage):
+        def locator(self, selector):
+            return self._panel
+
+        def wait_for_timeout(self, ms):
+            pass
+
+    browser = flow_shoot.FlowBrowser()
+    browser.page = Page(panel=Panel(set(), inner_text="Omni 1.1 Flash วินาที"))
+    monkeypatch.setattr(browser, "_close_account_panel", lambda: None)
+    monkeypatch.setattr(browser, "_close_settings_panel", lambda: None)
+    settings = browser.set_settings(8, **({"aspect": aspect} if aspect else {}))
+    assert [label for label in clicked if label in ("9:16", "16:9")] == [aspect or "9:16"]
+    assert all(settings.values())
+
+
+@pytest.mark.parametrize("aspect", ["9:16", "16:9"])
+@pytest.mark.parametrize("resolution,portrait", [
+    ("360p", (360, 640)), ("720p", (720, 1280)), ("1080p", (1080, 1920)),
+])
+def test_verify_clip_aspect_sizes(tmp_path, monkeypatch, aspect, resolution, portrait):
+    clip = tmp_path / "clip.mp4"
+    clip.write_bytes(b"fake clip")
+    monkeypatch.setattr(flow_shoot.clip_review, "probe_duration", lambda p: 8)
+    monkeypatch.setattr(flow_shoot.clip_review, "mean_db", lambda p: -20)
+    expected = portrait if aspect == "9:16" else portrait[::-1]
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda p: expected)
+    assert flow_shoot.verify_clip(clip, 8, resolution, aspect)[0] is True
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda p: expected[::-1])
+    assert flow_shoot.verify_clip(clip, 8, resolution, aspect)[0] is False
+
+
+def test_aspect_readback_mismatch_blocks_submit(tmp_path):
+    class Browser(_GateStubBrowser):
+        def set_settings(self, dur_s, resolution="720p", aspect="9:16"):
+            assert aspect == "16:9"
+            return {"aspect": False}
+
+    args = _run_args(tmp_path, "aspect.tsv")
+    args.aspect = "16:9"
+    browser = Browser([0])
+    flow_shoot.cmd_run(args, browser_factory=lambda: browser)
+    assert not browser.submit_called
+    assert not browser.download_called
+    row = flow_ledger.load_ledger(tmp_path / "aspect.tsv")[35]
+    assert row["status"] == "needs_model"
+    assert "aspect" in row["note"]
+
+
+@pytest.mark.parametrize("command,resolution", [
+    ("run", "360p"), ("run", "720p"), ("run", "1080p"),
+    ("pull", "720p"), ("pull", "1080p"),
+])
+@pytest.mark.parametrize("matches", [True, False])
+def test_landscape_download_verification_no_resubmit(tmp_path, monkeypatch, command, resolution, matches):
+    class Browser(_DownloadStubBrowser):
+        submits = 0
+
+        def set_settings(self, dur_s, resolution="720p", aspect="9:16"):
+            assert aspect == "16:9"
+            return super().set_settings(dur_s, resolution, aspect)
+
+        def submit(self, expected_chip_count=None):
+            self.submits += 1
+            super().submit(expected_chip_count)
+
+        def find_card_by_dialogue(self, dialogue):
+            return object()
+
+        def download_card(self, card):
+            return self.download()
+
+    browser = Browser(b"fake video", tmp_path)
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    monkeypatch.setattr(flow_shoot.clip_review, "probe_duration", lambda p: 6)
+    monkeypatch.setattr(flow_shoot.clip_review, "mean_db", lambda p: -20)
+    size = {"360p": (640, 360), "720p": (1280, 720), "1080p": (1920, 1080)}[resolution]
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda p: size if matches else size[::-1])
+    argv = [command, "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "shots.tsv"),
+            "--dest", str(tmp_path / "out"), "--only", "35", "--aspect", "16:9"]
+    if command == "run":
+        argv += ["--max-credits", "999"]
+    argv += ["--resolution" if resolution == "360p" else "--download-resolution", resolution]
+    args = flow_shoot.build_parser().parse_args(argv)
+    if command == "run":
+        assert flow_shoot.cmd_run(args, browser_factory=lambda: browser) == (0 if matches else 1)
+    else:
+        monkeypatch.setattr(flow_shoot, "FlowBrowser", lambda **kw: browser)
+        flow_shoot.cmd_pull(args)
+    assert browser.submits == (1 if command == "run" else 0)
+    row = flow_ledger.load_ledger(tmp_path / "shots.tsv")[35]
+    assert row["status"] == ("verified" if matches else "failed")
+    assert f"{size[0]}x{size[1]}" in row["got_dur"]
+    if not matches:
+        assert Path(row["file"]).name.startswith("bad-")
+    if resolution == "360p":
+        assert "360p run: verify target is 640x360" in (tmp_path / "flow_shoot.log").read_text()
+
+
 class _FakeToggleLocator:
     def __init__(self, present: bool, checked: bool):
         self._present = present
@@ -436,7 +592,7 @@ def test_read_settings_confirms_matching_resolution_and_duration():
     assert settings == {
         "model_omni": True,
         "mode_ingredients": True,
-        "aspect_9_16": True,
+        "aspect": True,
         "qty_x1": True,
         "resolution": True,
         "duration": True,
@@ -682,8 +838,8 @@ class _GateStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -798,8 +954,8 @@ class _DryRunAwareStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -916,9 +1072,9 @@ class _EstimateUnreadableStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
         self.set_settings_calls += 1
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -1112,8 +1268,8 @@ class _ZeroChipsStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -1835,4 +1991,3 @@ def test_360p_run_logs_verify_target_and_reason(tmp_path, monkeypatch):
     log_content = log_file.read_text(encoding="utf-8")
     assert "360p run: verify target is 360x640" in log_content
     assert log_content.count("verify target is 360x640") == 1
-

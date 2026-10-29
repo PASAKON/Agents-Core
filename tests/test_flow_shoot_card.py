@@ -94,7 +94,8 @@ def test_exact_inner_argv(setup):
     f = kw['folder']
     assert kw['argv'] == [card.PYTHON, '-u', f + r'\tools\flow_shoot.py', 'run',
         '--max-credits', '5.0', '--sheet', f + r'\sheet.md', '--ledger', f + r'\ledger.tsv',
-        '--dest', f + r'\out', '--resolution', '720p', '--only', '1-2', '--dry-run']
+        '--dest', f + r'\out', '--resolution', '720p', '--aspect', '9:16',
+        '--only', '1-2', '--dry-run']
     assert kw['argv'].count('--max-credits') == 1
     assert '--credit-cap' not in kw['argv']
 
@@ -106,6 +107,27 @@ def test_no_aliases(setup, flag):
     with pytest.raises(SystemExit) as error:
         card.parse(argv)
     assert error.value.code == 2
+
+
+@pytest.mark.parametrize('aspect', [None, '9:16', '16:9'])
+def test_card_aspect_forwarded(setup, aspect):
+    argv, _ = setup
+    args = card.parse(argv + (['--aspect', aspect] if aspect else []))
+    assert args.aspect == (aspect or '9:16')
+    inner = card.inner_argv(args, 'folder')
+    assert inner.count('--aspect') == 1
+    assert inner[inner.index('--aspect') + 1] == args.aspect
+    assert inner.count('--max-credits') == 1
+
+
+@pytest.mark.parametrize('extra', [
+    ['--aspect', '4:3'], ['--aspect', '1:1'], ['--asp', '16:9'], ['-a', '16:9'],
+])
+def test_card_rejects_invalid_aspect(setup, extra):
+    argv, _ = setup
+    with pytest.raises(SystemExit) as exc:
+        card.parse(argv + extra)
+    assert exc.value.code == 2
 
 
 @pytest.mark.parametrize('value', ['nan', 'inf', '-1', '1e999', '1;evil'])

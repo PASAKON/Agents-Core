@@ -491,7 +491,8 @@ def validate_download_option(text: str, resolution: str) -> None:
 
 
 def verify_clip(path: Path, expected_dur: float,
-                expected_resolution: str | None = None) -> tuple[bool, str]:
+                expected_resolution: str | None = None,
+                aspect: str = "9:16") -> tuple[bool, str]:
     """ffprobe duration within tolerance, audio present. Reuses
     clip_review's own probes so the two tools never disagree on what a
     passing clip looks like."""
@@ -512,6 +513,8 @@ def verify_clip(path: Path, expected_dur: float,
             expected_resolution)
         if expected is None:
             return False, f"RESOLUTION unsupported target {expected_resolution!r}"
+        if aspect == "16:9":
+            expected = expected[::-1]
         if (width, height) != expected:
             return False, (f"RESOLUTION got {width}x{height} want "
                            f"{expected[0]}x{expected[1]}")
@@ -775,8 +778,9 @@ class FlowBrowser:
         ).first.wait_for(state="visible", timeout=60_000)
         self.mute_all_media()
 
-    def set_settings(self, dur_s: int, resolution: str = "720p") -> dict:
-        """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, aspect=9:16, qty=x1,
+    def set_settings(self, dur_s: int, resolution: str = "720p",
+                     aspect: str = "9:16") -> dict:
+        """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, chosen aspect, qty=x1,
         resolution, duration=dur_s, then read every one of them back off the
         DOM — NONE of them are sticky (BANCHI-SHOOT-BRIEF.md).
 
@@ -857,7 +861,7 @@ class FlowBrowser:
         except Exception as e:
             _log(f"  mode select err: {e!r}")
         try:
-            panel.locator("mat-button-toggle").filter(has_text="9:16").first.click(timeout=3000)
+            panel.locator("mat-button-toggle").filter(has_text=aspect).first.click(timeout=3000)
         except Exception as e:
             _log(f"  ratio select err: {e!r}")
         try:
@@ -873,7 +877,7 @@ class FlowBrowser:
         except Exception as e:
             _log(f"  quantity select err: {e!r}")
         page.wait_for_timeout(200)
-        settings = self.read_settings(dur_s, resolution)
+        settings = self.read_settings(dur_s, resolution, aspect)
         self._close_settings_panel()
         page.wait_for_timeout(200)
         return settings
@@ -891,7 +895,8 @@ class FlowBrowser:
             return False
         return "mat-button-toggle-checked" in (el.get_attribute("class") or "")
 
-    def read_settings(self, dur_s: int, resolution: str = "720p") -> dict:
+    def read_settings(self, dur_s: int, resolution: str = "720p",
+                      aspect: str = "9:16") -> dict:
         page = self.page
         panel = page.locator("flow-prompt-box-settings")
         if panel.count() == 0:
@@ -903,7 +908,7 @@ class FlowBrowser:
             return {
                 "model_omni": "Omni 1.1 Flash" in body,
                 "mode_ingredients": True,
-                "aspect_9_16": "9:16" in body,
+                "aspect": aspect in body,
                 "qty_x1": True,
                 "resolution": resolution in body,
                 "duration": f"{dur_s} วินาที" in body,
@@ -912,7 +917,7 @@ class FlowBrowser:
         return {
             "model_omni": "Omni 1.1 Flash" in body,
             "mode_ingredients": self._toggle_checked(panel, "องค์ประกอบ"),
-            "aspect_9_16": self._toggle_checked(panel, "9:16"),
+            "aspect": self._toggle_checked(panel, aspect),
             "qty_x1": self._toggle_checked(panel, "x1"),
             "resolution": self._toggle_checked(panel, resolution),
             "duration": self._toggle_checked(panel, f"{dur_s} วินาที"),
@@ -1609,7 +1614,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
              f"never use this for a production run ***")
 
     if getattr(args, "resolution", None) == "360p":
-        _log("360p run: verify target is 360x640 (original captured file, 9:16; skips 1080p upscale for throwaway test)")
+        size = "640x360" if args.aspect == "16:9" else "360x640"
+        _log(f"360p run: verify target is {size} (original captured file, {args.aspect}; skips 1080p upscale for throwaway test)")
 
     max_credits = getattr(args, "max_credits", None)
     credit_cap = effective_credit_cap(getattr(args, "credit_cap", None), max_credits)
@@ -1659,7 +1665,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 # from a prior dry-run or another shot. This must precede
                 # set_settings(): navigation resets those facets too.
                 browser.reset_composer()
-                settings = browser.set_settings(dur_s, args.resolution)
+                settings = browser.set_settings(dur_s, args.resolution, args.aspect)
                 bad = [k for k, v in settings.items() if not v]
                 if bad:
                     row["status"], row["note"] = "needs_model", f"settings not confirmed: {bad}"
@@ -1806,7 +1812,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 )
                 ok, reason = verify_clip(
                     clip_path, dur_s,
-                    expected_resolution=expected_resolution)
+                    expected_resolution=expected_resolution, aspect=args.aspect)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 dup = duplicate_take_reason(row["sha256"], earlier)
@@ -1958,7 +1964,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
             clip_path = extract_clip(downloaded, dest, n)
             ok, reason = verify_clip(
                 clip_path, shot["dur_s"],
-                expected_resolution=browser.download_resolution)
+                expected_resolution=browser.download_resolution, aspect=args.aspect)
             row["file"] = str(clip_path)
             row["sha256"] = sha256_file(clip_path)
             row["got_dur"] = reason
@@ -1996,6 +2002,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p_run = sub.add_parser("run", allow_abbrev=False)
+    p_run.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
     p_run.add_argument("--sheet", required=True)
     p_run.add_argument("--ledger", required=True)
     p_run.add_argument("--dest", required=dest_required,
@@ -2041,6 +2048,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.set_defaults(func=cmd_run)
 
     p_pull = sub.add_parser("pull", allow_abbrev=False)
+    p_pull.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
     p_pull.add_argument("--sheet", required=True)
     p_pull.add_argument("--ledger", required=True)
     p_pull.add_argument("--dest", required=dest_required,
