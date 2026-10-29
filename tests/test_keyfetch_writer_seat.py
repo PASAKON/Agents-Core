@@ -18,7 +18,7 @@ def test_writer_seat_node_suite():
                                               run.stdout + run.stderr, re.M)}
     assert run.returncode == 0, (run.stdout + run.stderr)[-6000:]
     assert "sk-test-NEVER-PRINT-THIS-SECRET-123456789" not in run.stdout + run.stderr
-    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 16, summary
+    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 17, summary
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
