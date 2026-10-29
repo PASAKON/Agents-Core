@@ -84,7 +84,8 @@ def test_override_file(tmp_path):
 @pytest.mark.parametrize('role', [*rp.roles.c_level_roles(), 'project_head'])
 @pytest.mark.parametrize('changes,expected', [
     ({}, 'resume_lazy'), ({'live': False}, 'park'),
-    ({'status': 'parked'}, 'park'), ({'status': 'saved'}, 'park'),
+    ({'status': 'parked'}, 'park'), ({'status': 'saved'}, 'resume_lazy'),
+    ({'status': 'saved', 'charter': 'work', 'last_active': NOW}, 'resume_full'),
     ({'parked': True}, 'park'), ({'override': 'park'}, 'park'),
     ({'status': 'closed'}, 'close'), ({'incomplete': True}, 'wait'),
     ({'only_waiting_on_ceo': True, 'open_tasks': [{'kind': 'ceo_card'}]}, 'park'),

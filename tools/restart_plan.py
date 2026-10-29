@@ -126,8 +126,10 @@ def decide(row, now):
         return 'wait', f"still working: {row['name']}"
     if row.get('status') == 'closed':
         return 'close', 'session marked done'
-    if row.get('parked') or row.get('status') in ('parked', 'saved'):
-        return 'park', 'session explicitly parked or saved'
+    # Not 'saved': a live session keeps that hub status from its last /session-save after
+    # it was resumed (CMO Main and most PHs on Contabo, 29 Oct), so it says nothing now.
+    if row.get('parked') or row.get('status') == 'parked':
+        return 'park', 'session explicitly parked'
     if row.get('incomplete'):
         return 'wait', 'incomplete evidence; inspect warnings'
     tasks = row.get('open_tasks', [])
