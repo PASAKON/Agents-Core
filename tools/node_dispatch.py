@@ -256,9 +256,10 @@ def _fill_facts() -> dict:
         else:
             memory = dict(line.split(":", 1) for line in
                           Path("/proc/meminfo").read_text().splitlines())
-            facts.update(ram_total_gb=float(memory["MemTotal"].split()[0]) / 1024 ** 2,
-                         ram_free_gb=float(memory["MemAvailable"].split()[0]) / 1024 ** 2)
-    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError):
+            # Free RAM is the old probe's MemAvailable reading (set below), one source.
+            facts["ram_total_gb"] = float(memory["MemTotal"].split()[0]) / 1024 ** 2
+    except Exception:
+        # A probe never fails over a reading (same rule as _cpu_facts).
         pass
     if facts["ram_free_gb"] is None:
         # Keep the old probe's reading: the winbox 4 GB floor depends on it.
