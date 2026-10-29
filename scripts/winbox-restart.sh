@@ -104,7 +104,7 @@ fi
 $dirty" 2
 
 if [[ "$mode" == restart ]]; then
-# ---- 2. no Run card is running on winbox ----------------------------------------------
+# ---- 2. no Run card is using winbox (including work over ssh from another host) --------
 # winbox has no Run Inbox token, so prep cannot look; this side does, and tells prep with
 # --cards-checked. The restart card itself runs on Contabo and is not in the way.
 cards_json=$(bash scripts/hub/org-python.sh tools/ask_run.py list --status running --json 2>/dev/null) || cards_json=''
@@ -112,16 +112,60 @@ if [[ -z "$cards_json" ]]; then
   refuse "Run cards unreadable here (no Run Inbox token?): a card running on winbox cannot be ruled out" 3
 else
   busy=$(CARDS_JSON="$cards_json" python3 -c '
-import json, os, sys
+import json, os, shlex, sys
 try:
     cards = json.loads(os.environ["CARDS_JSON"])
 except ValueError:
     sys.exit(1)
 if not isinstance(cards, list):
     sys.exit(1)
+# ask_run.cmd_list preserves hub fields; _what also accepts serialized script_json.
+# Alias and mesh address from config/hosts.yaml; passg@ covers direct user@host ssh.
+patterns = ("winbox", "flow_shoot", "passg@", "100.124.196.11")
+restart = "scripts/winbox-restart.sh"
+
+def restart_words(words):
+    if not isinstance(words, list) or not all(isinstance(w, str) for w in words):
+        return False
+    # Only a direct invocation or bash/sh script invocation, never an arbitrary
+    # mention in an argument/cwd, a suffixed filename, or a compound shell command.
+    if any(any(c in w for c in ";|&<>`$\n") for w in words):
+        return False
+    if words and words[0] in ("bash", "sh", "/bin/bash", "/bin/sh"):
+        words = words[1:]
+    return bool(words) and words[0] in (restart, "./" + restart)
+
+def is_restart(card):
+    script = card.get("script") or card.get("script_json")
+    if isinstance(script, str):
+        try:
+            script = json.loads(script)
+        except ValueError:
+            pass
+    if isinstance(script, dict) and script.get("path") == restart:
+        return True
+    command = card.get("command")
+    if isinstance(command, str):
+        if any(c in command for c in ";|&<>`$\n"):
+            return False
+        try:
+            return restart_words(shlex.split(command))
+        except ValueError:
+            return False
+    return restart_words(card.get("argv"))
+
 for card in cards:
-    if isinstance(card, dict) and card.get("host") in ("winbox", None, ""):
-        print(card.get("id", "?"))
+    if not isinstance(card, dict) or is_restart(card):
+        continue
+    host = card.get("host")
+    text = json.dumps([card.get(key) for key in
+                       ("command", "script", "script_json", "argv", "cwd")]).lower()
+    reasons = []
+    if host in ("winbox", None, ""):
+        reasons.append("host=" + repr(host))
+    reasons.extend("pattern=" + pattern for pattern in patterns if pattern in text)
+    if reasons:
+        print(str(card.get("id", "?")) + " (" + ", ".join(reasons) + ")")
 ') || { refuse "Run cards unreadable here: ask_run answered with something that is not a card list" 3; busy=''; }
   if [[ -n "$busy" ]]; then
     refuse "a Run card is running on winbox, and the restart would kill it: $(echo "$busy" | tr '\n' ' ')" 3
