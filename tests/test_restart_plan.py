@@ -81,6 +81,43 @@ def test_override_file(tmp_path):
         rp.load_overrides(path)
 
 
+@pytest.mark.parametrize('role', [*rp.roles.c_level_roles(), 'project_head'])
+@pytest.mark.parametrize('changes,expected', [
+    ({}, 'resume_lazy'), ({'live': False}, 'park'),
+    ({'status': 'parked'}, 'park'), ({'status': 'saved'}, 'resume_lazy'),
+    ({'status': 'saved', 'charter': 'work', 'last_active': NOW}, 'resume_full'),
+    ({'parked': True}, 'park'), ({'override': 'park'}, 'park'),
+    ({'status': 'closed'}, 'close'), ({'incomplete': True}, 'wait'),
+    ({'only_waiting_on_ceo': True, 'open_tasks': [{'kind': 'ceo_card'}]}, 'park'),
+])
+def test_live_leadership_no_charter(role, changes, expected):
+    row = dict(role=role, live=True, name='Working session', charter=None, status=None,
+               open_tasks=[], C=600, last_active=NOW)
+    row.update(changes)
+    assert rp.decide(row, NOW)[0] == expected
+
+
+@pytest.mark.parametrize('suffix', ['project', 'spawned_by'])
+def test_plan_parked_ph_lock(tmp_path, monkeypatch, suffix):
+    from lib import config
+    monkeypatch.setattr(rp, 'ROOT', tmp_path)
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    uuid = '00000000-0000-0000-0000-0000abcdef12'
+    projects = tmp_path / 'projects' / '-cwd'
+    projects.mkdir(parents=True)
+    transcript(tmp_path, [entry()]).rename(projects / f'{uuid}.jsonl')
+    monkeypatch.setattr(rp, 'session_dirs', lambda host: [tmp_path / 'sessions'])
+    monkeypatch.setattr(rp, 'read_registry', lambda dirs: [
+        dict(uuid=uuid, sid='abcdef12', role='project_head', name='Parked PH')])
+    monkeypatch.setattr(rp, 'read_hub', lambda: {'tasks': [], 'c_level_sessions': []})
+    lock = tmp_path / 'state/locks' / f'project_head-abcdef12.{suffix}.parked'
+    lock.parent.mkdir(parents=True)
+    lock.touch()
+    assert rp.build_plan('contabo', NOW, tmp_path)['sessions'][0]['action'] == 'park'
+    lock.unlink()
+    assert rp.build_plan('contabo', NOW, tmp_path)['sessions'][0]['action'] == 'resume_lazy'
+
+
 def test_plan_mocked_hub(tmp_path, monkeypatch):
     from lib import config
     monkeypatch.setattr(config, 'self_host', lambda: 'contabo')

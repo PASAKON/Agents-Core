@@ -126,6 +126,16 @@ Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (
   `XDG_RUNTIME_DIR` unset. Started from an ssh login, tmux 3.4 puts every pane under
   `user@0.service`, outside the server's scope.
 
+## winbox — a live MT5 EA runs there (CTO Main 2026-10-29, every role, every machine)
+
+- MT5 on winbox runs PH ExpertAdvisor's EA: a dry run from 29 Oct, a real-money account from 30 Oct.
+- Before any winbox reboot (`scripts/winbox-restart.sh`, `shutdown /r`, an update, a card),
+  `ssh winbox powershell -NoProfile -File C:\Users\passg\ea-live\ea-live.ps1 flat` must exit 0.
+  The EA closes its trades at 06:50 TH, so plan a reboot for 06:50–07:00 TH.
+- Never kill `terminal64.exe` (MT5), by name or by pid. Never run the MT5 Strategy Tester on
+  winbox while the EA is live: it shares the live install and data folder.
+- Anything that has to break one of these goes to CTO Main first.
+
 ## Questions to the CEO go on a question card (CEO 2026-10-13, every C-level)
 
 A question for the CEO (a choice, a go/no-go, "which one?") that he is not answering in your chat right
