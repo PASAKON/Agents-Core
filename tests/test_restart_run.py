@@ -69,6 +69,58 @@ def commands():
             if call.args[0][:2] != ['systemctl', 'is-active']]
 
 
+FRESH_UUID = 'd405e3e2-5e46-406d-b9ae-a6f2f69c4825'
+
+
+def test_fresh_save_resume_manifest_and_close(tmp_path, monkeypatch):
+    r = row(sid='f69c4825')
+    r.update(launcher_id='fresh', uuid=FRESH_UUID)
+    assert rr.prep(args(tmp_path, [r])) == 0
+    assert commands()[0][3] == 'cto-fresh:0.0'
+    saved_entry, = json.loads((rr.STATE / 'contabo-resume.json').read_text())
+    assert saved_entry['uuid'] == FRESH_UUID
+    assert saved_entry['launcher_id'] == 'fresh'
+    assert rr.launcher(saved_entry, 'contabo') == (
+        f'export CTO_SESSION_ID=fresh && exec bash scripts/cto-claude.sh --resume {FRESH_UUID}')
+    rr.tmux_session.has_session.side_effect = [False, True]
+    assert rr.resume(args(tmp_path)) == 0
+    assert rr.tmux_session.create.call_args.args[0] == 'cto-fresh'
+    rr.tmux_session.has_session.side_effect = None
+    rr.tmux_session.has_session.return_value = True
+    assert rr.saved(r)
+    rr.session_status.get.assert_called_with('cto', 'fresh')
+    monkeypatch.setattr(rr, 'until', Mock(side_effect=[False, True]))
+    rr.gone(r)
+    assert commands()[-1] == ['tmux', 'kill-session', '-t', 'cto-fresh']
+
+
+@pytest.mark.parametrize('name', ['cto', 'cxo'])
+@pytest.mark.parametrize('sid', ['fresh', 'f69c4825'])
+def test_fresh_launcher_resumes_same_jsonl(tmp_path, name, sid):
+    # Execute the launcher's actual UUID selection and CLI argument blocks in
+    # isolation: no credentials, hub, tmux, or real Claude process is involved.
+    code = (REPO / f'scripts/{name}-claude.sh').read_text()
+    prefix = name.upper()
+    select = code[code.index(f'if [ "${prefix}_SESSION_ID" = fresh ]'):code.index('printf', code.index('UUID_FILE='))]
+    flags = code[code.index('FORK_ARGS=()'):code.index('# An "update available"')]
+    # Use exactly the final argument expansion from both launchers.
+    tail = code[code.rindex('  ${SESSION_ID_ARGS'):].split('exit $?')[0]
+    shell = ('set -eu\nROOT="$1"; LOCKS_DIR="$1"; ROLE=cfo\n'
+             f'{prefix}_SESSION_ID="$2"; {prefix}_UUID=new-destination\n'
+             'RESUME_UUID="$3"; ARGS=(--resume "$3"); CLAUDE_POSITIONAL=("${ARGS[@]}")\n' + select + flags +
+             f'printf "%s\\n" "${prefix}_UUID"\n' +
+             'claude() { printf "%s\\n" "$@"; }; claude \\\n' + tail)
+    result = REAL_RUN(['bash', '-c', shell, 'test', str(tmp_path), sid, FRESH_UUID],
+                      capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    values = result.stdout.splitlines()
+    if sid == 'fresh':
+        assert values == [FRESH_UUID, '--resume', FRESH_UUID]
+    else:
+        assert values == ['new-destination', '--session-id', 'new-destination',
+                          '--fork-session', '--resume', FRESH_UUID]
+
+
 @pytest.mark.parametrize('text,expected', [
     ('❯', True), ('❯ draft', False), ('❯ \x1b[2mtry this\x1b[22m', True),
     ('❯ \x1b[2mghost\x1b[0mreal', False), ('working...', False),

@@ -363,7 +363,7 @@ fi
 # (ADR 2026-05-26, Decision 2) so the CEO's primary tab is never clobbered.
 if [ -n "$SESSION_OVERRIDE" ]; then
   CXO_SESSION_ID="$SESSION_OVERRIDE"
-elif [ -n "$RESUME_UUID" ]; then
+elif [ -n "$RESUME_UUID" ] && [ "${CXO_SESSION_ID:-}" != fresh ]; then
   CXO_SESSION_ID="$(printf '%s' "${RESUME_UUID: -8}" | tr '[:upper:]' '[:lower:]')"
 else
   if [ -z "${CXO_SESSION_ID:-}" ]; then
@@ -437,6 +437,10 @@ else
   CXO_UUID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 fi
 mkdir -p "$ROOT/state/locks"
+# A resumed fresh launcher must retain the conversation's UUID and identity.
+if [ "$CXO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
+  CXO_UUID="$RESUME_UUID"
+fi
 UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
 printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
 
@@ -767,6 +771,12 @@ for a in ${ARGS[@]+"${ARGS[@]}"}; do
   esac
 done
 
+SESSION_ID_ARGS=(--session-id "$CXO_UUID")
+if [ "$CXO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
+  SESSION_ID_ARGS=()
+  FORK_ARGS=()
+fi
+
 # An "update available" prompt is a startup-level interrupt, not a tool
 # permission check, so neither --permission-mode nor --allowed-tools reaches
 # it -- it can block an unattended session on a keypress nobody is there to
@@ -939,7 +949,7 @@ claude \
   ${REMOTE_CONTROL_ARGS[@]+"${REMOTE_CONTROL_ARGS[@]}"} \
   ${CHROME_ARGS[@]+"${CHROME_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
-  --session-id "$CXO_UUID" \
+  ${SESSION_ID_ARGS[@]+"${SESSION_ID_ARGS[@]}"} \
   ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \
   ${CLAUDE_POSITIONAL[@]+"${CLAUDE_POSITIONAL[@]}"}
 exit $?

@@ -157,6 +157,69 @@ def test_unavailable_hub(tmp_path, monkeypatch):
     assert plan['warnings']
 
 
+FRESH_UUID = 'd405e3e2-5e46-406d-b9ae-a6f2f69c4825'
+
+
+@pytest.mark.parametrize('tmux,lock_value,role', [
+    ('cto-fresh:@82.%82', FRESH_UUID, 'cto'),
+    ('cto-fresh:@82.%82', '00000000-0000-0000-0000-000000000000', 'unknown'),
+    ('wd-f69c4825:@82.%82', FRESH_UUID, 'unknown'),
+    ('ceo-fresh:@82.%82', FRESH_UUID, 'unknown'),
+    ('czo-fresh:@82.%82', FRESH_UUID, 'unknown'),
+])
+def test_fresh_identity(tmp_path, monkeypatch, tmux, lock_value, role):
+    from tools import live_sessions as ls
+    monkeypatch.setattr(ls, 'LOCKS_DIR', tmp_path)
+    (tmp_path / f'{tmux.split(":")[0]}.uuid').write_text(lock_value)
+    assert ls._ids_from_record({'tmux': tmux}, '🌐 CTO (Kavin)', FRESH_UUID) == (
+        role, 'f69c4825', role == 'cto')
+
+
+@pytest.mark.parametrize('kind', ['missing', 'symlink', 'writable', 'hardlink'])
+def test_fresh_identity_requires_safe_lock(tmp_path, monkeypatch, kind):
+    from tools import live_sessions as ls
+    monkeypatch.setattr(ls, 'LOCKS_DIR', tmp_path)
+    lock = tmp_path / 'cto-fresh.uuid'
+    target = tmp_path / 'target'
+    target.write_text(FRESH_UUID)
+    if kind == 'symlink':
+        lock.symlink_to(target)
+    elif kind == 'hardlink':
+        lock.hardlink_to(target)
+    elif kind == 'writable':
+        lock.write_text(FRESH_UUID)
+        lock.chmod(0o666)
+    assert ls._ids_from_record({'tmux': 'cto-fresh:@82.%82'}, '🌐 CTO (Kavin)', FRESH_UUID) == (
+        'unknown', 'f69c4825', False)
+
+
+@pytest.mark.parametrize('status,action', [('saved', 'resume_full'), ('parked', 'park'), ('closed', 'close')])
+def test_fresh_registry_to_plan(tmp_path, monkeypatch, status, action):
+    from lib import config
+    from tools import live_sessions as ls
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(ls, 'LOCKS_DIR', tmp_path)
+    monkeypatch.setattr(ls, 'is_alive', lambda *a: True)
+    (tmp_path / 'cto-fresh.uuid').write_text(FRESH_UUID)
+    sessions = tmp_path / 'sessions'
+    sessions.mkdir()
+    (sessions / '123.json').write_text(json.dumps(dict(
+        pid=123, sessionId=FRESH_UUID, tmux='cto-fresh:@82.%82', name='🌐 CTO (Kavin)')))
+    projects = tmp_path / 'projects' / '-cwd'
+    projects.mkdir(parents=True)
+    transcript(tmp_path, [entry()]).rename(projects / f'{FRESH_UUID}.jsonl')
+    monkeypatch.setattr(rp, 'session_dirs', lambda host: [sessions])
+    monkeypatch.setattr(rp, 'read_hub', lambda: {'c_level_sessions': [
+        dict(role='cto', session_id='fresh', charter='CTO Main charter', status=status),
+        dict(role='cto', session_id='f69c4825', charter=None, status='parked')]})
+    row = rp.build_plan('contabo', NOW, tmp_path)['sessions'][0]
+    assert row['role'] == 'cto'
+    assert row['launcher_id'] == 'fresh'
+    assert row['charter'] == 'CTO Main charter'
+    assert row['status'] == status
+    assert row['action'] == action
+
+
 def card_list(monkeypatch, stdout='[]', returncode=0, error=None):
     calls = []
     def run(argv, **kwargs):
