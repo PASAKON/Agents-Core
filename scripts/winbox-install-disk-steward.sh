@@ -64,15 +64,18 @@ checkout=$(remote_ps <<PS
 try {
   \$principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
   if (-not \$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'FAIL CLOSED: elevated administrator session required for ProgramData' }
+  # PowerShell 5.1 turns native stderr (git progress, pip notices) into a terminating error under Stop;
+  # every native call below checks \$LASTEXITCODE instead.
+  \$ErrorActionPreference = 'Continue'
   \$paths = @($candidates)
   \$dedicated = \$paths[0]
   \$existing = \$paths[1]
   & git -C \$existing fetch origin main 1>\$null
   if (\$LASTEXITCODE -ne 0) { throw 'Fetch origin main failed' }
   if (Test-Path -LiteralPath \$dedicated) {
-    \$top = & git -C \$dedicated rev-parse --show-toplevel
+    \$top = & git -C \$dedicated rev-parse --show-toplevel 2>\$null
     if (\$LASTEXITCODE -ne 0 -or \$top.Trim().Replace('\\','/') -ine \$dedicated) { throw 'Dedicated path is not a checkout root' }
-    \$dirty = & git -C \$dedicated status --porcelain --untracked-files=all
+    \$dirty = & git -C \$dedicated status --porcelain --untracked-files=all 2>\$null
     if (\$LASTEXITCODE -ne 0 -or \$dirty) { throw 'Dedicated checkout is dirty; refusing update' }
     & git -C \$dedicated checkout --detach origin/main 1>\$null
   } else {
@@ -132,6 +135,7 @@ try {
   Copy-Item -LiteralPath "\$dir/disk-push.ps1" -Destination "\$data\disk-push.ps1" -Force
   Remove-Item -LiteralPath "\$dir/disk-push.ps1"
   Write-Output "Pusher backup: \$backup"
+  \$ErrorActionPreference = 'Continue'  # child stderr must not abort; exit codes are checked
   & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "\$dir/register-disk-steward.ps1"
   if (\$LASTEXITCODE -ne 0) { throw 'Registration failed' }
   \$lines = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "\$dir/disk-steward-tick.ps1" -DryRun 2>&1
