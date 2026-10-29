@@ -265,6 +265,9 @@ def push_tick(host, band, actions):
                bytes_before=None, bytes_after=None)
     try:
         cfg = machine(host)
+        if cfg.get('disk_push') == 'system_pusher':
+            row['reason'] = 'carried by the SYSTEM pusher'
+            return
         raw = cfg.get('disk_push_env')
         if not raw:
             row['reason'] = 'disk_push_env is not configured'
@@ -386,6 +389,11 @@ def tick(host=None, dry_run=False, simulate_free=None):
         temp = stamp_file.with_suffix('.tmp')
         temp.write_text(json.dumps(stamps))
         temp.replace(stamp_file)
+        status_file = STATE / f'steward-{host}.json'
+        temp = status_file.with_suffix('.tmp')
+        temp.write_text(json.dumps(dict(band=band, tick_at=datetime.now(timezone.utc).isoformat(),
+                                        actions=attempted)), encoding='utf-8')
+        temp.replace(status_file)
         push_tick(host, band, attempted)
     return int(failed)
 

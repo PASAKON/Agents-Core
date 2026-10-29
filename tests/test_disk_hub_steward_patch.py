@@ -24,9 +24,9 @@ def hub(tmp_path):
     return module
 
 
-def post(hub, body):
+def post(hub, body, host='mac'):
     handler = object.__new__(hub.Handler)
-    handler.path = '/disk?k=test-only&host=mac'
+    handler.path = '/disk?k=test-only&host=' + host
     raw = json.dumps(body).encode()
     handler.headers = {'Content-Length': str(len(raw))}
     handler.rfile = io.BytesIO(raw)
@@ -51,6 +51,12 @@ def test_old_new_and_regular_push_preserves_last_tick(hub):
     assert json.loads(history.read_text().splitlines()[-1])['band'] == 'green'
     assert post(hub, body())[0] == 200
     assert json.loads(latest.read_text())['steward'] == steward
+
+
+def test_winbox_status_file_fields_reach_hub(hub):
+    status = dict(band='green', tick_at='2026-10-29T12:00:00+00:00', actions=2)
+    assert post(hub, {**body(), 'steward': status}, host='winbox')[0] == 200
+    assert json.loads((hub.DATA_DIR / 'winbox.json').read_text())['steward'] == status
 
 
 @pytest.mark.parametrize('bad', [None, [], {}, {'extra': 1},

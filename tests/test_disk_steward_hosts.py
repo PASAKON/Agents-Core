@@ -79,6 +79,52 @@ def test_failed_push_does_not_fail_tick(monkeypatch, tmp_path, capsys):
     assert json.loads(output.splitlines()[-1])['status'] == 'failed'
 
 
+@pytest.mark.parametrize('host', ['mac', 'contabo', 'winbox'])
+@pytest.mark.parametrize('dry_run', [False, True])
+def test_status_handoff_atomic_live_only(monkeypatch, tmp_path, host, dry_run):
+    from pathlib import Path
+    monkeypatch.setenv('ORG_HOST', host)
+    monkeypatch.delenv('ORG_DB_URL', raising=False)
+    monkeypatch.setattr(ds, 'STATE', tmp_path / 'state')
+    monkeypatch.setattr(ds, 'plan', lambda _: [dict(name='fake', argv=['fake'])])
+    monkeypatch.setattr(ds, 'run_action', lambda *args: SimpleNamespace(returncode=0))
+    monkeypatch.setattr(ds, 'push_tick', Mock())
+    target = ds.STATE / f'steward-{host}.json'
+    replacements = []
+    replace = Path.replace
+    def observe(source, destination):
+        if destination == target:
+            assert source.parent == target.parent and source != target
+            assert not target.exists()
+            replacements.append(json.loads(source.read_text()))
+        return replace(source, destination)
+    monkeypatch.setattr(Path, 'replace', observe)
+    assert ds.tick(host, dry_run=dry_run) == 0
+    if dry_run:
+        assert not ds.STATE.exists()
+        assert not replacements
+        ds.push_tick.assert_not_called()
+    else:
+        status = json.loads(target.read_text())
+        assert replacements == [status]
+        assert set(status) == {'band', 'tick_at', 'actions'}
+        assert status['actions'] == 1
+        assert ds.datetime.fromisoformat(status['tick_at']).tzinfo is not None
+        assert not target.with_suffix('.tmp').exists()
+        ds.push_tick.assert_called_once_with(host, status['band'], 1)
+
+
+def test_winbox_push_is_carried_by_system(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(ds, 'STATE', tmp_path)
+    network = Mock(side_effect=AssertionError('must not send directly'))
+    monkeypatch.setattr(ds.urllib.request, 'build_opener', network)
+    ds.push_tick('winbox', 'green', 0)
+    row = json.loads(capsys.readouterr().out)
+    assert row['status'] == 'skipped'
+    assert row['reason'] == 'carried by the SYSTEM pusher'
+    network.assert_not_called()
+
+
 def test_windows_contract_and_open_dispatch(monkeypatch):
     monkeypatch.setenv('ORG_HOST', 'winbox')
     monkeypatch.delenv('CLAUDE_CONFIG_DIR', raising=False)
