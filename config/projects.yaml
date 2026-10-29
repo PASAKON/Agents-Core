@@ -368,6 +368,9 @@ projects:
   - key: comfy-runpod-worker
     name: ComfyUI RunPod worker + Studio (MiniMax H3)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/ComfyRunpod
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/ComfyRunpod
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/ComfyRunpod
     default_branch: main
     stack: [python, typescript, next]
     agents_allowed: *default_workers
