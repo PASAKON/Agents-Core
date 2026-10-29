@@ -1,0 +1,98 @@
+shot,chapter,start_s,len_s,camera,picture
+S001,0,0,8,"aerial drone, slow push","green fjord, calm water, mountains, dawn light"
+S002,0,8,8,"aerial, slow track along slope","sharp trimline: dark old forest above, pale young trees below"
+S003,0,16,7,low wide,"still water at the shoreline, young alders"
+S004,0,23,7,aerial pull back,"whole bay, trimline running for kilometres"
+S005,0,30,6,"wide, dusk 1958 grade","three small wooden fishing boats at anchor, tiny in the bay"
+S006,0,36,6,slow push,"dark water surface, a ripple"
+S007,1,42,13,title card over black water,"LITUYA BAY, ALASKA · 9 JULY 1958 · AI re-enactment"
+S008,2,55,8,aerial map-like,"T-shaped bay, glaciers at the head, narrow mouth, island in the middle"
+S009,2,63,7,wide,"tide racing through the narrow mouth, white water"
+S010,2,70,7,wide,glacier front at the head of the bay
+S011,2,77,8,medium,"Edrie, a small wooden troller, anchoring in a cove; evening light"
+S012,2,85,7,medium,a fisherman coiling line on deck
+S013,2,92,7,medium close,a 7-year-old boy in a wool cap watching the water
+S014,2,99,7,wide,"Badger near the bay entrance, a couple on deck"
+S015,2,106,7,wide,Sunmore at anchor close by
+S016,2,113,8,wide,"pale sky at 10 pm, glass-flat bay, three boats swinging on anchors"
+S017,2,121,7,close,"anchor chain going taut, slack, taut"
+S018,2,128,7,aerial,"mountain ridges around the bay, quiet"
+S019,2,135,7,slow push,"fault line scar along the mountains, map-like"
+S020,2,142,8,wide,"the boats small under the peaks, last light"
+S021,3,150,6,close,a cup sliding on a cabin table
+S022,3,156,6,wide,"peaks shudder, snow and dust lift off ridges"
+S023,3,162,5,wide,birds burst from the shore
+S024,3,167,6,medium,fisherman on deck looking to the head of the bay
+S025,3,173,6,wide POV,mountains at the head of the bay moving
+S026,3,179,6,wide,rock and ice pouring off cliffs
+S027,3,185,6,medium,Swansons on Badger staring at the shore
+S028,3,191,6,close,"hull shivering, water dancing on deck"
+S029,3,197,7,"wide, silent","the bay, shaking slowing"
+S030,4,204,7,aerial,"narrow Gilbert Inlet, cliff face above it"
+S031,4,211,6,close,cracks opening in the cliff
+S032,4,217,7,wide,the cliff breaks loose and falls
+S033,4,224,6,wide,"rock mass hits the inlet, water blown sideways"
+S034,4,230,6,wide,glacier front shattering
+S035,4,236,7,wide,water surging up the far wall
+S036,4,243,8,aerial,spray cloud over the inlet
+S037,4,251,7,"wide, silent",dust hanging in pale light
+S038,5,258,4,wide low angle,wall of white water climbing the opposite ridge
+S039,5,262,4,wide,trees vanishing in a line
+S040,5,266,4,aerial,the ridge stripped to rock
+S041,5,270,6,"wide, silent",water falling back from the ridge
+S042,5,276,5,wide,the wave turns down the bay
+S043,5,281,5,POV from Edrie,"dark line moving toward camera, growing"
+S044,5,286,4,medium,fisherman frozen at the rail
+S045,5,290,4,close,"hands on the anchor winch, chain not moving"
+S046,5,294,4,close,"chain paying out, rattling"
+S047,5,298,4,medium,"engine started, exhaust"
+S048,5,302,4,wide,Edrie turning bow to the wave
+S049,5,306,5,medium,the boy in an oversized life jacket held against the wheelhouse
+S050,5,311,4,close,"the father's face, eyes on the wave"
+S051,5,315,5,wide,the wave fills the frame from shore to shore
+S052,5,320,4,close,boy's hands gripping a rail
+S053,5,324,5,wide,wave meets the boat
+S054,5,329,7,wide,"black water, held"
+S055,6,336,4,wide,Edrie climbing the wave face
+S056,6,340,3,close,anchor chain snaps
+S057,6,343,4,wide,boat thrown upward
+S058,6,347,6,"wide, silent","boat at the crest, forest under water below"
+S059,6,353,4,wide,boat sliding down the back of the wave
+S060,6,357,5,wide,"water sloshing across the bay, wave after wave"
+S061,6,362,4,close,father fighting the wheel
+S062,6,366,5,medium,bow into another wave
+S063,6,371,4,wide,Edrie afloat in churning water
+S064,6,375,5,wide,the bay mouth; Badger lifted stern first
+S065,6,380,5,wide,Badger carried over the spit
+S066,6,385,5,POV from Badger,treetops far below
+S067,6,390,5,wide,Badger dropped into the open sea
+S068,6,395,5,medium,hull breaking apart
+S069,6,400,5,medium,the couple climbing into a small skiff
+S070,6,405,6,wide,skiff alone on dark cold water
+S071,6,411,5,wide,Sunmore running for the mouth
+S072,6,416,5,wide,"a light at the mouth, then no light"
+S073,6,421,6,"wide, silent",the empty mouth of the bay
+S074,6,427,6,wide,"waves dying down, debris everywhere"
+S075,6,433,6,wide,the bay in pale night light
+S076,7,439,8,aerial,"bay surface covered with floating trees, ice, wreckage"
+S077,7,447,7,medium,Edrie pushing through debris
+S078,7,454,7,wide,Edrie leaving the bay mouth
+S079,7,461,7,close,the boy asleep in the cabin under a blanket
+S080,7,468,8,wide,"open sea, grey dawn, the skiff drifting"
+S081,7,476,8,wide,another fishing boat approaching
+S082,7,484,7,medium,two people pulled aboard
+S083,7,491,7,wide,"the coast at dawn, quiet"
+S084,7,498,8,slow push,calm water at the bay mouth
+S085,8,506,7,wide,"a small plane over the bay, days later"
+S086,8,513,7,medium,"geologists on the bare slope, 1958 clothes"
+S087,8,520,7,close,"a stripped root, bare rock"
+S088,8,527,8,aerial,the clean line across the mountains
+S089,8,535,8,diagram-style frame,"inlet, slide, run-up line, 524 m"
+S090,8,543,8,wide,a geologist measuring the high point
+S091,8,551,8,aerial,the whole bay with the trimline
+S092,8,559,8,close,tree rings in a cut log
+S093,8,567,8,aerial,older faint trimlines on the slopes
+S094,9,575,10,"aerial drone, return of the cold-open shot","young green trees below the line, the bay calm today"
+S095,9,585,8,wide,"the bay mouth today, a modern boat far off"
+S096,9,593,8,wide,dusk over the bay
+S097,9,601,12,end card,Sources: USGS; Miller (1960) PP 354-C. AI re-enactment
