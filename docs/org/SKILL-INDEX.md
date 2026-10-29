@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-65 org skills by kind — Rules 8 · Knowledge 17 · Workflow 4 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+66 org skills by kind — Rules 8 · Knowledge 17 · Workflow 5 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -50,6 +50,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
+| `CMO_Workflow_KhaoHomEpisode` | CMO | cmo, project_head, video_editor, browser_operator, researcher, script_writer, content_strategist | Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on… |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
 | `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |
