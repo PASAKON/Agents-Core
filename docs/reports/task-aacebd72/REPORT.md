@@ -25,16 +25,16 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
 - be19b407: mail_wake: wake the session that waits on an unread mailbox letter (tools/mail_wake.py, its tests, the `_ALLOWED_SUBSETS` row, this report)
 - 3c2a2433: report task-aacebd72: name the mail_wake commit
 - 87c86ccb: hook-phone-only-commands: four false positives from the CTO review (hook + tests)
-- the review-fix commit (four false positives; sha in `git log`)
 
 ## Tests
 - ran: `.venv/bin/python -m pytest tests/test_hook_phone_only_commands.py tests/test_mail_wake.py tests/test_ask_run.py`
 - passed: 243 (83 hook + 40 mail_wake + 120 ask_run)
 - failed: 0
 - skipped: 0
-- also ran, because the change reaches them: `tests/test_c_level_roles.py` (26 passed, 2 skipped, after the row below; the four files together: 269 passed, 2 skipped;
-  it failed without it), `tests/test_ask_run_questions.py`, `tests/test_wake_audit.py`,
-  `tests/test_mail_envelope_letters.py` (all pass; 562 passed together with test_c_level_roles before the fix).
+- also ran, because the change reaches them: `tests/test_c_level_roles.py` (26 passed, 2 skipped; it failed before
+  the `_ALLOWED_SUBSETS` row), `tests/test_ask_run_questions.py`, `tests/test_wake_audit.py`,
+  `tests/test_mail_envelope_letters.py` (all pass). After the review fixes the four files together
+  (hook, mail_wake, ask_run, c_level_roles): 269 passed, 2 skipped, 0 failed.
 - fails-without-the-change, checked by mutation, not assumed: with `question_offenders` neutered 28 hook tests fail;
   with the exemptions removed 17 fail; with the fence / `>` / quote skips removed 4 fail. With `mail_wake` reading
   letters through a plain glob and no symlink guard, the symlinked-box, symlinked-letter and read-letter tests fail;
