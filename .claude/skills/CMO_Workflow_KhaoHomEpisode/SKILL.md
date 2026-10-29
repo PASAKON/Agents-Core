@@ -3,7 +3,7 @@ name: CMO_Workflow_KhaoHomEpisode
 kind: workflow
 description: WORKFLOW — Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on 29 Oct 2026. Trigger on /CMO_Workflow_KhaoHomEpisode and on "ข้าวหอม EP", "ทำตอนต่อไป", "EP2 ข้าวหอม", "ทำ Short ข้าวหอม". Do NOT use for BLACK LIQUIDITY, ILAG or lakorn.
 owner: CMO
-audience: [cmo, project_head, video_editor, browser_operator]
+audience: [cmo, project_head, video_editor, browser_operator, researcher, script_writer, content_strategist]
 created_by: agent
 author: {role: project_head, date: "2026-10-30"}
 improved_by: []
@@ -14,10 +14,11 @@ aka: []
 
 Goal: one ~2-minute vertical Short per episode, in which **ข้าวหอม** (the fixed lead) shows the smart way to survive one
 disaster situation and a **foil** (a mystery person, new every episode) does the comically wrong thing. Output: the
-clip posted on the FB Page / YouTube channel "เอาชีวิตรอดกับข้าวหอม" after the CEO approves it. Started by the CEO
-or the CMO; watched by the CMO. Graph, tools and costs: `flow.yaml` beside this file. The model run is EP1
+clip posted on the FB Page / YouTube channel "เอาชีวิตรอดกับข้าวหอม" after the CEO approves it. Started by the CMO
+(on the CEO's order); watched by the CMO. Graph, tools and costs: `flow.yaml` beside this file. The model run is EP1
 "น้ำมาแล้ว" (PH#b2ff34d1, 23–30 Oct 2026): final `Work/khaohom-survival/ep01/shorts/out/khaohom-s7-v2m2.mp4`,
-1080x1920, 2:07, −14.4 LUFS, $0.35 total, all voice.
+1080x1920, 2:07, −14.4 LUFS, $0.35 of voice in all, samples and retakes included
+(the final voice alone was $0.105).
 
 ## How an agent joins
 `Work/khaohom-survival/STATUS.md` (the newest dated lines) → its `node:` → that node in `flow.yaml` → the Step below.
@@ -95,7 +96,7 @@ pinned to origin/main after `git fetch`. EP1 S7: 1,312 chars = $0.105. Gate: eve
 script estimate, the ledger row written.
 
 ### Step 7 · Timing table [node: timing]
-Do: `timing.py` lays the chunks end to end (start 0.5 s, 0.8 s gap), cuts subtitles of ≤38 chars at word gaps from
+Do: `timing.py` (copy it from the previous episode's `sN-voice/`) lays the chunks end to end (start 0.5 s, 0.8 s gap), cuts subtitles of ≤38 chars at word gaps from
 the v4 character timestamps, and maps each subtitle to its script row; it writes `timing.json`, and `patch_tpl.py`
 writes those times into the template's one `T` table. A retime is one edit, never a hand edit of times in the
 template. Gate: `timing.json` covers every row; total length = voice length + the 3 s end card.
@@ -119,10 +120,10 @@ mood, two or three takes, free credits only (EP1 used none of its 30 daily credi
 `ssh -f -N -L 9276:127.0.0.1:9226 winbox`, Playwright `connect_over_cdp`, kill the tunnel after. Mix the bed well
 under the voice with fades in and out, then loudnorm −14 LUFS; one file per take. Licence: Google claims no
 ownership; commercial use needs a paid AI plan, so swap or license the music before the channel is monetised
-(`$K/ep01/post/LICENCE-flowmusic.md`). Gate: the CEO picks one take on a media card.
+(`$K/ep01/post/LICENCE-flowmusic.md`). Gate: 2–3 mixed takes ready; the CEO picks one in the next step.
 
 ### Step 11 · CEO final OK [node: approve]
-Do: one media card with the finished file. A "แก้" answer becomes a fix brief (`BRIEF-sN-fixK.md`) and goes back to
+Do: one media card with the mixed takes (pick one), then the finished file if anything changed. A "แก้" answer becomes a fix brief (`BRIEF-sN-fixK.md`) and goes back to
 the step it names, never a reshuffle of the whole look. If a card note arrives cut mid-word, ask only for the
 missing part on a new card. Gate: the CEO's OK, with its `Q-…` id in STATUS.md.
 
@@ -132,15 +133,15 @@ built with the episode's best still, and the episode title. Channel assets (avat
 and reused. `scripts/check-post-text.sh` on every text file. Gate: the check passes and the covers are checked by eye.
 
 ### Step 13 · Drive Final Draft [node: drive]
-Do: the episode folder `ALL DRAFT/FB: เอาชีวิตรอดกับข้าวหอม/EPnn <title>/Final Draft/` (series folder
-106KWJeGRd4iiTO5x6XSIzp8pWhNdElXO, created 30 Oct). A new EP folder needs the CEO's OK with its full path first
+Do: the episode folder `ALL DRAFT/FB: เอาชีวิตรอดกับข้าวหอม/EPnn <title>/Final Draft/` (series folder created 30 Oct;
+its id is in `CXO_Knowledge_GDrive_FolderMap`). A new EP folder needs the CEO's OK with its full path first
 (`CXO_Rules_GDrive_Filing` rule 3), and the map gets a tree line and an ID-table row in the same turn (rule 6). Upload
 with `scripts/gdrive-bridge/ilag_rest.py` `upload()`, which reads back the md5 by id (rule 12). Gate: Drive md5 =
 local md5 for every file.
 
 ### Step 14 · Post [node: post]
-Do: the CMO lane posts, only after the CEO's OK to post. FB Page "เอาชีวิตรอดกับข้าวหอม" (id 61596195113811, under
-Dorsine Gobb) and YouTube @khaohomsurvival (a brand channel on the CEO's main Google account). IG was not
+Do: the CMO lane posts, only after the CEO's OK to post. FB Page "เอาชีวิตรอดกับข้าวหอม" (under the CEO's second
+Facebook profile; ids in `$K/workers/W1/REPORT.md`) and YouTube @khaohomsurvival (a brand channel on the CEO's main Google account). IG was not
 linked yet on 30 Oct (Facebook offered only an unrelated existing IG account). TikTok waits for a new email and phone
 (CEO 29 Oct). Gate: the post URL opens and shows the clip.
 

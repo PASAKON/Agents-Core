@@ -58,12 +58,11 @@ nodes:
 
   - id: foil
     name: Foil character
-    does: Makes a new foil character sheet in C1's style on ChatGPT, attaching C1.png.
+    does: Over a CDP tunnel to winbox ChatGPT, makes a new foil character sheet in C1's style, attaching C1.png.
     phase: gen
     kind: code
     after: [script_ok]
     tool: tools/chatgpt_images.py
-    host: winbox
     output: Work/khaohom-survival/epNN/shorts/sN-stills/F1.png
     verify: {check: "one sheet, front/side/back + 3 expressions, clearly not ข้าวหอม, no text"}
     gate: A new foil, no text, no blush.
@@ -76,7 +75,6 @@ nodes:
     kind: code
     after: [foil]
     tool: tools/chatgpt_images.py
-    host: winbox
     output: Work/khaohom-survival/epNN/shorts/sN-stills/*.png + sheet.jpg
     verify: {check: "numbered contact sheet by eye; faces clear of the card band y 1000-1410"}
     gate: Every row of the script has its still, faces clear of the cards.
@@ -104,7 +102,7 @@ nodes:
     phase: cut
     kind: code
     after: [voice]
-    tool: khaohom-work:ep01/shorts/s7-voice/timing.py
+    tool: khaohom-work:epNN/shorts/sN-voice/timing.py
     output: Work/khaohom-survival/epNN/shorts/sN-voice/timing.json
     verify: {check: "timing.json covers every script row; total = voice + 3 s end card"}
     gate: Every row timed, no hand-edited times in the template.
@@ -147,7 +145,6 @@ nodes:
     role: browser_operator
     skill: CMO_Workflow_KhaoHomEpisode
     stage: agent
-    host: winbox
     output: Work/khaohom-survival/epNN/shorts/out/khaohom-sN-v2m*.mp4
     verify: {check: "one file per take at about -14 LUFS, voice clearly on top"}
     gate: 2-3 mixed takes ready for the CEO's pick, no credits spent.
@@ -183,7 +180,7 @@ nodes:
     kind: code
     after: [postkit]
     tool: scripts/gdrive-bridge/ilag_rest.py
-    output: ALL DRAFT/FB เอาชีวิตรอดกับข้าวหอม/EPnn/Final Draft
+    output: "ALL DRAFT/FB: เอาชีวิตรอดกับข้าวหอม/EPnn <title>/Final Draft"
     verify: {check: "Drive md5Checksum equals the local md5 for every file"}
     gate: Every file md5-matched on Drive.
     blockers: [upstream]
