@@ -112,6 +112,27 @@ and the CEO's own edit needs a day.
 - **Output:** 3–5 loglines, each with one line on why it can win (`docs/promo/topview-trailer/STORY-OPTIONS.md`
   is the shape). **Gate:** the CEO picks one.
 
+### Step 1b · Genre formula → our own story (FilmFormula, 2026-10-29)
+- **Do:** before Step 2, pick the genre's formula from `knowledge/brand-knowledge/brands/<brand>/` (ILAG disaster:
+  `disaster-formula.md`, formats F1 drama / F2 narrated true story). No formula for the genre yet: build one first
+  from 2-5 popular films with `tools/film_breakdown.py` (CC/allowed films only) or storyboard frames + captions
+  (standard licence: no video download), the way `docs/reports/filmformula/M2-report.md` did.
+- **Others' films give structure only (CEO 2026-10-28).** We take beat positions, pace and the opening promise.
+  Our event, place, people, lines and scene order are written fresh; a beat that only works with their scene is dropped.
+- **Map the formula onto our logline:** a table, one row per formula beat: its % × our runtime = our time,
+  our scene that fills it, and the one line the viewer learns there (Step 2 rule). A beat with no scene of ours is
+  either written or cut on purpose, with the reason.
+- **Length from the words (borrowed from shuohao-skills):** spoken or narrated words ÷ the formula's words/min
+  (F1 ~31, F2 ~143) must land within ±10% of the planned runtime; silent spectacle is planned in seconds.
+  These words/min figures are English; a Thai script counts characters at 16.6 chars/s of speech (our Gemini voice,
+  `CMO_Standard_BlackLiquidity_Script`), never words (CMO 2026-10-29).
+- **Shot budget:** each scene's seconds ÷ the formula's shot length (action 2-3 s, narrated holds 4-8 s) = its
+  shot count; every generated segment ≤15 s, cut inside it at 2-5 s. Sum the shots for the first credit estimate.
+  The shot sum also sets the Flow spend cards: ≤10 shots per card, why line starting "จริง (ใช้เครดิต ≤N)"
+  (template `state/handoff/2026-10-29/cto-flow-real-card.md`, CMO 2026-10-29).
+- **Output:** `FORMULA-MAP.md` beside the script (beat table + word count + shot budget).
+  **Gate:** passes into Step 2's SceneEngine gate; no extra CEO stop.
+
 ### Step 2 · Story
 - **Do:** pass the structure gate before any shot exists: `CMO_Gate_Story_SceneEngine` (goal, obstacle, tactic,
   reversal, value shift) — IRON-RULES §51; Thai moral dramas use `CMO_Standard_Story_ThaiMoralDrama`;
