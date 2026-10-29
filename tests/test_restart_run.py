@@ -1524,6 +1524,11 @@ elif 'pending-winbox.json echo marker' in remote:
     print(os.environ.get('FAKE_MARKER', ''))
 elif 'prep --dry-run' in remote:
     print('PREP-DRY-RUN-OUTPUT')
+elif 'ea-live.ps1 (echo EA_PRESENT)' in remote:
+    print(os.environ.get('FAKE_EA', 'EA_ABSENT'))
+elif 'ea-live.ps1 flat' in remote:
+    print('flat says ' + os.environ.get('FAKE_EA_FLAT', '0'))
+    sys.exit(int(os.environ.get('FAKE_EA_FLAT', '0')))
 '''
 FAKE_SCP = r'''#!/usr/bin/env python3
 import os, shutil, sys
@@ -1763,3 +1768,25 @@ def test_winbox_prep_tab_missing_park_row_not_live_fails_closed(monkeypatch, tmp
     record.assert_not_called()
     assert not (rr.STATE / 'pending-winbox.json').exists()
     assert f"tab_not_found: {r['name']}" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize('ea,flat,code', [('EA_PRESENT', '1', 5), ('EA_PRESENT', '0', None),
+                                          ('EA_ABSENT', '1', None)])
+def test_winbox_sh_refuses_a_reboot_while_the_ea_is_not_flat(tmp_path, ea, flat, code):
+    result, calls, uploaded = _winbox_sh(tmp_path, '--sha', SHA, logon_state='Ready',
+                                         FAKE_EA=ea, FAKE_EA_FLAT=flat)
+    out = result.stdout + result.stderr
+    if code:
+        assert result.returncode == 5 and 'EA not flat' in out, out
+        assert not _called(calls, 'LEASE') and not _called(calls, ONE_SHOT) and not _called(calls, 'shutdown')
+    else:
+        assert 'EA not flat' not in out, out
+        assert _called(calls, 'LEASE'), out          # went on to the lease and prep
+    assert bool(_called(calls, 'ea-live.ps1 flat')) == (ea == 'EA_PRESENT')
+    assert not [c for c in calls if 'terminal64' in c.lower()] and 'terminal64' not in uploaded.lower()
+
+
+def test_winbox_sh_refuses_when_it_cannot_tell_the_ea_state(tmp_path):
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, logon_state='Ready', FAKE_EA='garbage')
+    assert result.returncode == 5 and 'cannot tell whether the EA is flat' in result.stdout + result.stderr
+    assert not _called(calls, 'LEASE') and not _called(calls, 'shutdown')
