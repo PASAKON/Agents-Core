@@ -602,6 +602,15 @@ def test_wait_gives_up_after_max_wait(hub, capsys):
     assert "still pending" in capsys.readouterr().err
 
 
+def test_wait_timeout_is_an_alias_of_max_wait(hub, capsys):
+    """A PH's backup wait ran `wait --timeout`; argparse exited 2 and a `| grep` hid it."""
+    parsed = ask_run._parser().parse_args(["wait", ASK_ID, "--timeout", "7"])
+    assert parsed.max_wait == 7.0
+    hub.on("GET", f"/api/run/asks/{ASK_ID}", _card("pending"))
+    assert ask_run.main(["wait", ASK_ID, "--interval", "0.01", "--timeout", "0.05"]) == 4
+    assert "still pending" in capsys.readouterr().err
+
+
 def test_wait_rides_out_a_transient_5xx(hub):
     hub.on("GET", f"/api/run/asks/{ASK_ID}", (503, {"error": "busy"}), _card("done", exit_code=0))
     assert ask_run.main(["wait", ASK_ID, "--interval", "0.01"]) == 0
