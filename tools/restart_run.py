@@ -168,7 +168,10 @@ def win_live():
     Windows reuses pids at once, so after a reboot a leftover ~/.claude/sessions/<pid>.json
     can name a pid that now belongs to another program; is_alive() would call that session
     live and resume would skip it. The record's procStart is the process creation FILETIME:
-    a pid whose creation time differs is not the session."""
+    a pid whose creation time differs is not the session.
+
+    winbox has no tmux, so live_sessions takes the sid from the session name: "PH#f35" gives
+    'f35', not the uuid tail the plan rows use. Each session is added under its uuid tail too."""
     dirs = live_sessions.session_dirs('winbox')
     out = set()
     for row in live_sessions.read_registry(dirs):
@@ -186,6 +189,8 @@ def win_live():
         except (TypeError, ValueError):
             pass
         out.add((row['role'], row['sid']))
+        if re.fullmatch(r'[0-9a-f-]{8,}', row.get('uuid') or ''):
+            out.add((row['role'], row['uuid'][-8:]))
     return out
 
 
