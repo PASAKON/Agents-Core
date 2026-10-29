@@ -48,8 +48,8 @@ def live_cwds():
 def guard_path(path, *, cwds=None, in_use_image=False):
     """Reject secrets, login state, Docker data, and live cwd ancestors.
 
-    PureWindowsPath stays lexical even on Unix. Archive/mooniex-vps is
-    conservatively protected in full, including its nine secret-named files.
+    PureWindowsPath stays lexical even on Unix. Archive/mooniex-vps protects
+    secret names; Archive secret/key/presync bundles are protected in full.
     """
     windows = isinstance(path, PureWindowsPath) or bool(re.match(r'^[A-Za-z]:[\\/]', str(path)))
     p = PureWindowsPath(path) if windows else Path(path).resolve()
@@ -61,7 +61,17 @@ def guard_path(path, *, cwds=None, in_use_image=False):
     if in_use_image or any(part in protected or any(s in part for s in ('oauth', 'credential', 'token', 'secret', 'winbox-keys'))
                            or part == '.env' or part.endswith(('.pem', '.key', '.env')) for part in parts):
         raise ValueError(f'NEVER: {path}')
-    if 'tmp/claude-0' in text or 'docker/volumes' in text or 'docker/image' in text or 'docker/overlay2' in text or 'archive/mooniex-vps' in text:
+    for index, part in enumerate(parts):
+        if part != 'archive':
+            continue
+        archive_parts = parts[index + 1:]
+        if any(p.startswith(('mac-secrets', 'winbox-keys', 'agents-core-presync')) for p in archive_parts):
+            raise ValueError(f'NEVER: {path}')
+        if archive_parts and archive_parts[0] == 'mooniex-vps' and any(
+                p.startswith(('.env', 'id_')) or p in {'traefik_data', 'acme.json'}
+                for p in archive_parts[1:]):
+            raise ValueError(f'NEVER: {path}')
+    if 'tmp/claude-0' in text or 'docker/volumes' in text or 'docker/image' in text or 'docker/overlay2' in text:
         raise ValueError(f'NEVER: {path}')
     for cwd in live_cwds() if cwds is None else cwds:
         c = PureWindowsPath(cwd) if windows else Path(cwd).resolve()
@@ -95,6 +105,7 @@ def plan(band, daily=True):
         actions += [dict(name=verb, argv=command('drive_leg.py', verb), daily=True)
                     for verb in ('transcripts', 'runner-state')]
         actions.append(dict(name='orphans', argv=command('workdir.py', 'orphans', '--green'), daily=True))
+        actions.append(dict(name='lineposter', argv=command('drive_leg.py', 'lineposter'), weekly=True))
         actions.append(dict(name='close-orphans', note='tools/workdir.py close <each green orphan> --archive'))
     if band != 'green':
         actions.append(dict(name='unread-caches', note='PLANNED ONLY: no CLI for caches unread 14 days'))
@@ -315,6 +326,7 @@ def tick(host=None, dry_run=False, simulate_free=None):
     stamp_file = STATE / f'{host}.json'
     stamps = json.loads(stamp_file.read_text()) if stamp_file.exists() else {}
     day = datetime.now(timezone.utc).date().isoformat()
+    week = datetime.now(timezone.utc).strftime('%G-W%V')
     actions = plan(band)
     failed = False
     attempted = 0
@@ -333,6 +345,8 @@ def tick(host=None, dry_run=False, simulate_free=None):
                 for k in selected for entry in runners[k]['paths']})
     for action in actions:
         if action.get('daily') and stamps.get(action['name']) == day:
+            continue
+        if action.get('weekly') and (host != 'contabo' or stamps.get(action['name']) == week):
             continue
         result = run_action(action, host, band, dry_run)
         if not dry_run and action.get('argv') and not action.get('skip'):
@@ -355,6 +369,8 @@ def tick(host=None, dry_run=False, simulate_free=None):
                     continue
             if action.get('daily'):
                 stamps[action['name']] = day
+            if action.get('weekly'):
+                stamps[action['name']] = week
     try:
         if os.environ.get('ORG_DB_URL'):
             letters(host, band, day, stamps, dry_run)

@@ -1,0 +1,15 @@
+[Unit]
+Description=MoonieX disk steward
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=@ROOT@
+Environment=ORG_ROOT=@ROOT@
+Environment=ORG_HOST=contabo
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=45min
+ExecStart=/bin/bash @ROOT@/scripts/hub/with-org-db-env.sh @ROOT@/.venv/bin/python @ROOT@/tools/disk_steward.py tick

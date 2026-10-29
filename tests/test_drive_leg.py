@@ -28,6 +28,19 @@ sys.path.insert(0, str(ROOT))
 
 import tools.drive_leg as drive_leg  # noqa: E402
 
+
+def test_lineposter_fake_relay_roundtrip(tmp_path, fake_relay):
+    from tools import disksteward_p2 as p2
+    source = tmp_path / 'LinePoster'
+    source.mkdir()
+    (source / 'app.py').write_text('print("test")')
+    (source / '.env').write_text('fixture-secret')
+    result = drive_leg.lineposter(config_dir=tmp_path / 'cfg', source=source)
+    assert result['verified'] is True
+    assert [f['path'] for f in result['files']] == ['app.py']
+    p2.verify_receipt(result)
+    assert (source / '.env').exists() and (source / 'app.py').exists()
+
 UUID_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 UUID_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 UUID_C = "cccccccc-cccc-cccc-cccc-cccccccccccc"
