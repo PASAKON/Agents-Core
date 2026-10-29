@@ -38,6 +38,7 @@ FAKE_RELAY_STORE need an env var at all.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import fnmatch
 import gzip
 import hashlib
@@ -68,6 +69,11 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 DEFAULT_RCLONE = ROOT / "scripts" / "rclone_via_winbox.sh"
+from tools.storage_policy import host_key, MACHINES_PATH
+
+
+def host_config():
+    return yaml.safe_load(MACHINES_PATH.read_text())["machines"][host_key()]
 
 # Drive ids for the BACKUP/MoonieX HQ family (CXO_Knowledge_GDrive_FolderMap SKILL.md ID table, CEO 2026-09-24).
 # "family" and "Work-Archive" are listed for a single source of truth alongside the rest, even
@@ -123,14 +129,17 @@ def config_dir() -> Path:
     """$CLAUDE_CONFIG_DIR, or ~/.claude when unset -- read fresh on every call, never cached,
     so a test can point it elsewhere without reloading this module."""
     raw = os.environ.get("CLAUDE_CONFIG_DIR")
-    return Path(raw) if raw else Path.home() / ".claude"
+    return Path(raw) if raw else Path(host_config()["claude_config_dir"])
 
 
 def rclone_path() -> str:
     """The relay command, resolved from the repo root; overridable with DRIVE_LEG_RCLONE (the
     tests point this at a fake relay; dry-runs should pass DRIVE_LEG_RCLONE=/bin/false so a bug
     that skipped the dry-run guard fails loudly instead of silently reaching the real winbox)."""
-    return os.environ.get("DRIVE_LEG_RCLONE") or str(DEFAULT_RCLONE)
+    if os.environ.get("DRIVE_LEG_RCLONE"):
+        return os.environ["DRIVE_LEG_RCLONE"]
+    return {"rclone_via_winbox": str(DEFAULT_RCLONE), "rclone_local": "rclone",
+            "rest_work_archive": str(ROOT / "scripts/drive_rest_rclone_shim.py")}[host_config()["drive_leg"]]
 
 
 def _docker_bin() -> str:
@@ -160,7 +169,7 @@ def blueprint_index_path(config_dir_: Path) -> Path:
 # --------------------------------------------------------------------------- small helpers
 def _sha256_file(path: Path, chunk: int = 1 << 20) -> str:
     h = hashlib.sha256()
-    with path.open("rb") as fh:
+    with (_open_runner_source(path) if os.name == 'nt' else path.open('rb')) as fh:
         for block in iter(lambda: fh.read(chunk), b""):
             h.update(block)
     return h.hexdigest()
@@ -373,12 +382,12 @@ def _iter_sessions(config_dir_: Path):
     """Yield one dict per <slug>/<uuid>.jsonl under config_dir_/projects/ (+ the sibling
     <uuid>/ dir when it exists -- sub-agent transcripts)."""
     projects = config_dir_ / "projects"
-    if not projects.is_dir():
+    if any(_linked(p) for p in [projects, *projects.parents]) or not projects.is_dir():
         return
-    for slug_dir in sorted(p for p in projects.iterdir() if p.is_dir()):
+    for slug_dir in sorted(p for p in projects.iterdir() if not _linked(p) and p.is_dir()):
         for jsonl in sorted(slug_dir.glob("*.jsonl")):
             uuid = jsonl.stem
-            if not UUID_RE.match(uuid):
+            if not UUID_RE.match(uuid) or _linked(jsonl):
                 continue
             try:
                 st = jsonl.stat()
@@ -386,15 +395,18 @@ def _iter_sessions(config_dir_: Path):
                 continue
             subdir = slug_dir / uuid
             yield dict(slug=slug_dir.name, uuid=uuid, jsonl=jsonl,
-                       subdir=subdir if subdir.is_dir() else None,
+                       subdir=subdir if not _linked(subdir) and subdir.is_dir() else None,
                        mtime=st.st_mtime)
 
 
 def _session_files(sess: dict) -> list[Path]:
     files = [sess["jsonl"]]
     if sess["subdir"]:
-        files += [p for p in sorted(sess["subdir"].rglob("*")) if p.is_file()]
-    return files
+        for base, dirs, names in os.walk(sess['subdir'], followlinks=False):
+            dirs[:] = sorted(d for d in dirs if not _linked(Path(base) / d))
+            files += [Path(base) / n for n in sorted(names)
+                      if not _linked(Path(base) / n) and (Path(base) / n).is_file()]
+    return files[:1] + sorted(files[1:])
 
 
 def _local_day(mtime: float) -> str:
@@ -414,10 +426,11 @@ def _group_by_day(sessions: list[dict], min_age_days: float, now: float) -> dict
 
 
 def _all_dirs(root: Path) -> list[Path]:
-    if not root.is_dir():
+    if any(_linked(p) for p in [root, *root.parents]) or not root.is_dir():
         return []
     out = [root]
     for dirpath, dirnames, _ in os.walk(root):
+        dirnames[:] = [d for d in dirnames if not _linked(Path(dirpath) / d)]
         out += [Path(dirpath) / d for d in dirnames]
     return out
 
@@ -429,7 +442,18 @@ def _delete_verified(frozen: list[tuple[Path, int, int]], dirs: list[Path] | Non
     scripts/stream_backup_to_drive.py's delete_frozen()."""
     removed = 0
     for path, size, mtime_ns in frozen:
-        if any(p.is_symlink() for p in [path, *path.parents]):
+        if any(_linked(p) for p in [path, *path.parents]):
+            continue
+        if os.name == 'nt':
+            try:
+                with _open_windows_source(path.absolute(), delete=True) as source:
+                    st = os.fstat(source.fileno())
+                    if (st.st_size, st.st_mtime_ns) != (size, mtime_ns):
+                        continue
+                    _mark_windows_delete(source)
+                removed += 1
+            except (OSError, DriveLegError):
+                pass
             continue
         try:
             st = path.stat()
@@ -442,7 +466,7 @@ def _delete_verified(frozen: list[tuple[Path, int, int]], dirs: list[Path] | Non
             removed += 1
         except OSError:
             continue
-    for d in sorted(dirs or [], key=lambda p: -len(str(p))):
+    for d in sorted([] if os.name == 'nt' else dirs or [], key=lambda p: -len(str(p))):
         try:
             d.rmdir()
         except OSError:
@@ -465,7 +489,7 @@ def transcripts(*, config_dir: Path, min_age_days: float = 7, only_slug: str | N
     """$CLAUDE_CONFIG_DIR/projects/<slug>/<uuid>.jsonl (+ sibling <uuid>/ dir), grouped by
     (slug, local date of mtime); a day is archived only when every session in it is older
     than `min_age_days`. Per (slug, day): one <day>.tar.gz under
-    Claude-Transcripts/contabo/<slug>/ + <day>.manifest.json, plus one row per uuid appended
+    Claude-Transcripts/<host>/<slug>/ + <day>.manifest.json, plus one row per uuid appended
     to $CLAUDE_CONFIG_DIR/logs/transcript-archive-index.jsonl. Local files for a day are
     deleted only after put() verifies AND only the ones whose size+mtime are still what they
     were at freeze time; a file younger than the threshold is never even considered."""
@@ -488,7 +512,7 @@ def transcripts(*, config_dir: Path, min_age_days: float = 7, only_slug: str | N
         slug, day = key
         sess_list = sorted(groups[key], key=lambda s: s["uuid"])
         base = config_dir / "projects" / slug
-        members = [(f, str(f.relative_to(base))) for sess in sess_list for f in _session_files(sess)]
+        members = [(f, f.relative_to(base).as_posix()) for sess in sess_list for f in _session_files(sess)]
         total_bytes = sum(f.stat().st_size for f, _ in members)
         print(f"[{n}/{len(keys)}] transcripts {slug} {day}: {len(sess_list)} sessions, "
               f"{len(members)} files, {total_bytes} B")
@@ -500,20 +524,24 @@ def transcripts(*, config_dir: Path, min_age_days: float = 7, only_slug: str | N
 
         frozen = [(f, f.stat().st_size, f.stat().st_mtime_ns) for f, _ in members]
         manifest = build_manifest(
-            name=day, machine="contabo", source=f"{base} ({day})",
+            name=day, machine=host_key(), source=f"{base} ({day})",
             files=[dict(path=arc, size=sz, mtime_ns=mt, sha256=_sha256_file(f))
                    for (f, sz, mt), (_, arc) in zip(frozen, members)],
             restore=f"tools/drive_leg.py restore-transcript <uuid>  (reads {day}.manifest.json "
-                     f"under Claude-Transcripts/contabo/{slug}/)",
+                     f"under Claude-Transcripts/{host_key()}/{slug}/)",
         )
 
         def _stream(sink, _members=members):
             with tarfile.open(fileobj=sink, mode="w:gz") as tf:
                 for f, arcname in _members:
-                    tf.add(f, arcname=arcname, recursive=False)
+                    if os.name == 'nt':
+                        with _open_runner_source(f) as source:
+                            tf.addfile(tf.gettarinfo(str(f), arcname=arcname, fileobj=source), source)
+                    else:
+                        tf.add(f, arcname=arcname, recursive=False)
 
         try:
-            result = put(_stream, FOLDER_IDS["Claude-Transcripts"], f"contabo/{slug}", day,
+            result = put(_stream, FOLDER_IDS["Claude-Transcripts"], f"{host_key()}/{slug}", day,
                         ".tar.gz", manifest, log_path_=log_path(config_dir), who=who, rclone=rclone)
         except DriveLegError as exc:
             print(f"    FAILED: {exc}")
@@ -565,7 +593,7 @@ def _index_lookup_via_relay(uuid_prefix: str, rclone: str) -> dict | None:
         if not path.endswith(".manifest.json"):
             continue
         parts = path.split("/")
-        if len(parts) != 3 or parts[0] != "contabo":
+        if len(parts) != 3 or parts[0] != host_key():
             continue
         slug, fname = parts[1], parts[2]
         day = fname[: -len(".manifest.json")]
@@ -594,7 +622,7 @@ def restore_transcript(uuid_prefix: str, *, config_dir: Path, rclone: str | None
     if hit is None:
         raise DriveLegError(f"no archived session matching {uuid_prefix!r}")
     slug, day, uuid = hit["slug"], hit["day"], hit["uuid"]
-    remote_tar = f"contabo/{slug}/{day}.tar.gz"
+    remote_tar = f"{host_key()}/{slug}/{day}.tar.gz"
 
     proc = subprocess.run([rclone, "cat", f"gdrive:{remote_tar}", "--drive-root-folder-id",
                            FOLDER_IDS["Claude-Transcripts"]], capture_output=True, timeout=1800)
@@ -621,7 +649,7 @@ def restore_transcript(uuid_prefix: str, *, config_dir: Path, rclone: str | None
 # =========================================================================== 3. uploads
 def uploads(*, config_dir: Path, dry_run: bool = False, rclone: str | None = None,
             who: str | None = None, now: float | None = None) -> dict:
-    """$CLAUDE_CONFIG_DIR/uploads/ -> Claude-Uploads/contabo/<date>.tar + manifest. Skips
+    """$CLAUDE_CONFIG_DIR/uploads/ -> Claude-Uploads/<host>/<date>.tar + manifest. Skips
     when the sha256 of the sorted (path, size, mtime_ns) listing equals the previous run's
     (recorded locally in uploads-archive-index.jsonl -- the brief's "last ledger entry" read
     without a network call, so --dry-run can answer "unchanged" with zero relay calls too).
@@ -651,10 +679,10 @@ def uploads(*, config_dir: Path, dry_run: bool = False, rclone: str | None = Non
         return dict(dry_run=True, listing_sha256=listing_sha256, files=len(files), bytes=total_bytes)
 
     manifest = build_manifest(
-        name=date, machine="contabo", source=str(src),
+        name=date, machine=host_key(), source=str(src),
         files=[dict(path=str(p.relative_to(src)), size=p.stat().st_size,
                     mtime_ns=p.stat().st_mtime_ns, sha256=_sha256_file(p)) for p in files],
-        restore=(f'rclone copy "gdrive:contabo/{date}.tar" . --drive-root-folder-id '
+        restore=(f'rclone copy "gdrive:{host_key()}/{date}.tar" . --drive-root-folder-id '
                  f'{FOLDER_IDS["Claude-Uploads"]} && tar xf {date}.tar -C {src}'),
         extra={"listing_sha256": listing_sha256},
     )
@@ -664,7 +692,7 @@ def uploads(*, config_dir: Path, dry_run: bool = False, rclone: str | None = Non
             for p in _files:
                 tf.add(p, arcname=str(p.relative_to(_src)), recursive=False)
 
-    result = put(_stream, FOLDER_IDS["Claude-Uploads"], "contabo", date, ".tar", manifest,
+    result = put(_stream, FOLDER_IDS["Claude-Uploads"], host_key(), date, ".tar", manifest,
                 log_path_=log_path(config_dir), who=who, rclone=rclone)
     _append_jsonl(idx_path, dict(date=date, listing_sha256=listing_sha256, files=len(files),
                                  bytes=result["bytes"], drive=result["drive"]))
@@ -881,9 +909,78 @@ def _runner_secret(path: Path) -> bool:
                for part in path.parts for pattern in SECRET_PATTERNS)
 
 
+def _linked(path: Path) -> bool:
+    """Junctions and all other Windows reparse points are links, too."""
+    try:
+        st = path.lstat()
+        return stat.S_ISLNK(st.st_mode) or bool(getattr(st, 'st_file_attributes', 0) & 0x400)
+    except FileNotFoundError:
+        return False
+
+
+@contextmanager
+def _open_windows_source(path, delete=False):
+    """Pin every component without delete sharing; open reparse points themselves.
+
+    Holding parent handles prevents junction substitution during the read.
+    No Unix flag emulation or check-then-follow fallback is safe here.
+    """
+    import ctypes
+    from ctypes import wintypes
+    import msvcrt
+    api = ctypes.WinDLL('kernel32', use_last_error=True)
+    create = api.CreateFileW
+    create.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                       wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    create.restype = wintypes.HANDLE
+    close = api.CloseHandle
+    close.argtypes = [wintypes.HANDLE]
+    info = api.GetFileInformationByHandleEx
+    info.argtypes = [wintypes.HANDLE, ctypes.c_int, wintypes.LPVOID, wintypes.DWORD]
+    class Attributes(ctypes.Structure):
+        _fields_ = [('attributes', wintypes.DWORD), ('tag', wintypes.DWORD)]
+    handles = []
+    try:
+        for component in [*reversed(path.parents), path]:
+            access = 0x80000000 | (0x10000 if delete and component == path else 0)
+            handle = create(str(component), access, 1, None, 3, 0x02200000, None)
+            if handle == wintypes.HANDLE(-1).value:
+                raise ctypes.WinError(ctypes.get_last_error())
+            handles.append(handle)
+            attrs = Attributes()
+            if not info(handle, 9, ctypes.byref(attrs), ctypes.sizeof(attrs)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            if attrs.attributes & 0x400:
+                raise DriveLegError('refusing reparse point source')
+        fd = msvcrt.open_osfhandle(handles[-1], os.O_RDONLY | os.O_BINARY)
+        handles.pop()  # fd now owns the final handle
+        with os.fdopen(fd, 'rb') as source:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                raise DriveLegError('not a regular source')
+            yield source
+    finally:
+        for handle in reversed(handles):
+            close(handle)
+
+
+def _mark_windows_delete(source):
+    """Delete the verified open file, never re-traverse its pathname."""
+    import ctypes
+    from ctypes import wintypes
+    import msvcrt
+    api = ctypes.WinDLL('kernel32', use_last_error=True)
+    dispose = api.SetFileInformationByHandle
+    dispose.argtypes = [wintypes.HANDLE, ctypes.c_int, wintypes.LPVOID, wintypes.DWORD]
+    flag = ctypes.c_ubyte(1)
+    if not dispose(msvcrt.get_osfhandle(source.fileno()), 4, ctypes.byref(flag), ctypes.sizeof(flag)):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+
 def _open_runner_source(path: Path):
     """Open a regular member without following substituted symlink components."""
     path = path.absolute()
+    if os.name == 'nt':
+        return _open_windows_source(path)
     flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC
     fd = os.open(path.anchor, flags | os.O_DIRECTORY)
     try:
@@ -910,7 +1007,7 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
     No symlinks are followed. Each root gets one uniquely named tar and manifest.
     AGY log deletion is deferred until all uploads succeed, including relay health.
     """
-    home = home or Path.home()
+    home = home or Path(host_config()["home"])
     now = time.time() if now is None else now
     policy_path = policy_path or ROOT / "config/storage-policy.yaml"
     policy = yaml.safe_load(policy_path.read_text()) if policy_path.exists() else {}
@@ -918,7 +1015,7 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
     defaults = {"codex": ["~/.codex/sessions"], "agy": [
         "~/.gemini/antigravity-cli/conversations", "~/.gemini/antigravity-cli/brain"]}
     # Runner-State/<machine>/: the host this runs on (ORG_HOST, else by OS), never a fixed name.
-    machine = os.environ.get("ORG_HOST") or {"Darwin": "mac", "Windows": "winbox"}.get(platform.system(), "contabo")
+    machine = host_key()
     report = dict(failed=0, deleted_files=0, dry_run=dry_run)
     pending = []
     logs = []
@@ -941,18 +1038,17 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
                 sources.append((item, False))
         sources.extend((p, True) for p in log_paths)
         for raw, discard in sources:
-            root = Path(str(raw).replace("$HOME", str(home)))
-            if str(root).startswith("~/"):
-                root = home / str(root)[2:]
-            if any(p.is_symlink() for p in [root, *root.parents]):
+            expanded = str(raw).replace("$HOME", str(home)).replace("$CLAUDE_CONFIG_DIR", str(config_dir))
+            root = home / expanded[2:] if expanded.startswith("~/") else Path(expanded)
+            if any(_linked(p) for p in [root, *root.parents]):
                 print(f"runner-state skip symlink root: {root}")
                 continue
             frozen = []
             for parent, dirs, files in os.walk(root, followlinks=False):
-                dirs[:] = [d for d in dirs if not (Path(parent) / d).is_symlink()]
+                dirs[:] = [d for d in dirs if not _linked(Path(parent) / d)]
                 for filename in sorted(files):
                     path = Path(parent) / filename
-                    if path.is_symlink() or not path.is_file():
+                    if _linked(path) or not path.is_file():
                         continue
                     if _runner_secret(path):
                         print(f"runner-state skip secret: {path}")
@@ -980,7 +1076,7 @@ def runner_state(*, config_dir: Path, runner: str = "all", dry_run: bool = False
                                 st = os.fstat(src.fileno())
                                 if st.st_size != size or st.st_mtime_ns != mtime:
                                     raise DriveLegError(f"source changed: {path}")
-                                info = tarfile.TarInfo(str(path.relative_to(root)))
+                                info = tarfile.TarInfo(path.relative_to(root).as_posix())
                                 info.size = size
                                 info.mtime = st.st_mtime
                                 info.mode = st.st_mode & 0o777
@@ -1173,10 +1269,23 @@ def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = F
     return result
 
 
+def lineposter(*, config_dir: Path, dry_run: bool = False, rclone: str | None = None,
+               source: Path | None = None) -> dict:
+    """Weekly upload-only snapshot; exclude secrets, verify tar and manifest by ID."""
+    from tools.disksteward_p2 import backup, LINEPOSTER
+    if dry_run:
+        print('LinePoster: dated tar + manifest -> BACKUP/MoonieX HQ/Projects/contabo/LinePoster/; no deletion [dry-run]')
+        return dict(dry_run=True)
+    return backup(source or LINEPOSTER, 'Projects/contabo/LinePoster',
+                  config_dir=config_dir, rclone=rclone)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="drive_leg.py",
                                  description="Contabo's Drive leg of the Machine Contract")
     sub = ap.add_subparsers(dest="command", required=True)
+    lp = sub.add_parser('lineposter', help='weekly upload-only LinePoster backup')
+    lp.add_argument('--dry-run', action='store_true')
 
     rs = sub.add_parser("runner-state", help="archive old Codex / AGY state to Drive")
     rs.add_argument("--runner", choices=["codex", "agy", "all"], default="all")
@@ -1212,6 +1321,9 @@ def main(argv: list[str] | None = None) -> int:
     cfg_dir = config_dir()
 
     try:
+        if args.command == 'lineposter':
+            lineposter(config_dir=cfg_dir, dry_run=args.dry_run)
+            return 0
         if args.command == "runner-state":
             return 1 if runner_state(config_dir=cfg_dir, runner=args.runner,
                                      dry_run=args.dry_run)["failed"] else 0

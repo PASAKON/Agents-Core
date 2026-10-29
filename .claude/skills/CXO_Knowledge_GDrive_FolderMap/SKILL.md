@@ -345,6 +345,10 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                         than 7 days, archived daily (DiskSteward plan, CEO 2026-10-28).
 │   │   │                         One tar + manifest (member path, size, md5); verify both on Drive
 │   │   │                         before local deletion. Secrets excluded; AGY log is discarded locally.
+│   │   ├── Archive/contabo/       DiskSteward P2: mooniex-vps/20260613T193125Z and mac-delta,
+│   │   │                         excluding secrets and traefik_data; dated tar + manifest.
+│   │   ├── Projects/contabo/LinePoster/   Weekly upload-only backup of the nongit LinePoster
+│   │   │                         project; dated tar + manifest, excluding secrets/login state.
 │   │   ├── Claude-Transcripts/<machine>/<project-slug>/   every Claude Code session .jsonl,
 │   │   │                         all machines, archived after 7 days on the box, KEPT FOREVER
 │   │   │                         (CEO 2026-09-24). `contabo/` id 1d7mVpwFy4bY56u2t30f9nUfmhbqa11Xt
@@ -479,6 +483,8 @@ Google Drive (root) — pass.gob1@gmail.com
 | Folder | Drive ID | Definition |
 |---|---|---|
 | `BACKUP/MoonieX HQ/Runner-State/<machine>/<runner>/` | Under family `1NqyT7TjUHVBuOCo0bw3dRy8niXLcLawK`; child ID not yet recorded (no upload in P1) | DiskSteward plan approved 2026-10-28: daily archive of Codex sessions and AGY conversations/brain older than 7 days. One tar + member path/size/md5 manifest, both verified before unchanged local sources are deleted. `tools/drive_leg.py runner-state`; Contabo uses winbox relay. Secrets excluded; old AGY logs deleted locally without upload. |
+| `BACKUP/MoonieX HQ/Archive/contabo/` | Under family `1NqyT7TjUHVBuOCo0bw3dRy8niXLcLawK`; child ID pending CEO P2 card (no upload by worker) | DiskSteward approved plan, P2: one-time backup of mooniex-vps/20260613T193125Z and mac-delta. Excludes secret-named files, login state and traefik_data. Dated tar plus per-file md5 manifest; both Drive object IDs reverified before guarded local reclamation. |
+| `BACKUP/MoonieX HQ/Projects/contabo/LinePoster/` | Under family `1NqyT7TjUHVBuOCo0bw3dRy8niXLcLawK`; child ID pending CEO P2 card (no upload by worker) | DiskSteward approved plan: weekly backup of /opt/MoonieXHQ/Projects/MoonieX/LinePoster, which has no git repository. Dated tar plus per-file md5 manifest, excluding secrets/login state, verified by Drive IDs. Upload only; live project is never deleted. |
 | `UNKNOWN` (root) | `1PIha6ByPigaVZQG89qZI9uCGW_Lw6ePA` | Fallback — file here when nothing else fits, or no folder exists yet. Max 1 sub-folder level (existing folders moved in wholesale are exempt — see Rule 5). Same-batch files from CEO can be filed without asking (Rule-1 exception) — see "UNKNOWN — filing protocol" above for the required `(name) (D-M-YYYY) (SID:xxxx)` tag. Contains (moved 2026-08-04): `claudeflow-media-archive`, `Media (สื่อ)`, `_Review (ไม่มีชื่อ)`. |
 | `PROJECT` (root) | `1HVLTPS09R4WvhYyOPW_0HHrfWxWGF-hQ` | Important-but-not-video stuff per project: images, ideas, text/svg, government docs, company data, billing. **No video ever.** Max depth 4 (see Rule 8): project-name folder → category folder → optional bundle folder. One sub-folder per project, name = PROJECT NAME IN CAPS. |
 | `PROJECT/MOONIEX` | `1NjXdmQM2Fx0Payd-rqL5hW7B1DDQJSXY` | Merged 2026-08-04 from the old root-level `MoonieX` folder (renamed in place, so its ~19 pre-existing sub-folders like Company & Legal, Broker Info & Data, Mooniex Finance, Proposals, etc. came along and are NOT yet individually re-defined). |

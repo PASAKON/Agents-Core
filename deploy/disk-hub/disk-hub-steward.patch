@@ -1,0 +1,66 @@
+--- a/disk-hub.py
++++ b/disk-hub.py
+@@ -141,8 +141,28 @@
+     return out
+ 
+ 
++def validate_steward(body: dict) -> dict | None:
++    if 'steward' not in body:
++        return None
++    value = body['steward']
++    if not isinstance(value, dict) or set(value) != {'band', 'tick_at', 'actions'}:
++        raise ValueError('invalid steward object')
++    if not isinstance(value['band'], str) or not 1 <= len(value['band']) <= 10:
++        raise ValueError('invalid steward band')
++    tick = value['tick_at']
++    if not isinstance(tick, str) or not 1 <= len(tick) <= 40 or 'T' not in tick:
++        raise ValueError('invalid steward tick_at')
++    try:
++        datetime.fromisoformat(tick.replace('Z', '+00:00'))
++    except ValueError:
++        raise ValueError('invalid steward tick_at') from None
++    if type(value['actions']) is not int or value['actions'] < 0:
++        raise ValueError('invalid steward actions')
++    return dict(value)
++
++
+ def record(host: str, volumes: list[dict], observed_at: str | None, now: float | None = None,
+-           data_dir: Path | None = None) -> dict:
++           data_dir: Path | None = None, steward: dict | None = None) -> dict:
+     """Store the latest report and append to the host's history (trimmed)."""
+     now = time.time() if now is None else now
+     d = data_dir or DATA_DIR
+@@ -156,13 +176,20 @@
+     doc = {"host": host, "label": HOSTS[host], "received_at": _iso(now),
+            "observed_at": (observed_at or "")[:40] or None, "volumes": volumes,
+            "schedule": schedule(host, prev, volumes[0]["free_bytes"], now)}
++    if steward is not None:
++        doc['steward'] = steward
++    elif prev and 'steward' in prev:
++        doc['steward'] = prev['steward']
+     tmp = d / f".{host}.json.tmp"
+     tmp.write_text(json.dumps(doc))
+     tmp.replace(d / f"{host}.json")
+ 
+     hist = d / f"{host}.hist.jsonl"
+     rows = _history(hist)
+-    rows.append({"t": now, "free": volumes[0]["free_bytes"]})
++    row = {"t": now, "free": volumes[0]["free_bytes"]}
++    if steward is not None:
++        row['band'] = steward['band']
++    rows.append(row)
+     rows = [r for r in rows if r["t"] >= now - HISTORY_HOURS * 3600][-1300:]
+     tmp = d / f".{host}.hist.tmp"
+     tmp.write_text("".join(json.dumps(r) + "\n" for r in rows))
+@@ -352,9 +379,10 @@
+         try:
+             body = json.loads(self.rfile.read(n))
+             vols = validate(body if isinstance(body, dict) else {})
++            steward = validate_steward(body)
+         except (json.JSONDecodeError, ValueError) as e:
+             return self._send(400, f"bad report: {e}")
+-        doc = record(host, vols, body.get("observed_at"))
++        doc = record(host, vols, body.get("observed_at"), steward=steward)
+         sch = doc["schedule"]
+         self._send(200, {"ok": True, "host": host, "received_at": doc["received_at"],
+                          "next_push_after_s": sch["interval_s"],

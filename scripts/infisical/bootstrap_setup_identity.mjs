@@ -126,6 +126,11 @@ if (!ident) {
 }
 
 let ua = await api('GET', `/api/v1/auth/universal-auth/identities/${ident.id}`);
+// keyfetch-writer: the seat script owns its Universal Auth; `save` refuses a token over a day.
+const uaTtl = ua.json?.identityUniversalAuth?.accessTokenTTL;
+if (IS_WRITER && !(ua.status === 200 && Number.isInteger(uaTtl) && uaTtl > 0 && uaTtl <= 86_400)) {
+  die(8, 'keyfetch-writer: Universal Auth missing or its token outlives a day; run keyfetch_writer_seat.mjs --go first');
+}
 if (ua.status !== 200) {
   ua = await api('POST', `/api/v1/auth/universal-auth/identities/${ident.id}`, {});
   if (ua.status !== 200) die(8, `attach Universal Auth failed (HTTP ${ua.status})`);

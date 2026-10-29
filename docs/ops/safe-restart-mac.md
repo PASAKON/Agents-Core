@@ -18,9 +18,9 @@ Nothing here was run against a real Mac when it was written: see "Not verified" 
 ## Once, before the first restart
 
 1. **Code on both machines.** This change merged; `git pull` in `/opt/MoonieXHQ/Agents/Core` on
-   Contabo and in `/Users/gob/Projects/Agents` on the Mac. The plist and the card default assume that
-   Mac path. If the checkout is elsewhere (`config/hosts.yaml` lists `/Users/gob/MoonieXHQ/Agents/Core`),
-   edit the two paths in the plist before copying it, and pass `--repo <path>` to the card.
+   Contabo and in `/Users/gob/MoonieXHQ/Agents/Core` on the Mac. The plist and the card default assume that
+   Mac path, matching `config/hosts.yaml`. For another checkout, pass `--repo <path>` to the
+   installer and restart script.
 2. **An ssh route from Contabo to the Mac that may run commands.** Root on Contabo dials
    `gob@macbook-pro--gob`; the Mac refuses root, so a bare `--host-alias` gets `gob@` in front.
    The `org_dispatch` key of `docs/ops/node-dispatch.md` does **not** do: its forced command
@@ -29,7 +29,7 @@ Nothing here was run against a real Mac when it was written: see "Not verified" 
    host key must already be trusted (run the check below once by hand and accept the fingerprint).
    On Contabo:
    ```sh
-   ssh -o BatchMode=yes gob@macbook-pro--gob 'cd /Users/gob/Projects/Agents && git rev-parse HEAD'
+   ssh -o BatchMode=yes gob@macbook-pro--gob 'cd /Users/gob/MoonieXHQ/Agents/Core && git rev-parse HEAD'
    ```
 3. **`sudo -n shutdown -r +1` without a password.** On the Mac, once:
    ```sh
@@ -48,15 +48,38 @@ Nothing here was run against a real Mac when it was written: see "Not verified" 
 ## Install the LaunchAgent (on the Mac, as gob)
 
 ```sh
-cd /Users/gob/Projects/Agents
-mkdir -p ~/Library/LaunchAgents state/restart
-cp deploy/launchd/com.mooniex.org-resume.plist ~/Library/LaunchAgents/ && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.mooniex.org-resume.plist
+cd /Users/gob/MoonieXHQ/Agents/Core
+bash scripts/install-mac-resume.sh
 ```
+
+The installer defaults to its own checkout root using `git rev-parse --show-toplevel`, renders
+all `__REPO__` placeholders, and bootstraps the resulting plist in `gui/$(id -u)`.
+Do not copy the template directly. Python 3 is required for rendering.
 
 `RunAtLoad` also fires once at bootstrap. With no marker that only writes a line, so a good install
 ends with `tail -3 state/restart/mac-resume.log` showing `nothing to resume`. If the label is already
 loaded, `launchctl bootout gui/$(id -u)/com.mooniex.org-resume` first. Check with
 `launchctl print gui/$(id -u)/com.mooniex.org-resume | head -20`.
+
+## Detached prep (run locally on the Mac)
+
+Prep closes Claude sessions, including its caller. Submit it to launchd before closing anything:
+
+```sh
+cd /Users/gob/MoonieXHQ/Agents/Core
+bash scripts/mac-restart.sh --detach --sha <SHA> --cards-checked --dry-run
+# After reviewing the dry run and cards:
+bash scripts/mac-restart.sh --detach --sha <SHA> --cards-checked
+```
+
+`--detach` operates locally; `--host-alias` is only for SSH mode. Each submission gets a unique
+label, refuses an existing label, and logs to `state/restart/mac-prep-<timestamp>-<pid>.log`.
+Exit 0 means submitted; read the log for the final prep outcome. The job rechecks HEAD, runs
+prep, and invokes `sudo -n shutdown -r +1` only after prep exits 0 and without `--dry-run`.
+The exit trap deletes its temporary script and removes its launchd job. A killed job may leave
+a script or registration behind; inspect `launchctl list` before manual removal.
+Dry runs create job/log files but pass `prep --dry-run`, never close sessions or invoke shutdown.
+`--cards-checked` passes the operator's review acknowledgement through; omit it if not reviewed.
 
 ## The cards (run on Contabo)
 
@@ -79,7 +102,7 @@ systemd-run --unit=mac-restart-$(date +%s) --collect bash /opt/MoonieXHQ/Agents/
 Bring the sessions back without rebooting (after a prep that failed half way, or a cancelled restart):
 
 ```sh
-ssh gob@macbook-pro--gob 'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && cd /Users/gob/Projects/Agents && bash scripts/hub/org-python.sh tools/restart_run.py --host mac resume'
+ssh gob@macbook-pro--gob 'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && cd /Users/gob/MoonieXHQ/Agents/Core && bash scripts/hub/org-python.sh tools/restart_run.py --host mac resume'
 ```
 
 Options: `--host-alias <name|user@host>` (default `macbook-pro--gob`), `--repo <path on the Mac>`.

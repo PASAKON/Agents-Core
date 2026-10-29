@@ -19,17 +19,17 @@
        (the Mac's KillMode=process). No ProcessType: "Background" would hand its low CPU/IO
        priority to every session this job spawns.
 
-       The path assumes the checkout is /Users/gob/Projects/Agents. If it lives elsewhere, edit the
-       two paths below before copying. HOME and PATH are exported by the script itself.
+       Template: scripts/install-mac-resume.sh substitutes the checkout root.
+       HOME and PATH are exported by the script itself.
        No secrets in this file. Install: docs/ops/safe-restart-mac.md. -->
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/gob/Projects/Agents/scripts/org-resume-mac.sh</string>
+    <string>__REPO__/scripts/org-resume-mac.sh</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/gob/Projects/Agents</string>
+  <string>__REPO__</string>
 
   <key>RunAtLoad</key>
   <true/>
@@ -39,8 +39,8 @@
   <!-- The script appends to this same file itself; launchd's copy catches a bash error raised
        before the script's own redirect. -->
   <key>StandardOutPath</key>
-  <string>/Users/gob/Projects/Agents/state/restart/mac-resume.log</string>
+  <string>__REPO__/state/restart/mac-resume.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/gob/Projects/Agents/state/restart/mac-resume.log</string>
+  <string>__REPO__/state/restart/mac-resume.log</string>
 </dict>
 </plist>

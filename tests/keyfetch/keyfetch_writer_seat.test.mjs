@@ -5,8 +5,9 @@ import { parseManifest, reconcileSeat, SeatError } from '../../scripts/infisical
 
 const projects = parseManifest(readFileSync(new URL('../../config/keyfetch-writer.yaml', import.meta.url), 'utf8'));
 const SECRET = 'sk-test-NEVER-PRINT-THIS-SECRET-123456789';
-function fake({ setup = true, writer = false, role = 'no-access', users = 1, attached = true, members = true, missing = false, fail = '' } = {}) {
+function fake({ setup = true, writer = false, role = 'no-access', users = 1, attached = true, members = true, missing = false, fail = '', ttl = 3600 } = {}) {
   const calls = [], lines = [];
+  let uaTtl = ttl;
   const identities = ['contabo', 'mac', 'winbox'].map(name => ({ identity: { name, id: name } }));
   if (setup) identities.push({ identity: { name: 'setup', id: 'setup-id-long-123456789' }, role: 'admin' });
   if (writer) identities.push({ identity: { name: 'keyfetch-writer', id: 'writer-id-long-123456789', authMethods: attached ? ['universal-auth'] : [] }, role });
@@ -21,6 +22,7 @@ function fake({ setup = true, writer = false, role = 'no-access', users = 1, att
       else if (path.endsWith('/memberships')) json.users = Array.from({ length: users }, () => ({ user: { username: SECRET } }));
       else if (path.endsWith('/workspaces')) json.workspaces = projects.slice(missing ? 1 : 0).map(name => ({ name, id: `p${projects.indexOf(name)}` }));
       else if (path.endsWith('/client-secrets')) json.clientSecretData = secrets;
+      else if (path.startsWith('/api/v1/auth/universal-auth/identities/')) json.identityUniversalAuth = { accessTokenTTL: uaTtl, accessTokenMaxTTL: uaTtl };
       else if (path.includes('/identity-memberships?')) json.identityMemberships = memberships.get(path.split('/')[4]);
       else assert.fail(`unexpected GET ${path}`);
     } else if (method === 'DELETE') {
@@ -33,6 +35,7 @@ function fake({ setup = true, writer = false, role = 'no-access', users = 1, att
       memberships.get(path.split('/')[4]).push({ identity: { id: 'writer-id-long-123456789' }, roles: [{ role: body.role }] });
     } else if (path.startsWith('/api/v1/auth/universal-auth/identities/')) {
       identities.find(m => m.identity.name === 'keyfetch-writer').identity.authMethods = ['universal-auth'];
+      uaTtl = body?.accessTokenTTL;
     } else assert.fail(`unexpected write ${path}`);
     return { status: 200, json };
   };
@@ -55,6 +58,7 @@ test('go revokes and deletes setup before no-access create, then attaches and ad
   assert.equal(w[1].method, 'DELETE');
   assert.equal(w[2].path, '/api/v1/identities');
   assert.deepEqual(w[2].body, { name: 'keyfetch-writer', organizationId: 'org-long-123456789', role: 'no-access' });
+  assert.deepEqual(w[3].body, { accessTokenTTL: 3600, accessTokenMaxTTL: 3600 }, 'attach sets a one-hour token, not the 30-day default');
   assert.equal(w.length, 7);
   assert.equal(w.filter(c => c.body?.role === 'member').length, 3);
   assert.ok(!w.some(c => c.body?.role === 'admin' || c.path.endsWith('/client-secrets')));
@@ -84,6 +88,13 @@ test('already complete sends no writes', async () => {
 test('resume after create attaches missing auth and memberships only', async () => {
   const f = fake({ setup: false, writer: true, attached: false, members: false }); await f.run(true);
   assert.equal(writes(f).length, 4); assert.ok(!writes(f).some(c => c.path === '/api/v1/identities'));
+});
+test('attached writer whose token outlives an hour: dry run reports it, go sends one PATCH', async () => {
+  const f = fake({ setup: false, writer: true, ttl: 2592000 });
+  await f.run(); assert.equal(writes(f).length, 0); assert.match(f.lines.join('\n'), /universal-auth set token ttl/);
+  await f.run(true); const w = writes(f);
+  assert.equal(w.length, 1); assert.equal(w[0].method, 'PATCH');
+  assert.deepEqual(w[0].body, { accessTokenTTL: 3600, accessTokenMaxTTL: 3600 });
 });
 test('existing different project role is left alone', async () => {
   const f = fake({ setup: false, writer: true }); f.memberships.get('p0')[0].roles = [{ role: 'viewer' }];

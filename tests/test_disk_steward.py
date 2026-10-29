@@ -31,11 +31,31 @@ def test_bands_and_gate(monkeypatch, host, free, expected):
 @pytest.mark.parametrize('name', ['Cookies','Login Data','Local Storage/item','IndexedDB/a','Local State',
     'oauth.json','credentials.json','.credentials.json','.config/gh/hosts.yml','rclone.conf',
     '.env','auth.json','.ssh/id_rsa','Archive/mac-secrets-2026/a','Archive/winbox-keys/a',
-    'Archive/mooniex-vps/anything','docker/volumes/x','docker/image/x'])
+    'Archive/mooniex-vps/.env.example','docker/volumes/x','docker/image/x'])
 def test_never(name):
     for p in ('/safe/' + name, PureWindowsPath('C:/safe') / name):
         with pytest.raises(ValueError):
             ds.guard_path(p, cwds=[])
+
+
+@pytest.mark.parametrize('name', [
+    'mooniex-vps/20260613T193125Z/' + name for name in (
+        'alphatrader/.env', 'option/.env', 'option/.env.example', 'option/.env.enc',
+        'option/.env.bak.1781211822', 'docker-n8n/.env', 'claudeflow/.env',
+        'line-automation/.env', 'line-automation/.env.example', 'id_rsa',
+        'traefik_data/x', 'acme.json', 'line-poster/windows.security.credentials.dll')
+] + ['mac-secrets-20260924/x', 'winbox-keys-20260924/x', 'agents-core-presync-20261010/x'])
+def test_archive_secret_guards(name):
+    for p in ('/safe/Archive/' + name, PureWindowsPath('C:/safe/Archive') / name):
+        with pytest.raises(ValueError):
+            ds.guard_path(p, cwds=[])
+
+
+@pytest.mark.parametrize('name', ['line-poster/file', 'volumes/file'])
+def test_archive_nonsecret_allowed(name):
+    for p in ('/safe/Archive/mooniex-vps/20260613T193125Z/' + name,
+              PureWindowsPath('C:/safe/Archive/mooniex-vps/20260613T193125Z') / name):
+        assert ds.guard_path(p, cwds=[])
 
 
 def test_cwd_tmp_images_and_safe_windows(tmp_path):
@@ -104,6 +124,7 @@ def test_dry_run_never_runs(monkeypatch, tmp_path, capsys, free, extra):
 
 
 def test_daily_stamps_and_orphan_close(monkeypatch, tmp_path):
+    monkeypatch.setenv('ORG_DB_URL', 'postgresql://unused-test-only')
     monkeypatch.setattr(ds, 'STATE', tmp_path/'state')
     monkeypatch.setattr(ds, 'lane_usage', lambda _: {})
     monkeypatch.setattr(ds, 'machine', lambda _: {'hq':str(tmp_path), 'home':str(tmp_path), 'claude_config_dir':str(tmp_path/'.claude')})

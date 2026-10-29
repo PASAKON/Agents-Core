@@ -28,6 +28,19 @@ sys.path.insert(0, str(ROOT))
 
 import tools.drive_leg as drive_leg  # noqa: E402
 
+
+def test_lineposter_fake_relay_roundtrip(tmp_path, fake_relay):
+    from tools import disksteward_p2 as p2
+    source = tmp_path / 'LinePoster'
+    source.mkdir()
+    (source / 'app.py').write_text('print("test")')
+    (source / '.env').write_text('fixture-secret')
+    result = drive_leg.lineposter(config_dir=tmp_path / 'cfg', source=source)
+    assert result['verified'] is True
+    assert [f['path'] for f in result['files']] == ['app.py']
+    p2.verify_receipt(result)
+    assert (source / '.env').exists() and (source / 'app.py').exists()
+
 UUID_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 UUID_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 UUID_C = "cccccccc-cccc-cccc-cccc-cccccccccccc"
@@ -315,7 +328,9 @@ def test_runner_symlinks_and_recent_files_stay(tmp_path, fake_relay):
     assert target.exists() and (root / "recent").exists()
 
 
-def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path):
+@pytest.mark.parametrize('host', ['contabo', 'mac', 'winbox'])
+def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path, monkeypatch, host):
+    monkeypatch.setenv('ORG_HOST', host)
     cfg = tmp_path / "claude_config"
     j_young = _write_session(cfg, "slugA", UUID_A, 1)   # too young (< 7d), must stay
     j_old = _write_session(cfg, "slugB", UUID_B, 8)     # eligible
@@ -340,6 +355,8 @@ def test_transcripts_archives_only_eligible_days(fake_relay, tmp_path):
     found = set()
     for m in manifests:
         data = json.loads(m.read_text())
+        assert data['machine'] == host
+        assert data['drive']['remote_path'].startswith('gdrive:' + host + '/')
         for f in data["files"]:
             found.add(Path(f["path"]).parts[0].split(".")[0])
     assert found == {UUID_B, UUID_C}
