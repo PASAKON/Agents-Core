@@ -421,12 +421,46 @@ def test_report_notification(tmp_path, missing):
     assert rr.report(a) == int(missing)
     command = commands()[0]
     assert command[:4] == ['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'ask']
+    assert command[command.index('--role') + 1] == 'project_head'
+    assert command[command.index('--session') + 1] == 'project_head-1234abcd'
     assert command[-4:] == ['--option', 'รับทราบ', '--option',
                             'ดูรายชื่อที่ขาด' if missing else 'ดูรายงาน']
     lines = (command[command.index('--question') + 1] + '\n' +
              command[command.index('--why') + 1]).splitlines()
     assert len(lines) <= 5
     assert all(len(line) <= 90 for line in lines)
+
+
+@pytest.mark.parametrize('missing', [False, True])
+def test_report_notification_prefers_c_level(tmp_path, missing):
+    manifest([entry(role='project_head'), entry(role='cto'), entry(role='cmo')])
+    rr.tmux_session.has_session.return_value = not missing
+    assert rr.report(args(tmp_path, notify=True)) == int(missing)
+    command = commands()[0]
+    assert command[3] == ('create' if missing else 'ask')
+    assert command[command.index('--role') + 1] == 'cto'
+    assert command[command.index('--session') + 1] == 'cto-1234abcd'
+
+
+def test_report_notification_empty_manifest(tmp_path):
+    manifest([])
+    assert rr.report(args(tmp_path, notify=True)) == 0
+    assert '--role' not in commands()[0]
+    assert '--session' not in commands()[0]
+
+
+@pytest.mark.parametrize('missing', [False, True])
+@pytest.mark.parametrize('error', [OSError('no notifier'),
+    subprocess.CalledProcessError(1, ['ask_run.py']),
+    subprocess.TimeoutExpired(['ask_run.py'], 300)])
+def test_report_notification_failure(tmp_path, capsys, missing, error):
+    manifest([entry(role='cto', sid=f'{i:08x}') for i in range(6)])
+    rr.tmux_session.has_session.return_value = not missing
+    rr.subprocess.run.side_effect = error
+    assert rr.report(args(tmp_path, notify=True)) == 2
+    out = capsys.readouterr().out
+    assert f"กลับมา {0 if missing else 6}/6" in out
+    assert f'notify failed: {error}' in out
 
 
 def test_clean_refuses_pending_restart(tmp_path):
@@ -822,7 +856,7 @@ def test_winbox_prep_saves_and_records_what_resume_needs(winbox, tmp_path):
     locks.mkdir(parents=True)
     (locks / f'project_head-{SID_B}.spawned_by').write_text('cxo:cto:cto-08d5df68')
     (locks / f'project_head-{SID_B}.project').write_text('LuminaSkies\n')
-    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': datetime.now(timezone.utc) + timedelta(days=1)}
     rows = [wrow('resume_full'), wrow('resume_lazy', 'project_head', SID_B), wrow('park', 'cmo', '0badc0de')]
     assert rr.prep(wargs(tmp_path, rows)) == 0
     # preflight on every tab (dry), then one /session-save per session
@@ -1034,13 +1068,13 @@ def test_winbox_report_counts_registered_sessions_not_panes(winbox, tmp_path, ca
     assert 'กลับมา 1/2\ncmo' in capsys.readouterr().out
 
 
-def test_winbox_report_notify_uses_this_python_and_survives_no_token(winbox, tmp_path, capsys):
+def test_winbox_report_notify_uses_this_python_and_reports_no_token(winbox, tmp_path, capsys):
     wmanifest([wentry('full'), wentry('lazy', 'cmo', SID_B)])
     rr.win_live.return_value = {('cmo', SID_B)}
     rr.subprocess.run.side_effect = subprocess.CalledProcessError(3, ['ask_run.py'])
-    assert rr.report(wargs(tmp_path, notify=True)) == 1
+    assert rr.report(wargs(tmp_path, notify=True)) == 2
     out = capsys.readouterr().out
-    assert 'notify_failed' in out
+    assert 'notify failed:' in out
     first = rr.subprocess.run.call_args_list[0].args[0]
     assert first[:3] == [sys.executable, 'tools/ask_run.py', 'create'] and '--host' in first
     assert first[first.index('--command') + 1].endswith(r'windows\org-resume-logon.ps1')
@@ -1189,7 +1223,7 @@ def test_win_rebuild_owner_leaves_a_complete_record_alone(tmp_path, monkeypatch,
 
 def test_winbox_prep_rebuilds_a_lost_owner_record_instead_of_cannot_resume(winbox, tmp_path, capsys):
     rr.win_hub_ph.return_value = (HUB_PH, '')
-    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': NOW + timedelta(days=1)}
+    rr.session_status.get.return_value = {'status': 'saved', 'closed_at': datetime.now(timezone.utc) + timedelta(days=1)}
     assert rr.prep(wargs(tmp_path, [wrow('resume_full', 'project_head', SID_B)])) == 0
     out = capsys.readouterr().out
     assert 'rebuilt:' in out and 'cannot_resume' not in out

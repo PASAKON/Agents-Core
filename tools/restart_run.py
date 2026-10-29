@@ -928,15 +928,15 @@ def clean(args):
 
 
 def ask_run(host, argv, dry):
-    """tools/ask_run.py <argv>. On winbox: this interpreter (bash there is the WSL stub), and a
-    card that cannot be raised (no Run Inbox token yet) is logged, never a failed report."""
-    if host != 'winbox':
-        run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', *argv], dry)
-        return
+    """Send a notification, returning whether it succeeded on either host."""
+    prefix = ([sys.executable] if host == 'winbox'
+              else ['bash', 'scripts/hub/org-python.sh'])
     try:
-        run([sys.executable, 'tools/ask_run.py', *argv], dry)
+        run([*prefix, 'tools/ask_run.py', *argv], dry)
     except (OSError, subprocess.SubprocessError) as exc:
-        print(f'notify_failed: {exc}')
+        print(f'notify failed: {exc}')
+        return False
+    return True
 
 
 def report(args):
@@ -956,6 +956,9 @@ def report(args):
             print(name)
     if getattr(args, 'notify', False):
         owners = [r for r in entries if r['role'] in roles.c_level_roles()]
+        if not owners:
+            # ask_run.card_roles / resolve_requester accept Project Heads.
+            owners = [r for r in entries if r['role'] == roles.PH_ROLE]
         requester = (['--role', owners[0]['role'], '--session', pane(owners[0])]
                      if owners else [])  # Empty manifests use the configured service requester.
         missing_owners = [r for r in missing_rows
@@ -970,20 +973,22 @@ def report(args):
             if win:
                 command = r'powershell -NoProfile -ExecutionPolicy Bypass -File windows\org-resume-logon.ps1'
                 cwd = str(ROOT)
-            ask_run(args.host, ['create',
+            notified = ask_run(args.host, ['create',
                  '--host', args.host, *requester, '--command', command,
                  '--cwd', cwd, '--risk', 'amber',
                  '--why', why, '--expected', f"กลับมา {result['total']}/{result['total']}"],
                 args.dry_run)
-            return 1
+            return 1 if notified else 2
         question = f"Restart {'winbox' if win else 'Contabo'}: กลับมา {result['back']}/{result['total']}"
         details = ['ยังไม่กลับมา: ' + str(name).replace('\n', ' ')[:70] for name in missing[:3]]
         if len(missing) > 3:
             details.append(f'อีก {len(missing) - 3} รายชื่ออยู่ในรายงานบนเครื่อง')
-        ask_run(args.host, ['ask',
+        notified = ask_run(args.host, ['ask',
              '--host', args.host, *requester,
              '--question', question, '--why', '\n'.join(details) or 'ทุก session ในรายการกลับมาแล้ว',
              '--option', 'รับทราบ', '--option', 'ดูรายชื่อที่ขาด' if missing else 'ดูรายงาน'], args.dry_run)
+        if not notified:
+            return 2
     return int(bool(missing))
 
 
