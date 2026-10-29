@@ -786,6 +786,18 @@ def test_winbox_gone_never_kills(winbox, capsys):
     assert rr.gone(entry(), 'winbox') is True
 
 
+def test_win_live_names_a_session_by_its_uuid_tail(tmp_path, monkeypatch):
+    # live_sessions parses "🖥️ PH#f35 (CTO) - CookieRun" to sid 'f35'; the plan row uses the uuid tail.
+    monkeypatch.setattr(rr.live_sessions, 'session_dirs', lambda host: [tmp_path])
+    monkeypatch.setattr(rr.live_sessions, 'read_registry', lambda dirs: [dict(
+        role='project_head', sid='f35', pid=22472, name='🖥️ PH#f35 (CTO) - CookieRun',
+        uuid='0d1c2b3a-1111-2222-3333-44444ae68058')])
+    monkeypatch.setattr(rr, 'win_started', lambda pid: None)
+    live = rr.win_live()
+    assert ('project_head', '4ae68058') in live
+    assert rr.identity(dict(role='project_head', sid='4ae68058')) in live
+
+
 def test_win_live_rejects_a_reused_pid(tmp_path, monkeypatch):
     sessions = tmp_path / 'sessions'
     sessions.mkdir()
