@@ -100,3 +100,4 @@ Options:
 
 ## Field notes
 
+- 2026-10-30 [MISSING] step 0 — no pointer to the channel formula index or MeiGen before a prompt was written; added on the CEO ruling of 30 Oct (CMO chat: MeiGen for ideas, a hit becomes a formula) · evidence: 92685b37, CMO_Workflow_PromptFormula · status: promoted
