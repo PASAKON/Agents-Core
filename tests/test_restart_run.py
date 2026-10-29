@@ -1468,11 +1468,14 @@ def _winbox_sh(tmp_path, *argv, logon_state='', **env):
     (scripts / 'hub').mkdir()
     for name in ('winbox-restart.sh', 'lib/winbox_deploy.sh'):
         (scripts / name).write_text((REPO / 'scripts' / name).read_text())
-    (scripts / 'hub/org-python.sh').write_text('#!/bin/sh\necho "${FAKE_CARDS:-[]}"\n')
+    (scripts / 'hub/org-python.sh').write_text(
+        '#!/bin/sh\nprintf "ASK argc=%s\\n" "$#" >> "$FAKE_DIR/calls"\n'
+        'cat "$FAKE_DIR/cards.json"\n')
     (scripts / 'pc-lease.sh').write_text('#!/bin/sh\necho "LEASE $*" >> "$FAKE_DIR/calls"\n')
     bindir, fake = tmp_path / 'bin', tmp_path / 'fake'
     bindir.mkdir()
     fake.mkdir()
+    (fake / 'cards.json').write_text(env.pop('FAKE_CARDS', '[]'))
     for name, body in (('ssh', FAKE_SSH), ('scp', FAKE_SCP)):
         (bindir / name).write_text(body)
         (bindir / name).chmod(0o755)
@@ -1586,6 +1589,67 @@ def test_winbox_sh_restart_dry_run_runs_prep_dry_run_only(tmp_path):
     assert 'PREP-DRY-RUN-OUTPUT' in result.stdout and '--register-logon-task' in result.stdout
     assert not _called(calls, ONE_SHOT) and not _called(calls, 'LEASE') and not _called(calls, 'shutdown')
 
+
+@pytest.mark.parametrize('fields,reason', [
+    ({'command': 'ssh WINBOX install'}, 'pattern=winbox'),
+    ({'script': {'path': 'scripts/flow_shoot_card.sh', 'args': []}}, 'pattern=flow_shoot'),
+    ({'command': 'python tools/FLOW_SHOOT_card.py'}, 'pattern=flow_shoot'),
+    ({'script_json': json.dumps({'path': 'tools/flow_shoot_card.py'})}, 'pattern=flow_shoot'),
+    ({'argv': ['ssh', 'winbox', 'install']}, 'pattern=winbox'),
+    ({'cwd': '/tmp/flow_shoot'}, 'pattern=flow_shoot'),
+    ({'command': 'ssh passg@100.124.196.11 install'}, 'pattern=passg@'),
+    ({'command': 'ssh 100.124.196.11 install'}, 'pattern=100.124.196.11'),
+    ({'host': 'winbox'}, "host='winbox'"),
+    ({'host': None}, 'host=None'),
+    ({'host': ''}, "host=''"),
+    ({'command': 'bash scripts/winbox-restart.sh-evil'}, 'pattern=winbox'),
+    ({'script': {'path': 'scripts/winbox-restart.sh-evil'}}, 'pattern=winbox'),
+    ({'command': 'echo scripts/winbox-restart.sh'}, 'pattern=winbox'),
+    ({'command': 'bash scripts/winbox-restart.sh; ssh winbox install'}, 'pattern=winbox'),
+    ({'command': 'bash scripts/winbox-restart.sh\nssh winbox install'}, 'pattern=winbox'),
+    ({'cwd': 'scripts/winbox-restart.sh'}, 'pattern=winbox'),
+])
+def test_winbox_sh_busy_cards_refuse_before_lease(tmp_path, fields, reason):
+    cards = [{'id': 'busy-card', 'host': 'contabo', **fields}]
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, FAKE_CARDS=json.dumps(cards))
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert 'busy-card' in result.stderr and reason in result.stderr
+    assert 'ASK argc=5' in calls
+    assert not _called(calls, 'LEASE') and not _called(calls, ONE_SHOT) and not _called(calls, 'shutdown')
+
+
+@pytest.mark.parametrize('fields', [
+    {'command': 'bash scripts/winbox-restart.sh --sha ' + SHA},
+    {'command': './scripts/winbox-restart.sh --sha ' + SHA},
+    {'script': {'path': 'scripts/winbox-restart.sh', 'args': ['--sha', SHA]}},
+    {'script_json': json.dumps({'path': 'scripts/winbox-restart.sh'})},
+    {'argv': ['bash', 'scripts/winbox-restart.sh', '--sha', SHA]},
+    {'command': 'python tools/unrelated.py'},
+])
+def test_winbox_sh_nonbusy_cards_pass_card_gate(tmp_path, fields):
+    cards = [{'id': 'allowed-card', 'host': 'contabo', **fields}]
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, FAKE_CARDS=json.dumps(cards))
+    # The next gate refuses the absent logon task; no remote work is performed.
+    assert result.returncode == 4, result.stdout + result.stderr
+    assert 'no Run card is running on winbox' in result.stdout
+    assert not _called(calls, 'LEASE') and not _called(calls, 'shutdown')
+
+
+@pytest.mark.parametrize('cards', ['', 'not json', '{}', 'null'])
+def test_winbox_sh_unreadable_cards_refuse(tmp_path, cards):
+    result, calls, _ = _winbox_sh(tmp_path, '--sha', SHA, FAKE_CARDS=cards)
+    assert result.returncode == 3
+    assert 'Run cards unreadable' in result.stderr
+    assert not _called(calls, 'LEASE') and not _called(calls, 'shutdown')
+
+
+def test_winbox_sh_reports_every_busy_card(tmp_path):
+    cards = [{'id': 'local-card', 'host': 'winbox'},
+             {'id': 'remote-card', 'host': 'contabo', 'command': 'ssh winbox install'}]
+    result, _, _ = _winbox_sh(tmp_path, '--sha', SHA, FAKE_CARDS=json.dumps(cards))
+    assert result.returncode == 3
+    assert "local-card (host='winbox')" in result.stderr
+    assert 'remote-card (pattern=winbox)' in result.stderr
 
 def test_winbox_prep_tab_missing_live_park_row_saved_by_jsonl(monkeypatch, tmp_path, capsys):
     # 29 Oct dry run: two live PHs with no WT tab were planned 'park'; park rows are not in the
