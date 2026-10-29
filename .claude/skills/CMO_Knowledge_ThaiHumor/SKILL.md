@@ -74,6 +74,14 @@ Checklist for every hook:
 2. Write frame 1 first (checklist 1-4), then the line, then the timing in seconds, then the voice direction.
 3. Run the benign check (below), then `scripts/check-post-text.sh` on anything public.
 4. Copy the format of `references/hooks-20.md`. Those 20 are ours to reuse; test 2-3 per channel before scaling.
+5. Before writing, open `knowledge/brand-knowledge/brands/<channel>/formulas/INDEX.md`: a proven hook formula that
+   fits is followed as written (`CMO_Workflow_PromptFormula`).
+
+## Proven hooks become formulas (CEO 2026-10-30, via CMO)
+Seven days after a post, compare it with the channel's own average of its last 5 posts (`CMO_Workflow_PromptFormula`
+Step 5). A hit, or the CEO's "ปัง", becomes `formulas/<id>.md` plus a row in that channel's `formulas/INDEX.md` the
+same day, approved by the CMO. Record the hook number (H1-H20 or a new one), the mechanism, frame 1, the line and the
+timing, so the next EP repeats it and other channels can adopt it.
 
 ## Rules that apply here (pointers)
 - Others' jokes are ideas only (CEO 2026-10-11): learn the mechanism, never copy a line, catchphrase or sketch.
@@ -86,3 +94,4 @@ Checklist for every hook:
 ## Field notes
 - 2026-10-29 [MISSING] YouTube caption URLs (timedtext) now return empty without a token; `yt-dlp --skip-download --write-auto-subs --sub-langs th --sub-format json3` fetches captions only (no media) and worked on 33 clips · evidence: project thaihumor, /opt/MoonieXHQ/Work/thaihumor/subs · status: pending
 - 2026-10-29 [COSTLY] An AGY researcher worker died at once ("tool permission auto-denied") on a web-research brief; the same failure is logged in the CnDrama and ILAG STATUS files. Budget for doing web research yourself or on another runner · evidence: task-5e0c0111 · status: pending
+- 2026-10-29 [COSTLY] An AGY read-only reviewer died in 0.6 min ("read_file" auto-denied): agy gets `--add-dir <its worktree>` only, and the PR files sat on a branch not in that worktree. Tell a worker to `git show FETCH_HEAD:<path> > tmp/<file>` first, or route the review to Codex · evidence: task-b5f822a5 .launch-task-b5f822a5/agy-events.log · status: pending
