@@ -134,7 +134,9 @@ waiting in chat or hand it to SomPong to relay. He taps an answer on terminal.mo
 `ask_run_wait Q-…` returns it. Only he can answer, and that hub record is his decision: cite the `Q-…` id
 when you act on it. **A question card never replaces a command card.** Anything that runs a command,
 spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill
-`ALL_Protocol_RunInbox` §Question cards. The Mac and winbox have no run-inbox token yet; ask in chat there.
+`ALL_Protocol_RunInbox` §Question cards. The Mac and winbox have no run-inbox token yet, so a session there sends
+the question as one `blocker` letter to a Contabo C-level (its own, else CTO Main), which raises the card and
+sends back the answer with its `Q-…` id (CEO 2026-10-29). Never leave it waiting in that chat.
 
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 
