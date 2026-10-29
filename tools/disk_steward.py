@@ -259,6 +259,9 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
+DEFAULT_HUB_URL = 'https://webhook.mooniex.com/disk'
+
+
 def push_tick(host, band, actions):
     """Best-effort, token-silent report. Never stringify a network exception."""
     row = dict(name='hub-push', host=host, band=band, status='skipped', rc=None,
@@ -285,6 +288,8 @@ def push_tick(host, band, actions):
                 key, value = words[0].split('=', 1)
                 if key in ('DISK_HUB_URL', 'DISK_PUSH_TOKEN'):
                     values[key] = value
+        # push-unix.sh treats DISK_HUB_URL as optional with this default; Contabo's push.env has none.
+        values.setdefault('DISK_HUB_URL', DEFAULT_HUB_URL)
         if not all(values.get(k) for k in ('DISK_HUB_URL', 'DISK_PUSH_TOKEN')):
             row['reason'] = 'disk-push URL or token is missing'
             return

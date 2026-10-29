@@ -197,6 +197,26 @@ def test_push_no_token_leak(monkeypatch, tmp_path, capsys, failure):
     assert ds._NoRedirect().redirect_request(calls[0], None, 302, '', {}, 'https://elsewhere') is None
 
 
+def test_push_uses_default_hub_url_when_env_has_only_the_token(monkeypatch, tmp_path, capsys):
+    # Contabo's /opt/disk-monitor/push.env holds only DISK_PUSH_TOKEN (RUN-20261029-0435-3cf6).
+    env = tmp_path / 'push.env'
+    env.write_text('DISK_PUSH_TOKEN=tok\n')
+    monkeypatch.setattr(ds, 'STATE', tmp_path / 'state')
+    monkeypatch.setattr(ds, 'machine', lambda _: dict(disk_push_env=str(env)))
+    calls = []
+    class Opener:
+        def open(self, req, timeout):
+            calls.append(req)
+            result = Mock(status=200)
+            result.__enter__ = Mock(return_value=result)
+            result.__exit__ = Mock(return_value=False)
+            return result
+    monkeypatch.setattr(ds.urllib.request, 'build_opener', lambda handler: Opener())
+    ds.push_tick('contabo', 'orange', 1)
+    assert json.loads(capsys.readouterr().out)['status'] == 'run'
+    assert calls[0].full_url.startswith('https://webhook.mooniex.com/disk?')
+
+
 def test_shim_nested_and_flat(monkeypatch, capsys):
     from urllib.parse import urlsplit, parse_qs
     root = 'root-folder-id-1234567890'

@@ -96,3 +96,17 @@ def test_tick_resolver_keeps_dedicated_checkout(tmp_path):
         result = subprocess.run([sys.executable, '-c', resolver, str(contract), str(seed)],
                                 check=True, capture_output=True, text=True)
         assert Path(result.stdout.strip()) == dedicated
+
+
+def test_remote_blocks_do_not_abort_on_native_stderr():
+    # RUN-20261029-0436-a509: git's progress on stderr became a terminating
+    # RemoteException under PowerShell 5.1's Stop preference.
+    text = (ROOT / 'scripts/winbox-install-disk-steward.sh').read_text()
+    prepare = text[text.index('$paths = @($candidates)') - 400:text.index('Write-Output \\$dedicated')]
+    assert "\\$ErrorActionPreference = 'Continue'" in prepare
+    assert 'rev-parse --show-toplevel 2>\\$null' in prepare
+    # review of #550: Continue must not let a failed cd reach the import check
+    assert 'Push-Location \\$dedicated -ErrorAction Stop' in prepare
+    deploy = text[text.index('Pusher backup'):text.index('-DryRun 2>&1')]
+    assert "\\$ErrorActionPreference = 'Continue'" in deploy
+    assert deploy.index("'Continue'") < deploy.index('register-disk-steward.ps1')
