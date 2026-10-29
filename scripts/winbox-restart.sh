@@ -187,6 +187,7 @@ fi
 # PH ExpertAdvisor runs an EA in MT5 (terminal64) on winbox. A reboot with a position open
 # leaves it unmanaged, so ea-live.ps1 flat must exit 0 first. No ea-live.ps1 = no EA: skip.
 # Nothing here or in prep stops terminal64; only the reboot itself ends it.
+# winbox's execution policy is Restricted: without -ExecutionPolicy Bypass, -File exits 1.
 EA_PS1='C:\Users\passg\ea-live\ea-live.ps1'
 ea_state=$(ssh_out "if exist $EA_PS1 (echo EA_PRESENT) else (echo EA_ABSENT)" 2>&1) ||
   ea_state="ssh failed: $ea_state"
@@ -194,7 +195,7 @@ case "$ea_state" in
   EA_ABSENT) ok "no $EA_PS1 on winbox: EA flat check skipped" ;;
   EA_PRESENT)
     ea_code=0
-    ea_out=$(ssh_out "powershell -NoProfile -File $EA_PS1 flat" 2>&1) || ea_code=$?
+    ea_out=$(ssh_out "powershell -NoProfile -ExecutionPolicy Bypass -File $EA_PS1 flat" 2>&1) || ea_code=$?
     if (( ea_code == 0 )); then
       ok "EA is flat (ea-live.ps1 flat exit 0)"
     else

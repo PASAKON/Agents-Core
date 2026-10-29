@@ -1579,6 +1579,9 @@ elif 'prep --dry-run' in remote:
 elif 'ea-live.ps1 (echo EA_PRESENT)' in remote:
     print(os.environ.get('FAKE_EA', 'EA_ABSENT'))
 elif 'ea-live.ps1 flat' in remote:
+    if '-ExecutionPolicy Bypass' not in remote:   # winbox's policy is Restricted
+        print('running scripts is disabled on this system')
+        sys.exit(1)
     print('flat says ' + os.environ.get('FAKE_EA_FLAT', '0'))
     sys.exit(int(os.environ.get('FAKE_EA_FLAT', '0')))
 '''
