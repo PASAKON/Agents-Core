@@ -10,7 +10,7 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
 - scripts/hook-phone-only-commands.py: `turn()` returns the turn's text and tool_use blocks (`turn_text()` keeps
   its signature and delegates); new `question_offenders()` / `_raises_card()`; `decide()` returns one block that
   carries both reasons when both checks hit. The `!` check is untouched.
-- tests/test_hook_phone_only_commands.py: +64 cases (every MUST block and MUST pass from the brief, plus the
+- tests/test_hook_phone_only_commands.py: +74 cases (every MUST block and MUST pass from the brief, plus the
   exemption shapes, a roster-drift test against `c_level_roles()`, and the verbatim reason).
 - tools/mail_wake.py: new CLI (see Notes).
 - tests/test_mail_wake.py: new, 40 cases.
@@ -23,13 +23,16 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
 - 9b74453c: hook-phone-only-commands: block a C-level or PH that asks the CEO in chat with no question card
 - 98499d8c: ask_run wait: accept --timeout as an alias of --max-wait
 - be19b407: mail_wake: wake the session that waits on an unread mailbox letter (tools/mail_wake.py, its tests, the `_ALLOWED_SUBSETS` row, this report)
+- 3c2a2433: report task-aacebd72: name the mail_wake commit
+- 87c86ccb: hook-phone-only-commands: four false positives from the CTO review (hook + tests)
+- the review-fix commit (four false positives; sha in `git log`)
 
 ## Tests
 - ran: `.venv/bin/python -m pytest tests/test_hook_phone_only_commands.py tests/test_mail_wake.py tests/test_ask_run.py`
-- passed: 233 (73 hook + 40 mail_wake + 120 ask_run)
+- passed: 243 (83 hook + 40 mail_wake + 120 ask_run)
 - failed: 0
 - skipped: 0
-- also ran, because the change reaches them: `tests/test_c_level_roles.py` (26 passed, 2 skipped, after the row below;
+- also ran, because the change reaches them: `tests/test_c_level_roles.py` (26 passed, 2 skipped, after the row below; the four files together: 269 passed, 2 skipped;
   it failed without it), `tests/test_ask_run_questions.py`, `tests/test_wake_audit.py`,
   `tests/test_mail_envelope_letters.py` (all pass; 562 passed together with test_c_level_roles before the fix).
 - fails-without-the-change, checked by mutation, not assumed: with `question_offenders` neutered 28 hook tests fail;
@@ -37,6 +40,21 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
   letters through a plain glob and no symlink guard, the symlinked-box, symlinked-letter and read-letter tests fail;
   with the unread check removed 7 fail. The `--timeout` test fails on the old `ask_run.py` with
   `unrecognized arguments: --timeout 7`.
+
+## CTO review fixes (4 false positives found on real turns)
+CTO ran `question_offenders` over 1,689 real turns: 27 flagged, 4 false positives. Fixed, each with a synthetic
+must-pass test (no transcript text copied), and nothing else changed:
+1. A markdown table row (stripped line starts with `|`) is skipped. Test: a clip-title row, plain and indented.
+2. The open question word (ไหน|อะไร|ยังไง|...) followed by ครับ/คะ/ค่ะ at line end no longer matches when `ไม่` sits
+   within 15 characters before it. It moved out of `ASKS` into `OPEN_ASK` + `_is_ask()` because `re` has no
+   variable-width lookbehind. Tests: `ระหว่างนี้พี่ไม่ต้องทำอะไรครับ` and `ไม่มีอะไรค้างครับ` pass; `จะเอาแบบไหนครับ` still blocks.
+   (`ไม่มีอะไรค้างครับ` never matched even before, because ค้าง sits between อะไร and ครับ; it is a regression guard.)
+3. `your approval` left the `your (call|decision|choice|go-ahead)` list; `\bneeds? your (approval|go-ahead|ok)\b` is
+   new. Tests: `I've recorded your approval: up to 1,600 credits` passes; `this needs your approval` and
+   `This needs your go-ahead.` block.
+4. `พี่` joins `ADDRESSES_CEO`. Test: `พี่จะเอาอันไหน?` blocks.
+Checked against the reviewed hook (3c2a2433): 5 of the new tests fail there (the table row, the indented table row,
+the ไม่ statement, the recorded-approval line, and the พี่ line); with the fixes all 83 hook tests pass.
 
 ## Issues / Blockers
 - none.
@@ -95,9 +113,9 @@ C-level or PH reply which asks the CEO something in chat with no card in the tur
 - IRON §64 says one event wakes once, and the brief asks for no debounce. A second `mail_wake` call for the same box
   while the letter is still unread nudges again. `attempt_wake`'s own pane checks limit the harm; the Console should
   call it once per ended card.
-- The hook was tested on fixtures only (the brief forbids reading real transcripts). Its false-positive rate on live
-  C-level prose is unmeasured; the first live day will show it. `PHONE_ONLY_GUARD=off` or `CARD_GUARD=off` in a
-  session's env is the escape hatch.
+- The hook was tested on fixtures only (the brief forbids reading real transcripts). The CTO measured 1.6% flagged on
+  1,689 real turns, 4 of 27 false (now fixed); I have not re-measured on real turns after the fixes.
+  `PHONE_ONLY_GUARD=off` or `CARD_GUARD=off` in a session's env is the escape hatch.
 - I did not run the full suite; CI does.
 
 ## Skill learning
