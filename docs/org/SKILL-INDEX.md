@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-64 org skills by kind — Rules 8 · Knowledge 16 · Workflow 4 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+66 org skills by kind — Rules 8 · Knowledge 17 · Workflow 5 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -29,6 +29,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `ALL_Knowledge_Jev` | CTO | all | How to get the most out of Jev for the least money — the decisions it fits, the choice/score/noul question types, the cost formula… |
 | `ALL_Knowledge_RunnerPicks` | CTO | all | Which runner:model:effort to send each job kind to (code, fix, review, research, docs, decision …), read from reviewers' verdicts on real… |
+| `CMO_Knowledge_CinematicPrompts` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | Pick ready cinematic video prompts: job -> style -> model -> prompt across 66 verified entries with free weekly source updates. |
 | `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Professional cinematography for a SHORT MOVIE (หนังสั้น, cinema grammar) made with AI video engines: lighting setups, portrait patterns… |
 | `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one, reference plates, what to… |
 | `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |
@@ -49,6 +50,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
+| `CMO_Workflow_KhaoHomEpisode` | CMO | cmo, project_head, video_editor, browser_operator | Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on… |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
 | `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |

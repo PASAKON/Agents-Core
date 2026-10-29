@@ -1,0 +1,201 @@
+schema: mooniex.flow/v1
+flow: khaohom_ep
+name: KhaoHom survival episode
+skill: CMO_Workflow_KhaoHomEpisode
+owner: CMO
+goal: Ship one ~2 min vertical Short where ข้าวหอม survives one disaster the smart way and a new foil does it comically wrong.
+output: The clip posted on the FB Page and YouTube channel เอาชีวิตรอดกับข้าวหอม after the CEO's OK.
+host: contabo
+trigger:
+  kind: manual
+  by: CMO
+watcher: CMO@contabo
+budget:
+  cash_usd: 0.15
+phases:
+  - {id: pre, name: Facts and script}
+  - {id: gen, name: Pictures and voice}
+  - {id: cut, name: Build and render}
+  - {id: ship, name: Approve and post}
+nodes:
+  - id: facts
+    name: Fact sheet
+    does: A researcher collects 6-10 sourced facts for the episode's one situation, each marked CONFIRMED, CHANGED or PARTIAL.
+    phase: pre
+    kind: agent
+    after: []
+    role: researcher
+    skill: CMO_Workflow_KhaoHomEpisode
+    stage: agent
+    output: Work/khaohom-survival/facts/FACTS-epNN.md
+    verify: {check: "two quotes spot-checked at the source; every fact has a source and a raw quote"}
+    gate: Every fact the script will use is CONFIRMED with a named source.
+    measured:
+      - {date: "2026-10-24", minutes: 12.6, source: task-274b8e0f}
+
+  - id: script
+    name: Script smart vs foil
+    does: Writes the hook, three danger pairs with rule cards, the recap and the end card, about 1,000-1,300 Thai chars.
+    phase: pre
+    kind: agent
+    after: [facts]
+    role: script_writer
+    skill: CMO_Workflow_KhaoHomEpisode
+    stage: agent
+    output: Work/khaohom-survival/epNN/shorts/sN-script.md
+    verify: {check: "every claim maps to a CONFIRMED fact id; no อย่าทำ said about the foil"}
+    gate: Claims traced to the fact sheet, Thai only, no channel name.
+
+  - id: script_ok
+    name: CEO script OK
+    does: The CEO reads the script on a question card before any voice spend.
+    phase: pre
+    kind: human
+    after: [script]
+    approver: CEO
+    verify: {human: CEO}
+    gate: The CEO's OK on the card, its Q id in STATUS.md.
+
+  - id: foil
+    name: Foil character
+    does: Makes a new foil character sheet in C1's style on ChatGPT, attaching C1.png.
+    phase: gen
+    kind: code
+    after: [script_ok]
+    tool: tools/chatgpt_images.py
+    host: winbox
+    output: Work/khaohom-survival/epNN/shorts/sN-stills/F1.png
+    verify: {check: "one sheet, front/side/back + 3 expressions, clearly not ข้าวหอม, no text"}
+    gate: A new foil, no text, no blush.
+    blockers: [login, quota, upstream]
+
+  - id: stills
+    name: Stills
+    does: Makes the bright ข้าวหอม stills (attach C1) and the dark foil stills (attach the foil sheet) from plates.json.
+    phase: gen
+    kind: code
+    after: [foil]
+    tool: tools/chatgpt_images.py
+    host: winbox
+    output: Work/khaohom-survival/epNN/shorts/sN-stills/*.png + sheet.jpg
+    verify: {check: "numbered contact sheet by eye; faces clear of the card band y 1000-1410"}
+    gate: Every row of the script has its still, faces clear of the cards.
+    blockers: [login, quota, upstream]
+
+  - id: voice
+    name: Voice v4 Jessica
+    does: Speaks the script in 6-7 chunks with ElevenLabs v4 Jessica and character timestamps, on a labelled spend card.
+    phase: gen
+    kind: api
+    after: [script_ok]
+    tool: tools/fal_tts.py
+    provider: fal
+    model: elevenlabs/tts/eleven-v4
+    output: Work/khaohom-survival/epNN/shorts/sN-voice/takes/c*.mp3 + c*.json
+    verify: {check: "every take present; the ledger row written; spend within --max-usd"}
+    gate: All takes present and the spend within the card's cap.
+    blockers: [credit, money, key]
+    measured:
+      - {date: "2026-10-29", cost_usd: 0.105, source: RUN-20261029-1445-8636}
+
+  - id: timing
+    name: Timing table
+    does: Lays the takes end to end, cuts subtitles of 38 chars or fewer, and writes the template's one T table.
+    phase: cut
+    kind: code
+    after: [voice]
+    tool: khaohom-work:ep01/shorts/s7-voice/timing.py
+    output: Work/khaohom-survival/epNN/shorts/sN-voice/timing.json
+    verify: {check: "timing.json covers every script row; total = voice + 3 s end card"}
+    gate: Every row timed, no hand-edited times in the template.
+
+  - id: template
+    name: Template
+    does: Copies the previous sN.tpl and changes only text, stills and row keys, keeping the approved look.
+    phase: cut
+    kind: agent
+    after: [stills, timing]
+    role: video_editor
+    skill: CMO_Workflow_KhaoHomEpisode
+    stage: agent
+    output: Work/khaohom-survival/epNN/shorts/sN.tpl
+    verify: {check: "hyperframes snapshots by eye: no card over a face, Thai only, side tags right"}
+    gate: Snapshots pass by eye.
+    measured:
+      - {date: "2026-10-29", minutes: 15, source: Work/khaohom-survival/STATUS.md}
+
+  - id: render
+    name: Render
+    does: Builds and renders the template under the shared lock, muxes the voice and normalises to -14 LUFS.
+    phase: cut
+    kind: code
+    after: [template]
+    tool: khaohom-work:tools/render_short.sh
+    output: Work/khaohom-survival/epNN/shorts/out/khaohom-sN-v1n.mp4
+    verify: {cmd: "ffprobe -v error -show_entries stream=width,height -of csv=p=0 Work/khaohom-survival/epNN/shorts/out/khaohom-sN-v1n.mp4"}
+    gate: 1080x1920, the timing's length, contact sheet checked by eye.
+    expect_min: 30
+    measured:
+      - {date: "2026-10-29", minutes: 25, source: Work/khaohom-survival/STATUS.md}
+
+  - id: music
+    name: Music bed
+    does: Makes 2-3 soft instrumental takes on Flow Music free credits and mixes each under the voice with fades.
+    phase: cut
+    kind: agent
+    after: [render]
+    role: browser_operator
+    skill: CMO_Workflow_KhaoHomEpisode
+    stage: agent
+    host: winbox
+    output: Work/khaohom-survival/epNN/shorts/out/khaohom-sN-v2m*.mp4
+    verify: {check: "one file per take at about -14 LUFS, voice clearly on top"}
+    gate: 2-3 mixed takes ready for the CEO's pick, no credits spent.
+    blockers: [login, quota]
+
+  - id: approve
+    name: CEO final OK
+    does: The CEO picks the music take and approves the finished clip on a media card, or sends a fix note.
+    phase: ship
+    kind: human
+    after: [music]
+    approver: CEO
+    verify: {human: CEO}
+    gate: The CEO's OK with its Q id in STATUS.md.
+
+  - id: postkit
+    name: Post kit
+    does: Writes the captions and hashtags and builds 3 Reel covers from the episode's best still.
+    phase: ship
+    kind: agent
+    after: [approve]
+    role: content_strategist
+    skill: CMO_Workflow_KhaoHomEpisode
+    stage: agent
+    output: Work/khaohom-survival/epNN/post/TEXT.md + covers
+    verify: {cmd: "bash scripts/check-post-text.sh Work/khaohom-survival/epNN/post/TEXT.md"}
+    gate: The text check passes and the covers are checked by eye.
+
+  - id: drive
+    name: Drive Final Draft
+    does: Uploads the final and the post kit to the episode's Final Draft folder and reads the md5 back by id.
+    phase: ship
+    kind: code
+    after: [postkit]
+    tool: scripts/gdrive-bridge/ilag_rest.py
+    output: ALL DRAFT/FB เอาชีวิตรอดกับข้าวหอม/EPnn/Final Draft
+    verify: {check: "Drive md5Checksum equals the local md5 for every file"}
+    gate: Every file md5-matched on Drive.
+    blockers: [upstream]
+
+  - id: post
+    name: Post
+    does: The CMO lane posts the clip on the FB Page and YouTube after the CEO's OK to post.
+    phase: ship
+    kind: human
+    after: [drive]
+    approver: CEO
+    verify: {check: "the post URL opens and plays the clip"}
+    gate: Live on both channels.
+    release: true
+
