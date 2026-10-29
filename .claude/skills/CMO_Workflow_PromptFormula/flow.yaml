@@ -1,0 +1,88 @@
+schema: mooniex.flow/v1
+flow: prompt_formula
+name: Prompt formula loop
+skill: CMO_Workflow_PromptFormula
+owner: CMO
+goal: Every CMO prompt starts from a proven formula or a rewritten MeiGen idea, and every hit becomes a formula.
+output: A posted clip or film whose shots name their formula or source, and a formula file for each hit.
+host: contabo
+trigger:
+  kind: manual
+  by: CMO
+watcher: CMO@contabo
+nodes:
+  - id: lookup
+    name: Formula lookup
+    does: Reads the channel's formulas/INDEX.md and picks a formula that fits the job, if any.
+    kind: agent
+    stage: agent
+    after: []
+    role: project_head
+    skill: CMO_Workflow_PromptFormula
+    output: knowledge/brand-knowledge/brands/<channel>/formulas/INDEX.md
+    verify: {check: "the prompt report names a formula id, or says none fits"}
+    gate: A formula is named, or the report says none fits and why.
+  - id: meigen
+    name: MeiGen search
+    does: Searches MeiGen's free gallery for similar work and notes the ids and what to borrow.
+    kind: agent
+    stage: agent
+    after: [lookup]
+    role: prompt_engineer
+    skill: CMO_Workflow_PromptFormula
+    verify: {check: "2-4 searches run, 1-3 MeiGen ids noted with what is borrowed"}
+    gate: MeiGen ids and the borrowed mechanism are written down; no paid MeiGen tool used.
+  - id: write
+    name: Write our prompt
+    does: Writes the prompt fresh in the house format and the engine's rules, with a source line.
+    kind: agent
+    stage: agent
+    after: [meigen]
+    role: prompt_engineer
+    skill: CMO_Standard_Film_PromptFormat
+    verify: {check: "every shot carries a source line and passes the engine's banned-word gate"}
+    gate: Source line present on every shot; no pasted text; bans clean.
+  - id: make
+    name: Make and post
+    does: Generates, edits and posts through the channel's own workflow and spend cards.
+    kind: agent
+    stage: agent
+    after: [write]
+    role: project_head
+    skill: CMO_Workflow_ShortFilm
+    verify: {human: CEO}
+    gate: The CEO passed the cut and it is posted.
+    release: true
+  - id: measure
+    name: Measure
+    does: Compares the post's 7-day numbers with the channel's own average of its last 5 posts.
+    kind: agent
+    stage: agent
+    after: [make]
+    role: project_head
+    skill: CMO_Workflow_PromptFormula
+    verify: {check: "numbers vs channel average written in the EP STATUS"}
+    gate: Hit or miss is decided by the table in Step 5, with numbers.
+  - id: formula
+    name: Write the formula
+    does: Turns a hit into one formula file and one INDEX row in the channel's formulas folder.
+    kind: agent
+    stage: agent
+    after: [measure]
+    role: project_head
+    skill: CMO_Workflow_PromptFormula
+    approver: CMO
+    output: knowledge/brand-knowledge/brands/<channel>/formulas/<id>.md
+    verify: {human: cmo}
+    gate: The CMO approved the formula file and its INDEX row.
+  - id: repeat
+    name: Repeat and adopt
+    does: The next EP follows the formula and appends its evidence; the CMO adds adopt-to rows for other channels.
+    kind: agent
+    stage: agent
+    after: [formula]
+    role: project_head
+    skill: CMO_Workflow_PromptFormula
+    verify: {check: "an evidence row per repeat; two misses in a row mark it paused"}
+    gate: The next EP is posted on the formula and its evidence row is appended.
+    release: true

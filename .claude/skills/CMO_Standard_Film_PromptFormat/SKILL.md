@@ -19,6 +19,10 @@ audience: [cmo, cto, script_writer, prompt_engineer, browser_operator]
 
 # The shot prompt file
 
+**Step 0, before this file (CEO 2026-10-30):** open the channel's `formulas/INDEX.md` in brand-knowledge. A formula
+that fits is followed; with none, borrow ideas from MeiGen and rewrite. Each shot carries a `source:` line.
+The loop: `CMO_Workflow_PromptFormula`.
+
 Built on "Sorry, Sir" (Seedance 2.5) and reused on the ILAG trailer (MiniMax H3). Each rule carries the
 engine it was **measured** on: `[SD]` Seedance 2.5, `[H3]` MiniMax H3, `[ANY]` engine-independent by its
 nature. On an engine where a rule was never measured, treat it as the default and record the first test in

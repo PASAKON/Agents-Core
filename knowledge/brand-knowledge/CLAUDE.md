@@ -20,6 +20,10 @@ the CMO; it does not get quietly overridden inside an artifact.
    look rather than inventing a new one per task.
 3. **`brands/<brand>/PLAYBOOK.md`** — where present, the brand's own
    execution notes (currently only `brandprompt-th`).
+4. **`brands/<brand>/formulas/INDEX.md`** — the channel's proven formulas (CEO 2026-10-30).
+   Read it BEFORE writing any prompt: a formula that fits is followed as written; with none, search
+   MeiGen and rewrite under our rules. Full loop: skill `CMO_Workflow_PromptFormula`. Every prompt
+   report carries a `source:` line (formula id, MeiGen ids, or library id), or the CMO returns it.
 
 ## Brands in this bank
 

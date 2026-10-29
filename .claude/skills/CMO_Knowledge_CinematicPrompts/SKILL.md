@@ -29,6 +29,9 @@ The library holds 66 ready cinematic prompt templates across 3 categories, 12 su
   - `shortfilm`: thai_everyday (10), ilag_lakorn (10)
 - **Model Support**: `seedance-2.5` (24), `wan-3.0` (21), `flow-omni-1.1` (15), and `any` (6). Model `any` matches every engine query.
 
+**Order (CEO 2026-10-30):** the channel's formula first, MeiGen for ideas second, this library third (the fallback when
+MeiGen has nothing close, and the skeleton for 1-2 person story shots). Loop: `CMO_Workflow_PromptFormula`.
+
 ## 2 · Picker Steps: Job -> Style -> Model -> Prompt
 
 1. **Step 1: Inspect Library Breakdown (Job)**
