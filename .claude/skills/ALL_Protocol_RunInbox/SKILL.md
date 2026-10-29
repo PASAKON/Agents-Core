@@ -40,14 +40,19 @@ A card for winbox or the Mac never reaches the phone — the hub refuses it befo
 winbox's Claude CLI is already logged in (CEO 2026-09-28: "Window Login Claude นานแล้ว"), so no desk
 login is waiting on P2 there.
 There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2, a step on
-the Mac or winbox goes one of two ways, and never as a `!` line:
+the Mac or winbox goes one of these ways, and never as a `!` line:
 
+- **A question only the CEO can answer, while he is not typing in your chat** (CEO 2026-10-29: "ทำไม Mac
+  หรือ Winbox session … ไม่ใช้ Run Card ให้เป็นนิสัยเหมือนกับ Contabo"): send ONE `blocker` letter to a
+  C-level on Contabo (your own, else CTO Main; a name `scripts/live-sessions.sh` prints) with the question,
+  2–4 options and your pick. It raises the question card and sends you the answer with its `Q-…` id, which
+  you cite. Never leave the question waiting in chat.
 - **Your own auto-mode classifier refused an action the CEO already ordered** (a delete, a post, a
   paid call he approved): ask for ONE approval sentence in chat that names the exact target — he
   types it on the phone — then run it yourself. Measured 2026-09-26: deleting the TEST post on the
   Mac's FB Chrome (CDP bound to 127.0.0.1:9230, so no Contabo card can reach it).
-- **It truly needs a human at that box** (a login code, a secret into a file): say in one line
-  "card impossible on <host> until P2", park it to LungNote with P2 as the unblocker, move on.
+- **It truly needs a human at that box** (a login code, a secret into a file): on winbox, first the contabo
+  card over `ssh winbox` below; on the Mac, say in one line "card impossible on mac until P2", park it to LungNote with P2 as the unblocker, move on.
   Browser logins still go through the login relay (`terminal.mooniex.com/relay`).
 - **A command the CEO ordered on winbox that a PEER cannot run** (its classifier refused it, and winbox has no
   token): a contabo card whose line runs over `ssh winbox`. The peer writes the exact bytes as a script in its own
@@ -259,7 +264,7 @@ the master. `wait` prints `picked: B (cover_b.png) · note: …`, or `picked: no
    `why` stay within 5 lines, and the detail goes in a linked file.
 6. C-level only. A worker writes its question into its report, and its C-level asks.
 7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
-   token yet, so there you ask in chat as before and say why.
+   token yet: send the question to a Contabo C-level as one `blocker` letter, which raises the card (§Hosts).
 
 ## When not to
 
@@ -269,8 +274,8 @@ the master. `wait` prints `picked: B (cover_b.png) · note: …`, or `picked: no
   `org-rule`, `login`, `his-choice`, `no-op`).
 - A browser login (Google, Facebook, TikTok …) → the login relay at `terminal.mooniex.com/relay`.
 - A command your own sandbox can run → run it; the phone is for what only a human at the box may do.
-- winbox or the Mac until P2 lands — the hub refuses, so do not promise the CEO a card there; use
-  the two routes in §Hosts (approval sentence in chat, or park), never a `!` line.
+- A card created on winbox or the Mac until P2 lands — the hub refuses it, so do not promise one from
+  there; use §Hosts (a Contabo C-level raises it, an approval sentence in chat, or park), never a `!` line.
 
 ## Reference
 
