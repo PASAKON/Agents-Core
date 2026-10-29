@@ -367,6 +367,68 @@ ALL_TOGGLE_LABELS = {
 }
 
 
+@pytest.mark.parametrize("command", ["run", "pull"])
+def test_aspect_parser(command):
+    argv = [command, "--sheet", "sheet", "--ledger", "ledger", "--dest", "out"]
+    parser = flow_shoot.build_parser()
+    assert parser.parse_args(argv).aspect == "9:16"
+    assert parser.parse_args(argv + ["--aspect", "16:9"]).aspect == "16:9"
+    for invalid in ("4:3", "1:1"):
+        with pytest.raises(SystemExit):
+            parser.parse_args(argv + ["--aspect", invalid])
+
+
+@pytest.mark.parametrize("aspect", ["9:16", "16:9"])
+@pytest.mark.parametrize("selected", ["9:16", "16:9"])
+@pytest.mark.parametrize("collapsed", [False, True])
+def test_aspect_readback(aspect, selected, collapsed):
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(body=selected) if collapsed else _FakePage(
+        panel=_FakePanel({selected}))
+    assert browser.read_settings(4, aspect=aspect)["aspect"] is (aspect == selected)
+
+
+@pytest.mark.parametrize("aspect", [None, "16:9"])
+def test_set_settings_clicks_requested_aspect(monkeypatch, aspect):
+    from unittest.mock import MagicMock
+    browser = flow_shoot.FlowBrowser()
+    page = MagicMock()
+    panel = page.locator.return_value
+    panel.count.return_value = 1
+    panel.evaluate.return_value = "Omni 1.1 Flash 4 วินาที"
+    browser.page = page
+    monkeypatch.setattr(browser, "_close_account_panel", lambda: None)
+    monkeypatch.setattr(browser, "_close_settings_panel", lambda: None)
+    clicks = []
+    def toggle(has_text):
+        locator = MagicMock()
+        locator.first.click.side_effect = lambda **kw: clicks.append(has_text)
+        locator.first.count.return_value = 1
+        locator.first.get_attribute.return_value = "mat-button-toggle-checked"
+        return locator
+    panel.locator.return_value.filter.side_effect = toggle
+    settings = browser.set_settings(4, **({"aspect": aspect} if aspect else {}))
+    expected = aspect or "9:16"
+    assert expected in clicks
+    assert ("9:16" if expected == "16:9" else "16:9") not in clicks
+    assert settings["aspect"] is True
+
+
+@pytest.mark.parametrize("resolution,portrait", [
+    ("360p", (360, 640)), ("720p", (720, 1280)), ("1080p", (1080, 1920))])
+@pytest.mark.parametrize("aspect", ["9:16", "16:9"])
+def test_verify_clip_aspect_sizes(tmp_path, monkeypatch, resolution, portrait, aspect):
+    clip = tmp_path / "clip.mp4"
+    clip.touch()
+    monkeypatch.setattr(flow_shoot.clip_review, "probe_duration", lambda _: 4)
+    monkeypatch.setattr(flow_shoot.clip_review, "mean_db", lambda _: -10)
+    expected = portrait if aspect == "9:16" else portrait[::-1]
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _: expected)
+    assert flow_shoot.verify_clip(clip, 4, resolution, aspect=aspect)[0]
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _: expected[::-1])
+    assert not flow_shoot.verify_clip(clip, 4, resolution, aspect=aspect)[0]
+
+
 class _FakeToggleLocator:
     def __init__(self, present: bool, checked: bool):
         self._present = present
@@ -436,7 +498,7 @@ def test_read_settings_confirms_matching_resolution_and_duration():
     assert settings == {
         "model_omni": True,
         "mode_ingredients": True,
-        "aspect_9_16": True,
+        "aspect": True,
         "qty_x1": True,
         "resolution": True,
         "duration": True,
@@ -465,7 +527,7 @@ def test_read_settings_ignores_unselected_labels_that_are_merely_present():
     )
     browser = flow_shoot.FlowBrowser()
     browser.page = _FakePage(panel=panel)
-    settings = browser.read_settings(dur_s=8, resolution="720p")  # neither is checked
+    settings = browser.read_settings(dur_s=8, resolution="720p", aspect="9:16")  # neither is checked
     assert settings["resolution"] is False
     assert settings["duration"] is False
 
@@ -486,7 +548,7 @@ def test_read_settings_falls_back_to_collapsed_pill_text_when_panel_is_closed():
     # settings afterwards only has the collapsed pill's flattened text.
     browser = flow_shoot.FlowBrowser()
     browser.page = _FakePage(body="Agent   วิดีโอ · 720p · 8 วินาที · 9:16 · x1")
-    settings = browser.read_settings(dur_s=8, resolution="720p")
+    settings = browser.read_settings(dur_s=8, resolution="720p", aspect="9:16")
     assert settings["resolution"] is True
     assert settings["duration"] is True
     assert settings["model_omni"] is False  # "Omni 1.1 Flash" not in this fixture
@@ -682,8 +744,8 @@ class _GateStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -739,6 +801,22 @@ def test_chip_count_mismatch_blocks_submit(tmp_path):
     assert rows[35]["status"] == "needs_model"
     assert "chip count mismatch" in rows[35]["note"]
     assert rc == 1  # this row left "todo" without reaching "verified"
+
+
+def test_aspect_mismatch_blocks_submit(tmp_path):
+    args = _run_args(tmp_path, "aspect_mismatch.tsv")
+    args.aspect = "16:9"
+    stub = _GateStubBrowser(chip_count_sequence=[])
+    def settings(dur_s, resolution="720p", aspect="9:16"):
+        assert aspect == "16:9"
+        return {"aspect": False}
+    stub.set_settings = settings
+    assert flow_shoot.cmd_run(args, browser_factory=lambda: stub) == 1
+    assert stub.submit_called is False
+    assert stub.download_called is False
+    row = flow_ledger.load_ledger(tmp_path / "aspect_mismatch.tsv")[35]
+    assert row["status"] == "needs_model"
+    assert "aspect" in row["note"]
 
 
 def test_chip_count_match_reaches_submit(tmp_path):
@@ -798,8 +876,8 @@ class _DryRunAwareStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -916,9 +994,9 @@ class _EstimateUnreadableStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
         self.set_settings_calls += 1
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -1112,8 +1190,8 @@ class _ZeroChipsStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:
@@ -1835,4 +1913,3 @@ def test_360p_run_logs_verify_target_and_reason(tmp_path, monkeypatch):
     log_content = log_file.read_text(encoding="utf-8")
     assert "360p run: verify target is 360x640" in log_content
     assert log_content.count("verify target is 360x640") == 1
-

@@ -312,8 +312,8 @@ class _SpaceGateStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p") -> dict:
-        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
     def chip_count(self) -> int:

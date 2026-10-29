@@ -71,7 +71,11 @@ root-owned files in `.git`. So:
 
 ## The org MCP for the COO (CEO 2 Oct: "ให้ SomPong มีกุญแจ")
 
-- Hub role **`org_coo`** (`deploy/hub/org_coo_role.sql`): no superuser (the `org` role is one, and
+- `[SUPERSEDED 2026-10-13]` The role, its grants and its rotation now live in `deploy/coo-gate/`
+  (`org_coo_role.sql`, `org_coo_role.py`, README §Install, rotate, remove). The 2 Oct role file
+  `deploy/hub/org_coo_role.sql` was removed on 30 Oct: re-running it would reset the password and
+  widen the grants (security review task-ee9f3e40, F1). The 2 Oct design, for the record:
+- Hub role **`org_coo`** (2 Oct, removed file `deploy/hub/org_coo_role.sql`): no superuser (the `org` role is one, and
   `COPY … TO PROGRAM` would be root-equivalent); rw on tasks/events/locks/c_level_sessions/letters,
   read on hosts, nothing on join_tokens/node_secrets. Not the owner: schema migrations still need a
   root process first. Re-run the file after adding a table the COO needs.
@@ -81,8 +85,9 @@ root-owned files in `.git`. So:
   `/run/sompong-coo/org-db.url` (RuntimeDirectory, dir root 0711, file root:sompong 0440, gone on stop)
   via `scripts/coo-org-db-cred.sh`; `scripts/hub/with-org-db-env.sh` leg (a2) reads it into the org
   MCP's environment only (`MOONIEX_ORG_DB_URL_FILE` in COO_ENV).
-- Rotate: re-run `org_coo_role.sql` with a new password (env `ORG_COO_PASSWORD`), `put` the new DSN,
-  restart `mooniex-sompong.service` (coordinate with SomPong: the restart starts a fresh conversation).
+- Rotate: follow `deploy/coo-gate/README.md` §Install, rotate, remove. `[SUPERSEDED 2026-10-13]`
+  "re-run `org_coo_role.sql` with a new password (env `ORG_COO_PASSWORD`), `put` the new DSN,
+  restart `mooniex-sompong.service`": that file is gone (30 Oct).
 - Face ID: SomPong's own Run Inbox token (`~sompong/.config/mooniex/run-inbox.token`) + `coo` in
   `c_level` → `ask_run --risk red --command …` reaches the CEO's phone.
 

@@ -1,0 +1,62 @@
+{
+  "n_shots": 156,
+  "runtime_s": 734.166667,
+  "avg_shot_len_s": 4.706196583333333,
+  "median_shot_len_s": 3.0,
+  "shots_per_min": [
+    14,
+    12,
+    7,
+    16,
+    9,
+    18,
+    25,
+    12,
+    24,
+    11,
+    5,
+    2,
+    1
+  ],
+  "shots_per_min_definition": "Shot starts in [60*i, 60*(i+1)); final bucket may be partial",
+  "longest_shots": [
+    {
+      "shot_no": 153,
+      "start_s": 620.791667,
+      "end_s": 674.583333,
+      "len_s": 53.79166600000008,
+      "method": "pyscenedetect"
+    },
+    {
+      "shot_no": 154,
+      "start_s": 674.583333,
+      "end_s": 709.5,
+      "len_s": 34.91666699999996,
+      "method": "pyscenedetect"
+    },
+    {
+      "shot_no": 155,
+      "start_s": 709.5,
+      "end_s": 730.333333,
+      "len_s": 20.83333300000004,
+      "method": "pyscenedetect"
+    },
+    {
+      "shot_no": 109,
+      "start_s": 444.875,
+      "end_s": 461.791667,
+      "len_s": 16.916667000000018,
+      "method": "pyscenedetect"
+    },
+    {
+      "shot_no": 51,
+      "start_s": 257.916667,
+      "end_s": 273.583333,
+      "len_s": 15.666665999999964,
+      "method": "pyscenedetect"
+    }
+  ],
+  "method": "pyscenedetect",
+  "coarse": false,
+  "threshold": 27
+}

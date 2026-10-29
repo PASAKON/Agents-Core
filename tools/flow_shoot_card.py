@@ -45,6 +45,7 @@ def parse(argv):
         p.add_argument('--' + name, required=True, type=pattern(r'/(?:[\w.-]+/)*[\w.-]+'))
     p.add_argument('--only', type=pattern(r'\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*'))
     p.add_argument('--resolution', choices=('720p', '360p'), default='720p')
+    p.add_argument('--aspect', choices=('9:16', '16:9'), default='9:16')
     p.add_argument('--dry-run', action='store_true')
     for name in ('channel', 'purpose', 'task'):
         p.add_argument('--' + name, required=True, type=pattern(r'[\w .,:()/\-]{1,300}'))
@@ -103,7 +104,8 @@ def inner_argv(a, folder):
     result = [PYTHON, '-u', folder + r'\tools\flow_shoot.py',
               'run', '--max-credits', str(a.max_credits),
               '--sheet', folder + r'\sheet.md', '--ledger', folder + r'\ledger.tsv',
-              '--dest', folder + r'\out', '--resolution', a.resolution]
+              '--dest', folder + r'\out', '--resolution', a.resolution,
+              '--aspect', a.aspect]
     if a.only:
         result += ['--only', a.only]
     if a.dry_run:

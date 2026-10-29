@@ -94,9 +94,22 @@ def test_exact_inner_argv(setup):
     f = kw['folder']
     assert kw['argv'] == [card.PYTHON, '-u', f + r'\tools\flow_shoot.py', 'run',
         '--max-credits', '5.0', '--sheet', f + r'\sheet.md', '--ledger', f + r'\ledger.tsv',
-        '--dest', f + r'\out', '--resolution', '720p', '--only', '1-2', '--dry-run']
+        '--dest', f + r'\out', '--resolution', '720p', '--aspect', '9:16', '--only', '1-2', '--dry-run']
     assert kw['argv'].count('--max-credits') == 1
     assert '--credit-cap' not in kw['argv']
+
+
+def test_aspect_parser_and_inner_argv(setup):
+    argv, _ = setup
+    assert card.parse(argv).aspect == '9:16'
+    args = card.parse(argv + ['--aspect', '16:9'])
+    assert args.aspect == '16:9'
+    inner = card.inner_argv(args, 'folder')
+    assert inner[inner.index('--aspect') + 1] == '16:9'
+    assert inner.count('--max-credits') == 1
+    for invalid in ('4:3', '1:1'):
+        with pytest.raises(SystemExit):
+            card.parse(argv + ['--aspect', invalid])
 
 
 @pytest.mark.parametrize('flag', ['--max', '-m', '-N', '--credit-cap'])
