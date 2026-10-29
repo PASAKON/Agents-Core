@@ -1650,3 +1650,38 @@ def test_winbox_sh_reports_every_busy_card(tmp_path):
     assert result.returncode == 3
     assert "local-card (host='winbox')" in result.stderr
     assert 'remote-card (pattern=winbox)' in result.stderr
+
+def test_winbox_prep_tab_missing_live_park_row_saved_by_jsonl(monkeypatch, tmp_path, capsys):
+    # 29 Oct dry run: two live PHs with no WT tab were planned 'park'; park rows are not in the
+    # manifest, so the resumable check alone would have refused the real run again.
+    r = wrow('park', 'project_head', SID_B)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('project_head', SID_B)})
+    assert rr.prep(wargs(tmp_path, [r])) == 0
+    send.assert_not_called()
+    record.assert_called_once_with(dict(r, untyped=True), 'force_saved')
+    gone.assert_called_once()
+    out = capsys.readouterr().out
+    assert f"no_tab_saved_by_jsonl: {r['name']}" in out
+    assert 'tab_not_found' not in out
+    assert json.loads((rr.STATE / 'winbox-resume.json').read_text()) == []
+
+
+def test_winbox_prep_dry_run_tab_missing_park_row_prints(monkeypatch, tmp_path, capsys):
+    r = wrow('park', 'project_head', SID_B)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('project_head', SID_B)})
+    a = wargs(tmp_path, [r])
+    a.dry_run = True
+    assert rr.prep(a) == 0
+    out = capsys.readouterr().out
+    assert f"would save by jsonl (no tab): {r['name']}" in out
+    assert not rr.STATE.exists()
+    record.assert_not_called()
+
+
+def test_winbox_prep_tab_missing_park_row_not_live_fails_closed(monkeypatch, tmp_path, capsys):
+    r = wrow('park', 'project_head', SID_B)
+    record, gone, send = _stub_no_tab(monkeypatch, tmp_path, {('cto', SID_A)})
+    assert rr.prep(wargs(tmp_path, [r])) == 1
+    record.assert_not_called()
+    assert not (rr.STATE / 'pending-winbox.json').exists()
+    assert f"tab_not_found: {r['name']}" in capsys.readouterr().out

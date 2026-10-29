@@ -245,6 +245,12 @@ def win_resumable(entry):
     return True
 
 
+def win_no_tab_ok(row, entries):
+    """A live session with no tab may skip typing when nothing has to reopen it (park: its
+    transcript stays for a later --resume) or when resume can reopen it from its JSONL."""
+    return row.get('action') == 'park' or win_resumable(entries.get(identity(row)[1]))
+
+
 def win_preflight(rows, manifest=None):
     """Before the first real keystroke: this is the console session, the desktop is ours,
     and every tab we will type into is found exactly once and in front (wake.ps1 -DryRun
@@ -268,7 +274,7 @@ def win_preflight(rows, manifest=None):
         if code == 2 and 'ambiguous' not in out.lower() and 'more than one' not in out.lower():
             if live_set is None:
                 live_set = win_live()
-            if (role, sid) in live_set and win_resumable(entries.get(sid)):
+            if (role, sid) in live_set and win_no_tab_ok(row, entries):
                 row['untyped'] = True
                 continue
         print(f"tab_not_found: {row['name']} {win_tab_token(row)}: wake exit {code}: {out}")
@@ -414,6 +420,8 @@ def win_plan_lines(plan, actions, cannot):
             why = {'compact_then_resume': '/compact first', 'resume_lazy': 'lazy: no continue message'}.get(action, '')
             if row.get('untyped'):
                 why = f"would save by jsonl (no tab): {row['name']}" + (f'; {why}' if why else '')
+        elif label == 'save only (park)' and row.get('untyped'):
+            why = f"would save by jsonl (no tab): {row['name']}"
         who = row['name'] if f'#{sid}' in row['name'] else f"{role} #{sid}  {row['name']}"
         lines.append(f"  {label:<18} {who}" + (f'  ({why})' if why else ''))
     return lines
@@ -713,7 +721,7 @@ def prep(args):
             live_set = win_live()
             for row in typed:
                 role, sid = identity(row)
-                if not row.get('untyped') and (role, sid) in live_set and win_resumable(entries.get(sid)):
+                if not row.get('untyped') and (role, sid) in live_set and win_no_tab_ok(row, entries):
                     code, out = win_wake(row, 'preflight', True)
                     if code == 2 and 'ambiguous' not in out.lower() and 'more than one' not in out.lower():
                         row['untyped'] = True

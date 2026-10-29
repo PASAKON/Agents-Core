@@ -194,6 +194,10 @@ def run(argv):
     return result.stdout
 
 
+# RUN-20261029-0435-3cf6: tool-value-report exited 2 ("already sent") and stopped the card.
+NO_START = {'tool-value-report.service'}
+
+
 def sparse():
     registered = {line[9:] for line in run(['git', 'worktree', 'list', '--porcelain']).splitlines() if line.startswith('worktree ')}
     for name in ('spend-guard-deploy', 'tool-value-deploy'):
@@ -211,6 +215,11 @@ def sparse():
         try:
             run(['git', '-C', wt, 'sparse-checkout', 'set', '--cone', 'tools', 'lib', 'config', 'scripts', 'runners', 'policies'])
             for unit in services:
+                if unit in NO_START:
+                    # A sender refuses an off-schedule rerun (exit 2) and must never mail twice;
+                    # its sibling unit runs the same module, so that start proves the cone.
+                    print(f'{unit}: not started (sends messages)')
+                    continue
                 run(['systemctl', 'start', '--wait', unit])
                 print(run(['systemctl', 'show', unit, '--property=Result', '--property=ExecMainStatus']).strip())
         except Exception:
