@@ -10,11 +10,13 @@ try {
 import json, pathlib, sys, yaml
 m = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))['machines']['winbox']
 assert m['scheduler'] == 'task_scheduler' and m['drive_leg'] == 'rclone_local', 'P1 contract required'
-paths = [pathlib.Path(m['home'])/'mooniex/repo/MoonieX-Agents', pathlib.Path(m['home'])/'mooniex/repo/Agents-Core', pathlib.Path(m['hq'])/'agents', pathlib.Path(m['hq'])/'Agents/Core']
+paths = [pathlib.Path(m['home'])/'mooniex/repo/Agents-Core', pathlib.Path(m['home'])/'mooniex/repo/MoonieX-Agents', pathlib.Path(m['hq'])/'agents', pathlib.Path(m['hq'])/'Agents/Core']
 seed = pathlib.Path(sys.argv[2]).resolve()
 assert seed in [p.resolve() for p in paths], 'Checkout outside contract-derived locations'
 assert (seed/'tools/disk_steward.py').is_file(), 'P1 disk_steward.py missing'
-print(str(seed))
+root = next((p for p in paths if (p/'tools/disk_steward.py').is_file() and (p/'.venv/Scripts/python.exe').is_file()), None)
+assert root is not None, 'No ready contract checkout'
+print(str(root))
 '@
     $root = & $bootstrap -I -X utf8 -c $resolve $contract $seed
     if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve winbox checkout from machine contract' }
