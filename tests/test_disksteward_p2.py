@@ -142,6 +142,27 @@ def test_sparse_rolls_back_on_service_failure(tmp_path, monkeypatch):
     assert calls[-1][-2:] == ['sparse-checkout', 'disable']
 
 
+def test_sparse_never_starts_a_sender(tmp_path, monkeypatch):
+    monkeypatch.setattr(p2, 'ROOT', tmp_path)
+    (tmp_path / 'deploy/systemd').mkdir(parents=True)
+    calls = []
+    for name in ('spend-guard-deploy', 'tool-value-deploy'):
+        wt = tmp_path / 'worktrees' / name
+        unit = 'tool-value-report.service' if name == 'tool-value-deploy' else 'spend-guard.service'
+        (tmp_path / 'deploy/systemd' / unit).write_text(f'ExecStart={wt}/tools/run.py\n')
+    (tmp_path / 'deploy/systemd/tool-value-collect.service').write_text(
+        f"ExecStart={tmp_path / 'worktrees/tool-value-deploy'}/tools/run.py\n")
+    def run(argv):
+        calls.append(list(map(str, argv)))
+        if argv[:3] == ['git', 'worktree', 'list']:
+            return ''.join(f"worktree {tmp_path / 'worktrees' / n}\n" for n in ('spend-guard-deploy', 'tool-value-deploy'))
+        return ''
+    monkeypatch.setattr(p2, 'run', run)
+    p2.sparse()
+    started = [c[-1] for c in calls if c[:3] == ['systemctl', 'start', '--wait']]
+    assert started == ['spend-guard.service', 'tool-value-collect.service']
+
+
 def test_existing_archive_never_guard_is_not_bypassed(tmp_path):
     root = tmp_path / 'Archive/agents-core-presync-20261010'
     root.mkdir(parents=True)
