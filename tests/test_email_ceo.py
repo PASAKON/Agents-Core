@@ -315,3 +315,16 @@ def test_dry_run_never_posts(monkeypatch, capsys):
     assert hub_dry_runs == ["deadline"]
     assert 'merged-digest dry-run: {"kind": "done"' in output
     assert "Agents-Core 1: #447" in output
+
+
+def test_imports_where_there_is_no_pwd(monkeypatch):
+    """Windows has no pwd module, and lib.org_tools_registry imports this one on every host:
+    a module-level `import pwd` made `cxo_mcp_config --print-allowed` exit 1, so every winbox
+    launch from main stopped right after writing its lock (PH c73d0ce9, 30 Oct 2026)."""
+    import importlib.util
+    import sys
+    monkeypatch.setitem(sys.modules, "pwd", None)  # `import pwd` now raises ImportError, as on Windows
+    spec = importlib.util.spec_from_file_location("email_ceo_without_pwd", email_ceo.__file__)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert mod.pwd is None
