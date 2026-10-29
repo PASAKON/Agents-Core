@@ -1,0 +1,11 @@
+# Idea Sources and Licensing Record
+
+All prompts in this library are written in original language according to the MoonieX film house rules and prompt standards (`CMO_Standard_Film_PromptFormat`, `CMO_Knowledge_Cinematography_ShortMovie`, and engine-specific operational skills). Where external repositories or prompt datasets inspired concepts, staging setups, or camera motions, they are attributed below in compliance with their respective licenses. No external text or sentences were copied verbatim.
+
+| Source Name | URL | License | Entry IDs |
+|---|---|---|---|
+| jnMetaCode, MIT | https://github.com/jnMetaCode/ai-shortfilm-prompts | MIT | broll-product-02, broll-nature-04, broll-city-01, broll-food-04, broll-market_life-03, movie-thriller-01, movie-drama-02, movie-comedy-01, movie-comedy-04, movie-horror_light-02, movie-romance-01 |
+| seedance-2-prompts | https://huggingface.co/datasets/GokuScraper/seedance-2-prompts-datasets | ideas only | broll-product-05, broll-nature-05, broll-city-05, broll-food-05, movie-thriller-02, movie-drama-01, movie-horror_light-01, movie-romance-03 |
+| awesome-wan-3-0 | https://github.com/imagineVid/Awesome-wan-3-0-prompts-and-skills | ideas only | broll-product-03, broll-nature-01, broll-city-03, broll-food-01, broll-market_life-02, movie-thriller-03, movie-drama-05, movie-comedy-03, movie-horror_light-03, movie-romance-02 |
+| rapidata-text2video | https://huggingface.co/datasets/Rapidata/awesome-text2video-prompts | Apache-2.0 | broll-product-01, broll-nature-02, broll-city-02, broll-food-02, movie-thriller-05, movie-drama-04, movie-horror_light-04 |
+| original | internal | original | broll-product-04, broll-nature-03, broll-city-04, broll-food-03, broll-market_life-01, broll-market_life-04, movie-thriller-04, movie-drama-03, movie-comedy-02, movie-romance-04, shortfilm-thai_everyday-01, shortfilm-thai_everyday-02, shortfilm-thai_everyday-03, shortfilm-thai_everyday-04, shortfilm-thai_everyday-05, shortfilm-thai_everyday-06, shortfilm-thai_everyday-07, shortfilm-thai_everyday-08, shortfilm-thai_everyday-09, shortfilm-thai_everyday-10, shortfilm-ilag_lakorn-01, shortfilm-ilag_lakorn-02, shortfilm-ilag_lakorn-03, shortfilm-ilag_lakorn-04, shortfilm-ilag_lakorn-05, shortfilm-ilag_lakorn-06, shortfilm-ilag_lakorn-07, shortfilm-ilag_lakorn-08, shortfilm-ilag_lakorn-09, shortfilm-ilag_lakorn-10 |
