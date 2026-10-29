@@ -134,6 +134,8 @@ Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (
   The EA closes its trades at 06:50 TH, so plan a reboot for 06:50–07:00 TH.
 - Never kill `terminal64.exe` (MT5), by name or by pid. Never run the MT5 Strategy Tester on
   winbox while the EA is live: it shares the live install and data folder.
+  - The one exception is the EA's own watchdog (PH ExpertAdvisor). It restarts MT5 when MT5 hangs
+    or its .ex5/.set files change. That restart is part of the EA's design.
 - Anything that has to break one of these goes to CTO Main first.
 
 ## Questions to the CEO go on a question card (CEO 2026-10-13, every C-level)
