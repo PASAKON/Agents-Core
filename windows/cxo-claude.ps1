@@ -89,6 +89,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+if ($Role -eq 'cto') {
+    [Console]::Error.WriteLine('CTO runs on Contabo only. Open it on Contabo.')
+    exit 2
+}
+
 # A Project Head starts no session (same refusal as scripts/cxo-claude.sh).
 if ($env:CXO_ROLE -eq 'project_head') {
     [Console]::Error.WriteLine('refuse: a Project Head starts no session')

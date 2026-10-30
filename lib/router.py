@@ -1,39 +1,18 @@
-"""Host router (PLAN-auto-dispatch H2, Org Mesh W2.6): pick the machine for a task.
+"""Fill-based host selection shared by workers and Project Heads.
 
-    pick_host(task) -> HostPick
-
-WHICH runner a task uses is tools/route.py's job (CTO #24ca1c0a's lane). This
-module answers WHERE. It is called from tools/delegate.py's host-resolution
-block only when the task names no host of its own, and only when the env flag
-ORG_HOST_ROUTER is on (default OFF -- with it off, nothing in here runs and
-delegate keeps today's `host= arg > tasks.host > self_host()`).
-
-A host is a candidate only if ALL of these hold (each rejection gets exactly one
-reason, the first check that failed, and the reasons go to delegate_log):
-
-  1. a probe no older than 60 s is in the `hosts` table (tools/node_dispatch.py
-     `probe` writes it) and `status` is not offline / pending_identity / leaving / left
-  2. `provides` contains every name in the task's `needs: a, b` description line
-  3. `running < max_workers`
-  4. the project has `paths.<host>` in config/projects.yaml
-  5. at least one runner the role can use is installed on the host
-     (`hosts.runners`, from the probe)
-
-Survivors are ranked by lowest `load_per_core` (no reading ranks last), then
-most `ram_free_gb`, then name. No survivor -> HostPick.host is None and `line` is `no_host: ...`; the
-caller leaves the task pending and does not spawn. There is no fallback host:
-a stale or missing probe means "unknown", and unknown is never "fine".
-
-`needs` has no column (lib/db.py is locked to other tasks); it is read from a
-description line, the same way route.check_override reads `override:`. Both
-read it from the description's HEADER only (see `header` below): a `needs:`
-pasted further down is text, not a directive (W2.7 review F11, W2.11).
+Contabo is preferred below the configured limit; other hosts rank by fill,
+then running workers. Explicit pins restrict candidates but retain all resource
+checks. Complete live readings are required. No eligible host leaves work
+pending for the watchdog's host queue. A shared DB slot serializes the CEO's
+CPU exception for Contabo-only tasks. Header helpers also serve runner routing.
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+import yaml
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -101,7 +80,13 @@ def add_header_line(description: str | None, line: str) -> str:
 def enabled() -> bool:
     """ORG_HOST_ROUTER is 1/true/on. Default off (same switch shape as
     lib.mesh.enabled)."""
-    return os.environ.get(ENV_FLAG, "").strip().lower() in ("1", "true", "on")
+    value = os.environ.get(ENV_FLAG)
+    return (value.strip().lower() in ("1", "true", "on") if value is not None
+            else bool(settings().get("enabled", False)))
+
+
+def settings() -> dict:
+    return yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8")).get("router", {})
 
 
 @dataclass
@@ -228,93 +213,118 @@ def _num(v, fmt: str) -> str:
     return "?" if v is None else format(v, fmt)
 
 
+def _exception_slot(task_id: str, reserve: bool, ttl: int) -> bool:
+    """One shared DB slot; active jobs retain it beyond the pending-start TTL."""
+    from datetime import timedelta
+    key = "host-router:contabo-cpu"
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    expires = (datetime.now(timezone.utc) + timedelta(seconds=ttl)).isoformat(timespec="seconds")
+    with db.get_conn() as conn:
+        conn.execute(
+            "DELETE FROM locks WHERE key=? AND NOT EXISTS "
+            "(SELECT 1 FROM tasks WHERE tasks.id=locks.owner AND "
+            "(tasks.status IN ('in_progress','queued_remote','rate_limited','stalled') "
+            "OR (tasks.status='pending' AND locks.expires_at>?)))", (key, now))
+        if not reserve:
+            return conn.execute("SELECT owner FROM locks WHERE key=?", (key,)).fetchone() is None
+        row = conn.execute(
+            "INSERT INTO locks (key,owner,expires_at) VALUES (?,?,?) "
+            "ON CONFLICT(key) DO NOTHING RETURNING owner", (key, task_id, expires)).fetchone()
+        if row is not None:
+            return True
+        # A mesh handoff rechecks the same task on the target host. It is
+        # still one job, so its reservation must survive that second check.
+        existing = conn.execute("SELECT owner FROM locks WHERE key=?", (key,)).fetchone()
+        return existing is not None and existing["owner"] == task_id
+
+
+def release_exception(task_id: str) -> None:
+    task = db.get_task(task_id)
+    if not task or task.get("status") not in ("in_progress", "queued_remote", "rate_limited", "stalled"):
+        db.release_lock("host-router:contabo-cpu", task_id)
+
+
 def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
-              now: datetime | None = None) -> HostPick:
-    """Choose a host for `task` (a tasks row), or say why none fits.
+              now: datetime | None = None, reserve_exception: bool = False) -> HostPick:
+    """Contabo first, then lowest complete fill; explicit pins never migrate.
 
-    `hosts_rows` (default: the `hosts` table) and `now` exist for tests.
-    Never raises on bad data: an unreadable table or router error is a
-    rejection of every host, with the error as the reason.
+    Supplied rows are probe summaries for offline tests. Production obtains fresh
+    facts via host_fill, with remote probes concurrent and bounded by its timeout.
     """
-    now = now or datetime.now(timezone.utc)
-    needs = parse_needs(task.get("description"))
-    project = task.get("project")
+    from tools import host_fill
     try:
-        rows = db.list_hosts() if hosts_rows is None else hosts_rows
-        by_name = {r["host"]: r for r in rows}
-        configured = set(config.hosts())
-        names = sorted(configured | set(by_name))
-        known_project = project in config.projects()
-    except Exception as e:  # noqa: BLE001 -- see docstring
-        return HostPick(None, f"no_host: router error: {type(e).__name__}: {e}")
-
-    rejected: dict[str, str] = {}
-    alive: list[dict] = []
-    for name in names:
-        row = by_name.get(name)
-        why = ("not in config/hosts.yaml" if name not in configured
-               else _reject_reason(name, row, needs, project, known_project, now))
-        if why:
-            rejected[name] = why
+        policy = settings()
+        registry = config.hosts()
+        pin = task.get("host")
+        names = [pin] if pin else list(host_fill.HOSTS)
+        if hosts_rows is None:
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                rows = list(pool.map(
+                    lambda name: host_fill.probe(name, timeout=policy.get("probe_timeout_s", 10)),
+                    names))
         else:
-            alive.append(row)
-
-    survivors: list[dict] = []
-    if alive:
-        try:
-            usable, runners_err = role_runners(task), None
-        except Exception as e:  # noqa: BLE001
-            usable, runners_err = [], f"route error: {type(e).__name__}: {e}"
-        for row in alive:
-            has = _json_list(row.get("runners")) or []
-            if set(has) & set(usable):
-                survivors.append(row)
+            rows = hosts_rows
+        by_name = {r.get("name", r.get("host")): r for r in rows}
+        limit = policy.get("fill_limit_pct", 80)
+        usable = role_runners(task)
+        rejected, candidates = {}, []
+        summaries = []
+        for name in names:
+            row = by_name.get(name, {})
+            facts = row.get("facts", row)
+            pct, highest, missing = host_fill.fill(facts, rounded=False)
+            summaries.append(f"{name} {_num(pct, '.1f')}% ({highest or 'unknown'})")
+            why = None
+            exception = False
+            if name not in registry:
+                why = "host not configured"
+            elif not row.get("online", False):
+                why = "offline"
+            elif pct is None or missing:
+                why = "fill unknown or incomplete"
+            elif name in policy.get("never_on", {}).get(task.get("project"), []) or (
+                    name == "winbox" and task.get("project", "").casefold() == "mooniex-expertadvisor"):
+                why = "project excluded"
+            elif row.get("running") is None or row["running"] >= registry[name]["max_workers"]:
+                why = "worker cap reached or unknown"
+            elif facts.get("ram_free_gb", -1) < policy.get("min_free_ram_gb", {}).get(name, 0):
+                why = "free RAM below floor"
+            elif task.get("role") == "project_head" and name == "winbox" and facts.get("ceo_hold", True):
+                why = "PC lease held or unknown"
             else:
-                rejected[row["host"]] = runners_err or (
-                    f"no usable runner (role: {','.join(usable) or 'none ok'}"
-                    f" · host: {','.join(has) or 'none'})")
-
-    rej = " ".join(f"{h}({rejected[h]})" for h in names if h in rejected)
-    if not survivors:
-        return HostPick(None, f"no_host: {rej or 'no hosts configured'}", rejected)
-
-    # Unknown load (the probe has none on Windows) ranks last: such a host is
-    # still picked when nothing with a reading is eligible, never ahead of one.
-    best = min(survivors, key=lambda r: (
-        float("inf") if r.get("load_per_core") is None else r["load_per_core"],
-        -(r["ram_free_gb"] if r.get("ram_free_gb") is not None else -1.0),
-        r["host"]))
-    line = (f"host: {best['host']} · load {_num(best['load_per_core'], '.2f')}/core"
-            f" · ram {_num(best.get('ram_free_gb'), '.1f')} GB"
-            f" · running {best['running']}/{best['max_workers']}"
-            f" · rejected: {rej or 'none'}")
-    return HostPick(best["host"], line, rejected)
-
-
-def _reject_reason(name: str, row: dict | None, needs: list[str],
-                   project: str | None, known_project: bool,
-                   now: datetime) -> str | None:
-    """First of checks 1-4 (module docstring) that `name` fails, or None.
-    Check 5 (runners) needs route and runs only for hosts that got this far."""
-    why = _probe_problem(row, now)
-    if why:
-        return why
-    status = (row.get("status") or "").strip().lower()
-    if status in _NOT_ONLINE:
-        return f"status {status}"
-    provides = _json_list(row.get("provides")) or []
-    lacking = [n for n in needs if n not in provides]
-    if lacking:
-        return f"provides lacks {', '.join(lacking)}"
-    running, cap = row.get("running"), row.get("max_workers")
-    if running is None or cap is None:
-        return "running/max_workers unknown"
-    if running >= cap:
-        return f"full {running}/{cap}"
-    if not known_project:
-        return f"unknown project {project}"
-    try:
-        config.project_path_for_host(project, name)
-    except ValueError:
-        return f"no paths.{name} for {project}"
-    return None
+                try:
+                    config.project_path_for_host(task["project"], name)
+                except (ValueError, KeyError):
+                    why = "project path unavailable"
+                provides = _json_list(facts.get("provides", registry[name].get("provides"))) or []
+                if not why and not set(parse_needs(task.get("description"))).issubset(provides):
+                    why = "required capability unavailable"
+                runners = _json_list(facts.get("runners", registry[name].get("runners"))) or []
+                if not why and not set(usable).intersection(runners):
+                    why = "no usable runner"
+                if not why and pct >= limit:
+                    ram = 100 * (1 - facts["ram_free_gb"] / facts["ram_total_gb"])
+                    disk = 100 * (1 - facts["free_gb"] / facts["disk_total_gb"])
+                    exception = (
+                        pin == name == "contabo" and highest == "cpu"
+                        and ram < limit and disk < limit
+                        and facts["ram_free_gb"] >= policy.get("cpu_exception", {}).get("min_free_ram_gb", 1.6)
+                        and bool(task.get("id"))
+                    )
+                    if not exception:
+                        why = "fill at or above limit"
+            if why:
+                rejected[name] = why
+            else:
+                candidates.append((name, pct, row["running"], exception))
+        if not candidates:
+            return HostPick(None, "queued for host · " + " · ".join(summaries)
+                            + " · " + "; ".join(f"{k}: {v}" for k, v in rejected.items()), rejected)
+        best = min(candidates, key=lambda c: (c[0] != policy.get("first_host", "contabo"), c[1], c[2], c[0]))
+        if best[3] and not _exception_slot(task["id"], reserve_exception,
+                                          policy.get("cpu_exception", {}).get("slot_ttl_s", 600)):
+            return HostPick(None, "queued for host · CPU exception slot busy", rejected)
+        return HostPick(best[0], f"host: {best[0]} · " + " · ".join(summaries)
+                        + (" · CPU exception" if best[3] else ""), rejected)
+    except Exception as exc:
+        return HostPick(None, f"queued for host · router unavailable ({type(exc).__name__})")

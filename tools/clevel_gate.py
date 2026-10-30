@@ -1,6 +1,7 @@
 """One live session per C-level role, on Contabo only (org restructure P2, plan §3.1).
 
-Off unless the host flag ORG_SINGLE_CLEVEL is on (`/etc/org-flags/ORG_SINGLE_CLEVEL`,
+CTO's Contabo-only guard is unconditional. The remaining policy is off unless
+the host flag ORG_SINGLE_CLEVEL is on (`/etc/org-flags/ORG_SINGLE_CLEVEL`,
 or `ORG_SINGLE_CLEVEL=1` in the env; lib/org_flags.py): `refusal()` then returns
 None without reading anything else, so a host that has not opted in launches
 exactly as before. On:
@@ -166,9 +167,12 @@ def live_sessions(role: str, locks_dir: Path | None = None,
 def refusal(role: str, session_id: str | None = None, host: str | None = None,
             locks_dir: Path | None = None) -> str | None:
     """None when `role` may start a session here (or the gate is off), else why not."""
+    role = (role or "").strip().lower()
+    host = (host or _self_host() or "").strip().lower()
+    if role == "cto" and host != HOME_HOST:
+        return "CTO runs on Contabo only. Open it on Contabo."
     if not single_on():
         return None
-    role = (role or "").strip().lower()
     if not _is_c_level(role):
         return None
     host = host or _self_host()

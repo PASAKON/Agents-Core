@@ -1,83 +1,51 @@
 # REPORT task-c02aee60
 
-## Scope and changes
+## What changed
 
-PR 1 / B1 only. Read the approved plan, including rules 1–3, B1/C1–C3,
-verification and prohibitions. SHA256 matched
-`71ac4b6a682d1f35b4083ded966db09c6fe04501ec4b4f4dbe4dc8c61e37f578`.
-The assigned Contabo worktree is sparse; HEAD and origin/main were both
-`d4ed0b75d20fc2f3cc2af7b7c57d48f16ecc058e` when work began.
+- C1: Contabo-first selection using complete live fill readings, then remote fill and worker-count ties. Explicit host pins retain their destination and resource checks. Caps are Contabo 3, winbox 3, Mac 2; winbox requires 4 GB free RAM and excludes ExpertAdvisor.
+- The Contabo CPU exception requires an explicit Contabo task, CPU highest, RAM and disk below 80%, and at least 1.6 GB free RAM. An atomic shared database reservation permits one exception job at a time and remains held while that job is active.
+- Unavailable tasks remain pending with a “queued for host” log. The existing watchdog retries the host queue, preserving explicit destinations; no timer was added.
+- C2: PH selection uses the picker, including `--host mac`. The existing PH worker cap already counts cross-host and queued-remote workers. Mac dispatch uses mesh and its non-Claude workers use the shared bash launcher with BSD base64 handling.
+- C3: CTO host refusal is unconditional in the common gate. Shell and Windows launchers enforce the Contabo-only rule.
+- The router switch remains off by default, matching the supplied WIP configuration. Config is read for each routing decision; the environment switch takes precedence.
 
-Files changed:
-- `tools/host_fill.py`: direct-script and module CLI, local measurements and
-  parallel mesh probes with 10-second remote timeouts, three stable host rows,
-  JSON, offline exit 0, explicit unknown readings/counts.
-- `tools/node_dispatch.py`: probe resource facts add RAM/disk totals and CPU
-  percentage. Linux uses MemAvailable/MemTotal, load/core and `/`; macOS uses
-  memory_pressure, load/core and the data volume; Windows uses one bounded CIM
-  query for FreePhysicalMemory/TotalVisibleMemorySize and LoadPercentage, and C:.
-  Worker counting opens the ledger read-only.
-- `tests/test_host_fill.py`: simulated OS sensor sources, maximum calculation,
-  legacy/malformed readings, concurrent remote probes, timeout/offline and JSON.
-- `tests/test_w33_node_dispatch_windows.py`: update the existing machine fixture
-  for the new resource collector; OS sensor execution is covered separately.
+## Files changed
 
-No model calls, remote deployment, application manipulation, or changes to
-winbox's #503 checkout. No C work is included in this first diff.
+- `config/hosts.yaml`, `lib/router.py`
+- `tools/delegate.py`, `tools/host_fill.py`, `tools/host_queue.py`, `runners/watchdog.py`
+- `tools/spawn_ph.py`, `tools/node_dispatch.py` (C2 probe lease fact and Linux PH launch support only)
+- `tools/clevel_gate.py`, `scripts/cto-claude.sh`, `scripts/cxo-claude.sh`, `windows/cxo-claude.ps1`
+- `scripts/spawn-worker-remote.sh`
+- `tests/test_router.py`, `tests/test_router_hub_only.py`
+- This report.
 
 ## Validation
 
-Tests ran from the assigned worktree using the existing Contabo virtualenv.
-Final test tails (624 passed in total):
+Only the two authorized pytest files were run, using fake probes, launchers, and a temporary SQLite database. The system Python has no pytest; the existing repository virtual environment supplied the interpreter.
 
 ```text
-python -m pytest -o addopts='' -q tests/test_host_fill.py tests/test_w33_node_dispatch_windows.py
-483 passed in 97.12s (0:01:37)
-python -m pytest -o addopts='' -q tests/test_node_dispatch.py
-141 passed in 36.57s
+/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -q -o addopts='' tests/test_router.py tests/test_router_hub_only.py
+...........................                                              [100%]
+27 passed in 1.41s
 ```
 
-The initial combined run had one failure in the old Windows RAM fixture;
-the fixture was updated and both suites above passed on the final code.
-
-`git diff --check` passed. Gitleaks scanned the complete code/test diff,
-including untracked new files: `no leaks found`. The final scan also includes
-this report.
-
-## host_fill output
-
-Command: `/opt/MoonieXHQ/Agents/Core/.venv/bin/python tools/host_fill.py`
-Executed on Contabo outside the 09:00–11:00 TH blackout; exit 0, three lines:
-
-```text
-contabo · online · 91.0% (cpu) · ?/3 · ram_free_gb=2.14
-winbox · offline · unknown · ?/2 · ram_free_gb=unknown · missing: ram, cpu, disk
-mac · offline · unknown · ?/4 · ram_free_gb=unknown · missing: ram, cpu, disk
-```
+- `git diff --check`: passed.
+- `bash -n scripts/spawn-worker-remote.sh scripts/cto-claude.sh scripts/cxo-claude.sh`: passed.
+- Earlier test attempts were interrupted during asyncio executor shutdown in this environment. Dispatch tests now use an inline fake executor; the shared-slot concurrency test still uses real threads against a temporary database.
+- Gitleaks scanned the tracked diff plus new files with redacted output: no leaks found.
 
 ## Not checked / risk
 
-- Sandbox mesh access did not yield replies from winbox or mac. These lines
-  mean unreachable from this invocation, not proof the physical machines are off.
-- The local ledger was unavailable; worker count is `?`, never invented as zero.
-- Native macOS/Windows sensor execution still needs validation after deployment;
-  tests simulate their command output. Old remote probes omit totals, so partial
-  fill is the maximum of known sensors and explicitly lists missing sensors.
-  Such partial readings must not be treated as proof of routing capacity.
-- B1 reads existing max_workers configuration (3/2/4). The approved 3/3/2 caps,
-  router, queue, PH changes and CTO guard belong to PR 2 and are not implemented.
-- New totals and CPU percentage are in probe replies; existing ledger schema
-  and upsert columns are unchanged.
+- No live probes, SSH, host launches, network checks, or full-suite runs were performed. B1 is already merged; live `host_fill` output was deliberately not collected under iteration 4's fake-only requirement.
+- Windows PowerShell execution, live Mac launcher behavior, and PostgreSQL concurrency remain for integration validation. The local shared-slot race was tested with SQLite.
+- Remote PH creation retains the existing mesh brief handoff: the owner sends the brief after launch; standard CLI output returns the brief and this next step.
+- Legacy tests for the superseded load-based router were not run. CI owns broader validation.
+- The Mac launcher uses portable bash/tmux commands; base64 decoding now selects BSD/GNU flags by uname. GNU timeout was already optional. No live launcher deployment was performed.
 
 ## Blockers
 
-- Cannot create requested branch `ph-a08/host-fill`: `git switch -c
-  ph-a08/host-fill origin/main` failed creating the shared Git `index.lock` with
-  `Read-only file system`. The managed sandbox makes Git metadata read-only and
-  disallows escalation. Current branch remains `agent/codex-task-c02aee60`.
-- Launcher/PH must commit and push this B1 diff and raise the separate first PR
-  before C1–C3 begins. The worker contract assigns commit/push to the launcher;
-  no B1 PR has been raised from this sandbox. PH#a08 reviews and merges.
+- The runner supplied branch `agent/codex-task-c02aee60` at `3a5ea30a`, rather than the requested branch/head. No branch was switched and main was not modified.
+- The required `git cherry-pick 23620568` and later `git add` both failed because worktree Git metadata is read-only. The WIP cap/policy changes were applied to working files, with the iteration-4 RAM floor added. A commit cannot be created here; the PH/launcher must commit these files on the intended task branch, push, and open the PR.
 
 ## Skill learning
 
