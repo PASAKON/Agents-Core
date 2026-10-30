@@ -46,22 +46,15 @@ OrgRestructure:
   - docs/ops/ph-anywhere.md                      # PH on any host
   - docs/ops/state-dir-perms.md                  # sticky bit on state/
 
-ProjectTrack:
-  # CTO Main 2026-10-26: the Project Head layer moved here from OrgRestructure, which has no Project Head,
-  # until ProjectTrack closes (spawn registers the project and checks the ready gate); then back to shared.
-  - tools/spawn_ph.py                            # spawn a Project Head
-  - scripts/spawn-ph.sh                          # its shell entry
-  - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
-  - tests/test_portfolio_schema.py               # portfolio tables (tables themselves live in lib/db*.py = shared)
-  # --- its own area ---
+ProjectPage:
+  # CTO Main 2026-10-30: ProjectTrack closed (PH #40fefb4e). Its portfolio area moved here: ProjectPage builds
+  # the monitor v3 and the project page. Its Project Head layer went back to shared, as planned on 2026-10-26.
   - lib/portfolio.py                             # project register, orders, monitor payload
   - tools/portfolio*.py                          # portfolio CLI, push, watch
-  - tools/budget_queue.py                        # budget refusal queue (UsageBudget P4a)
-  - tests/test_portfolio*.py                     # their tests
-  - tests/test_projecttrack*.py                  # ProjectTrack tests
-  - docs/plans/projecttrack-*                    # STATUS + plan
-  - docs/design/projecttrack-*                   # DDL + design
-  - docs/design/portfolio-monitor-v2.md          # monitor contract v2
+  - tests/test_portfolio*.py                     # their tests, the schema test too (tables live in lib/db*.py = shared)
+  - tests/test_projecttrack*.py                  # ProjectTrack-era tests of the same area
+  - docs/design/projecttrack-*                   # DDL + design of the portfolio tables
+  - docs/design/portfolio-monitor-*.md           # monitor contracts v2, v3
 
 SpendGuard:
   - tools/spend*                                 # spend_guard.py and any spend_* sibling
@@ -119,6 +112,10 @@ shared:
   - lib/path_owners.py                           # this map's reader
   - lib/ceo_text.py                              # CEO text rules
   - tools/delegate.py                            # worker delegation
+  - tools/spawn_ph.py                            # spawn a Project Head (ProjectTrack's until 2026-10-30)
+  - scripts/spawn-ph.sh                          # its shell entry
+  - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
+  - tools/budget_queue.py                        # budget refusal queue (UsageBudget P4a)
   - runners/watchdog.py                          # org watchdog: the Steward and Watch both build on it
   - scripts/cto-claude.sh                        # CTO launcher, every lane runs it
   - scripts/cxo-claude.sh                        # C-level / PH launcher, every lane runs it
