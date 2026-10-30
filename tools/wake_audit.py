@@ -23,9 +23,16 @@ GATED = {
     "run_watch_driver": "Follower events and active-run lifecycle; review restarts",
     "escalation_watch": "new stuck episode; timed parts paced by wake_interval",
     "secretary_waker": "pending reply letters (secretary, outside CXO/PH scope)",
+    # W2 (CTO Main 30 Oct): runs inside escalation_watch's tick, no unit of its own.
+    "owner_relay": ("task events after a cursor (status, dead run, queue entry) and unread letters; "
+                    "re-wake ladder 5/15/45 min x wake_interval, at most 3 tries; 12 wakes per box per "
+                    "Thai day, then one per hour x wake_interval"),
 }
 # Timed parts that must run on lib/wake_backoff (UsageBudget P4b); the source is read, not trusted.
-BACKOFF_GATED = {"escalation_watch": "tools/escalation_watch.py"}
+BACKOFF_GATED = {"escalation_watch": "tools/escalation_watch.py", "owner_relay": "tools/owner_relay.py"}
+# Wake paths that run inside another gate's process, so its unit command never names them:
+# that gate is backoff-gated only while each of these is too.
+RUNS_INSIDE = {"escalation_watch": ("owner_relay",)}
 # A report on a calendar date (weekly or slower) is a deadline, not a loop.
 SCHEDULED_REPORT = ("tool_value report", "weekly report, Mon 08:00 TH: a calendar deadline, not a loop")
 DATE_ANCHORED = re.compile(
@@ -80,7 +87,8 @@ def classify_unit(name: str, text: str, timer_text: str | None = None) -> dict |
     report = bool(re.search(r"tool_value(?:\.py)?\s+report\b", command))
     if not gates and not direct and not report:
         return None
-    reminder = "escalation_watch" in gates and not backoff_gated("escalation_watch")
+    paced = [k for g in gates for k in (g, *RUNS_INSIDE.get(g, ())) if k in BACKOFF_GATED]
+    reminder = any(not backoff_gated(k) for k in paced)
     scheduled = report and not direct and not gates and date_anchored(timer_text)
     flagged = bool(direct or (report and not scheduled) or reminder)
     row = {"source": name, "kind": "timer", "flagged": flagged,
@@ -89,8 +97,9 @@ def classify_unit(name: str, text: str, timer_text: str | None = None) -> dict |
            "no reviewed event gate for command" if flagged else "; ".join(GATED[k] for k in gates)}
     if not flagged and scheduled:
         row.update(trigger="scheduled-report", evidence=SCHEDULED_REPORT[1])
-    elif not flagged and "escalation_watch" in gates:
-        row.update(trigger="backoff", evidence=row["evidence"] + "; reminder, idle and digest on budget x tier")
+    elif not flagged and paced:
+        row.update(trigger="backoff", evidence=row["evidence"] + "; reminder, idle and digest on budget x tier"
+                   + "".join(f"; {k}: {GATED[k]}" for g in gates for k in RUNS_INSIDE.get(g, ())))
     return row
 
 
