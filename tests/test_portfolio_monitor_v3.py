@@ -27,6 +27,7 @@ from test_portfolio import (  # noqa: E402, F401  (pg is a fixture, used by name
     COO, CTO, CMO, PH, WORKER, T, at, kinds, mk, needs_pg, pg, q, task,
 )
 from tools import ask_run, portfolio_push  # noqa: E402
+from tools.agent_transport import CEO_IDENTITY  # noqa: E402
 from tools import portfolio as cli  # noqa: E402
 
 GOLDEN = ROOT / "tests" / "fixtures"
@@ -611,3 +612,126 @@ def test_the_pusher_sends_v2_unless_told_otherwise(monkeypatch):
             monkeypatch.setenv("PORTFOLIO_MONITOR_V", env)
         portfolio_push.build_payload()
         assert seen[-1] == want, env
+
+
+# --- portfolio.py ph <project> --session <sid> ----------------------------------------------------
+
+def ph_cmd(*argv, who=CTO):
+    return cli.run(["ph", *argv], identity=who, now=T)
+
+
+def link_events(conn, pid):
+    return [json.loads(r["body"]) if isinstance(r["body"], str) else r["body"]
+            for r in q(conn, "SELECT body FROM project_events WHERE project_id = ? AND kind = ? ORDER BY id",
+                       (pid, pf.PH_LINK_EVENT_KIND))]
+
+
+def ph_of(conn, pid):
+    return q(conn, "SELECT ph_session FROM projects WHERE id = ?", (pid,))[0]["ph_session"]
+
+
+@needs_pg
+@pytest.mark.parametrize("who, lane, actor", [(CTO, "cto", "cto-c34459eb"), (CMO, "cmo", "cmo-ef04792e"),
+                                              (COO, "cmo", "coo-f66280fc"), (CEO_IDENTITY, "cto", "ceo")])
+def test_ph_links_the_session_and_records_who_did_it(pg, capsys, who, lane, actor):
+    mk("p1", lane=lane)
+    assert ph_cmd("p1", "--session", "e3050822", who=who) == 0
+    assert json.loads(capsys.readouterr().out) == {"project": "p1", "ph_session": "e3050822", "from": None}
+    assert ph_of(pg, "p1") == "e3050822"
+    [row] = q(pg, "SELECT actor, kind FROM project_events WHERE project_id = 'p1' AND kind = ?", (pf.PH_LINK_EVENT_KIND,))
+    assert row["actor"] == actor
+    assert link_events(pg, "p1") == [{"op": "ph_link", "from": None, "to": "e3050822"}]
+
+
+@needs_pg
+def test_ph_moves_a_project_to_a_new_ph_and_drops_the_prefix(pg, capsys):
+    mk("p1", ph_session="aaaa1111")
+    assert ph_cmd("p1", "--session", "project_head-bbbb2222") == 0
+    assert json.loads(capsys.readouterr().out)["from"] == "aaaa1111"
+    assert ph_of(pg, "p1") == "bbbb2222"
+    assert link_events(pg, "p1") == [{"op": "ph_link", "from": "aaaa1111", "to": "bbbb2222"}]
+
+
+@needs_pg
+def test_a_linked_ph_shows_on_the_page_and_leaves_unlinked_ph(hub, capsys):
+    mk("p1")
+    live_host(hub.conn)
+    live_row(hub.conn, "contabo", "e3050822", name="🌐 PH#e30 (CTO) - Page", bridge=APP, status="idle")
+    assert [u["sid"] for u in payload3()["unlinked_ph"]] == ["e3050822"]
+    assert row_of(payload3())["ph"] is None
+    assert ph_cmd("p1", "--session", "e3050822") == 0
+    p = payload3()
+    assert p["unlinked_ph"] == [] and row_of(p)["ph"]["sid"] == "e3050822" and row_of(p)["ph"]["app"] == APP
+
+
+@needs_pg
+@pytest.mark.parametrize("who", [PH, WORKER])
+def test_a_project_head_or_a_worker_cannot_link_a_ph_even_with_enforcement_off(pg, capsys, who):
+    mk("p1", ph_session="7cf528f0")                                    # PH is the project's own PH, still refused
+    assert os.environ.get("ORG_PORTFOLIO_ENFORCE") is None
+    assert ph_cmd("p1", "--session", "e3050822", who=who) == 1
+    assert "refused" in capsys.readouterr().err
+    assert ph_of(pg, "p1") == "7cf528f0" and link_events(pg, "p1") == []
+
+
+@needs_pg
+def test_a_project_head_gets_its_own_message(pg, capsys):
+    mk("p1", ph_session="7cf528f0")
+    assert ph_cmd("p1", "--session", "e3050822", who=PH) == 1
+    assert "Project Head cannot link" in capsys.readouterr().err
+
+
+@needs_pg
+def test_the_c_level_of_another_lane_cannot_link_a_ph(pg, capsys):
+    mk("p1", lane="cto")
+    assert ph_cmd("p1", "--session", "e3050822", who=CMO) == 1
+    assert "own lane" in capsys.readouterr().err and ph_of(pg, "p1") is None
+
+
+@needs_pg
+def test_ph_refusals_are_logged(pg, capsys):
+    mk("p1")
+    assert ph_cmd("p1", "--session", "e3050822", who=PH) == 1
+    lines = cli.REFUSAL_LOG.read_text(encoding="utf-8").splitlines()
+    assert [json.loads(x)["verb"] for x in lines] == ["ph"] and json.loads(lines[0])["enforced"] is True
+
+
+@needs_pg
+@pytest.mark.parametrize("bad", ["", "abc", "x" * 17, "ABCDEFGH", "e3050822 ", "e305_822", "../e3050822",
+                                 "session_01AbCdEf", "project_head-", "é3050822"])
+def test_a_bad_session_id_is_exit_2_and_is_not_echoed(pg, capsys, bad):
+    mk("p1")
+    assert ph_cmd("p1", "--session", bad) == 2
+    err = capsys.readouterr().err
+    assert "bad Project Head session id" in err
+    assert "session_01AbCdEf" not in err and "../" not in err and "é" not in err
+    assert ph_of(pg, "p1") is None and link_events(pg, "p1") == []
+
+
+@needs_pg
+def test_an_unknown_project_is_exit_2(pg, capsys):
+    assert ph_cmd("nope", "--session", "e3050822") == 2
+    assert capsys.readouterr().err.startswith("portfolio:")
+
+
+@needs_pg
+@pytest.mark.parametrize("stage", ["closed", "cancelled"])
+def test_a_finished_project_cannot_get_a_new_ph(pg, capsys, stage):
+    mk("p1", stage=stage)
+    assert ph_cmd("p1", "--session", "e3050822") == 2
+    assert stage in capsys.readouterr().err and ph_of(pg, "p1") is None
+
+
+@needs_pg
+def test_linking_the_same_ph_again_changes_nothing(pg, capsys):
+    mk("p1", ph_session="e3050822")
+    assert ph_cmd("p1", "--session", "e3050822") == 2
+    assert "already has that Project Head" in capsys.readouterr().err
+    assert link_events(pg, "p1") == []
+
+
+@needs_pg
+def test_ph_session_is_required(pg, capsys):
+    mk("p1")
+    assert cli.run(["ph", "p1"], identity=CTO, now=T) == 2
+    assert "--session" in capsys.readouterr().err and ph_of(pg, "p1") is None

@@ -9,6 +9,7 @@
     bash scripts/hub/org-python.sh tools/portfolio.py monitor          # the P3-E v1 JSON the widget reads
     bash scripts/hub/org-python.sh tools/portfolio.py monitor --v 3 --counts   # ph_live=N ph_app=M unlinked=K
     bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --goal "..." --repos a/b,c/d
+    bash scripts/hub/org-python.sh tools/portfolio.py ph expert-advisor --session 8dbe4ccc   # a lane's C-level binds a PH
     bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --kind loop --cadence 24
     bash scripts/hub/org-python.sh tools/portfolio.py replan black-liquidity 1 --due 2026-11-02T00:00:00Z --why "first date"
     bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
@@ -16,10 +17,14 @@
     bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
         --project x --reimport [--dry-run]                              # catch an imported project up
 
-Verbs: open, edit, stage, milestone add|done, block, unblock, decided, go add|use, park, close,
+Verbs: open, edit, ph, stage, milestone add|done, block, unblock, decided, go add|use, park, close,
 lock take|release, show, monitor. Every write appends a project_events row signed with the
 caller's identity (`<role>-<session>`, `ceo` for the CEO); `edit` is the exception (no event
 kind for it), it prints the old and the new value of each field it changed.
+
+`ph <project> --session <sid>` sets projects.ph_session (4 to 16 lowercase letters or digits). It is for
+the C-level of the project's lane, the COO and the CEO. A Project Head is refused, and so is anyone else
+`authorize` stops, whatever ORG_PORTFOLIO_ENFORCE says: the verb is new, so it has no soft mode.
 
 `--import-status` reads a STATUS.md milestone table into a project with no milestones yet, once.
 A row is done when its State is `landed` or `done` (any case, with or without Markdown emphasis,
@@ -119,6 +124,8 @@ def authorize(identity, verb: str, project: dict | None = None, lane: str | None
         return None
     unowned = project is None and verb in ("lock", "go_add", "go_use", "order_take", "order_link", "order_close")
     if identity.role == PH_ROLE:
+        if verb == "ph":
+            return "a Project Head cannot link a Project Head session: ask the project's lane C-level"
         if verb in ("open", "go_add", "order_take", "order_link", "order_close"):
             return "a Project Head cannot open projects, record CEO GOs, or manage orders"
         if unowned and verb != "go_add":
@@ -288,6 +295,9 @@ def build_parser() -> argparse.ArgumentParser:
     r = ls.add_parser("release")
     r.add_argument("resource")
 
+    s = sub.add_parser("ph", help="link a Project Head session to a project (a lane's C-level only)")
+    s.add_argument("id")
+    s.add_argument("--session", required=True, metavar="SID", help="the PH's session id, e.g. e3050822")
     s = sub.add_parser("show", help="one project in full, or every project in brief")
     s.add_argument("id", nargs="?")
     s = sub.add_parser("monitor", help="print the monitor JSON")
@@ -427,6 +437,15 @@ def _write(args, identity, now: datetime):
                                 project_id=args.project, now=now)
         force = identity is not None and (identity.kind == "ceo" or identity.role == "coo")
         return {"resource": args.resource, "released": pf.lock_release(args.resource, holder=actor, force=force)}
+
+    if v == "ph":
+        project = pf.get_project(args.id)
+        reason = authorize(identity, "ph", project)
+        if reason is not None:        # no soft mode (ORG_PORTFOLIO_ENFORCE off would let a PH through): the verb is new
+            _log_refusal(identity, "ph", args.id, reason, True)
+            print(f"portfolio: refused: {reason}", file=sys.stderr)
+            return REFUSED
+        return pf.link_ph(args.id, args.session, actor=actor, now=now)
 
     if v == "edit":                                  # bad input is refused before the hub is asked anything
         pf.edit_fields(name=args.name, goal=args.goal, repos=_csv(args.repos),

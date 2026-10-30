@@ -63,6 +63,10 @@ PH_STATES = ("running", "waiting", "idle", "parked", "offline", "unknown")
 IN_FLIGHT_STATUSES = ("pending", "in_progress", "review")  # a task row the PH delegated that is not finished
 UNLINKED_LANES = ("cto", "cmo", "coo", "cfo")
 MAX_PH_NAME = 80
+# project_events.kind has no value of its own for a PH link, and a new kind is a schema change (the CHECK in
+# lib/db_pg.py and docs/design/projecttrack-p1-ddl.sql). Nothing reads heartbeat_rollup, so the `ph` verb
+# borrows it, with body {"op": "ph_link", ...}. Swap this one line when a dedicated kind lands.
+PH_LINK_EVENT_KIND = "heartbeat_rollup"
 CARD_TIMEOUT_S = 4                           # one Run Inbox list call; past it the PH simply has no pending card
 
 
@@ -296,6 +300,34 @@ def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list
         else:
             given[field] = _text(value, field, limit=120 if field in ("name", "host") else MAX_TEXT)
     return given
+
+
+def ph_sid(session) -> str:
+    """The bare Project Head session id (a `project_head-` prefix is dropped), or PortfolioError. The
+    error never quotes `session`: a Remote Control id pasted here by mistake must not be echoed back."""
+    sid = _bare_session(session) if isinstance(session, str) else None
+    if not sid or not PH_SID_RE.fullmatch(sid):
+        raise PortfolioError("bad Project Head session id: 4 to 16 lowercase letters or digits, e.g. e3050822")
+    return sid
+
+
+def link_ph(project_id: str, session: str, *, actor: str, now: datetime | None = None, conn=None) -> dict:
+    """Make `session` the Project Head of a project (projects.ph_session): how a lane's C-level binds a PH
+    that was opened after the project row, or hands the project to a new PH. Who may call it is decided by
+    tools/portfolio.py (a C-level of the lane, the COO, the CEO; never a PH). Writes one event, kind
+    PH_LINK_EVENT_KIND, body {"op": "ph_link", "from": <old or null>, "to": <new>}.
+    Returns {project, ph_session, from}."""
+    now, actor, sid = _utc(now), _actor(actor), ph_sid(session)
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        if row["stage"] in TERMINAL:
+            raise PortfolioError(f"{project_id} is {row['stage']}; that is final")
+        old = _bare_session(row["ph_session"])
+        if old == sid:
+            raise PortfolioError(f"{project_id} already has that Project Head")
+        c.execute("UPDATE projects SET ph_session = ? WHERE id = ?", (sid, project_id))
+        _event(c, project_id, PH_LINK_EVENT_KIND, actor, {"op": "ph_link", "from": old, "to": sid}, now)
+        return {"project": project_id, "ph_session": sid, "from": old}
 
 
 def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: str | None = None,
