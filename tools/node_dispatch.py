@@ -1736,8 +1736,9 @@ def parse_command(raw: str) -> list[str]:
         raise Refusal("empty command")
     first = raw.split(" ", 1)[0]
     payload_form = first in PAYLOAD_VERBS or (first == "publish_branch" and raw.count(" ") == 2)
-    if len(raw) > (PAYLOAD_COMMAND_CHARS if payload_form else MAX_COMMAND_CHARS):
-        raise Refusal(f"command longer than {MAX_COMMAND_CHARS} chars")
+    limit = PAYLOAD_COMMAND_CHARS if payload_form else MAX_COMMAND_CHARS
+    if len(raw) > limit:
+        raise Refusal(f"command longer than {limit} chars")
     if any(ord(c) < 32 or ord(c) == 127 for c in raw):
         raise Refusal("control character (NUL, newline, tab, ...) in command")
     try:
