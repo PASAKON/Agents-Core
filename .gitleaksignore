@@ -2,3 +2,7 @@
 # tests/test_flow_music.py:109 is a 22-char fake "ya29." fixture inside a redaction test
 # (a real Google access token is ~200 chars); it has been on origin since 35b902a5. 2026-09-26, cto-aa2e4242.
 tests/test_flow_music.py:generic-api-key:109
+# PR #596 (820f2cc2): sha256 pins of the public ComfyRunpod graphs third_party/openjutsu/object.api.json and
+# simple.api.json at c0eb0d9, checked against the git objects. The "api" in the path trips generic-api-key.
+820f2cc2afbc40c8f49e0082493e23e32fdb32bc:tools/colab_batch.py:generic-api-key:95
+820f2cc2afbc40c8f49e0082493e23e32fdb32bc:tools/colab_batch.py:generic-api-key:96

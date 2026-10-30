@@ -23,7 +23,9 @@ tools/fal_tts.py --max-usd
 # + 0.5 CU fits the cap, and reserves that sum (retries too). The pinned guard runs in its own
 # process group and stops the VM at max_cu (30 s polls). If every Contabo process dies mid-take,
 # the VM's own watchdog releases it 15 min after the last heartbeat: about 2.3 CU more on a G4
-# (8.9 CU/h). Studio takes run on G4 only; no other GPU's rate is measured.
+# (8.9 CU/h). Studio and Openjutsu takes run on G4 only; no other GPU's rate is measured.
+# The cap is the rate table x time (G4 8.9 CU/h), not a provider ceiling. Worst case: a card kill
+# during `colab new` can leave an orphan VM that no guard stops.
 tools/colab_batch.py --max-credits
 
 # Flow card: the inner program is this commit's flow_shoot.py, sha256-checked on winbox,
