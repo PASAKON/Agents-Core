@@ -140,6 +140,30 @@ CEO, 30 Oct ~02:30 TH: "และ CTO ควรมี อยู่แค่ Cont
   conflict goes to CTO Main.
 - A PH on any host files GitHub issues and writes skills: `roles/project_head.md`, row "Bugs and skills".
 
+## Saving and closing sessions is the lane C-level's job (CEO 2026-10-30, every C-level and PH)
+
+CEO, 30 Oct 17:42 TH, on Q-20261030-1035-e686: "เรื่อง sessionsave และ session close เป็นหน้าที่ของ CXO ที่ดูแลสายนั้นๆ ดุลพินิตลำดับคสามสำคัญเองได้เลย เขียนเป็กฏชัดเจน save ได้ close ได้ แต่ ถ้าเรียกกลับมา ได้เสมอ อหรืองานนั้นทำต่อได้ หรืองานนั้นปิดไปแล้ว".
+- The C-level that owns a lane saves (`/session-save`) or closes (`/session-close`) the sessions in that lane: its
+  PHs, its workers and its own sessions on any host. It picks the moment by its own priority. It never asks the
+  CEO to save or close a session.
+- Save or close a session only when at least one of these holds:
+  1. It can be called back at any time: its transcript and resume id are kept (`state/locks/<name>.uuid` or the
+     hub's `resume_uuid`).
+  2. Its work can go on without it: the handover is filed (a `report` letter, `STATUS.md` or a LungNote item).
+  3. Its work is closed: the portfolio row is closed or at 100%, its PRs are merged, and no open task names it.
+  If none holds, finish the work or hand it over first. A PH at 100% with nothing pending is still closed at once
+  by whoever sees it (CEO 28 Oct).
+- How, by host:
+  - Contabo: `scripts/session-kill.sh --status saved|closed <role>-<id>`. It also records the status in the hub.
+  - winbox: one contabo card runs a sha256-pinned ps1 over `ssh winbox`. The ps1 stops only that session's
+    claude.exe tree, and it stops without killing anything if terminal64 is in the tree.
+  - Mac: a Remote Control session has no tmux, so `session-kill.sh` cannot end it. No route exists yet (#599):
+    leave the session idle and record it. Never ask anyone, the CEO included, to type `/exit` in it.
+  - On winbox and the Mac, record the status yourself: `bash scripts/hub/org-python.sh -m tools.session_status
+    close --role <role> --session-id <id> --status saved|closed --note "<why>"`.
+- A session that its lane C-level tells to save or close does so with the skill. If a step is refused, the session
+  stops and sends one `blocker` letter. Nobody retries the step by another route.
+
 ## Messaging another session (CEO 2026-10-13, every C-level, every machine)
 
 Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (one call, every host, under 1k tokens) and send only to a name it prints, verbatim — never to a name from memory or an old ListAgents list; "N agents are named X" → re-send with the `[ref]` the error marks active. Design + rollout: `docs/ops/live-sessions.md`.
