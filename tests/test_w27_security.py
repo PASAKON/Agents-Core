@@ -35,6 +35,7 @@ import random
 import re
 import shlex
 import sqlite3
+import shutil
 import subprocess
 import sys
 import threading
@@ -967,6 +968,8 @@ def test_a_token_git_prints_never_reaches_the_reply_or_the_audit_row(monkeypatch
               "@github.com/PASAKON/Agents-Core.git/'")
     monkeypatch.setattr(subprocess, "run",
                         lambda argv, **kw: subprocess.CompletedProcess(argv, 128, "", stderr))
+    # The secret-scan gate needs gitleaks on PATH before git runs; CI has none.
+    monkeypatch.setattr(shutil, "which", lambda name, *a, **kw: "/usr/bin/" + name)
     tid = _review_task(tmp_path)
 
     out, code = nd.run_command(f"publish_branch {tid}")
