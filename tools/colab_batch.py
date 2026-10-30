@@ -10,7 +10,8 @@ Exit: 0 done; 1 take failed; 2 invalid job/arguments (0 CU); 3 admission cap;
       or output folder changed since load (0 CU for that take); 7 shutdown unconfirmed (spend unknown).
 
 Only immutable, verified copies of the listed ComfyRunpod files execute. File-based
-specs and reference images are snapshotted as job data before any balance query.
+specs, reference images and an Openjutsu take's source video are snapshotted as job data
+before any balance query.
 No caller argv or environment overrides are forwarded. Batch logs contain counts/
 codes, never specs, prompts, environment values or subprocess exception messages.
 Child output goes only to each take's run.log, as requested.
@@ -23,15 +24,19 @@ must resolve inside uploads_dir and every scene out_dir inside uploads_dir/rende
 must be <take dir>/progress.json. run_take requires those files in place, so they are not
 snapshotted: spec.json and every reference are hashed at load and re-hashed right before each
 attempt, and a mismatch stops before the take (exit 6, 0 CU for that take). The child reads a
-byte-identical copy of the hashed spec from the pinned temp tree. Each out_dir must be empty or
+byte-identical copy of the hashed spec from the pinned temp dir. Each out_dir must be empty or
 carry this take's id in a .colab_batch_take marker, and no out_dir may be shared with another
 take; a folder holding files of unknown origin or another take is refused. The child writes its
 state to <parent>/<spec take_id>/, so shutdown is verified against that folder, not the spec's.
 
 Audit scope: file-based takes upload the pinned remote_take.py, take_tail.py and
 vm_watchdog.py, plus compiled job data and snapshotted image references. No local
-notebook is loaded. Workflow graphs come from PINNED. Studio takes also upload their
-references from uploads_dir (hashed as above) and run the pinned scan_frames.py.
+notebook is loaded. Workflow graphs come from PINNED; the file takes openjutsu_object and
+openjutsu_people use the pinned third_party/openjutsu graphs. Their photo and clip can show a
+real person, so the pinned tree and every snapshot sit in a 0700 temp dir under the first
+take's parent (WORK), never /tmp, deleted on exit; the batch log never names a file.
+Studio takes also upload their references from uploads_dir (hashed as above) and run the
+pinned scan_frames.py.
 No checkout absolute path is used in the supported path. CLI/auth and VM-installed
 third-party packages/weights remain external services, not ComfyRunpod source pins.
 The bootstrap is hashed separately. It uses -I -S (no site startup hooks).
@@ -74,19 +79,21 @@ OUT_MARK = '.colab_batch_take'
 EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_BALANCE, EXIT_CHECKPOINT, EXIT_PIN = range(1, 7)
 # Reserved per attempt on top of budget.max_cu: G4 overshoot estimate (about 0.4 CU), rounded up.
 OVERSHOOT_CU = Decimal('0.5')
-PINNED_FROM = '4144ad1d7a67d28b8715adb5b7e9ba73ab4cea04'
+PINNED_FROM = 'c0eb0d94756fa2952114efcf4da127b85870e349'
 # Generated from git objects at PINNED_FROM, not from potentially dirty working files.
-PINNED = {'scripts/colab/run_take.py': 'd97ad9e1a7083c101db9e504af24f63877271098d007b8802a3fc34cf0fc349c',
-    'scripts/colab/remote_take.py': 'ed1a63e55e67816b2d8df13fe0b54ea5b0232172d1bd388501da56536dd86967',
-    'scripts/colab/colabctl.py': '2146ef0d797d622bcabe724470a0872c756a6c74d91074845bdea0e39095854c',
-    'scripts/colab/guard.py': '2f8afc36e0e7287c63e76ea061d14446a655eddd873062c608f7a818bed26872',
+PINNED = {'scripts/colab/run_take.py': 'b877da8ba2e8c8de034c28837284a5891df749c97673851679b21a06bfebd53e',
+    'scripts/colab/remote_take.py': 'a268c6cf73b4ff313c4179d98bcc3cf4b17ce60c256d2cc96971d9fe488133d4',
+    'scripts/colab/colabctl.py': 'a949d3c664d936d39a807d97aba9ec6a7def3c775acd8542e8a0f769db1c1b1b',
+    'scripts/colab/guard.py': '47e6f6845bf7d94e4c897517d19216516af95208afb9c362e043b37a4137901b',
     'scripts/colab/vm_watchdog.py': '6cf3ba2784787ac0480e0c3e4caef6df2668b680e6287c50a7defc73e83e5c12',
     'scripts/fetch_weights.py': '98370f5d86b6bbcc1d7997fe3da336fd77138cbd8752b02687d732688548fb0c',
     'scripts/render_job.py': '859dfd681aea35d8f765b2c33178e3587ea58071b9cd9b7dcc4cdb6b9c8e987e',
     'scripts/run_tests.py': '2cffa05014ee738e3aab90019ac8c47868cfae0c74aa5e7ce662c9c9f91b6457',
     'scripts/take_tail.py': 'c4a9bf3ae7f520805389a3980b74e4970cd5357c9b49bdade4d66acaf1aeb26b',
-    'scripts/scan_frames.py': 'f4f863ad26ef4bb5f91042a93c2e6c7465d37ff7f5fcfe9e5dad4af8812ada8b',
+    'scripts/scan_frames.py': 'e2367f62c5fa62656712225ada1e8997e9d7c44e8658adb3695928e1ae89075a',
     'scripts/scan_refs.py': 'cb3f95729f2bc0262cb6aa1f2e659acd1e4158db4408afb871c6d39947887210',
+    'third_party/openjutsu/object.api.json': 'fbfec05071d7f6d9986ba2650d58db9a0e5810a1e13f8efba36afbbf0f67eee2',
+    'third_party/openjutsu/simple.api.json': '24dc5b8ef45788c839beb96b617b404308ddfd8921e89cfd9008442ad29a666a',
     'workflows/facerefine_top.json': '17505ed2880f93b0c45b4222b8c02678fa7240c45feb2b2d765cbe99756fae68',
     'workflows/green_t2v.json': 'f9ec7ecb427390d2d39c7d97caef01a26fe3994cb67331edafbb5f08e8a13db7',
     'workflows/i2v.json': 'eaf57b921dadb0beb04d08fd70b1f9b7cd186c44ac19600a1bdcb7e9e02775be',
@@ -96,6 +103,9 @@ PINNED = {'scripts/colab/run_take.py': 'd97ad9e1a7083c101db9e504af24f63877271098
     'workflows/r2v_max.json': 'a7671585807a93f38e4cafdd0f7c39086c51e2ff6dba581d22cedd0ffc30d12a',
     'workflows/r2v_max_hyperflow.json': 'dc64617f8009234cd751ed86116ff4adca5eec80224c0e7f6261175150d9ee6f',
     'workflows/t2v.json': 'f9ec7ecb427390d2d39c7d97caef01a26fe3994cb67331edafbb5f08e8a13db7'}
+# The two Openjutsu file takes and the pinned graph run_take loads for each (its OPENJUTSU_*_GRAPH paths).
+OPENJUTSU = {'openjutsu_object': 'third_party/openjutsu/object.api.json',
+             'openjutsu_people': 'third_party/openjutsu/simple.api.json'}
 # Only stdlib is needed locally. -S additionally prevents site startup code from
 # running before the bootstrap; -I ignores caller Python environment/settings.
 TIMEOUT_MARGIN_S = 300
@@ -227,9 +237,14 @@ def balance(reader):
 
 
 @contextmanager
-def pinned_tree(source):
-    with tempfile.TemporaryDirectory(prefix='colab-batch-') as name:
-        root = Path(name)
+def pinned_tree(source, parent=None):
+    """The hashed copies the child runs. They live in a 0700 temp dir under `parent` (the takes' folder
+    under WORK, never /tmp) beside data/, where the snapshots of a real person's photo and clip go.
+    The tree is <temp>/tree and the data <temp>/data: run_take refuses a people file inside its own root."""
+    with tempfile.TemporaryDirectory(prefix='.colab-batch-', dir=parent) as name:
+        Path(name).chmod(0o700)
+        root = Path(name) / 'tree'
+        root.mkdir()
         root.chmod(0o700)
         try:
             for relative, digest in PINNED.items():
@@ -414,7 +429,7 @@ def load_job(path):
         if not spec.get('studio'):
             wf = spec.get('workflow')
             if not isinstance(wf, str) or not re.fullmatch(r'[A-Za-z0-9_]+', wf) or \
-                    f'workflows/{wf}.json' not in PINNED:
+                    OPENJUTSU.get(wf, f'workflows/{wf}.json') not in PINNED:
                 raise JobError('workflow is not pinned')
         budget = number(spec['budget']['max_cu'])
         if not budget or not number(spec['budget']['max_minutes']):
@@ -429,7 +444,10 @@ def load_job(path):
         for obj in [spec, *spec['scenes']]:
             if not isinstance(obj, dict) or not isinstance(obj.get('refs', []), list):
                 raise JobError('invalid scene refs')
-            for ref in obj.get('refs', []):
+            files = list(obj.get('refs', []))
+            if obj.get('source') is not None:    # the video an Openjutsu take changes, snapshotted like a ref
+                files.append(obj['source'])
+            for ref in files:
                 if not isinstance(ref, str):
                     raise JobError('invalid reference path')
                 p = work_path(str(directory / ref))
@@ -469,8 +487,8 @@ def load_job(path):
     return log, run, takes, checkpoints
 
 
-def snapshot_spec(root, index, spec, assets):
-    dest = root / 'data' / str(index)
+def snapshot_spec(data_dir, index, spec, assets):
+    dest = data_dir / str(index)
     dest.mkdir(parents=True)
     names = {}
     for i, (ref, (suffix, data)) in enumerate(assets.items()):
@@ -481,14 +499,16 @@ def snapshot_spec(root, index, spec, assets):
     for obj in [spec, *spec['scenes']]:
         if 'refs' in obj:
             obj['refs'] = [names[r] for r in obj['refs']]
+        if obj.get('source') is not None:
+            obj['source'] = names[obj['source']]
     path = dest / 'spec.json'
     path.write_text(json.dumps(spec))
     return path
 
 
-def snapshot_studio_spec(root, index, studio):
+def snapshot_studio_spec(data_dir, index, studio):
     # The exact bytes that were hashed at load; the child never reads the mutable original.
-    dest = root / 'data' / str(index)
+    dest = data_dir / str(index)
     dest.mkdir(parents=True)
     path = dest / 'spec.json'
     path.write_bytes(studio['raw'])
@@ -540,9 +560,11 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
         validator(run['python'], Path(run['root']))
     except (OSError, subprocess.SubprocessError, ValueError, TypeError):
         raise PinError('interpreter trust check failed') from None
-    with pinned_tree(Path(run['root'])) as root:
-        specs = [snapshot_studio_spec(root, i, t.studio) if t.studio else
-                 snapshot_spec(root, i, t.spec, t.assets) for i, t in enumerate(takes)]
+    # Under the first take's parent, not /tmp: the snapshots can hold a real person's photo and clip.
+    with pinned_tree(Path(run['root']), takes[0].directory.parent) as root:
+        data = root.parent / 'data'
+        specs = [snapshot_studio_spec(data, i, t.studio) if t.studio else
+                 snapshot_spec(data, i, t.spec, t.assets) for i, t in enumerate(takes)]
         start = balance(reader)
         spent = reserved = Decimal(0)
         emit(f'BALANCE {start} spent 0 CU cap {cap}')

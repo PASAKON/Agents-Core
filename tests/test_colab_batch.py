@@ -42,7 +42,7 @@ def job(tmp_path, monkeypatch):
 
 
 def invoke(job, balances=(100, 100, 98, 98, 96), cap='10', outcomes=(0, 0), messages=None,
-           stop=True, seen=None, on_balance=None, on_run=None):
+           stop=True, seen=None, on_balance=None, on_run=None, on_spec=None):
     reads, calls, stops, sleeps = [], [], [], []
     values, results = iter(balances), iter(outcomes)
     def reader():
@@ -59,6 +59,8 @@ def invoke(job, balances=(100, 100, 98, 98, 96), cap='10', outcomes=(0, 0), mess
             seen.append(('run', spec, directory, Path(spec).read_bytes()))
         if on_run:
             on_run(len(calls), directory)
+        if on_spec:
+            on_spec(root, Path(spec), directory)
         output.write((messages or 'ok\n').encode())
         result = next(results)
         if isinstance(result, Exception):
@@ -73,7 +75,7 @@ def invoke(job, balances=(100, 100, 98, 98, 96), cap='10', outcomes=(0, 0), mess
     rc = cb.main(['--job', str(job), '--max-credits', cap], balance_reader=reader,
                  take_runner=runner, stop_runner=stopper, sleep=sleeps.append,
                  interpreter_validator=lambda *a: None)
-    assert all(not root.exists() for root in calls)
+    assert all(not root.exists() and not root.parent.exists() for root in calls)   # tree and its temp dir
     return rc, calls, stops, sleeps, reads
 
 
@@ -662,3 +664,168 @@ def test_studio_refuses_other_gpus(studio, change):
     edit_spec(studio, change)
     rc, calls, *_ = invoke(studio.job)
     assert rc == cb.EXIT_BAD and not calls
+
+
+# ---- Openjutsu file takes: a real person's photo and clip, pinned graphs, a private snapshot ----
+
+# The two workflows and the graph run_take.py loads for each, written out here so a wrong map in the tool fails.
+GRAPHS = {'openjutsu_object': 'third_party/openjutsu/object.api.json',
+          'openjutsu_people': 'third_party/openjutsu/simple.api.json'}
+
+
+@pytest.fixture
+def people(job, monkeypatch):
+    """One openjutsu_people file take in the fake ComfyRunpod tree, whose pins now hold both graph files."""
+    source = job.parent / 'source'
+    pins = dict(cb.PINNED)
+    for rel in GRAPHS.values():
+        graph = source / rel
+        graph.parent.mkdir(parents=True, exist_ok=True)
+        graph.write_bytes(b'{"graph": "%s"}' % rel.encode())
+        pins[rel] = hashlib.sha256(graph.read_bytes()).hexdigest()
+    monkeypatch.setattr(cb, 'PINNED', pins)
+    take = job.parent / 'person'
+    take.mkdir()
+    (take / 'photo.jpg').write_bytes(b'a real person')
+    (take / 'clip.mp4').write_bytes(b'their clip')
+    (take / 'spec.json').write_text(json.dumps({
+        'workflow': 'openjutsu_people', 'gpu': 'G4', 'fallback_gpus': [], 'source': 'clip.mp4',
+        'refs': ['photo.jpg'], 'resolution': '480p', 'margin': 'normal',
+        'scenes': [{'seed': 42, 'start': 0, 'seconds': 6, 'prompt': 'the singer'}],
+        'budget': {'max_cu': 4, 'max_minutes': 2}}))
+    data = json.loads(job.read_text())
+    data['takes'] = [str(take)]
+    job.write_text(json.dumps(data))
+    return type('People', (), {'job': job, 'take': take, 'work': job.parent, 'source': source})
+
+
+def edit_people(people, change):
+    path = people.take / 'spec.json'
+    spec = json.loads(path.read_text())
+    change(spec)
+    path.write_text(json.dumps(spec))
+
+
+def inside(path, root):
+    """run_take.py's own _inside(): the test of its refusals for a people take."""
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def run_people(people, **kwargs):
+    return invoke(people.job, balances=(100, 100, 98), outcomes=(0,), **kwargs)
+
+
+def test_people_file_take_is_snapshotted_in_a_private_dir_under_the_take_parent(people, monkeypatch, tmp_path):
+    systmp = tmp_path / 'systmp'
+    systmp.mkdir()
+    monkeypatch.setattr(cb.tempfile, 'tempdir', str(systmp))         # where /tmp would be
+    assets = cb.load_job(people.job)[2][0].assets                      # passes load; clip and photo are read once
+    assert assets == {'clip.mp4': ('.mp4', b'their clip'), 'photo.jpg': ('.jpg', b'a real person')}
+    seen = {}
+    def on_spec(root, spec, directory):
+        snap = json.loads(spec.read_text())
+        seen.update(box=root.parent, parent=directory.parent, mode=root.parent.stat().st_mode & 0o777,
+                    data=spec.parent.parent, spec=snap, clip=Path(snap['source']).read_bytes(),
+                    photo=Path(snap['refs'][0]).read_bytes())
+    assert run_people(people, on_spec=on_spec)[0] == 0
+    box, snap = seen['box'], seen['spec']
+    assert box.parent.resolve() == seen['parent'].resolve() == people.work.resolve()   # the take's parent, not /tmp
+    assert box.name.startswith('.colab-batch-') and seen['mode'] == 0o700
+    assert seen['data'] == box / 'data' and Path(snap['source']).parent.parent == seen['data']
+    assert Path(snap['source']).suffix == '.mp4' and Path(snap['refs'][0]).parent == Path(snap['source']).parent
+    assert (seen['clip'], seen['photo']) == (b'their clip', b'a real person')  # the bytes read at load
+    assert snap['scenes'][0]['prompt'] == 'the singer'
+    assert not box.exists() and not list(systmp.iterdir())            # gone afterwards; nothing went to /tmp
+
+
+def test_a_scenes_own_source_is_snapshotted_like_a_ref(people):
+    edit_people(people, lambda spec: spec['scenes'][0].update(source='scene.mp4', refs=['photo.jpg']))
+    (people.take / 'scene.mp4').write_bytes(b'scene clip')
+    take = cb.load_job(people.job)[2][0]
+    with cb.pinned_tree(people.source, people.work) as root:
+        snap = json.loads(cb.snapshot_spec(root.parent / 'data', 0, take.spec, take.assets).read_text())
+        scene = snap['scenes'][0]
+        assert Path(snap['source']).read_bytes() == b'their clip'
+        assert Path(scene['source']).read_bytes() == b'scene clip'
+        assert Path(scene['refs'][0]).read_bytes() == Path(snap['refs'][0]).read_bytes() == b'a real person'
+        assert not any(inside(Path(p), root) for p in (snap['source'], scene['source'], *snap['refs']))
+    assert take.spec['source'] == 'clip.mp4'                          # the loaded spec keeps the given paths
+
+
+@pytest.mark.parametrize('workflow', sorted(GRAPHS))
+def test_each_openjutsu_workflow_needs_its_own_pinned_graph(people, monkeypatch, workflow):
+    edit_people(people, lambda spec: spec.update(workflow=workflow))
+    assert cb.load_job(people.job)[2][0].spec['workflow'] == workflow
+    other = next(graph for name, graph in GRAPHS.items() if name != workflow)
+    monkeypatch.setattr(cb, 'PINNED', {k: v for k, v in cb.PINNED.items() if k != other})
+    assert cb.load_job(people.job)[2][0].spec['workflow'] == workflow     # the other graph is not its business
+    monkeypatch.setattr(cb, 'PINNED', {k: v for k, v in cb.PINNED.items() if k != GRAPHS[workflow]})
+    with pytest.raises(cb.JobError, match='workflow is not pinned'):
+        cb.load_job(people.job)
+    assert invoke(people.job, balances=())[0] == cb.EXIT_BAD
+
+
+@pytest.mark.parametrize('workflow', ['openjutsu', 'openjutsu_object2', 'openjutsu_people.', 'simple', 'simple.api',
+                                      'openjutsu/object', 'third_party', '', None, ['openjutsu_people']])
+def test_other_workflows_are_still_refused(people, workflow):
+    edit_people(people, lambda spec: spec.update(workflow=workflow))
+    with pytest.raises(cb.JobError, match='workflow is not pinned'):
+        cb.load_job(people.job)
+    rc, calls, _, _, reads = invoke(people.job, balances=())
+    assert rc == cb.EXIT_BAD and not calls and not reads
+
+
+@pytest.mark.parametrize('how', ['outside_work', 'missing', 'directory', 'not_a_string'])
+def test_a_source_must_be_a_file_under_work(people, how):
+    elsewhere = people.work.parent / 'source_outside_work.mp4'
+    elsewhere.write_bytes(b'x')
+    (people.take / 'folder.mp4').mkdir()
+    value = {'outside_work': str(elsewhere), 'missing': 'gone.mp4', 'directory': 'folder.mp4',
+             'not_a_string': ['clip.mp4']}[how]
+    edit_people(people, lambda spec: spec.update(source=value))
+    rc, calls, _, _, reads = invoke(people.job, balances=())
+    assert rc == cb.EXIT_BAD and not calls and not reads
+
+
+def test_people_layout_meets_run_takes_private_file_rules(people, monkeypatch):
+    """For openjutsu_people run_take refuses an --out inside its own root and a photo or clip inside it.
+    The child is started for real here, only Popen is faked, so these are the argv and cwd it gets."""
+    checked = []
+    class Child:
+        pid = 1
+        def wait(self, timeout=None):
+            return 0
+    def popen(argv, **kwargs):
+        root, out = kwargs['cwd'], Path(argv[argv.index('--out') + 1])
+        snap = json.loads(Path(argv[argv.index('--out') - 1]).read_text())
+        files = [Path(snap['source']), *map(Path, snap['refs'])]
+        checked.append((inside(out, root), [inside(f, root) for f in files], inside(root, out)))
+        return Child()
+    monkeypatch.setattr(cb.subprocess, 'Popen', popen)
+    values = iter((100, 100, 98))
+    rc = cb.main(['--job', str(people.job), '--max-credits', '10'], balance_reader=lambda: next(values),
+                 stop_runner=lambda *a: True, sleep=lambda s: None, interpreter_validator=lambda *a: None)
+    # --out is not inside the tree (the tree is inside it); the clip and the photo are not inside the tree
+    assert rc == 0 and checked == [(False, [False, False], True)]
+    assert inside(people.work / 'a' / 'b', people.work) and not inside(people.work, people.work / 'a')   # the probe can say yes
+
+
+def test_batch_log_never_names_a_file_a_prompt_or_content(people, capsys):
+    assert run_people(people)[0] == 0
+    text = (people.work / 'batch.log').read_text() + capsys.readouterr().out
+    assert 'DONE spent 2 CU' in text
+    for private in ('clip.mp4', 'photo.jpg', 'the singer', 'their clip', 'a real person', 'person', 'ref_', 'spec.json',
+                    str(people.work)):
+        assert private not in text
+
+
+def test_people_snapshot_is_deleted_when_the_run_dies(people):
+    boxes = []
+    with pytest.raises(RuntimeError):
+        invoke(people.job, balances=(100, 100), outcomes=(RuntimeError('boom'),),
+               on_spec=lambda root, spec, directory: boxes.append(root.parent))
+    assert len(boxes) == 1 and not boxes[0].exists()
