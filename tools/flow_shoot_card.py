@@ -216,6 +216,7 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
         if changed:
             pull_error = 'local shot ledger changed during run; remote copy retained'
         dest_ok = None
+        received_clips = {}
         for entry in pulled:
             name = entry['name']
             if name != 'ledger.tsv' and not re.fullmatch(r'out/[\w.-]+', name):
@@ -254,6 +255,11 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
                     pull_error = 'different existing clip: ' + str(target)
             if not valid:
                 pull_error = 'pull hash mismatch: ' + name
+            try:
+                if valid and digest(read_plain(target)) == entry['sha256']:
+                    received_clips[Path(name).name] = entry['sha256']
+            except OSError:
+                pass
         if pull_error is None:
             try:
                 write_plain(a.ledger, ledger)
@@ -286,7 +292,11 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
         if spent > a.max_credits:
             print(f'OVER CAP by {spent - a.max_credits:g}')
             code = 6
-        verified = sum(row['status'] == 'verified' for row in csv.DictReader(ledger.decode().splitlines(), delimiter='\t'))
+        verified = sum(
+            row['status'] == 'verified'
+            and bool(row.get('sha256'))
+            and received_clips.get(row.get('file', '').replace('\\', '/').rsplit('/', 1)[-1]) == row['sha256']
+            for row in csv.DictReader(ledger.decode().splitlines(), delimiter='\t'))
         print(f'SUMMARY balance_before={before} balance_after={after} spent={spent} cap={a.max_credits:g} shots_verified={verified} exit={code}')
         return code
     finally:
