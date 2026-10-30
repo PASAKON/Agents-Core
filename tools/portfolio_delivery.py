@@ -3,8 +3,12 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LANES = ("cto", "cmo", "coo")
-BOX = re.compile(r"(project_head|cto|cmo|coo)-([A-Za-z0-9][A-Za-z0-9-]{0,63})")
+BOX = re.compile(r"([a-z_]{2,20})-([A-Za-z0-9][A-Za-z0-9-]{0,63})")
+
+
+def _lanes() -> tuple[str, ...]:
+    from lib.roles import c_level_roles
+    return tuple(c_level_roles())
 
 
 def live_boxes() -> set[str]:
@@ -15,11 +19,12 @@ def live_boxes() -> set[str]:
         rows = portfolio._live_by_sid(conn).values()
         return {f"{r['role']}-{r['sid']}" for r in rows
                 if not r["stale"] and r.get("status") in ("running", "idle")
+                and r["role"] in ("project_head", *_lanes())
                 and BOX.fullmatch(f"{r['role']}-{r['sid']}")}
 
 
 def lane_box(lane: str, live: set[str]) -> str | None:
-    if lane not in LANES:
+    if lane not in _lanes():
         return None
     try:
         sid = (ROOT / "state" / "locks" / f"{lane}-active").read_text().strip()
@@ -45,7 +50,10 @@ def target(project: dict, live: set[str]) -> tuple[str | None, str]:
 
 def watch_box(box: str, lane: str | None = None) -> str | None:
     """Retain a live owner; otherwise follow its lane's current live pointer."""
-    live = live_boxes()
+    try:
+        live = live_boxes()
+    except Exception:  # no hub (tests, an outage): keep the owner box, as before the fallback existed
+        return box
     if box in live:
         return box
     return lane_box(lane or box.partition("-")[0], live)
