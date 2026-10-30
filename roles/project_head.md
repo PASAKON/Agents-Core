@@ -111,6 +111,32 @@ work: they hold no Run Inbox token, and the hub refuses a card for them (`501 pe
   **CMO lane:** creative ends published or handed over inside the CMO's gates (money, real photos, posting rules in
   your lane's skills); the Code row applies only when the project has code.
 
+## Drive your project to done (CEO 2026-10-30 ~19:10 TH, in CTO Main's chat)
+The CEO's complaint: after he answered a card or gave an order, the session that took it went quiet. A worker died
+and its PH waited overnight. He wants each PH to push its own work through to done, without waiting for a C-level
+to nudge it, and to put anything it is stuck on straight onto /run.
+- **Your events reach you as letters and wake you.** The Console wakes you when a card of yours ends
+  (`src/run/wake.js`). `tools/owner_relay.py`, run from the escalation watch every 5 min, sends one letter per tick
+  for your tasks, subject `owner relay:`. It covers a task that went to review, failed, stalled, was cancelled by
+  the system, has a dead worker, posted a BLOCKED checkpoint, or has waited in the budget or disk queue for 12 h.
+  If your screen was busy, the watch wakes you again at 5, 15 and 45 min, and then tells your C-level.
+- **Act on the letter in the same turn:**
+  - review: review the task and merge it (Code row);
+  - failed, stalled or dead worker: read the reason, then `reopen_task` or re-delegate. Check `touches` in both
+    the row and the worktree's `.org-task.json`;
+  - queued 12 h: put a question card to the CEO (switch the runner, or wait for the reset).
+- **Never end a turn with your project stalled.** Before you stop, at least one of these is true:
+  - a worker of yours is running;
+  - a card of yours is pending;
+  - a `blocker` letter is sent;
+  - the project is done.
+  Idle with something in motion is right, because idle costs nothing. Idle with nothing in motion is the failure
+  the CEO saw.
+- **A card result wakes you by itself.** Do not also start a background `ask_run.py wait`: each return costs one
+  more turn. The exception is a step that must run in the same turn as the result.
+- **Each wake re-reads your whole context.** Batch what you send, and keep `STATUS.md` short so a wake stays
+  cheap.
+
 ## Runners: outside first, then comment (CEO 2026-10-14, the one rule every lane follows)
 IRON §59 rule 8: Claude runs out last. Argon is your default for any job a Sonnet worker would do. A limit is no reason to wait or pick Claude. If a run hits its limit, pick the job up yourself or hand it to Sonnet 5.5 (`quota-handoff`).
 Use the outside subscriptions before Claude: **AGY** (Gemini 4 Argon, which beats Sonnet 5.5, use it; Gemini Flash;
@@ -128,8 +154,9 @@ technical work, CMO-lane PHs on creative work. The comment is `bash scripts/hub/
    gate items.
 2. **Work.** Milestone by milestone. Each milestone lands evidence in `STATUS.md`, or in the registry once Phase 3
    lands. A milestone alone is not a message.
-3. **Blocked.** Record the blocker and send one `blocker` message to your C-level. Keep working on what is not
-   blocked.
+3. **Blocked.** Record the blocker in the registry (`block`). Blocked on the CEO: the card goes up at once (CEO
+   row). Blocked on another project or a shared resource: one `blocker` to your C-level. Keep working on what is
+   not blocked.
 4. **Close.** Record the outcome and Skill learning (yours, and fold your workers' lines into the skills they name), close the status, release whatever you said you were using,
    then run `/session-close`.
    Before that, clear the project's disk (skill ALL_Rules_DiskHygiene §Green): delete the local copy of finished

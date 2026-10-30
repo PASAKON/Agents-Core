@@ -127,13 +127,20 @@ card red).
   CEO's Gmail as an unread inbox mail and threads its result under it; relay login requests too.
   [SUPERSEDED 2026-10-02 — evidence Console aae193d, run-mail-sender.service live] ~~Email threads
   are P3 — today the hub only writes an outbox stub.~~
-- **The letter wakes nobody** (rule, 3 runs). Console `src/run/notify.js` writes the file and stops, so a
-  session that raised a card and then went idle stays idle after the tap; the result waits for its next
-  prompt. Right after `create`, start `bash scripts/hub/org-python.sh tools/ask_run.py wait <id>` with
-  `run_in_background`: it polls every 5 s and the session is told when the card ends. That one command, or the
-  RUN-<id> letter at the next prompt, is the whole wait: never poll a card on a timer (IRON-RULES §64). Runs:
-  RUN-20261022-0425-29c8 (PH#7dc, 22 Oct); 27 Oct, PH#d5e (results of the #468, #474 and #475 merge
-  cards unread, idle from 04:23 TH) and PH#47c (RUN-20261026-1615-1f03 unread, idle from 23:15 TH).
+- **The result wakes you** (Console 67e8e30, live 30 Oct 15:57 TH; 9 of 9 wakes landed by 20:05 TH).
+  - Console `src/run/wake.js` writes the letter and wakes the session that raised the card, once.
+  - If that screen was busy (a choice dialog, a draft in the input box), the wake is held. The escalation watch
+    (`tools/escalation_watch.py`, every 5 min) wakes the session again at 5, 15 and 45 min, then sends one letter
+    to its C-level.
+  - So after `create`, end your turn. Do not also start a background `wait`: each return is one more model
+    turn, and the wake already brings you back.
+  - Use `ask_run.py wait <id>` only when the next step must run in the same turn as the result.
+  - Never poll a card on a timer (IRON-RULES §64).
+  - `[SUPERSEDED 2026-10-30]` "The letter wakes nobody … right after `create`, start `ask_run.py wait` with
+    `run_in_background`". That rule held before Console 67e8e30. Its runs: RUN-20261022-0425-29c8 (PH#7dc);
+    27 Oct PH#d5e and PH#47c, whose result letters sat unread for hours.
+  - winbox and the Mac get no wake from the Contabo Console yet (HostSpawn phase 2), so a session there still
+    reads its RUN letter at its next prompt.
 - Error ID = the card id `RUN-YYYYMMDD-HHMM-xxxx`. Details on the hub: Console
   `node scripts/run-error.js RUN-…` (who / when / host / sha256 / exit / stage — never output or stdin).
 
