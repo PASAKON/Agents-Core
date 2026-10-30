@@ -2,9 +2,10 @@
 # Router pressure rule (IRON §59 rule 7 / Q-20261013-1745-f56c): outside runners first.
 pressure_rule: true
 providers:
+  # 2026-10-30 ~22:10 TH CEO: Claude downgraded to Pro ($20), money tight; AGY and Codex take the work.
   # 2026-10-14: the CEO gave $200 (session banners say Claude Max). When the $200 plan
   # started is not recorded, so "from" is the day he said it, not the start date.
-  anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}, {usd: 200, from: "2026-10-14"}]}
+  anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}, {usd: 200, from: "2026-10-14"}, {usd: 20, from: "2026-10-30T15:10:00Z"}]}
   # 2026-10-14 CEO (via SomPong): Google AI Ultra, $100/mo, kept long term (Colab, Flow 10,000 credits,
   # Argon via agy, Flow Music). Claude Max $200, ChatGPT $20.
   google:    {runner: agy,    plans: [{usd: 100, from: "2026-09-01"}]}
