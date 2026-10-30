@@ -145,6 +145,24 @@ def test_a_successful_wake_that_drains_the_box_resets_the_ladder(box):
     assert st["wakes"][PH][orl.thai_day(NOW + 5 * MIN)] == 1
 
 
+def test_one_tick_attempts_at_most_ten_wakes_and_one_per_box(box):
+    st, woke = orl.load_state("live"), set()
+    sessions = {f"project_head-{n:08x}": {"box": f"project_head-{n:08x}", "status": "idle", "tmux": "x"}
+                for n in range(12)}
+    tried = [orl.try_wake(b, st, NOW, sessions=sessions, panes=lambda t: READY, wake=box.wake, budget=None,
+                          tier="normal", woke=woke) for b in sessions]
+    assert len(box.woke) == orl.MAX_WAKES and tried[-1] == (False, "woken this tick: run cap")
+    again = orl.try_wake("project_head-00000000", st, NOW, sessions=sessions, panes=lambda t: READY,
+                         wake=box.wake, budget=None, tier="normal", woke=set(x for x in woke if x.startswith("tried:")))
+    assert again == (False, "woken this tick") and len(box.woke) == orl.MAX_WAKES
+    box.letter("project_head-0000000b", "blocker · urgent · x", NOW - 6 * MIN)       # capped: no try spent
+    out = ew.rewake([dict(sessions["project_head-0000000b"], box="project_head-0000000b", role="project_head")],
+                    NOW, st, mode="live", panes=lambda t: READY, wake=box.wake, send=box.send, woke=woke,
+                    tier_of=lambda b: "critical")
+    assert out == ["rewake project_head-0000000b waits: woken this tick: run cap"]
+    assert st["rewake"]["project_head-0000000b"]["tries"] == 0
+
+
 def test_a_dead_ph_with_unread_letters_tells_its_owner_once_per_episode(box):
     box.sessions = [s for s in box.sessions if s["box"] != PH]      # lock present, no session
     box.letter(PH, "blocker · urgent · x", NOW)

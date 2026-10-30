@@ -59,6 +59,7 @@ DEFAULT_MODE = "dry"
 HOST = "contabo"            # dead-worker probes are local: only this host's runs
 BOOTSTRAP_S = 8 * 3600      # the first run looks back this far, no further
 MAX_LETTERS = 10            # letters per run (the unit has 120 s; each wake costs seconds)
+MAX_WAKES = 10              # wake attempts per run, owner letters and re-wake ladder together
 MAX_LINES = 8               # tasks per letter
 LETTER_MAX = 600            # chars per letter, all lines included
 REASON_MAX = 160
@@ -343,10 +344,12 @@ def note_wake(state: dict, box: str, now: float) -> None:
 
 def try_wake(box: str, state: dict, now: float, *, sessions: dict, panes, wake, budget, tier: str,
              woke: set) -> tuple[bool, str]:
-    """(woke, why not). Never the COO, never twice in one tick, never a busy screen."""
+    """(woke, why not). Never the COO, one attempt per box per tick and MAX_WAKES per
+    tick in all (`woke` is shared by the owner letters and the re-wake ladder: each wake
+    costs seconds of the unit's 120 s), never a busy screen."""
     if box.startswith("coo-"):
         return False, "coo box"
-    if box in woke:
+    if box in woke or f"tried:{box}" in woke:
         return False, "woken this tick"
     ok, why = screen_ready(box, sessions, panes)
     if not ok:
@@ -354,6 +357,9 @@ def try_wake(box: str, state: dict, now: float, *, sessions: dict, panes, wake, 
     ok, why = may_wake(state, box, now, tier=tier, budget=budget)
     if not ok:
         return False, why
+    if sum(1 for x in woke if x.startswith("tried:")) >= MAX_WAKES:
+        return False, "woken this tick: run cap"
+    woke.add(f"tried:{box}")
     try:
         res = wake(box, WAKE_LABEL)
     except Exception as e:             # best effort, like mail_wake itself

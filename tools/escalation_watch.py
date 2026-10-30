@@ -588,9 +588,9 @@ def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=
             continue
         ok, why = orl.try_wake(box, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
                                tier=tier_of(box), woke=woke)
-        if not ok and (why.startswith("day cap") or why == "woken this tick"):
+        if not ok and why.startswith(("day cap", "woken this tick")):
             out.append(f"rewake {box} waits: {why}")
-            continue                    # the cap is not a failed try: the hourly batch takes it
+            continue                    # a cap is not a failed try: a later tick or the hourly batch takes it
         ep["tries"] += 1
         ep["why"] = "" if ok else why
         out.append(f"rewake {box} try {ep['tries']}: " + ("woke" if ok else f"held: {why}"))
