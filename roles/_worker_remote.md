@@ -164,6 +164,11 @@ anything not already written down will be reopened.
 For codex, read files with shell commands (cat, sed -n, rg, git diff) and edit
 with apply_patch; run the tests the brief names.
 For AGY, use file tools only; leave shell validation to the review process.
+AGY in print mode cannot ask for a permission: a command outside its allow-list ends
+the whole run with no output. Prefer file tools. If you must run a command, run ONE plain
+command per call from the worktree you start in: ls, cat, head, tail, wc, grep, pwd, echo,
+sort, diff, git status/log/show/diff. Never chain with `;`, `|`, `>` or `$(...)`, never
+`cd` elsewhere (only `cd <your worktree> && <one of those>`), and never sed, find, python or rm.
 Work only in the assigned worktree and, when supplied, the task's WORK_DIR.
 Never change the default branch, sign in to services, or touch browser tabs
 you did not open.
