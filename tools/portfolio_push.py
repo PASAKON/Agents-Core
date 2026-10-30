@@ -12,6 +12,7 @@ Environment:
   PORTFOLIO_PUSH_TOKEN   required, the bearer token (Infisical MoonieX-Console/prod)
   PORTFOLIO_PUSH_URL     default https://terminal.mooniex.com; https only, http only on loopback
   ORG_DB_URL             the hub the payload is built from
+  PORTFOLIO_MONITOR_V    unset: v2. 1: v1. 3: v3 (Console must accept v3 first, docs/design/portfolio-monitor-v3.md)
 
 POST <url>/api/portfolio/monitor, `Authorization: Bearer <token>`, 10 s timeout, urllib only.
 Console answers 204 on a good push; 400, 401, 413 or 503 otherwise.
@@ -85,10 +86,13 @@ def endpoint(base: str | None = None) -> str | None:
 def build_payload() -> dict:
     from lib import portfolio
     # v2 by default since Console 15399d5 stores v2 and still serves v1 to the old widget;
-    # PORTFOLIO_MONITOR_V=1 pushes the v1 body again (ProjectTrack P4).
-    if os.environ.get("PORTFOLIO_MONITOR_V") == "1":
+    # PORTFOLIO_MONITOR_V=1 pushes the v1 body again (ProjectTrack P4). PORTFOLIO_MONITOR_V=3 pushes v3
+    # (docs/design/portfolio-monitor-v3.md): only after the Console that accepts v3 is deployed, or
+    # the page goes stale.
+    version = os.environ.get("PORTFOLIO_MONITOR_V")
+    if version == "1":
         return portfolio.monitor_payload()
-    return portfolio.monitor_payload(version=2)
+    return portfolio.monitor_payload(version=3 if version == "3" else 2)
 
 
 def _post(url: str, token: str, body: bytes) -> int:

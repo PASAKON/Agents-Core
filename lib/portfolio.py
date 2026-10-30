@@ -42,6 +42,8 @@ BKK = timezone(timedelta(hours=7))          # Asia/Bangkok, no DST
 WORKING_S = 5 * 60                           # a heartbeat this fresh is "working"
 IDLE_S = 24 * 3600                           # a heartbeat this fresh is "idle", else "stalled"
 MAX_ROWS = 20
+MAX_ROWS_V3 = 40                             # v3 only: v1 and v2 keep MAX_ROWS (docs/design/portfolio-monitor-v3.md)
+MAX_UNLINKED_PH = 20
 GENERATING_MAX_AGE_S = IDLE_S                # a task row untouched this long is not "generating"
 LIVE_PH_S = 15 * 60                          # a live_sessions row seen this recently is a live session
 
@@ -51,6 +53,20 @@ RESOURCE_RE = re.compile(r"[a-z0-9][a-z0-9_.:-]{0,100}")
 GO_SOURCE_RE = re.compile(r"(run:Q-|run:RUN-|chat:)\S.*")
 MAX_TITLE = 400
 MAX_TEXT = 2000
+
+# v3 wire shapes (docs/design/portfolio-monitor-v3.md): the Console validator checks the same patterns.
+PH_SID_RE = re.compile(r"[a-z0-9]{4,16}")
+PH_HOST_RE = re.compile(r"[a-z0-9-]{1,32}")
+APP_ID_RE = re.compile(r"session_[A-Za-z0-9]{1,100}")      # the same pattern as tools/live_sessions._BRIDGE_ID_RE
+LEAD_RE = re.compile(r"(?:[a-z_]{2,20}-)?([a-z0-9]{4,16})")     # owner_session: "cmo-ef04792e", "cto-fresh"
+PH_STATES = ("running", "waiting", "idle", "parked", "offline", "unknown")
+IN_FLIGHT_STATUSES = ("pending", "in_progress", "review")  # a task row the PH delegated that is not finished
+MAX_PH_NAME = 80
+# project_events.kind has no value of its own for a PH link, and a new kind is a schema change (the CHECK in
+# lib/db_pg.py and docs/design/projecttrack-p1-ddl.sql). Nothing reads heartbeat_rollup, so the `ph` verb
+# borrows it, with body {"op": "ph_link", ...}. Swap this one line when a dedicated kind lands.
+PH_LINK_EVENT_KIND = "heartbeat_rollup"
+CARD_TIMEOUT_S = 4                           # one Run Inbox list call; past it the PH simply has no pending card
 
 
 class PortfolioError(ValueError):
@@ -283,6 +299,34 @@ def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list
         else:
             given[field] = _text(value, field, limit=120 if field in ("name", "host") else MAX_TEXT)
     return given
+
+
+def ph_sid(session) -> str:
+    """The bare Project Head session id (a `project_head-` prefix is dropped), or PortfolioError. The
+    error never quotes `session`: a Remote Control id pasted here by mistake must not be echoed back."""
+    sid = _bare_session(session) if isinstance(session, str) else None
+    if not sid or not PH_SID_RE.fullmatch(sid):
+        raise PortfolioError("bad Project Head session id: 4 to 16 lowercase letters or digits, e.g. e3050822")
+    return sid
+
+
+def link_ph(project_id: str, session: str, *, actor: str, now: datetime | None = None, conn=None) -> dict:
+    """Make `session` the Project Head of a project (projects.ph_session): how a lane's C-level binds a PH
+    that was opened after the project row, or hands the project to a new PH. Who may call it is decided by
+    tools/portfolio.py (a C-level of the lane, the COO, the CEO; never a PH). Writes one event, kind
+    PH_LINK_EVENT_KIND, body {"op": "ph_link", "from": <old or null>, "to": <new>}.
+    Returns {project, ph_session, from}."""
+    now, actor, sid = _utc(now), _actor(actor), ph_sid(session)
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        if row["stage"] in TERMINAL:
+            raise PortfolioError(f"{project_id} is {row['stage']}; that is final")
+        old = _bare_session(row["ph_session"])
+        if old == sid:
+            raise PortfolioError(f"{project_id} already has that Project Head")
+        c.execute("UPDATE projects SET ph_session = ? WHERE id = ?", (sid, project_id))
+        _event(c, project_id, PH_LINK_EVENT_KIND, actor, {"op": "ph_link", "from": old, "to": sid}, now)
+        return {"project": project_id, "ph_session": sid, "from": old}
 
 
 def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: str | None = None,
@@ -869,10 +913,10 @@ def monitor_rows(now: datetime | None = None, *, conn=None) -> list[dict]:
 def monitor_payload(now: datetime | None = None, *, conn=None, version=1, attention_cap=10) -> dict:
     """The whole P3-E v1 response body. `counts` are before the row cap."""
     now = _utc(now)
-    if version == 2:
-        return _monitor_v2(now, conn=conn, attention_cap=attention_cap)
+    if version in (2, 3):
+        return _monitor_v2(now, conn=conn, attention_cap=attention_cap, version=version)
     if version != 1:
-        raise PortfolioError("monitor version must be 1 or 2")
+        raise PortfolioError("monitor version must be 1, 2 or 3")
     rows = _monitor_all(now, conn)
     counts = {"in_progress": sum(1 for r in rows if not r["parked"]),
               "parked": sum(1 for r in rows if r["parked"])}
@@ -1107,8 +1151,144 @@ def _v2_rows(now, c):
     return rows, projects, milestones, deadlines
 
 
-def _monitor_v2(now, *, conn=None, attention_cap=10):
+def _app_id(raw):
+    """A Remote Control id that is safe to put in a link, else None. Never printed or logged."""
+    return raw if isinstance(raw, str) and APP_ID_RE.fullmatch(raw) else None
+
+
+def _wire_host(raw):
+    return raw if isinstance(raw, str) and PH_HOST_RE.fullmatch(raw) else None
+
+
+def _live_by_sid(c) -> dict[str, dict]:
+    """sid -> the live_sessions row to report for it. Read through tools/live_sessions' own reader, so
+    "stale" is its rule: a host whose latest live_hosts publish is older than DEFAULT_TTL_S (or that
+    never published) marks every row of that host stale. When two rows carry one sid the fresh host's
+    row wins, then the most recently seen."""
+    from tools import live_sessions
+    best: dict[str, dict] = {}
+    for r in live_sessions._snapshot_from_hub(c, live_sessions.DEFAULT_TTL_S)["rows"]:
+        sid = r.get("sid")
+        if sid and (sid not in best or (r["stale"], r["age"]) < (best[sid]["stale"], best[sid]["age"])):
+            best[sid] = r
+    return best
+
+
+def _in_flight_owners(c) -> set[str]:
+    """Bare session ids that own a task still in flight: the same `tasks.owner_cto` grouping
+    state/patrol/ph_patrol.py tasks_by_owner reads, counting IN_FLIGHT_STATUSES."""
+    marks = ", ".join("?" * len(IN_FLIGHT_STATUSES))
+    rows = c.execute(f"SELECT DISTINCT owner_cto FROM tasks WHERE owner_cto IS NOT NULL"
+                     f" AND status IN ({marks})", IN_FLIGHT_STATUSES).fetchall()
+    return {s.lower() for s in (_bare_session(r["owner_cto"]) for r in rows) if s}
+
+
+def _pending_requesters() -> set[str]:
+    """Bare session ids with a pending Run Inbox card or question, from the same client `ask_run.py
+    list` uses. A call that fails, times out or answers something odd adds nothing: this must never
+    break the payload, and it logs nothing (an error text could carry the hub address)."""
+    out: set[str] = set()
+    try:
+        from tools import ask_run
+        paths = ((ask_run.ASKS_PATH, "asks"), (ask_run.QUESTIONS_PATH, "questions"))
+    except Exception:
+        return out
+    for path, key in paths:
+        try:
+            resp = ask_run._call("GET", path, query={"status": "pending", "limit": "200"}, timeout=CARD_TIMEOUT_S)
+            items = resp.get(key) if isinstance(resp, dict) else resp
+            for item in items if isinstance(items, list) else []:
+                who = item.get("requester") if isinstance(item, dict) else None
+                session = _bare_session(who.get("session")) if isinstance(who, dict) and isinstance(who.get("session"), str) else None
+                if session and item.get("status") == "pending":
+                    out.add(session.lower())
+        except Exception:
+            continue
+    return out
+
+
+def _ph_state(project, row, busy, pending) -> str:
+    """The ph.state of docs/design/portfolio-monitor-v3.md. `row` is the PH's live row or None; `busy` is
+    _in_flight_owners; `pending` is a callable that asks the Run Inbox (only called when it can decide)."""
+    if project["stage"] == "parked":
+        return "parked"
+    if row is None or row["stale"]:
+        return "offline"
+    if row["status"] == "running":
+        return "running"
+    if row["status"] != "idle":
+        return "unknown"
+    sid = row["sid"]
+    return "waiting" if sid in busy or sid in pending() else "idle"
+
+
+def _ph_name_lane(name) -> tuple[str | None, str]:
+    """(project name, lane) from a PH session name `<emoji> PH#<id3> (<LANE>) - <Project>`; (None, "other")
+    for a name that is not one. The lane is a C-level role from lib/roles.py, else "other"."""
+    from lib import roles, session_names
+    m = session_names.PH_NAME_RE.match(session_names.split_name(name or "")[2])
+    if not m:
+        return None, "other"
+    lane = (m.group("lane") or "").lower()
+    proj = _cut((m.group("proj") or m.group("text") or "").strip(), MAX_PH_NAME)
+    return proj.strip() or None, lane if lane in roles.c_level_roles() else "other"
+
+
+def _v3_extend(rows, projects, c) -> list[dict]:
+    """Add ph, lead and last_event_at to each v2 row in place (looked up by the stored project id, so
+    call it before the ids are cut for the wire). Returns the payload's `unlinked_ph`: live Project
+    Heads that none of `rows` names, so a PH whose project is outside the monitor (stage idea or
+    closed) still shows on the page."""
+    live = _live_by_sid(c)
+    busy = _in_flight_owners(c)
+    last_event = {r["project_id"]: _stamp(r["at"]) for r in c.execute(
+        "SELECT project_id, max(at) AS at FROM project_events GROUP BY project_id").fetchall()}
+    asked: list[set[str]] = []
+
+    def pending():
+        if not asked:
+            asked.append(_pending_requesters())
+        return asked[0]
+
+    named = set()
+    for row in rows:
+        p = projects[row["id"]]
+        sid = _bare_session(p["ph_session"])
+        row["ph"] = row["lead"] = None
+        if sid and PH_SID_RE.fullmatch(sid):
+            named.add(sid)
+            r = live.get(sid)
+            row["ph"] = {"sid": sid, "host": _wire_host(r["host"] if r else p["host"]),
+                         "live": bool(r) and not r["stale"], "app": _app_id(r.get("bridge_id")) if r else None,
+                         "state": _ph_state(p, r, busy, pending)}
+        m = LEAD_RE.fullmatch((p["owner_session"] or "").strip())
+        if m:
+            r = live.get(m.group(1))
+            row["lead"] = {"role": p["lane"] if LANE_RE.fullmatch(p["lane"] or "") else "other", "sid": m.group(1),
+                           "app": _app_id(r.get("bridge_id")) if r else None}
+        row["last_event_at"] = last_event.get(p["id"])
+    unlinked = []
+    for sid, r in sorted(live.items(), key=lambda kv: (kv[1]["host"], kv[0])):
+        if r["role"] == "project_head" and not r["stale"] and sid not in named and PH_SID_RE.fullmatch(sid):
+            name, lane = _ph_name_lane(r["name"])
+            unlinked.append({"sid": sid, "host": _wire_host(r["host"]), "name": name, "lane": lane,
+                             "app": _app_id(r.get("bridge_id"))})
+    return unlinked[:MAX_UNLINKED_PH]
+
+
+def v3_counts(payload) -> dict:
+    """ph_live, ph_app and unlinked of a v3 payload, counts only: the Project Heads that are live (a
+    project's PH, or an unlinked one, counted once), how many of them have an app id, and the unlinked."""
+    heads = {r["ph"]["sid"]: r["ph"] for r in payload["projects"] if r["ph"] and r["ph"]["live"]}
+    for u in payload["unlinked_ph"]:
+        heads.setdefault(u["sid"], u)
+    return {"ph_live": len(heads), "ph_app": sum(1 for h in heads.values() if h["app"]),
+            "unlinked": len(payload["unlinked_ph"])}
+
+
+def _monitor_v2(now, *, conn=None, attention_cap=10, version=2):
     # attention_cap: the wire contract's 10; tools/portfolio_watch.py asks for every item.
+    # version 3 is v2 plus per-row ph, lead, last_event_at and a top-level unlinked_ph (_v3_extend).
     with _tx(conn) as c:
         rows, projects, milestones, deadlines = _v2_rows(now, c)
         attention = []
@@ -1149,14 +1329,19 @@ def _monitor_v2(now, *, conn=None, attention_cap=10):
                                   "text": "ยังไม่ผูกโปรเจค", "since": _stamp(order["taken_at"]), "decided": None})
         priority = {"late": 0, "waiting_ceo": 1, "no_plan": 2, "unlinked_order": 3}
         attention.sort(key=lambda r: (priority[r["kind"]], r["since"], r["project_id"] or r["order_id"]))
+        shown = rows[:MAX_ROWS_V3 if version == 3 else 20]
+        unlinked = _v3_extend(shown, projects, c) if version == 3 else None     # reads rows by their stored id
         # Legacy registry ids permit 63 characters; the v2 wire contract permits 40.
         # Apply wire limits after all lookups, preserving v1 and the stored identifiers.
         for row in rows:
             row["id"] = _cut(row["id"], 40)
         for row in attention + orders:
             row["project_id"] = _cut(row["project_id"], 40)
-        return {"v": 2, "generated_at": iso(now), "counts": counts, "attention": attention[:attention_cap],
-                "projects": rows[:20], "orders": orders[:20]}
+        payload = {"v": version, "generated_at": iso(now), "counts": counts, "attention": attention[:attention_cap],
+                   "projects": shown, "orders": orders[:20]}
+        if unlinked is not None:
+            payload["unlinked_ph"] = unlinked
+        return payload
 
 
 def report(now=None, *, conn=None):
