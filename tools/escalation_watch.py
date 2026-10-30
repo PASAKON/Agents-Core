@@ -51,11 +51,12 @@ import contextlib
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -75,7 +76,17 @@ LINE_MAX = 300
 LOCKS_DIR = ROOT / "state" / "locks"
 STATE_PATH = ROOT / "state" / "escalation_watch.json"
 FROM = ("watchdog", "escalation")
-_BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
+REWAKE_FROM = ("watch", "rewake")
+# CTO Main's box is cto-fresh (state/locks/cto-active = fresh), so a C-level id is 8 hex
+# or "fresh"; a PH's is always 8 hex. Always fullmatch.
+_BOX_RE = re.compile(r"c[a-z]o-(?:[0-9a-f]{8}|fresh)|project_head-[0-9a-f]{8}")
+# The re-wake ladder (W2, design C3): tries at these ages of the oldest unread
+# non-quiet letter, each x lib/wake_backoff.wake_interval; then one letter to the
+# PH's owner C-level. A bounded retry of a real letter's delivery (IRON-RULES §64).
+REWAKE_LADDER = (5 * 60, 15 * 60, 45 * 60)
+DEAD_PH_S = 15 * 60          # a dead PH's unread letter waits this long before its owner hears
+OPEN_STATUSES = ("pending", "in_progress", "review", "blocked_human", "blocked_host", "stalled",
+                 "failed", "conflict")
 _HOST_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,31}")
 # Root reads files under state/, which the secretary service can write (no sticky
 # bit): no symlink, no FIFO, a size cap (§2b review of #283 v2, B-1, same class).
@@ -217,10 +228,58 @@ def question_times() -> dict[str, list[float]] | None:
     return out
 
 
+def _has_lock(box: str) -> bool:
+    try:
+        return stat.S_ISREG(os.lstat(LOCKS_DIR / f"{box}.lock").st_mode)
+    except OSError:
+        return False
+
+
+def live_box(box: str | None) -> str | None:
+    """A C-level box a live session drains (design C4): `box` when it has a lock, else
+    its role's state/locks/<role>-active box when that one has. .spawned_by and the
+    letters log can name a C-level session that ended (cto-c34459eb, cmo-ef04792e), and
+    nobody drains its box. Neither live: `box` itself. A PH box is returned as it is."""
+    if not box or box.startswith("project_head-") or _has_lock(box):
+        return box
+    alt = f"{box.split('-', 1)[0]}-{ls.read_lock(LOCKS_DIR / (box.split('-', 1)[0] + '-active'))}"
+    return alt if _BOX_RE.fullmatch(alt) and _has_lock(alt) else box
+
+
+def live_c_levels() -> list[str]:
+    """The live C-level boxes from the <role>-active pointers that have a lock (design
+    C4): the session record's sid can be a different id from the box it drains."""
+    try:
+        from lib.roles import c_level_roles
+        roles = c_level_roles()
+    except Exception:
+        roles = ("cto", "cmo", "cfo", "coo")
+    out = []
+    for role in roles:
+        box = f"{role}-{ls.read_lock(LOCKS_DIR / f'{role}-active')}"
+        if _BOX_RE.fullmatch(box) and _has_lock(box):
+            out.append(box)
+    return sorted(out)
+
+
 def owner_box(ph_sid: str) -> str | None:
-    """A PH's C-level box from its .spawned_by ("cxo:<role>:<sid>")."""
+    """A PH's C-level box from its .spawned_by ("cxo:<role>:<sid>"), moved to the role's
+    live box when that session ended (C4)."""
     parts = ls.read_lock(LOCKS_DIR / f"project_head-{ph_sid}.spawned_by").split(":")
-    return f"{parts[1]}-{parts[2]}" if len(parts) == 3 and _BOX_RE.fullmatch(f"{parts[1]}-{parts[2]}") else None
+    box = f"{parts[1]}-{parts[2]}" if len(parts) == 3 and _BOX_RE.fullmatch(f"{parts[1]}-{parts[2]}") else None
+    return live_box(box)
+
+
+def open_work() -> set[str] | None:
+    """Boxes that own an open task (hub), or None when the hub cannot be read."""
+    try:
+        from lib import db
+        with db.get_conn(readonly=True) as conn:
+            rows = conn.execute("SELECT DISTINCT owner_role, owner_cto FROM tasks WHERE status IN ("
+                                + ",".join("?" * len(OPEN_STATUSES)) + ")", list(OPEN_STATUSES)).fetchall()
+        return {f"{r['owner_role']}-{r['owner_cto']}" for r in rows if r["owner_role"] and r["owner_cto"]}
+    except Exception:
+        return None
 
 
 def tier_of(box: str) -> str:
@@ -289,12 +348,15 @@ def recipients(f: dict, live_c_levels: list[str]) -> list[str]:
     if f["kind"] == "host":
         to = list(live_c_levels) + [coo]
     elif f["kind"] == "idle":
-        to = [coo]
+        # An idle PH that owns open work: its lane C-level's digest too, not the COO's
+        # alone (C4: nobody drains the COO box). Still fyi, so no clock wake.
+        owner = owner_box(f["box"].split("-", 1)[1]) if f["box"].startswith("project_head-") and f.get("work") else None
+        to = [owner, coo]
     elif f["kind"] == "waiting":
         owner = owner_box(f["box"].split("-", 1)[1]) if f["box"].startswith("project_head-") else None
         to = [owner, coo] if coo != f["box"] else list(live_c_levels)
-    else:                                   # blocker: the C-level holding it
-        to = [f["box"], coo]
+    else:                                   # blocker: the C-level holding it, or its live successor
+        to = [live_box(f["box"]), coo]
     about = None if f["kind"] == "blocker" else f.get("box")   # a blocker's box is its holder
     return sorted({b for b in to if b and _BOX_RE.fullmatch(b) and b != about})
 
@@ -450,6 +512,137 @@ def _wake(role: str, sid: str) -> None:
         pass
 
 
+def _th_clock(t: float) -> str:
+    return datetime.fromtimestamp(t, timezone(timedelta(hours=7))).strftime("%H:%M")
+
+
+def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=None,
+           send=mailbox.send, budget=None, tier_of=tier_of, woke: set | None = None,
+           unread=None) -> list[str]:
+    """Re-wake a box whose letter a wake missed (W2, design C3). Zero model calls.
+
+    Every live local C-level (not the COO: SomPong has no inbox hook, so a wake never
+    drains its box) and PH whose box holds an unread letter that is not fyi or report
+    (those wait for the next prompt, token rule 2): a try at 5, 15 and 45 min of the
+    oldest such letter's age, each x wake_interval (None, a low tier: no re-wake). A try
+    runs only while the session record is idle; owner_relay.try_wake then needs a
+    prompt_ready screen and the day cap. A busy session spends no try. After the third
+    try, a PH's owner C-level gets one blocker letter. A PH box with a lock and no live
+    session holding such a letter DEAD_PH_S or longer: one owner letter per episode. A
+    parked PH stays silent. `state` is owner_relay's; mode dry prints, live acts."""
+    from tools import owner_relay as orl
+    unread = unread or orl.unread
+    woke = set() if woke is None else woke
+    if wake is None:
+        from tools import mail_wake
+        wake = mail_wake.wake
+    by_box = {s["box"]: s for s in sessions if _BOX_RE.fullmatch(s.get("box") or "")}
+    lad, dead_eps = state.setdefault("rewake", {}), state.setdefault("dead_eps", {})
+    out: list[str] = []
+
+    def letter(to: str, body: str, about: str) -> None:
+        if mode != "live":
+            out.append(f"would send {to} <- blocker rewake {about}")
+            return
+        role, sid = to.split("-", 1)
+        try:
+            send(role, sid, body, *REWAKE_FROM)
+        except Exception as e:
+            out.append(f"failed {to} <- blocker rewake {about} ({type(e).__name__})")
+            return
+        ok, why = orl.try_wake(to, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
+                               tier=tier_of(to), woke=woke)
+        out.append(f"sent {to} <- blocker rewake {about}" + (" +wake" if ok else f" (wake held: {why})"))
+
+    for box, s in sorted(by_box.items()):
+        role = s.get("role") or box.split("-", 1)[0]
+        if role == "coo" or orl.parked(box):
+            lad.pop(box, None)
+            continue
+        waiting = sorted(m for m, k in unread(box) if k not in mailbox.QUIET_KINDS)
+        if not waiting:
+            lad.pop(box, None)          # the box emptied: the ladder resets
+            continue
+        oldest = waiting[0]
+        ep = lad.get(box)
+        if not isinstance(ep, dict) or ep.get("key") != oldest:
+            ep = lad[box] = {"key": oldest, "tries": 0, "escalated": False, "why": ""}
+        if ep["tries"] >= len(REWAKE_LADDER):
+            if not ep["escalated"] and box.startswith("project_head-"):
+                ep["escalated"] = True
+                to = orl.ph_owner(box.split("-", 1)[1])
+                if to and not to.startswith("coo-"):
+                    letter(to, f"blocker · urgent · rewake: PH {box} has {len(waiting)} unread letter(s) since "
+                               f"{_th_clock(oldest)} TH; {len(REWAKE_LADDER)} wakes did not land "
+                               f"({ep.get('why') or 'not read'}). Look at its pane, clear what holds it, "
+                               f"or take its work.", box)
+            continue
+        due = wake_backoff.wake_interval(REWAKE_LADDER[ep["tries"]], tier=tier_of(box), budget_json=budget, now=now)
+        if due is None or now - oldest < due:
+            continue
+        if s.get("status") != "idle":
+            continue                    # mid-turn: the first idle tick tries; no try spent
+        if mode != "live":
+            ep["tries"] += 1
+            out.append(f"would rewake {box} try {ep['tries']}")
+            continue
+        ok, why = orl.try_wake(box, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
+                               tier=tier_of(box), woke=woke)
+        if not ok and (why.startswith("day cap") or why == "woken this tick"):
+            out.append(f"rewake {box} waits: {why}")
+            continue                    # the cap is not a failed try: the hourly batch takes it
+        ep["tries"] += 1
+        ep["why"] = "" if ok else why
+        out.append(f"rewake {box} try {ep['tries']}: " + ("woke" if ok else f"held: {why}"))
+    for name in _ph_locks():
+        box = name[:-len(".lock")]
+        if box in by_box or not _BOX_RE.fullmatch(box):
+            continue
+        waiting = sorted(m for m, k in unread(box) if k not in mailbox.QUIET_KINDS)
+        if not waiting or now - waiting[0] < DEAD_PH_S:
+            dead_eps.pop(box, None)
+            continue
+        if dead_eps.get(box) == waiting[0]:
+            continue                    # this episode was told
+        dead_eps[box] = waiting[0]
+        to = orl.ph_owner(box.split("-", 1)[1])
+        if to and not to.startswith("coo-"):
+            letter(to, f"blocker · urgent · rewake: PH {box} has a lock but no live session, with "
+                       f"{len(waiting)} unread letter(s) since {_th_clock(waiting[0])} TH. Resume it "
+                       f"(scripts/spawn-ph.sh --resume {box.split('-', 1)[1]}) or take its work.", box)
+    return out
+
+
+def _ph_locks() -> list[str]:
+    try:
+        return sorted(p.name for p in LOCKS_DIR.iterdir()
+                      if re.fullmatch(r"project_head-[0-9a-f]{8}\.lock", p.name) and _has_lock(p.name[:-5]))
+    except OSError:
+        return []
+
+
+def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture, wake=None, send=None) -> list[str]:
+    """W2: owner letters for task events (tools/owner_relay, C2), then the re-wake ladder
+    (C3), on this tick, under one state file and one mode (state/owner_relay.mode).
+    Never raises: a failure is one note line and the escalation letters are untouched."""
+    try:
+        from tools import owner_relay as orl
+        mode = orl.read_mode()
+        if mode == "off":
+            return ["owner-relay off (state/owner_relay.mode)"]
+        st = orl.load_state(mode)
+        woke: set[str] = set()
+        out = orl.run(now, st, mode=mode, hub=hub or orl.Hub(), sessions={s["box"]: s for s in sessions},
+                      panes=panes, meta=read_meta(mailbox.meta_path()), budget=budget, tier_of=tier_of,
+                      woke=woke, wake=wake, send=send)
+        out += rewake(sessions, now, st, mode=mode, panes=panes, wake=wake, send=send or mailbox.send,
+                      budget=budget, woke=woke)
+        orl.save_state(st)
+        return [f"[{mode}] {o}" for o in out]
+    except Exception as e:
+        return [f"note owner relay skipped ({type(e).__name__}: {str(e)[:120]})"]
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--nudge", action="store_true", help="send the letters (default: print only)")
@@ -475,6 +668,7 @@ def main(argv=None) -> int:
     sessions = local_sessions(host)
     if live is not None:
         live |= {s["box"] for s in sessions}
+    live_c = live_c_levels() or live_c      # C4: the boxes the live sessions drain
     if not live_c:
         live_c = sorted({s["box"] for s in sessions if ls.is_c_level(s["role"])})
     questions = question_times()
@@ -486,6 +680,11 @@ def main(argv=None) -> int:
         notes.append(f"usage budget over: timed checks slowed x{factor} (new findings still go at once)")
     idle_s = wake_backoff.wake_interval(IDLE_S, tier=tier_of(coo_box() or ""), budget_json=budget, now=now)
     findings = find(sessions, read_meta(mailbox.meta_path()), questions, hosts, now, live=live, idle_s=idle_s)
+    if any(f["kind"] == "idle" for f in findings):
+        work = open_work()
+        for f in findings:
+            if f["kind"] == "idle":
+                f["work"] = bool(work and f["box"] in work)
     for f in findings:
         print(f"{f['kind']:<8} {f.get('box') or f.get('host')}: {f['text']}")
     for h, info in hosts.items():
@@ -495,6 +694,7 @@ def main(argv=None) -> int:
         print(f"note     {n}")
     if not findings:
         print("ok       nothing stalled")
+    rc = 0
     if a.nudge:     # also on an empty scan: ended episodes are pruned, a due digest flushes
         try:
             sent = nudge(findings, live_c, now, wake=_wake, budget=budget)
@@ -502,10 +702,13 @@ def main(argv=None) -> int:
             for out in e.sent:
                 print(f"sent     {out}")
             print(f"note     {e}; no letter goes out until it is fixed")
-            return 1
-        for out in sent:
-            print(f"sent     {out}")
-    return 0
+            rc = 1
+        else:
+            for out in sent:
+                print(f"sent     {out}")
+        for out in owner_tick(sessions, now, budget):     # W2: its own state and mode file
+            print(f"relay    {out}")
+    return rc
 
 
 if __name__ == "__main__":
