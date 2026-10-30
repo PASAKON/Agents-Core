@@ -76,7 +76,6 @@ LINE_MAX = 300
 LOCKS_DIR = ROOT / "state" / "locks"
 STATE_PATH = ROOT / "state" / "escalation_watch.json"
 FROM = ("watchdog", "escalation")
-REWAKE_FROM = ("watch", "rewake")
 # CTO Main's box is cto-fresh (state/locks/cto-active = fresh), so a C-level id is 8 hex
 # or "fresh"; a PH's is always 8 hex. Always fullmatch.
 _BOX_RE = re.compile(r"c[a-z]o-(?:[0-9a-f]{8}|fresh)|project_head-[0-9a-f]{8}")
@@ -151,17 +150,40 @@ def _now() -> float:
 
 # --- sources -----------------------------------------------------------------------
 
-def capture(tmux_target: str) -> str | None:
+def capture(tmux_target: str, *, escapes: bool = False) -> str | None:
     try:
-        r = subprocess.run(["tmux", "capture-pane", "-p", "-t", f"={tmux_target}:"],
+        r = subprocess.run(["tmux", "capture-pane", "-p", *(["-e"] if escapes else []), "-t", f"={tmux_target}:"],
                            capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         return None
     return r.stdout if r.returncode == 0 else None
 
 
+def capture_e(tmux_target: str) -> str | None:
+    """The W2 wake gate's capture (owner letters and the re-wake ladder): with -e, so
+    lib/pane_screen reads Claude Code's dim ghost suggestion as an empty input box, as
+    the rename service and agent_transport do (design C3 failure_handling). Without the
+    escapes an idle session showing a suggestion looks like one holding a draft. find()
+    and nudge() keep the plain capture."""
+    return capture(tmux_target, escapes=True)
+
+
+def _root_record(d, p: Path) -> bool:
+    """A record W2 may act on: a regular file root (or this user) owns in a dir root
+    owns, neither writable by group or other. sompong's registry dir is its own
+    (config/hosts.yaml), so a record there can say nothing about a PH or a C-level
+    that W2 wakes or routes letters by; SomPong's own (coo) box is never woken by W2."""
+    try:
+        ds, fs = os.stat(d), os.lstat(p)
+    except OSError:
+        return False
+    ok = lambda st: st.st_uid in (0, os.geteuid()) and not st.st_mode & 0o022
+    return ok(ds) and ok(fs) and stat.S_ISREG(fs.st_mode) and fs.st_nlink == 1
+
+
 def local_sessions(host: str) -> list[dict]:
-    """This host's live listed sessions from their records: box, status age, tmux."""
+    """This host's live listed sessions from their records: box, status age, tmux, and
+    `trusted` (_root_record: only those reach owner_tick)."""
     out = []
     for d in ls.session_dirs(host):
         try:
@@ -185,7 +207,8 @@ def local_sessions(host: str) -> list[dict]:
             out.append({"box": f"{role}-{sid}", "role": role, "sid": sid, "name": data.get("name") or "",
                         "status": ls.map_status(data.get("status")),
                         "since": since / 1000 if isinstance(since, (int, float)) else None,
-                        "tmux": str(data.get("tmux") or "").split(":", 1)[0] or None})
+                        "tmux": str(data.get("tmux") or "").split(":", 1)[0] or None,
+                        "trusted": _root_record(d, p)})
     return out
 
 
@@ -516,43 +539,37 @@ def _th_clock(t: float) -> str:
     return datetime.fromtimestamp(t, timezone(timedelta(hours=7))).strftime("%H:%M")
 
 
-def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=None,
-           send=mailbox.send, budget=None, tier_of=tier_of, woke: set | None = None,
-           unread=None) -> list[str]:
-    """Re-wake a box whose letter a wake missed (W2, design C3). Zero model calls.
+def _boxes(sessions) -> dict[str, dict]:
+    return {s["box"]: s for s in sessions if _BOX_RE.fullmatch(s.get("box") or "")}
+
+
+def rewake_scan(sessions, now: float, state: dict, *, budget=None, tier_of=tier_of,
+                unread=None) -> tuple[list[dict], list[str]]:
+    """Phase 1 of the re-wake ladder (W2, design C3), before owner_relay.run on the same
+    tick. Zero model calls. Returns (owner lines, boxes due a try).
 
     Every live local C-level (not the COO: SomPong has no inbox hook, so a wake never
     drains its box) and PH whose box holds an unread letter that is not fyi or report
-    (those wait for the next prompt, token rule 2): a try at 5, 15 and 45 min of the
-    oldest such letter's age, each x wake_interval (None, a low tier: no re-wake). A try
-    runs only while the session record is idle; owner_relay.try_wake then needs a
-    prompt_ready screen and the day cap. A busy session spends no try. After the third
-    try, a PH's owner C-level gets one blocker letter. A PH box with a lock and no live
-    session holding such a letter DEAD_PH_S or longer: one owner letter per episode. A
-    parked PH stays silent. `state` is owner_relay's; mode dry prints, live acts."""
+    (those wait for the next prompt, token rule 2) is due a try at 5, 15 and 45 min of
+    the oldest such letter's age, each x wake_interval (None, a low tier: no re-wake),
+    while its session record is idle (rewake makes the try). After the third try, a PH's
+    owner C-level gets one line; a PH box with a lock and no live session holding such a
+    letter DEAD_PH_S or longer gets one owner line per episode. A parked PH stays silent.
+    The lines carry `to` (the owner's live box): owner_relay.run puts them in that box's
+    one letter of the tick (token rule 3), inside MAX_LETTERS, and wakes the box at most
+    once. `state` is owner_relay's."""
     from tools import owner_relay as orl
     unread = unread or orl.unread
-    woke = set() if woke is None else woke
-    if wake is None:
-        from tools import mail_wake
-        wake = mail_wake.wake
-    by_box = {s["box"]: s for s in sessions if _BOX_RE.fullmatch(s.get("box") or "")}
+    by_box = _boxes(sessions)
     lad, dead_eps = state.setdefault("rewake", {}), state.setdefault("dead_eps", {})
-    out: list[str] = []
+    lines: list[dict] = []
+    due: list[str] = []
 
-    def letter(to: str, body: str, about: str) -> None:
-        if mode != "live":
-            out.append(f"would send {to} <- blocker rewake {about}")
-            return
-        role, sid = to.split("-", 1)
-        try:
-            send(role, sid, body, *REWAKE_FROM)
-        except Exception as e:
-            out.append(f"failed {to} <- blocker rewake {about} ({type(e).__name__})")
-            return
-        ok, why = orl.try_wake(to, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
-                               tier=tier_of(to), woke=woke)
-        out.append(f"sent {to} <- blocker rewake {about}" + (" +wake" if ok else f" (wake held: {why})"))
+    def owner_line(ph: str, kind: str, reason: str, t: float) -> None:
+        to = orl.ph_owner(ph.split("-", 1)[1])
+        if to and not to.startswith("coo-"):
+            lines.append({"task": ph, "kind": kind, "role": "project_head", "sid": ph.split("-", 1)[1],
+                          "reason": reason, "actor": "", "t": t, "to": to})
 
     for box, s in sorted(by_box.items()):
         role = s.get("role") or box.split("-", 1)[0]
@@ -570,30 +587,16 @@ def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=
         if ep["tries"] >= len(REWAKE_LADDER):
             if not ep["escalated"] and box.startswith("project_head-"):
                 ep["escalated"] = True
-                to = orl.ph_owner(box.split("-", 1)[1])
-                if to and not to.startswith("coo-"):
-                    letter(to, f"blocker · urgent · rewake: PH {box} has {len(waiting)} unread letter(s) since "
-                               f"{_th_clock(oldest)} TH; {len(REWAKE_LADDER)} wakes did not land "
-                               f"({ep.get('why') or 'not read'}). Look at its pane, clear what holds it, "
-                               f"or take its work.", box)
+                owner_line(box, "rewake", f"{len(waiting)} unread since {_th_clock(oldest)} TH; "
+                                          f"{len(REWAKE_LADDER)} wakes did not land "
+                                          f"({ep.get('why') or 'not read'})", oldest)
             continue
-        due = wake_backoff.wake_interval(REWAKE_LADDER[ep["tries"]], tier=tier_of(box), budget_json=budget, now=now)
-        if due is None or now - oldest < due:
+        iv = wake_backoff.wake_interval(REWAKE_LADDER[ep["tries"]], tier=tier_of(box), budget_json=budget, now=now)
+        if iv is None or now - oldest < iv:
             continue
         if s.get("status") != "idle":
             continue                    # mid-turn: the first idle tick tries; no try spent
-        if mode != "live":
-            ep["tries"] += 1
-            out.append(f"would rewake {box} try {ep['tries']}")
-            continue
-        ok, why = orl.try_wake(box, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
-                               tier=tier_of(box), woke=woke)
-        if not ok and why.startswith(("day cap", "woken this tick")):
-            out.append(f"rewake {box} waits: {why}")
-            continue                    # a cap is not a failed try: a later tick or the hourly batch takes it
-        ep["tries"] += 1
-        ep["why"] = "" if ok else why
-        out.append(f"rewake {box} try {ep['tries']}: " + ("woke" if ok else f"held: {why}"))
+        due.append(box)
     for name in _ph_locks():
         box = name[:-len(".lock")]
         if box in by_box or not _BOX_RE.fullmatch(box):
@@ -605,16 +608,63 @@ def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=
         if dead_eps.get(box) == waiting[0]:
             continue                    # this episode was told
         dead_eps[box] = waiting[0]
-        to = orl.ph_owner(box.split("-", 1)[1])
-        if to and not to.startswith("coo-"):
-            letter(to, f"blocker · urgent · rewake: PH {box} has a lock but no live session, with "
-                       f"{len(waiting)} unread letter(s) since {_th_clock(waiting[0])} TH. Resume it "
-                       f"(scripts/spawn-ph.sh --resume {box.split('-', 1)[1]}) or take its work.", box)
+        owner_line(box, "ph_dead", f"a lock but no live session; {len(waiting)} unread since "
+                                   f"{_th_clock(waiting[0])} TH", waiting[0])
     locked = {n[:-len(".lock")] for n in _ph_locks()}
     for k in [k for k in lad if k not in by_box]:          # the session ended: its ladder too
         del lad[k]
     for k in [k for k in dead_eps if k not in locked]:     # lock gone (parked, closed): episode over
         del dead_eps[k]
+    return lines, due
+
+
+def rewake(sessions, now: float, state: dict, due, *, mode: str, panes=capture_e, wake=None,
+           budget=None, tier_of=tier_of, woke: set | None = None) -> list[str]:
+    """Phase 2 of the re-wake ladder, after owner_relay.run: one try per box rewake_scan
+    found due. owner_relay.try_wake needs an idle record, a prompt_ready screen (captured
+    with escapes), the day cap and the tick's caps. A hold that is a running turn (record
+    or screen) or a cap (owner_relay.NO_TRY) spends no try: the first tick after the turn
+    ends tries. Any other hold (a draft, a choice prompt, an unreadable screen, a wake
+    that did not land) is a try. Mode dry prints and counts, live acts."""
+    from tools import owner_relay as orl
+    woke = set() if woke is None else woke
+    if wake is None:
+        from tools import mail_wake
+        wake = mail_wake.wake
+    by_box, lad, out = _boxes(sessions), state.setdefault("rewake", {}), []
+    for box in due:
+        ep = lad.get(box)
+        if not isinstance(ep, dict):
+            continue
+        if mode != "live":
+            ep["tries"] += 1
+            out.append(f"would rewake {box} try {ep['tries']}")
+            continue
+        ok, why = orl.try_wake(box, state, now, sessions=by_box, panes=panes, wake=wake, budget=budget,
+                               tier=tier_of(box), woke=woke)
+        if not ok and why.startswith(orl.NO_TRY):
+            out.append(f"rewake {box} waits: {why}")
+            continue                    # not a failed try: a later tick or the hourly batch takes it
+        ep["tries"] += 1
+        ep["why"] = "" if ok else why
+        out.append(f"rewake {box} try {ep['tries']}: " + ("woke" if ok else f"held: {why}"))
+    return out
+
+
+def relay_tick(sessions, now: float, state: dict, *, mode: str, hub, panes=capture_e, wake=None, send=None,
+               budget=None, tier_of=tier_of, meta=(), queues=None, unread=None, host: str | None = None,
+               woke: set | None = None) -> list[str]:
+    """One W2 tick on a loaded owner_relay state (mode dry or live): rewake_scan, then
+    owner_relay.run with the ladder's owner lines in it (at most one letter and one wake
+    per box), then rewake's tries. `sessions` is with_lock_boxes' list."""
+    from tools import owner_relay as orl
+    woke = set() if woke is None else woke
+    lines, due = rewake_scan(sessions, now, state, budget=budget, tier_of=tier_of, unread=unread)
+    out = orl.run(now, state, mode=mode, hub=hub, sessions=_boxes(sessions), panes=panes, meta=meta,
+                  budget=budget, tier_of=tier_of, woke=woke, wake=wake, send=send, queues=queues,
+                  host=host or orl.HOST, extra=lines)
+    out += rewake(sessions, now, state, due, mode=mode, panes=panes, wake=wake, budget=budget,
+                  tier_of=tier_of, woke=woke)
     return out
 
 
@@ -627,20 +677,32 @@ def _ph_locks() -> list[str]:
 
 
 def with_lock_boxes(sessions) -> list[dict]:
-    """`sessions` plus each live C-level box (the <role>-active pointers with a lock, C4)
-    that no session record names: CTO Main drains cto-fresh while its record carries
-    another id, so without this nothing would ever wake it. Its tmux session has the box
-    name. Its status is unknown, so only the screen gates a wake: prompt_ready refuses a
-    running turn, a choice prompt and a draft. Never the COO."""
-    have = {s.get("box") for s in sessions}
+    """`sessions` keyed by the box each pane drains, one entry per pane (one ladder, one
+    day count). A live C-level box (a <role>-active pointer with a lock, C4) is drained by
+    the session in the tmux session of that name, whose record can carry another id
+    (CTO Main: record cto-<uuid tail>, tmux and box cto-fresh): that record becomes the
+    box's entry with its own status, and a busy record wins over an idle one for the same
+    box. A live C-level box with no record at all is added with status idle: its status
+    is unknown, so its screen gates a wake (a running turn there is "busy" and spends no
+    ladder try; prompt_ready refuses a choice prompt and a draft). Never the COO."""
+    lock_boxes = [b for b in live_c_levels() if not b.startswith("coo-")]
+    merged: dict[str, dict] = {}
+    for s in sessions:
+        t = s.get("tmux")
+        if t in lock_boxes and s.get("box") != t:
+            s = dict(s, box=t, role=t.split("-", 1)[0], sid=t.split("-", 1)[1])
+        prev = merged.get(s.get("box"))
+        if prev is None or (prev.get("status") == "idle" and s.get("status") != "idle"):
+            merged[s.get("box")] = s
     extra = [{"box": b, "role": b.split("-", 1)[0], "sid": b.split("-", 1)[1], "status": "idle", "tmux": b,
-              "since": None, "name": b} for b in live_c_levels() if b not in have and not b.startswith("coo-")]
-    return list(sessions) + extra
+              "since": None, "name": b} for b in lock_boxes if b not in merged]
+    return list(merged.values()) + extra
 
 
-def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture, wake=None, send=None) -> list[str]:
-    """W2: owner letters for task events (tools/owner_relay, C2), then the re-wake ladder
-    (C3), on this tick, under one state file and one mode (state/owner_relay.mode).
+def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture_e, wake=None, send=None) -> list[str]:
+    """W2: owner letters for task events (tools/owner_relay, C2) and the re-wake ladder
+    (C3) on this tick (relay_tick), under one state file and one mode
+    (state/owner_relay.mode). `sessions`: only records _root_record trusts (main()).
     Never raises: a failure is one note line and the escalation letters are untouched."""
     try:
         from tools import owner_relay as orl
@@ -648,14 +710,10 @@ def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture, wake=No
         if mode == "off":
             return ["owner-relay off (state/owner_relay.mode)"]
         st = orl.load_state(mode)
-        woke: set[str] = set()
-        sessions = with_lock_boxes(sessions)
         from lib import config
-        out = orl.run(now, st, mode=mode, hub=hub or orl.Hub(), sessions={s["box"]: s for s in sessions},
-                      panes=panes, meta=read_meta(mailbox.meta_path()), budget=budget, tier_of=tier_of,
-                      woke=woke, wake=wake, send=send, host=config.self_host())
-        out += rewake(sessions, now, st, mode=mode, panes=panes, wake=wake, send=send or mailbox.send,
-                      budget=budget, woke=woke)
+        out = relay_tick(with_lock_boxes(sessions), now, st, mode=mode, hub=hub or orl.Hub(), panes=panes,
+                         wake=wake, send=send, budget=budget, meta=read_meta(mailbox.meta_path()),
+                         host=config.self_host())
         orl.save_state(st)
         return [f"[{mode}] {o}" for o in out]
     except Exception as e:      # the type only: a driver error can echo a connection string
@@ -727,7 +785,8 @@ def main(argv=None) -> int:
         else:
             for out in sent:
                 print(f"sent     {out}")
-        for out in owner_tick(sessions, now, budget):     # W2: its own state and mode file
+        # W2: its own state and mode file; only records root wrote (_root_record)
+        for out in owner_tick([s for s in sessions if s.get("trusted")], now, budget):
             print(f"relay    {out}")
     return rc
 

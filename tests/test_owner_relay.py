@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import stat
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -391,3 +392,34 @@ def test_wake_audit_lists_owner_relay_as_gated_and_paced(monkeypatch, tmp_path):
     (tmp_path / "tools" / "owner_relay.py").write_text("BATCH_S = 3600\n")       # not paced: flagged
     monkeypatch.setattr(wake_audit, "ROOT", tmp_path)
     assert wake_audit.classify_unit("a.timer", "ExecStart=python tools/escalation_watch.py --nudge")["flagged"]
+
+
+# --- review round 1 (30 Oct): the mode is set by the tool, never by a shell redirect -----
+
+def test_set_mode_writes_both_files_and_never_through_a_planted_link(org):
+    victim = org.path / "victim.txt"
+    victim.write_text("keep me\n")
+    orl.MODE_PATH.symlink_to(victim)                     # planted before the first write
+    assert orl.main(["--set-mode", "live"]) == 0
+    assert victim.read_text() == "keep me\n"
+    st = os.lstat(orl.MODE_PATH)
+    assert stat.S_ISREG(st.st_mode) and stat.S_IMODE(st.st_mode) == 0o644 and orl.read_mode() == "live"
+    assert orl._ours(orl.STATE_PATH) and orl.load_state("live")["mode"] == "live"
+    assert orl.main(["--set-mode", "off"]) == 0 and orl.read_mode() == "off"
+
+
+def test_set_mode_refuses_when_the_state_name_is_a_directory(org, capsys):
+    orl.STATE_PATH.mkdir()
+    assert orl.main(["--set-mode", "live"]) == 1
+    assert not orl.MODE_PATH.exists() and orl.read_mode() == "dry"
+    assert "mode not set" in capsys.readouterr().err
+
+
+def test_screen_ready_tells_a_running_turn_from_a_held_screen(org):
+    busy = "✻ Thinking… (esc to interrupt)\n" + READY
+    for screen, want in ((READY, (True, "")), (busy, (False, "busy: turn running on screen")),
+                         (DRAFT, (False, "screen not ready: prompt not empty"))):
+        org.screens[PH] = screen
+        assert orl.screen_ready(PH, org.sessions, org.panes) == want
+    assert all(r.startswith(orl.NO_TRY) for r in ("busy", "busy: turn running on screen"))
+    assert not "screen not ready: prompt not empty".startswith(orl.NO_TRY)

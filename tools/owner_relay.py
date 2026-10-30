@@ -15,19 +15,24 @@ root, hub env): no new unit, no new timer, no model call. Token rules (CEO 30 Oc
   * at most DAY_WAKES system wakes per box per Thai day, then one per BATCH_S times
     the usage-budget factor (lib/wake_backoff.wake_interval; None = no more wakes);
   * a PH comes first: its C-level hears only when the PH is dead (lock, no session),
-    or after the re-wake ladder (escalation_watch.rewake) held three times.
+    or after the re-wake ladder (escalation_watch.rewake) held three times. Those
+    ladder lines ride in the owner box's one letter of the tick (run(extra=...)).
 
 Mode file state/owner_relay.mode: "dry" (the default when it is missing: print what
 would be sent, write state, send nothing), "live" (send), "off" (nothing at all).
 The re-wake ladder obeys the same mode. A dry state is never reused live: the first
 live run starts again from the BOOTSTRAP_S window, so what dry mode only printed is
 still delivered. A task whose status has moved on since its event gets no letter.
+Change the mode only with --set-mode: it writes a fresh file and renames it into
+place, so a link someone planted at that name is replaced, never followed. Never
+write a file under state/ with a shell redirect (state/ is group-writable).
 
 State file state/owner_relay.json (atomic write, never through a link). Letters
 carry task ids, statuses, a short cleaned reason and the next step; the output
 names boxes, task ids and kinds only, never a letter body.
 
-    python tools/owner_relay.py --stats     # wakes per box per Thai day
+    python tools/owner_relay.py --stats              # wakes per box per Thai day
+    python tools/owner_relay.py --set-mode live      # or dry / off (run as root)
 """
 from __future__ import annotations
 
@@ -47,7 +52,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import mailbox, wake_backoff  # noqa: E402
-from lib.pane_screen import prompt_ready  # noqa: E402
+from lib.pane_screen import not_ready_reason  # noqa: E402
 from tools import live_sessions as ls  # noqa: E402
 
 STATE_PATH = ROOT / "state" / "owner_relay.json"
@@ -93,9 +98,15 @@ NEXT = {
     "blocked": "answer the worker's blocker",
     "queued": "waits for a runner; no action yet",
     "queue_late": "ask the CEO on /run: switch runner or wait",
+    # the re-wake ladder's owner lines (escalation_watch.rewake_scan); the task is the PH box
+    "rewake": "look at its pane, clear what holds it, or take its work",
+    "ph_dead": "resume it (scripts/spawn-ph.sh --resume {sid}) or take its work",
 }
 BLOCKER_KINDS = {"failed", "stalled", "blocked_human", "blocked_host", "conflict", "cancelled", "dead",
-                 "suspect", "blocked"}
+                 "suspect", "blocked", "rewake", "ph_dead"}
+# A hold that is not a failed try: the session is mid-turn (record or screen), or a cap
+# holds the wake (escalation_watch.rewake spends no ladder try on these).
+NO_TRY = ("busy", "day cap", "woken this tick")
 FYI_KINDS = {"queued"}          # never wakes (token rule 2)
 _SID_RE = re.compile(r"[0-9a-f]{8}")
 _CSID_RE = re.compile(r"[0-9a-f]{8}|fresh")
@@ -278,9 +289,24 @@ def _trim(d: dict, n: int) -> dict:
     return dict(list(d.items())[-n:])
 
 
+def _write_atomic(path: Path, text: str, perm: int) -> None:
+    """A fresh random temp name (O_EXCL, so no planted link is followed) renamed over
+    `path`: a link at `path` is replaced, never written through. Raises OSError."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".owner_relay.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            os.fchmod(fh.fileno(), perm)
+            fh.write(text)
+        os.replace(tmp, path)
+    except OSError:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
+        raise
+
+
 def save_state(state: dict, path: Path | None = None) -> None:
-    """Atomic: a fresh random temp name (O_EXCL, so no planted link is followed) and
-    os.replace over the file. Raises StateUnusable when it cannot be written."""
+    """Atomic (_write_atomic). Raises StateUnusable when it cannot be written."""
     path = path or STATE_PATH
     st = dict(state)
     st["seen"] = _trim(st.get("seen", {}), MAX_SEEN)
@@ -292,24 +318,44 @@ def save_state(state: dict, path: Path | None = None) -> None:
         st["seen"], st["queue_seen"] = _trim(st["seen"], MAX_SEEN // 4), _trim(st["queue_seen"], MAX_QUEUE_SEEN // 4)
         blob = json.dumps(st, ensure_ascii=True)
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".owner_relay.", suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w") as fh:
-                fh.write(blob)
-            os.replace(tmp, path)
-        except OSError:
-            with contextlib.suppress(OSError):
-                os.unlink(tmp)
-            raise
+        _write_atomic(path, blob, 0o600)
     except OSError as e:
         raise StateUnusable(f"{path.name} cannot be saved ({type(e).__name__})") from e
+
+
+def _ours(path: Path) -> bool:
+    """A regular file root (or this user) owns, nobody else can write, one link."""
+    try:
+        st = os.lstat(path)
+    except OSError:
+        return False
+    return (stat.S_ISREG(st.st_mode) and st.st_uid in (0, os.geteuid()) and not st.st_mode & 0o022
+            and st.st_nlink == 1)
+
+
+def set_mode(mode: str, *, path: Path | None = None, state_path: Path | None = None) -> None:
+    """The one way to change the mode (--set-mode): the state file first, when it is
+    missing or not ours (so its name is root's regular file before another account can
+    plant a directory there), then the mode file; both by _write_atomic, never through a
+    link. Raises StateUnusable when either cannot be written, ValueError on a bad mode."""
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {', '.join(MODES)}")
+    path, state_path = path or MODE_PATH, state_path or STATE_PATH
+    if not _ours(state_path):
+        save_state(load_state(mode, state_path), state_path)
+    try:
+        _write_atomic(path, mode + "\n", 0o644)
+    except OSError as e:
+        raise StateUnusable(f"{path.name} cannot be written ({type(e).__name__})") from e
 
 
 # --- wakes: one rule for owner letters and the re-wake ladder ------------------------
 
 def screen_ready(box: str, sessions: dict, panes) -> tuple[bool, str]:
-    """A wake goes only into a live local session that is idle with an empty prompt."""
+    """A wake goes only into a live local session that is idle with an empty prompt.
+    `panes` must capture with escapes (escalation_watch.capture_e): only the dim
+    attribute tells Claude Code's ghost suggestion from a draft (lib/pane_screen).
+    A running turn, by the record or on screen, is "busy…" (no ladder try spent)."""
     s = sessions.get(box)
     if not s:
         return False, "no live session"
@@ -318,8 +364,11 @@ def screen_ready(box: str, sessions: dict, panes) -> tuple[bool, str]:
     screen = panes(s["tmux"]) if s.get("tmux") else None
     if screen is None:
         return False, "screen unreadable"
-    if not prompt_ready(screen):
-        return False, "screen not ready"
+    why = not_ready_reason(screen)
+    if why == "turn running":
+        return False, "busy: turn running on screen"
+    if why:
+        return False, f"screen not ready: {why}"
     return True, ""
 
 
@@ -614,12 +663,17 @@ def _head(lines: list[dict]) -> tuple[str, str]:
     return "ask · normal · owner relay, review ready:", "ask"
 
 
+def _next(l: dict) -> str:
+    """The next step for a line; a ladder line names its PH's id (its task is the PH box)."""
+    return NEXT[l["kind"]].format(sid=str(l["task"]).rsplit("-", 1)[-1])
+
+
 def compose(box_lines: list[dict]) -> tuple[str, str, int]:
     """(body, kind, n) for one box: the first n (at most MAX_LINES) tasks that fit in
     LETTER_MAX chars, each with its reason cut to share the room left; the caller keeps
     the rest for the next tick."""
     parts = [(f"\n- {l['task']} {l['kind']}{' (' + l['actor'] + ')' if l.get('actor') else ''}"
-              f"{' [' + l['via'] + ']' if l.get('via') else ''}: ", f" -> {NEXT[l['kind']]}", l)
+              f"{' [' + l['via'] + ']' if l.get('via') else ''}: ", f" -> {_next(l)}", l)
              for l in box_lines[:MAX_LINES]]
     n = len(parts)
     while n > 1 and len(_head([p[2] for p in parts[:n]])[0]) + sum(len(a) + len(b) + 1 for a, b, _ in parts[:n]) > LETTER_MAX:
@@ -632,11 +686,22 @@ def compose(box_lines: list[dict]) -> tuple[str, str, int]:
     return body[:LETTER_MAX], kind, n
 
 
+def _addressed(l: dict) -> str | None:
+    """The box of a line that names its own (`to`: a ladder line for a PH's owner), when it
+    is a C-level box that is not the COO's; else None."""
+    to = l.get("to")
+    return to if isinstance(to, str) and _BOX_RE.fullmatch(to) and not to.startswith(("coo-", "project_head-")) \
+        else None
+
+
 def run(now: float, state: dict, *, mode: str, hub, sessions: dict, panes, meta=(), send=None, wake=None,
         inspect=inspect_state, queues=None, budget=None, tier_of=None, woke: set | None = None,
-        save=save_state, host: str = HOST) -> list[str]:
+        save=save_state, host: str = HOST, extra=()) -> list[str]:
     """One tick of C2. Returns output lines (boxes, task ids, kinds: never a body).
-    `host`: whose in_progress runs are probed for a dead worker (only local runs can be)."""
+    `host`: whose in_progress runs are probed for a dead worker (only local runs can be).
+    `extra`: lines that carry their own `to` box (the re-wake ladder's owner lines,
+    escalation_watch.rewake_scan): they join that box's one letter of this tick, count
+    against MAX_LETTERS and wait in `pending` like any other line (token rule 3)."""
     if mode == "off":
         return ["owner-relay off (state/owner_relay.mode)"]
     send = send or mailbox.send
@@ -651,8 +716,11 @@ def run(now: float, state: dict, *, mode: str, hub, sessions: dict, panes, meta=
     new = collect(now, state, hub=hub, live=live, meta=list(meta), inspect=inspect, queues=queues, notes=notes,
                   host=host)
     by_box: dict[str, list[dict]] = {}
-    for l in [l for ls_ in state["pending"].values() for l in ls_] + new:
-        box, why = route(l["role"], l["sid"], live)
+    for l in [l for ls_ in state["pending"].values() for l in ls_] + new + list(extra):
+        if "to" in l:
+            box, why = _addressed(l), ""
+        else:
+            box, why = route(l["role"], l["sid"], live)
         if box is None:
             continue
         l = dict(l, via=why) if why else {k: v for k, v in l.items() if k != "via"}
@@ -708,7 +776,18 @@ def stats(state: dict) -> list[str]:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--stats", action="store_true", help="print wakes per box per Thai day")
+    ap.add_argument("--set-mode", choices=MODES,
+                    help="write state/owner_relay.mode safely (never use a shell redirect under state/)")
     a = ap.parse_args(argv)
+    if a.set_mode:
+        try:
+            set_mode(a.set_mode)
+        except StateUnusable as e:
+            print(f"mode not set: {e}; a name under state/ that is not a regular file of ours is "
+                  "not removed here: look at it by hand", file=sys.stderr)
+            return 1
+        print(f"mode {a.set_mode} (state/owner_relay.mode); the next escalation-watch tick uses it")
+        return 0
     st = load_state(read_mode())
     if a.stats:
         for l in stats(st):

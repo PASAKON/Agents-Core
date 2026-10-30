@@ -2,6 +2,7 @@
 boxes (C4) and the owner-relay tick wired into main()."""
 from __future__ import annotations
 
+import inspect
 import json
 import os
 from datetime import datetime, timezone
@@ -16,11 +17,25 @@ NOW = 1_800_000_000.0
 MIN = 60
 RULE = "─" * 50
 READY = f"some output\n{RULE}\n❯\xa0\n{RULE}\n  ? for shortcuts\n"
+# An idle pane as `capture-pane -e` shows it: Claude Code's ghost suggestion is dim (SGR 2).
+GHOST = f"some output\n{RULE}\n❯\xa0\x1b[2mcontinue with M3 now\x1b[0m\n{RULE}\n  ? for shortcuts\n"
+BUSY = "✻ Thinking… (esc to interrupt)\n" + READY
 PH, PH_SID = "project_head-3bea1120", "3bea1120"
 
 
 def iso(t: float) -> str:
     return datetime.fromtimestamp(t, timezone.utc).isoformat(timespec="seconds")
+
+
+class EmptyHub:
+    def events(self, cursor, since):
+        return []
+
+    def tasks(self, ids):
+        return {}
+
+    def running(self, host):
+        return []
 
 
 @pytest.fixture
@@ -42,6 +57,7 @@ def box(tmp_path, monkeypatch):
         sent, woke, wake_result = [], [], {"woke": False, "reason": "no live session reached"}
         sessions = [{"box": PH, "role": "project_head", "sid": PH_SID, "status": "idle", "tmux": PH},
                     {"box": "cto-fresh", "role": "cto", "sid": "fresh", "status": "running", "tmux": "cto-fresh"}]
+        screens: dict = {}
 
         def letter(self, to, body, t, name="a"):
             d = tmp_path / "inbox" / to
@@ -58,12 +74,17 @@ def box(tmp_path, monkeypatch):
             self.woke.append(b)
             return dict(self.wake_result, box=b)
 
-        def rewake(self, now, state, mode="live", budget=None):
-            return ew.rewake(self.sessions, now, state, mode=mode, panes=lambda t: READY, wake=self.wake,
-                             send=self.send, budget=budget, tier_of=lambda b: "critical")
+        def panes(self, target):
+            return self.screens.get(target, READY)
+
+        def rewake(self, now, state, mode="live", budget=None, tier="critical", hub=None, woke=None):
+            """One W2 tick (what owner_tick runs on a loaded state), no hub events by default."""
+            return ew.relay_tick(self.sessions, now, state, mode=mode, hub=hub or EmptyHub(), panes=self.panes,
+                                 wake=self.wake, send=self.send, budget=budget, tier_of=lambda b: tier,
+                                 meta=(), queues=[], woke=woke)
 
     b = Box()
-    b.sent, b.woke = [], []
+    b.sent, b.woke, b.screens = [], [], {}
     b.sessions = [dict(s) for s in Box.sessions]
     return b
 
@@ -97,8 +118,7 @@ def test_the_ladder_is_scaled_by_the_budget_factor(box):
 def test_a_low_tier_box_is_never_rewoken(box):
     box.letter(PH, "blocker · urgent · x", NOW)
     st = orl.load_state("live")
-    ew.rewake(box.sessions, NOW + 60 * MIN, st, mode="live", panes=lambda t: READY, wake=box.wake,
-              send=box.send, tier_of=lambda b: "low")
+    box.rewake(NOW + 60 * MIN, st, tier="low")
     assert box.woke == []
 
 
@@ -156,8 +176,10 @@ def test_one_tick_attempts_at_most_ten_wakes_and_one_per_box(box):
                          wake=box.wake, budget=None, tier="normal", woke=set(x for x in woke if x.startswith("tried:")))
     assert again == (False, "woken this tick") and len(box.woke) == orl.MAX_WAKES
     box.letter("project_head-0000000b", "blocker · urgent · x", NOW - 6 * MIN)       # capped: no try spent
-    out = ew.rewake([dict(sessions["project_head-0000000b"], box="project_head-0000000b", role="project_head")],
-                    NOW, st, mode="live", panes=lambda t: READY, wake=box.wake, send=box.send, woke=woke,
+    sess = [dict(sessions["project_head-0000000b"], box="project_head-0000000b", role="project_head")]
+    lines, due = ew.rewake_scan(sess, NOW, st, tier_of=lambda b: "critical")
+    assert lines == [] and due == ["project_head-0000000b"]
+    out = ew.rewake(sess, NOW, st, due, mode="live", panes=lambda t: READY, wake=box.wake, woke=woke,
                     tier_of=lambda b: "critical")
     assert out == ["rewake project_head-0000000b waits: woken this tick: run cap"]
     assert st["rewake"]["project_head-0000000b"]["tries"] == 0
@@ -183,7 +205,7 @@ def test_dry_mode_prints_the_ladder_and_sends_nothing(box):
         out += box.rewake(NOW + m * MIN, st, mode="dry")
     assert box.woke == [] and box.sent == []
     assert out == [f"would rewake {PH} try 1", f"would rewake {PH} try 2", f"would rewake {PH} try 3",
-                   f"would send cto-fresh <- blocker rewake {PH}"]
+                   f"would send cto-fresh <- blocker 1: {PH}:rewake"]
 
 
 # --- C4: live owners -----------------------------------------------------------------
@@ -257,12 +279,11 @@ def test_a_live_c_level_box_with_no_session_record_is_woken_by_its_screen(box, m
     assert [to for to, _ in box.sent] == ["cto-fresh"] and box.woke == ["cto-fresh"]
     hub.ev.append({"id": 8, "task_id": "task-210cf323", "actor": "watchdog", "kind": "status_stalled",
                    "payload": "{}", "ts": iso(NOW + 200)})
-    busy = "✻ Thinking… (esc to interrupt)\n" + READY
     from lib import pane_screen
-    assert pane_screen.pane_busy(busy) and not pane_screen.prompt_ready(busy)
-    out = ew.owner_tick(sessions, NOW + 300, None, hub=hub, panes=lambda t: busy, wake=box.wake, send=box.send)
+    assert pane_screen.pane_busy(BUSY) and not pane_screen.prompt_ready(BUSY)
+    out = ew.owner_tick(sessions, NOW + 300, None, hub=hub, panes=lambda t: BUSY, wake=box.wake, send=box.send)
     assert len(box.sent) == 2 and box.woke == ["cto-fresh"]    # a running turn on screen: letter, no wake
-    assert any("wake held: screen not ready" in o for o in out)
+    assert any("wake held: busy: turn running on screen" in o for o in out)
 
 
 def test_owner_tick_is_off_with_the_mode_file_and_never_raises(box, monkeypatch):
@@ -288,3 +309,122 @@ def test_main_runs_the_owner_tick_once_under_nudge(box, monkeypatch):
     monkeypatch.setattr(ew, "owner_tick", lambda sessions, now, budget: ticks.append(now) or ["x"])
     assert ew.main(["--nudge"]) == 0 and len(ticks) == 1
     assert ew.main([]) == 0 and len(ticks) == 1          # a dry scan never runs it
+
+
+# --- review round 1 (30 Oct): ghost text, a busy box with no record, one letter per box ---
+
+def test_a_ghost_suggestion_on_an_idle_ph_is_an_empty_box_one_wake_and_no_held_try(box):
+    """capture -e keeps the dim attribute; without it the suggestion looks like a draft."""
+    from lib import pane_screen
+    assert pane_screen.prompt_ready(GHOST) and not pane_screen.prompt_ready(pane_screen.strip_ansi(GHOST))
+    box.letter(PH, "blocker · urgent · x", NOW)
+    box.wake_result = {"woke": True, "reason": "woke"}
+    box.screens[PH] = GHOST
+    st = orl.load_state("live")
+    out = box.rewake(NOW + 6 * MIN, st)
+    assert box.woke == [PH] and out == [f"rewake {PH} try 1: woke"]
+    assert st["rewake"][PH]["why"] == "" and box.sent == []
+
+
+def test_the_w2_gate_captures_with_escapes_and_find_keeps_the_plain_capture(monkeypatch):
+    seen = []
+
+    class R:
+        returncode, stdout = 0, GHOST
+
+    monkeypatch.setattr(ew.subprocess, "run", lambda argv, **kw: seen.append(argv) or R())
+    assert ew.capture_e(PH) == GHOST and ew.capture(PH) == GHOST
+    assert seen == [["tmux", "capture-pane", "-p", "-e", "-t", f"={PH}:"],
+                    ["tmux", "capture-pane", "-p", "-t", f"={PH}:"]]
+    for fn in (ew.owner_tick, ew.relay_tick, ew.rewake):
+        assert inspect.signature(fn).parameters["panes"].default is ew.capture_e
+    assert inspect.signature(ew.find).parameters["panes"].default is ew.capture
+
+
+def test_a_running_turn_on_a_box_with_no_record_spends_no_try(box, monkeypatch):
+    """CTO Main's box from its lock: status unknown (idle), so its screen decides."""
+    orl.MODE_PATH.write_text("live\n")
+    monkeypatch.setattr(ew, "read_meta", lambda p: [])
+    box.wake_result = {"woke": True, "reason": "woke"}
+    box.letter("cto-fresh", "blocker · urgent · from a PH", NOW)
+    sessions = [s for s in box.sessions if s["box"] != "cto-fresh"]
+    box.screens["cto-fresh"] = BUSY
+    for m in (6, 16, 46, 120):
+        out = ew.owner_tick(sessions, NOW + m * MIN, None, hub=EmptyHub(), panes=box.panes, wake=box.wake,
+                            send=box.send)
+        assert out == ["[live] rewake cto-fresh waits: busy: turn running on screen"]
+    assert orl.load_state("live")["rewake"]["cto-fresh"]["tries"] == 0 and box.woke == []
+    box.screens["cto-fresh"] = READY
+    ew.owner_tick(sessions, NOW + 121 * MIN, None, hub=EmptyHub(), panes=box.panes, wake=box.wake, send=box.send)
+    assert box.woke == ["cto-fresh"] and orl.load_state("live")["rewake"]["cto-fresh"]["tries"] == 1
+
+
+def test_a_record_in_the_lock_box_tmux_is_that_box_with_its_own_status(box):
+    """CTO Main's record says cto-<uuid tail> in tmux cto-fresh: one pane, one entry."""
+    rec = {"box": "cto-f69c4825", "role": "cto", "sid": "f69c4825", "status": "running", "tmux": "cto-fresh"}
+    merged = ew.with_lock_boxes([box.sessions[0], rec])
+    assert [(s["box"], s["status"]) for s in merged] == [(PH, "idle"), ("cto-fresh", "running")]
+    idle = dict(rec, box="cto-fresh", sid="fresh", status="idle")
+    assert [(s["box"], s["status"]) for s in ew.with_lock_boxes([idle, rec])] == [("cto-fresh", "running")]
+    assert [s["box"] for s in ew.with_lock_boxes([box.sessions[0]])] == [PH, "cto-fresh"]   # no record: added
+    box.letter("cto-fresh", "blocker · urgent · x", NOW)
+    box.sessions = merged
+    st = orl.load_state("live")
+    box.rewake(NOW + 6 * MIN, st)
+    assert box.woke == [] and st["rewake"]["cto-fresh"]["tries"] == 0 and "cto-f69c4825" not in st["rewake"]
+
+
+def test_dead_phs_and_a_task_event_for_one_owner_are_one_letter_and_one_wake(box):
+    other = "project_head-0d0d0d0d"
+    (box.path / "locks" / f"{other}.lock").write_text("1\n")
+    (box.path / "locks" / f"{other}.spawned_by").write_text("cxo:cto:fresh\n")
+    box.sessions = [{"box": "cto-fresh", "role": "cto", "sid": "fresh", "status": "idle", "tmux": "cto-fresh"}]
+    box.letter(PH, "blocker · urgent · x", NOW)
+    box.letter(other, "ask · normal · y", NOW)
+    hub = Hub()
+    hub.tasks = lambda ids: {"task-210cf323": {"id": "task-210cf323", "status": "stalled", "owner_cto": "fresh",
+                                               "owner_role": "cto", "delegate_log": ""}}
+    box.wake_result = {"woke": True, "reason": "woke"}
+    st = orl.load_state("live")
+    box.rewake(NOW + 16 * MIN, st, hub=hub)
+    assert [to for to, _ in box.sent] == ["cto-fresh"] and box.woke == ["cto-fresh"]
+    body = box.sent[0][1]
+    assert body.startswith("blocker · urgent ·") and len(body) <= orl.LETTER_MAX
+    assert f"{PH} ph_dead" in body and f"{other} ph_dead" in body and "task-210cf323 stalled" in body
+    assert "spawn-ph.sh --resume 3bea1120" in body and "spawn-ph.sh --resume 0d0d0d0d" in body
+    box.rewake(NOW + 30 * MIN, st, hub=hub)
+    assert len(box.sent) == 1                                   # once per episode
+
+
+def test_root_record_trusts_only_a_root_file_in_a_root_dir(tmp_path):
+    d = tmp_path / "sessions"
+    d.mkdir()
+    os.chmod(d, 0o700)
+    p = d / "1.json"
+    p.write_text("{}")
+    os.chmod(p, 0o644)
+    assert ew._root_record(d, p)
+    os.chmod(p, 0o666)
+    assert not ew._root_record(d, p)                            # anyone may rewrite it
+    os.chmod(p, 0o644)
+    os.chmod(d, 0o770)
+    assert not ew._root_record(d, p)                            # another account may swap files in
+    os.chmod(d, 0o700)
+    if os.geteuid() == 0:
+        os.chown(d, 65534, 65534)                               # sompong's own registry dir
+        assert not ew._root_record(d, p)
+
+
+def test_main_hands_owner_tick_only_the_trusted_records(box, monkeypatch):
+    from lib import config
+    monkeypatch.setattr(config, "self_host", lambda: "contabo")
+    monkeypatch.setattr(ew.ls, "_open_hub", lambda: (_ for _ in ()).throw(RuntimeError("no hub")))
+    forged = {"box": "project_head-0d0d0d0d", "role": "project_head", "sid": "0d0d0d0d", "status": "idle",
+              "tmux": "project_head-0d0d0d0d", "since": None, "name": "", "trusted": False}
+    monkeypatch.setattr(ew, "local_sessions", lambda host: [dict(box.sessions[0], since=None, trusted=True), forged])
+    monkeypatch.setattr(ew, "find", lambda *a, **k: [])
+    monkeypatch.setattr(ew, "question_times", lambda: {})
+    monkeypatch.setattr(ew, "nudge", lambda *a, **k: [])
+    got = []
+    monkeypatch.setattr(ew, "owner_tick", lambda sessions, now, budget: got.append([s["box"] for s in sessions]) or [])
+    assert ew.main(["--nudge"]) == 0 and got == [[PH]]
