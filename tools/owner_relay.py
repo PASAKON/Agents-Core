@@ -150,10 +150,7 @@ def read_mode(path: Path | None = None) -> str:
 
 
 def _is_file(path: Path) -> bool:
-    try:
-        return stat.S_ISREG(os.lstat(path).st_mode)
-    except OSError:
-        return False
+    return _ours(path)
 
 
 def thai_day(now: float) -> str:
@@ -185,21 +182,24 @@ def clean(text, limit: int = REASON_MAX, *, tail: bool = False) -> str:
 # --- boxes, locks and owners ---------------------------------------------------------
 
 def has_lock(box: str) -> bool:
-    return _is_file(LOCKS_DIR / f"{box}.lock")
+    return bool(_BOX_RE.fullmatch(box)) and _is_file(LOCKS_DIR / f"{box}.lock")
 
 
 def parked(box: str) -> bool:
     """A PH saved on purpose: no .lock, and its lock files carry a .parked suffix."""
-    if has_lock(box):
+    if not _BOX_RE.fullmatch(box) or has_lock(box):
         return False
     try:
-        return any(p.name.endswith(".parked") and p.name.startswith(box + ".") for p in LOCKS_DIR.iterdir())
+        return any(p.name.endswith(".parked") and p.name.startswith(box + ".") and _ours(p)
+                   for p in LOCKS_DIR.iterdir())
     except OSError:
         return False
 
 
 def active_box(role: str) -> str | None:
     """`<role>-<sid>` from the state/locks/<role>-active pointer (cxo-claude.sh writes it)."""
+    if not _ROLE_RE.fullmatch(role):
+        return None
     sid = ls.read_lock(LOCKS_DIR / f"{role}-active")
     return f"{role}-{sid}" if _ROLE_RE.fullmatch(role) and _CSID_RE.fullmatch(sid) else None
 
@@ -218,6 +218,8 @@ def live_c_box(box: str | None) -> str | None:
 
 def ph_owner(sid: str) -> str | None:
     """A PH's live owner C-level box: its .spawned_by ("cxo:<role>:<sid>"), else CTO Main."""
+    if not _SID_RE.fullmatch(sid):
+        return None
     parts = ls.read_lock(LOCKS_DIR / f"project_head-{sid}.spawned_by").split(":")
     box = None
     if len(parts) == 3 and _ROLE_RE.fullmatch(parts[1]) and _CSID_RE.fullmatch(parts[2]):
@@ -263,15 +265,21 @@ def _fresh(mode: str, keep: dict | None = None) -> dict:
 def load_state(mode: str, path: Path | None = None) -> dict:
     """The saved state for `mode`. A dry state is not reused live (it only printed): the
     first live run starts from the last live cursor, or the BOOTSTRAP_S window when it
-    never ran live. The wake counters carry over. A file that cannot be parsed starts
-    fresh."""
-    raw = _read_small(path or STATE_PATH, STATE_READ_MAX)
+    never ran live. The wake counters carry over. Existing unusable state raises
+    StateUnusable."""
+    path = path or STATE_PATH
+    existed = os.path.lexists(path)
+    raw = _read_small(path, STATE_READ_MAX)
+    if raw is None:
+        if existed or os.path.lexists(path):
+            raise StateUnusable(f"{path.name} cannot be read")
+        return _fresh(mode)
     try:
-        d = json.loads(raw) if raw else {}
-    except (ValueError, RecursionError):
-        d = {}
+        d = json.loads(raw)
+    except (ValueError, RecursionError) as e:
+        raise StateUnusable(f"{path.name} cannot be parsed") from e
     if not isinstance(d, dict):
-        d = {}
+        raise StateUnusable(f"{path.name} must contain an object")
     st = _fresh(mode)
     for k, typ in (("wakes", dict), ("last_wake", dict), ("seen", dict), ("queue_seen", dict),
                    ("pending", dict), ("rewake", dict), ("dead_eps", dict)):
@@ -286,7 +294,7 @@ def load_state(mode: str, path: Path | None = None) -> dict:
 
 
 def _trim(d: dict, n: int) -> dict:
-    return dict(list(d.items())[-n:])
+    return dict(list(d.items())[-n:]) if n > 0 else {}
 
 
 def _write_atomic(path: Path, text: str, perm: int) -> None:
@@ -314,8 +322,12 @@ def save_state(state: dict, path: Path | None = None) -> None:
     st["pending"] = {b: v[-MAX_PENDING_LINES:] for b, v in _trim(st.get("pending", {}), MAX_PENDING_BOXES).items()}
     st["wakes"] = {b: dict(sorted(v.items())[-WAKE_DAYS:]) for b, v in st.get("wakes", {}).items()}
     blob = json.dumps(st, ensure_ascii=True)
-    if len(blob) > STATE_READ_MAX:
-        st["seen"], st["queue_seen"] = _trim(st["seen"], MAX_SEEN // 4), _trim(st["queue_seen"], MAX_QUEUE_SEEN // 4)
+    while len(blob) > STATE_READ_MAX:
+        populated = [k for k, v in st.items() if isinstance(v, dict) and v]
+        if not populated:
+            raise StateUnusable(f"{path.name} exceeds state size limit")
+        for k in populated:
+            st[k] = _trim(st[k], len(st[k]) // 2)
         blob = json.dumps(st, ensure_ascii=True)
     try:
         _write_atomic(path, blob, 0o600)
@@ -326,7 +338,11 @@ def save_state(state: dict, path: Path | None = None) -> None:
 def _ours(path: Path) -> bool:
     """A regular file root (or this user) owns, nobody else can write, one link."""
     try:
-        st = os.lstat(path)
+        dfd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            st = os.stat(path.name, dir_fd=dfd, follow_symlinks=False)
+        finally:
+            os.close(dfd)
     except OSError:
         return False
     return (stat.S_ISREG(st.st_mode) and st.st_uid in (0, os.geteuid()) and not st.st_mode & 0o022
@@ -423,6 +439,8 @@ def try_wake(box: str, state: dict, now: float, *, sessions: dict, panes, wake, 
 def unread(box: str) -> list[tuple[float, str | None]]:
     """(mtime, kind) of each unread *.json letter in state/inbox/<box>/, read no-follow
     relative to the box (root reads boxes other accounts can write)."""
+    if not _BOX_RE.fullmatch(box):
+        return []
     dfd = mailbox._open_dir(mailbox.INBOX_ROOT / box) if mailbox._DIRFD_OK else None
     if dfd is None:
         return []
@@ -482,8 +500,9 @@ class Hub:
     def running(self, host: str) -> list[dict]:
         from lib import db
         with db.get_conn(readonly=True) as conn:
-            return self._rows(conn.execute(
+            rows = self._rows(conn.execute(
                 f"SELECT {self.COLS} FROM tasks WHERE status = 'in_progress' AND host = ?", [host]))
+        return [r for r in rows if _TASK_RE.fullmatch(str(r.get("id") or ""))]
 
 
 def inspect_state(task: dict) -> str | None:
@@ -553,16 +572,19 @@ def collect(now: float, state: dict, *, hub, live: set[str], meta, inspect, queu
     since = _iso(now - BOOTSTRAP_S)
     try:
         events = hub.events(state["cursor"], since)
-        runs = hub.running(host)
+        runs = [r for r in hub.running(host) if _TASK_RE.fullmatch(str(r.get("id") or ""))]
     except Exception as e:
         notes.append(f"hub unreadable ({type(e).__name__}): no new task letters, cursor kept")
         return lines
-    qents = [(q, e) for q, entries in queues for e in entries]
+    qents = [(q, e) for q, entries in queues for e in entries
+             if _TASK_RE.fullmatch(str(e.get("task_id") or ""))]
     try:
         rows = hub.tasks([e.get("task_id") for e in events] + [e["task_id"] for _, e in qents])
     except Exception as e:
         notes.append(f"hub unreadable ({type(e).__name__}): no new task letters, cursor kept")
         return lines
+    rows = {tid: r for tid, r in rows.items() if _TASK_RE.fullmatch(str(tid or ""))
+            and _TASK_RE.fullmatch(str(r.get("id") or ""))}
     for r in runs:
         rows.setdefault(r.get("id"), r)
     if events:

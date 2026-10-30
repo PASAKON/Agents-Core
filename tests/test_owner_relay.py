@@ -22,6 +22,101 @@ DRAFT = f"some output\n{RULE}\n❯ half a sentence\n{RULE}\n"
 PH, PH_SID = "project_head-3bea1120", "3bea1120"
 
 
+@pytest.mark.parametrize("suffix", ["lock", "project.parked", "spawned_by"])
+def test_lock_file_hardening(tmp_path, monkeypatch, suffix):
+    monkeypatch.setattr(orl, "LOCKS_DIR", tmp_path)
+    p = tmp_path / f"{PH}.{suffix}"
+    p.write_text("1\n")
+    p.chmod(0o644)
+    assert orl._is_ph_sid(PH_SID)
+    p.chmod(0o664)
+    assert not orl._is_ph_sid(PH_SID)
+    assert not orl.has_lock(PH) and not orl.parked(PH)
+    p.chmod(0o644)
+    os.link(p, tmp_path / "second")
+    assert not orl._is_ph_sid(PH_SID)
+
+
+@pytest.mark.parametrize("raw", [b"{", b"", b"[]", b"\xff"])
+def test_state_parse_hardening(tmp_path, raw):
+    p = tmp_path / "state.json"
+    p.write_bytes(raw)
+    with pytest.raises(orl.StateUnusable):
+        orl.load_state("live", p)
+
+
+def test_state_read_hardening(tmp_path):
+    p = tmp_path / "state.json"
+    assert orl.load_state("live", p) == orl._fresh("live")
+    p.write_text("{}")
+    p.chmod(0o664)
+    with pytest.raises(orl.StateUnusable):
+        orl.load_state("live", p)
+
+
+def test_lock_directory_hardening(tmp_path):
+    directory = tmp_path / "locks"
+    directory.mkdir()
+    p = directory / "cto-fresh.lock"
+    p.write_text("1")
+    alias = tmp_path / "alias"
+    alias.symlink_to(directory, target_is_directory=True)
+    assert orl._ours(p)
+    assert not orl._ours(alias / p.name)
+
+
+def test_hub_running_identifier_hardening(monkeypatch):
+    from contextlib import nullcontext
+    from lib import db
+
+    class Conn:
+        def execute(self, *args):
+            return self
+
+        def fetchall(self):
+            return [{"id": tid} for tid in ("task-12345678", "../task-12345678", "task-12345678\n", None)]
+
+    monkeypatch.setattr(db, "get_conn", lambda **kwargs: nullcontext(Conn()))
+    assert orl.Hub().running("contabo") == [{"id": "task-12345678"}]
+
+
+@pytest.mark.parametrize("key", ["wakes", "last_wake", "rewake", "dead_eps", "seen", "queue_seen", "pending"])
+def test_state_size_hardening(tmp_path, monkeypatch, key):
+    monkeypatch.setattr(orl, "STATE_READ_MAX", 512)
+    st = orl._fresh("live")
+    value = {"2026-10-30": 1} if key == "wakes" else ["x" * 80]
+    st[key] = {f"box-{i}": value for i in range(200)}
+    p = tmp_path / "state.json"
+    orl.save_state(st, p)
+    assert p.stat().st_size <= orl.STATE_READ_MAX
+    assert len(orl.load_state("live", p)[key]) < 200
+    assert len(st[key]) == 200
+    st["cursor"] = "x" * 1000
+    with pytest.raises(orl.StateUnusable):
+        orl.save_state(st, p)
+
+
+def test_identifier_entry_hardening(monkeypatch):
+    def unexpected(*args, **kwargs):
+        pytest.fail("invalid identifier reached filesystem")
+    monkeypatch.setattr(orl.ls, "read_lock", unexpected)
+    monkeypatch.setattr(mailbox, "_open_dir", unexpected)
+    assert orl.active_box("../cto") is None
+    assert orl.ph_owner("../12345678") is None
+    assert orl.unread("../cto-fresh") == []
+
+
+def test_collect_identifier_hardening(org):
+    bad = "../task-12345678"
+    row = org.hub.task(bad, "in_progress", _state="dead")
+    org.hub.runs = [row]
+    org.hub.event(bad, "fields_set", payload={"last_checkpoint": "BLOCKED"})
+    inspected = []
+    lines = orl.collect(NOW, orl._fresh("live"), hub=org.hub, live=set(), meta=(),
+                        queues=[], notes=[], inspect=lambda r: inspected.append(r) or "dead")
+    assert lines == [] and inspected == []
+
+
 def iso(t: float) -> str:
     return datetime.fromtimestamp(t, timezone.utc).isoformat(timespec="seconds")
 
@@ -352,7 +447,10 @@ def test_the_state_is_written_atomically_and_never_through_a_planted_link(org):
     target = org.path / "victim"
     target.write_text("keep")
     orl.STATE_PATH.symlink_to(target)
-    org.tick()
+    with pytest.raises(orl.StateUnusable):
+        org.tick()
+    assert target.read_text() == "keep" and orl.STATE_PATH.is_symlink()
+    orl.save_state(orl._fresh("live"))
     assert target.read_text() == "keep" and not orl.STATE_PATH.is_symlink()
     assert json.loads(orl.STATE_PATH.read_text())["mode"] == "live"
 
