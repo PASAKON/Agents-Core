@@ -199,6 +199,14 @@ approved, change that one constant and the CHECK together.
 
 To go back, unset the variable: the next push is v2 again.
 
+**The COO gate reads the same payload.** `runners/coo_gate.py` `op_portfolio` calls `portfolio_push.build_payload()` as
+the database role `org_coo`, which only has SELECT. v3 also reads `live_sessions.bridge_id`, and
+`deploy/coo-gate/org_coo_role.sql` does not grant that column (it lists `host, uuid, sid, role, name, address, status,
+pid, seen_at, verified`). So do not put `PORTFOLIO_MONITOR_V=3` in an environment the gate shares with the pusher until
+`org_coo` has `GRANT SELECT (bridge_id) ON live_sessions`: until then SomPong's portfolio read fails with
+"the portfolio could not be read from the hub". That grant is a change to a production database role, a CEO card, and
+is not part of this change. Each process sets the variable on its own, so the pusher can run v3 while the gate stays on v2.
+
 ## 9. Known gaps
 
 - **`lead.app` is null for `owner_session = cto-fresh`** (section 3).
@@ -209,3 +217,4 @@ To go back, unset the variable: the next push is v2 again.
 - **`_snapshot_from_hub` is private to `tools/live_sessions.py`.** v3 reuses it so that "stale" is one rule; a rename
   there breaks v3 (a test fails).
 - **`ph_link` rides on `heartbeat_rollup`** (section 7).
+- **`org_coo` cannot read `bridge_id`** (section 8): a v3 read through the COO gate fails until that grant is made.
