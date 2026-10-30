@@ -109,6 +109,8 @@ RELAY_MAX_CHARS = 600            # the whole letter (wake chain token rule 5)
 TRUNC = " ...[truncated]"
 DEFAULT_BACKOFF_S = 300
 LOG_MODE = 0o644                 # as the existing state/logs/cto-*.log files
+_DIRFD_OK = (all(f in os.supports_dir_fd for f in (os.open, os.mkdir))
+             and hasattr(os, "O_NOFOLLOW") and hasattr(os, "O_DIRECTORY"))
 
 RATE_LIMIT_RE = re.compile(
     r"(rate[_-]?limit|rate limited|429|too many requests|usage limit|"
@@ -236,6 +238,16 @@ def _append_log(path: Path, text: str) -> None:
     except ValueError:
         return
     if len(parts) != 3 or parts[:2] != ("state", "logs") or parts[2] in (".", ".."):
+        return
+    if not _DIRFD_OK:     # Windows: no dir_fd, and no other account's dir either (as lib.mailbox)
+        try:
+            if path.parent.is_symlink() or path.is_symlink():
+                return
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8", errors="replace") as f:
+                f.write(text)
+        except Exception:
+            pass
         return
     cloexec = getattr(os, "O_CLOEXEC", 0)
     dir_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | cloexec

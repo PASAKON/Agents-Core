@@ -393,6 +393,22 @@ def test_a_planted_link_in_state_logs_is_not_followed(tmp_path, monkeypatch, led
     assert (logs / "cto.log").is_symlink() and len(relays) == 1
 
 
+def test_without_dir_fd_the_log_is_written_and_a_link_skipped(tmp_path, monkeypatch, ledger, relays):
+    """A platform with no dir_fd (Windows, as in lib.mailbox) takes a plain
+    append; it still refuses a log name that is a symlink."""
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_nodirfd")
+    monkeypatch.setattr(mod, "_DIRFD_OK", False)
+    logs = root / "state" / "logs"
+    logs.mkdir(parents=True)
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep\n", encoding="utf-8")
+    (logs / "cto.log").symlink_to(victim)
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [report_turn()]), ledger) == 0
+    assert victim.read_text(encoding="utf-8") == "keep\n"
+    assert "[submit_report] Done: 3 files" in (logs / f"cto-{CTO}.log").read_text(encoding="utf-8")
+
+
 def test_a_planted_logs_directory_link_is_not_followed(tmp_path, monkeypatch, ledger, relays):
     flag(monkeypatch, False)
     root, mod = guarded_checkout(tmp_path, "devhook_dirlink")
