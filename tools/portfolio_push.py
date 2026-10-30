@@ -204,7 +204,10 @@ def _collector_round(base, token, *, dry_run=False):
                 sentence = SENTENCES[action]
             else:
                 continue
-            project = portfolio.get_project(pid)
+            try:
+                project = portfolio.get_project(pid)
+            except portfolio.PortfolioError:
+                project = {}  # unknown project: ack as none instead of failing every round
             if live is None:
                 live = portfolio_delivery.live_boxes()
             box, recipient = portfolio_delivery.target(project, live)
