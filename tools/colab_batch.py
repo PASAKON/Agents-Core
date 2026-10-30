@@ -7,11 +7,13 @@ Job: {"takes": [absolute_directory, ...], "checkpoints": [{"after": glob_or_list
       "uploads_dir": absolute_directory_under_WORK}   # uploads_dir only for studio takes
 Exit: 0 done; 1 take failed; 2 invalid job/arguments (0 CU); 3 admission cap;
       4 unreadable balance; 5 checkpoint; 6 pin refusal, or a studio take's spec, reference
-      or output folder changed since load (0 CU for that take); 7 shutdown unconfirmed (spend unknown).
+      or output folder, or a file take's snapshot, changed since load (0 CU for that take);
+      7 shutdown unconfirmed (spend unknown).
 
 Only immutable, verified copies of the listed ComfyRunpod files execute. File-based
 specs, reference images and an Openjutsu take's source video are snapshotted as job data
-before any balance query.
+before any balance query, hashed at load, re-hashed before each attempt, and deleted once
+the take is done.
 No caller argv or environment overrides are forwarded. Batch logs contain counts/
 codes, never specs, prompts, environment values or subprocess exception messages.
 Child output goes only to each take's run.log, as requested.
@@ -32,9 +34,10 @@ state to <parent>/<spec take_id>/, so shutdown is verified against that folder, 
 Audit scope: file-based takes upload the pinned remote_take.py, take_tail.py and
 vm_watchdog.py, plus compiled job data and snapshotted image references. No local
 notebook is loaded. Workflow graphs come from PINNED; the file takes openjutsu_object and
-openjutsu_people use the pinned third_party/openjutsu graphs. Their photo and clip can show a
-real person, so the pinned tree and every snapshot sit in a 0700 temp dir under the first
-take's parent (WORK), never /tmp, deleted on exit; the batch log never names a file.
+openjutsu_people use the pinned third_party/openjutsu graphs and, like studio takes, must be
+gpu G4 with fallback_gpus []. Their photo and clip can show a real person, so the pinned tree
+and every snapshot (named ref_N / src_N, which run_take prints) sit in a 0700 temp dir under the
+first take's parent (WORK), never /tmp, deleted on exit; the batch log never names a file.
 Studio takes also upload their references from uploads_dir (hashed as above) and run the
 pinned scan_frames.py.
 No checkout absolute path is used in the supported path. CLI/auth and VM-installed
@@ -431,6 +434,9 @@ def load_job(path):
             if not isinstance(wf, str) or not re.fullmatch(r'[A-Za-z0-9_]+', wf) or \
                     OPENJUTSU.get(wf, f'workflows/{wf}.json') not in PINNED:
                 raise JobError('workflow is not pinned')
+            # OVERSHOOT_CU is sized for G4, the only GPU whose rate is measured (as for studio takes).
+            if wf in OPENJUTSU and (spec.get('gpu') != 'G4' or spec.get('fallback_gpus') != []):
+                raise JobError('openjutsu takes must be gpu G4 with fallback_gpus []')
         budget = number(spec['budget']['max_cu'])
         if not budget or not number(spec['budget']['max_minutes']):
             raise JobError('take budgets must be positive')
@@ -451,7 +457,8 @@ def load_job(path):
                 if not isinstance(ref, str):
                     raise JobError('invalid reference path')
                 p = work_path(str(directory / ref))
-                assets[ref] = (p.suffix, p.read_bytes())
+                data = p.read_bytes()
+                assets[ref] = (p.suffix, data, hashlib.sha256(data).hexdigest())
         spec['take_id'] = directory.name
         takes.append(Take(directory, spec, budget, assets, None))
     paths = [str(t.directory) for t in takes]
@@ -488,22 +495,35 @@ def load_job(path):
 
 
 def snapshot_spec(data_dir, index, spec, assets):
+    """Write the take's data under data_dir/<index>/. Returns the spec path and (path, sha256) for every file
+    written, the hashes taken at load, which snapshot_ready checks again before each attempt."""
     dest = data_dir / str(index)
     dest.mkdir(parents=True)
-    names = {}
-    for i, (ref, (suffix, data)) in enumerate(assets.items()):
-        p = dest / f'ref_{i}{suffix}'
-        p.write_bytes(data)
-        names[ref] = str(p)
+    held, names = [], {}
+
+    def copy(kind, given):
+        # run_take prints these names, so they are ref_0.jpg / src_0.mp4: nothing of the original's name.
+        if (kind, given) not in names:
+            suffix, data, digest = assets[given]
+            p = dest / f'{kind}_{sum(k == kind for k, _ in names)}{suffix}'
+            p.write_bytes(data)
+            if sha256_file(p) != digest:
+                raise PinError('snapshot copy mismatch')
+            held.append((p, digest))
+            names[kind, given] = str(p)
+        return names[kind, given]
+
     spec = json.loads(json.dumps(spec))
     for obj in [spec, *spec['scenes']]:
         if 'refs' in obj:
-            obj['refs'] = [names[r] for r in obj['refs']]
+            obj['refs'] = [copy('ref', r) for r in obj['refs']]
         if obj.get('source') is not None:
-            obj['source'] = names[obj['source']]
+            obj['source'] = copy('src', obj['source'])
     path = dest / 'spec.json'
-    path.write_text(json.dumps(spec))
-    return path
+    raw = json.dumps(spec).encode()
+    path.write_bytes(raw)
+    held.append((path, hashlib.sha256(raw).hexdigest()))
+    return path, held
 
 
 def snapshot_studio_spec(data_dir, index, studio):
@@ -514,7 +534,18 @@ def snapshot_studio_spec(data_dir, index, studio):
     path.write_bytes(studio['raw'])
     if hashlib.sha256(path.read_bytes()).hexdigest() != studio['sha']:
         raise PinError('studio spec copy mismatch')
-    return path
+    return path, [(path, studio['sha'])]
+
+
+def snapshot_ready(held):
+    """Right before an attempt: every snapshot file still hashes to what was read at load. Raises StaleError
+    (exit 6, nothing started) otherwise."""
+    try:
+        for path, digest in held:
+            if sha256_file(path) != digest:
+                raise StaleError('snapshot changed')
+    except OSError:
+        raise StaleError('snapshot unreadable') from None
 
 
 def run_take(python, root, spec, directory, output, timeout):
@@ -563,8 +594,9 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
     # Under the first take's parent, not /tmp: the snapshots can hold a real person's photo and clip.
     with pinned_tree(Path(run['root']), takes[0].directory.parent) as root:
         data = root.parent / 'data'
-        specs = [snapshot_studio_spec(data, i, t.studio) if t.studio else
+        snaps = [snapshot_studio_spec(data, i, t.studio) if t.studio else
                  snapshot_spec(data, i, t.spec, t.assets) for i, t in enumerate(takes)]
+        specs = [path for path, _ in snaps]
         start = balance(reader)
         spent = reserved = Decimal(0)
         emit(f'BALANCE {start} spent 0 CU cap {cap}')
@@ -585,6 +617,12 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                         emit(f'REFUSE take {i + 1} spec, reference or output folder changed since load; '
                              f'take not started; spent {spent} CU so far')
                         return EXIT_PIN
+                try:
+                    snapshot_ready(snaps[i][1])
+                except StaleError:
+                    emit(f'REFUSE take {i + 1} snapshot changed since load; '
+                         f'take not started; spent {spent} CU so far')
+                    return EXIT_PIN
                 reserved = max(spent, reserved) + budget + OVERSHOOT_CU
                 (directory / 'progress.json').unlink(missing_ok=True)
                 log_path = directory / 'run.log'
@@ -621,6 +659,7 @@ def execute(job, cap, reader, runner, sleeper, emit, stopper, validator):
                     return EXIT_FAIL
                 emit('RETRY sleep 60 s')
                 sleeper(60)
+            shutil.rmtree(data / str(i), ignore_errors=True)    # this take's snapshot is done with
             for scenes, limit in checkpoints.get(i, []):
                 emit(f'CHECKPOINT after take {i + 1} spent {spent} scenes {scenes} CU/scene {spent / scenes}')
                 if spent / scenes > limit:

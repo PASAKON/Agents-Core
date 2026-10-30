@@ -1,7 +1,10 @@
 """Offline spend admission, immutable execution and teardown tests. No Colab calls."""
+import ast
 import hashlib
 import json
+import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -666,7 +669,8 @@ def test_studio_refuses_other_gpus(studio, change):
     assert rc == cb.EXIT_BAD and not calls
 
 
-# ---- Openjutsu file takes: a real person's photo and clip, pinned graphs, a private snapshot ----
+# ---- Openjutsu file takes: a photo and a clip that can show a real person, pinned graphs, a private snapshot ----
+# Every file here is a stand-in: a few bytes of no image or video, no real name and no real path.
 
 # The two workflows and the graph run_take.py loads for each, written out here so a wrong map in the tool fails.
 GRAPHS = {'openjutsu_object': 'third_party/openjutsu/object.api.json',
@@ -684,14 +688,14 @@ def people(job, monkeypatch):
         graph.write_bytes(b'{"graph": "%s"}' % rel.encode())
         pins[rel] = hashlib.sha256(graph.read_bytes()).hexdigest()
     monkeypatch.setattr(cb, 'PINNED', pins)
-    take = job.parent / 'person'
+    take = job.parent / 'take_a'
     take.mkdir()
-    (take / 'photo.jpg').write_bytes(b'a real person')
-    (take / 'clip.mp4').write_bytes(b'their clip')
+    (take / 'face.jpg').write_bytes(b'photo-bytes')
+    (take / 'part.mp4').write_bytes(b'clip-bytes')
     (take / 'spec.json').write_text(json.dumps({
-        'workflow': 'openjutsu_people', 'gpu': 'G4', 'fallback_gpus': [], 'source': 'clip.mp4',
-        'refs': ['photo.jpg'], 'resolution': '480p', 'margin': 'normal',
-        'scenes': [{'seed': 42, 'start': 0, 'seconds': 6, 'prompt': 'the singer'}],
+        'workflow': 'openjutsu_people', 'gpu': 'G4', 'fallback_gpus': [], 'source': 'part.mp4',
+        'refs': ['face.jpg'], 'resolution': '480p', 'margin': 'normal',
+        'scenes': [{'seed': 42, 'start': 0, 'seconds': 6, 'prompt': 'role words'}],
         'budget': {'max_cu': 4, 'max_minutes': 2}}))
     data = json.loads(job.read_text())
     data['takes'] = [str(take)]
@@ -716,15 +720,20 @@ def inside(path, root):
 
 
 def run_people(people, **kwargs):
-    return invoke(people.job, balances=(100, 100, 98), outcomes=(0,), **kwargs)
+    return invoke(people.job, **{'balances': (100, 100, 98), 'outcomes': (0,), **kwargs})
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
 
 
 def test_people_file_take_is_snapshotted_in_a_private_dir_under_the_take_parent(people, monkeypatch, tmp_path):
     systmp = tmp_path / 'systmp'
     systmp.mkdir()
     monkeypatch.setattr(cb.tempfile, 'tempdir', str(systmp))         # where /tmp would be
-    assets = cb.load_job(people.job)[2][0].assets                      # passes load; clip and photo are read once
-    assert assets == {'clip.mp4': ('.mp4', b'their clip'), 'photo.jpg': ('.jpg', b'a real person')}
+    assets = cb.load_job(people.job)[2][0].assets                      # passes load; clip and photo are read and hashed once
+    assert assets == {'part.mp4': ('.mp4', b'clip-bytes', sha(b'clip-bytes')),
+                      'face.jpg': ('.jpg', b'photo-bytes', sha(b'photo-bytes'))}
     seen = {}
     def on_spec(root, spec, directory):
         snap = json.loads(spec.read_text())
@@ -736,24 +745,28 @@ def test_people_file_take_is_snapshotted_in_a_private_dir_under_the_take_parent(
     assert box.parent.resolve() == seen['parent'].resolve() == people.work.resolve()   # the take's parent, not /tmp
     assert box.name.startswith('.colab-batch-') and seen['mode'] == 0o700
     assert seen['data'] == box / 'data' and Path(snap['source']).parent.parent == seen['data']
-    assert Path(snap['source']).suffix == '.mp4' and Path(snap['refs'][0]).parent == Path(snap['source']).parent
-    assert (seen['clip'], seen['photo']) == (b'their clip', b'a real person')  # the bytes read at load
-    assert snap['scenes'][0]['prompt'] == 'the singer'
+    # run_take prints these names: nothing of the originals' names in them
+    assert (Path(snap['source']).name, Path(snap['refs'][0]).name) == ('src_0.mp4', 'ref_0.jpg')
+    assert (seen['clip'], seen['photo']) == (b'clip-bytes', b'photo-bytes')   # the bytes read at load
+    assert snap['scenes'][0]['prompt'] == 'role words'
     assert not box.exists() and not list(systmp.iterdir())            # gone afterwards; nothing went to /tmp
 
 
 def test_a_scenes_own_source_is_snapshotted_like_a_ref(people):
-    edit_people(people, lambda spec: spec['scenes'][0].update(source='scene.mp4', refs=['photo.jpg']))
-    (people.take / 'scene.mp4').write_bytes(b'scene clip')
+    edit_people(people, lambda spec: spec['scenes'][0].update(source='scene.mp4', refs=['face.jpg']))
+    (people.take / 'scene.mp4').write_bytes(b'scene-clip-bytes')
     take = cb.load_job(people.job)[2][0]
     with cb.pinned_tree(people.source, people.work) as root:
-        snap = json.loads(cb.snapshot_spec(root.parent / 'data', 0, take.spec, take.assets).read_text())
+        path, held = cb.snapshot_spec(root.parent / 'data', 0, take.spec, take.assets)
+        snap = json.loads(path.read_text())
         scene = snap['scenes'][0]
-        assert Path(snap['source']).read_bytes() == b'their clip'
-        assert Path(scene['source']).read_bytes() == b'scene clip'
-        assert Path(scene['refs'][0]).read_bytes() == Path(snap['refs'][0]).read_bytes() == b'a real person'
+        assert Path(snap['source']).read_bytes() == b'clip-bytes'
+        assert Path(scene['source']).read_bytes() == b'scene-clip-bytes'
+        assert Path(scene['refs'][0]).read_bytes() == Path(snap['refs'][0]).read_bytes() == b'photo-bytes'
         assert not any(inside(Path(p), root) for p in (snap['source'], scene['source'], *snap['refs']))
-    assert take.spec['source'] == 'clip.mp4'                          # the loaded spec keeps the given paths
+        assert sorted(p.name for p, _ in held) == ['ref_0.jpg', 'spec.json', 'src_0.mp4', 'src_1.mp4']
+        assert all(sha(p.read_bytes()) == digest for p, digest in held)
+    assert take.spec['source'] == 'part.mp4'                          # the loaded spec keeps the given paths
 
 
 @pytest.mark.parametrize('workflow', sorted(GRAPHS))
@@ -779,13 +792,55 @@ def test_other_workflows_are_still_refused(people, workflow):
     assert rc == cb.EXIT_BAD and not calls and not reads
 
 
+@pytest.mark.parametrize('workflow', sorted(GRAPHS))
+@pytest.mark.parametrize('change', [
+    lambda s: s.pop('gpu'),
+    lambda s: s.update(gpu='H100'),
+    lambda s: s.update(gpu='g4'),
+    lambda s: s.pop('fallback_gpus'),    # run_take would then fall back to H100 and A100
+    lambda s: s.update(fallback_gpus=['H100']),
+    lambda s: s.update(fallback_gpus=None),
+])
+def test_openjutsu_takes_must_be_g4_without_fallback(people, workflow, change):
+    edit_people(people, lambda spec: (spec.update(workflow=workflow), change(spec)))
+    with pytest.raises(cb.JobError, match='G4'):
+        cb.load_job(people.job)
+    rc, calls, _, _, reads = invoke(people.job, balances=())
+    assert rc == cb.EXIT_BAD and not calls and not reads
+
+
+def test_people_take_goes_through_the_admission_check(people):
+    # budget 4 + 0.5 reserved: a cap of 4.4 admits nothing and reads no balance; 4.5 just fits
+    rc, calls, stops, _, reads = invoke(people.job, balances=(), cap='4.4', outcomes=())
+    assert rc == cb.EXIT_CAP and not calls and not stops and 'balance' not in reads
+    assert run_people(people, cap='4.5')[0] == 0
+
+
+def test_people_retry_is_admitted_on_spent_plus_reserved(people):
+    # the first try spent 5, over its 4 + 0.5 reserve, so a retry needs 5 + 4 + 0.5 = 9.5 and the cap is 9
+    rc, calls, *_ = invoke(people.job, balances=(100, 100, 95, 95), cap='9', outcomes=(1,), messages='failed vm')
+    assert rc == cb.EXIT_CAP and len(calls) == 1
+
+
+@pytest.mark.parametrize('budget', [
+    {'max_cu': 0, 'max_minutes': 2}, {'max_cu': 0.0, 'max_minutes': 2}, {'max_cu': 4, 'max_minutes': 0},
+    {'max_minutes': 2}, {'max_cu': 4}, {}, None,
+    {'max_cu': -1, 'max_minutes': 2}, {'max_cu': 4, 'max_minutes': -2},
+    {'max_cu': 'many', 'max_minutes': 2}, {'max_cu': True, 'max_minutes': 2},
+])
+def test_people_take_without_positive_budgets_is_refused_at_zero_cu(people, budget):
+    edit_people(people, lambda spec: spec.update(budget=budget))
+    rc, calls, _, _, reads = invoke(people.job, balances=())
+    assert rc == cb.EXIT_BAD and not calls and not reads
+
+
 @pytest.mark.parametrize('how', ['outside_work', 'missing', 'directory', 'not_a_string'])
 def test_a_source_must_be_a_file_under_work(people, how):
     elsewhere = people.work.parent / 'source_outside_work.mp4'
     elsewhere.write_bytes(b'x')
     (people.take / 'folder.mp4').mkdir()
     value = {'outside_work': str(elsewhere), 'missing': 'gone.mp4', 'directory': 'folder.mp4',
-             'not_a_string': ['clip.mp4']}[how]
+             'not_a_string': ['part.mp4']}[how]
     edit_people(people, lambda spec: spec.update(source=value))
     rc, calls, _, _, reads = invoke(people.job, balances=())
     assert rc == cb.EXIT_BAD and not calls and not reads
@@ -814,13 +869,69 @@ def test_people_layout_meets_run_takes_private_file_rules(people, monkeypatch):
     assert inside(people.work / 'a' / 'b', people.work) and not inside(people.work, people.work / 'a')   # the probe can say yes
 
 
+def test_colab_variables_never_reach_the_child(people, monkeypatch):
+    # COLAB_RATE_FILE would let a caller change the G4 rate the guard stops the VM by
+    monkeypatch.setenv('COLAB_RATE_FILE', str(people.work / 'rates.json'))
+    monkeypatch.setenv('COLAB_WATCHDOG_TIMEOUT_MIN', '9999')
+    envs = []
+    class Child:
+        pid = 1
+        def wait(self, timeout=None):
+            return 0
+    monkeypatch.setattr(cb.subprocess, 'Popen', lambda argv, **kwargs: envs.append(kwargs['env']) or Child())
+    monkeypatch.setattr(cb.subprocess, 'run', lambda argv, **kwargs:
+                        envs.append(kwargs['env']) or subprocess.CompletedProcess(argv, 0))
+    values = iter((100, 100, 98))
+    rc = cb.main(['--job', str(people.job), '--max-credits', '10'], balance_reader=lambda: next(values),
+                 sleep=lambda s: None, interpreter_validator=lambda *a: None)   # the real run_take and shutdown
+    assert rc == 0 and len(envs) == 2                                          # the take and its shutdown
+    assert all(env == cb.child_env() for env in envs)
+    assert not any(name in env for env in envs for name in ('COLAB_RATE_FILE', 'COLAB_WATCHDOG_TIMEOUT_MIN'))
+
+
 def test_batch_log_never_names_a_file_a_prompt_or_content(people, capsys):
     assert run_people(people)[0] == 0
     text = (people.work / 'batch.log').read_text() + capsys.readouterr().out
     assert 'DONE spent 2 CU' in text
-    for private in ('clip.mp4', 'photo.jpg', 'the singer', 'their clip', 'a real person', 'person', 'ref_', 'spec.json',
-                    str(people.work)):
+    for private in ('part.mp4', 'face.jpg', 'role words', 'clip-bytes', 'photo-bytes', 'take_a', 'ref_', 'src_',
+                    'spec.json', str(people.work)):
         assert private not in text
+
+
+@pytest.mark.parametrize('what', ['ref_bytes', 'src_bytes', 'src_deleted', 'spec_bytes'])
+def test_people_snapshot_changed_after_load_stops_before_the_take(people, what, capsys):
+    def change():
+        (box,) = people.work.glob('.colab-batch-*')
+        name = {'ref_bytes': 'ref_0.jpg', 'spec_bytes': 'spec.json'}.get(what, 'src_0.mp4')
+        if what == 'src_deleted':
+            (box / 'data' / '0' / name).unlink()
+        else:
+            (box / 'data' / '0' / name).write_bytes(b'swapped')
+    rc, calls, stops, _, reads = invoke(people.job, balances=(100, 100), outcomes=(), on_balance=mutate_at(2, change))
+    assert rc == cb.EXIT_PIN and not calls and not stops
+    assert reads == ['balance', 'balance']                            # the initial read, then the one before the take
+    out = capsys.readouterr().out
+    assert 'snapshot changed since load' in out and 'take not started' in out and 'spent 0' in out
+    assert not list(people.work.glob('.colab-batch-*'))
+
+
+def test_a_snapshot_copy_that_differs_from_the_hash_at_load_is_refused(people):
+    take = cb.load_job(people.job)[2][0]
+    wrong = {given: (suffix, data, '0' * 64) for given, (suffix, data, _) in take.assets.items()}
+    with cb.pinned_tree(people.source, people.work) as root, pytest.raises(cb.PinError, match='snapshot copy'):
+        cb.snapshot_spec(root.parent / 'data', 0, take.spec, wrong)
+
+
+def test_a_takes_snapshot_is_deleted_as_soon_as_that_take_is_done(people):
+    second = people.work / 'take_b'
+    cb.shutil.copytree(people.take, second)
+    data = json.loads(people.job.read_text())
+    data['takes'] = [str(people.take), str(second)]
+    people.job.write_text(json.dumps(data))
+    during = []
+    on_spec = lambda root, spec, directory: during.append(sorted(p.name for p in (root.parent / 'data').iterdir()))
+    assert invoke(people.job, balances=(100, 100, 98, 98, 96), outcomes=(0, 0), on_spec=on_spec)[0] == 0
+    assert during == [['0', '1'], ['1']]
 
 
 def test_people_snapshot_is_deleted_when_the_run_dies(people):
@@ -829,3 +940,47 @@ def test_people_snapshot_is_deleted_when_the_run_dies(people):
         invoke(people.job, balances=(100, 100), outcomes=(RuntimeError('boom'),),
                on_spec=lambda root, spec, directory: boxes.append(root.parent))
     assert len(boxes) == 1 and not boxes[0].exists()
+
+
+# ---- the pins against the ComfyRunpod git objects (read-only git; skipped without a clone) ----
+
+@pytest.fixture
+def clone(monkeypatch):
+    """A ComfyRunpod clone that holds PINNED_FROM: $COMFYRUNPOD_CLONE, else the Contabo checkout; else skip."""
+    monkeypatch.undo()                                                # git runs for real here: show, cat-file, ls-tree
+    for path in (os.environ.get('COMFYRUNPOD_CLONE'), '/opt/MoonieXHQ/Projects/MoonieX/ComfyRunpod'):
+        if path and Path(path).is_dir() and subprocess.run(
+                ['git', '-C', path, 'cat-file', '-e', cb.PINNED_FROM + '^{commit}'], capture_output=True).returncode == 0:
+            return path
+    pytest.skip('no ComfyRunpod clone with PINNED_FROM (set COMFYRUNPOD_CLONE)')
+
+
+def git_out(clone, *args):
+    return subprocess.run(['git', '-C', clone, *args], capture_output=True, check=True).stdout
+
+
+def test_every_pinned_hash_is_the_sha256_of_the_git_object_at_pinned_from(clone):
+    assert re.fullmatch(r'[0-9a-f]{40}', cb.PINNED_FROM)
+    for path, digest in cb.PINNED.items():
+        assert sha(git_out(clone, 'show', f'{cb.PINNED_FROM}:{path}')) == digest, path
+
+
+def test_the_pins_cover_every_local_module_and_both_openjutsu_graphs(clone):
+    """Static only: the pinned files are parsed, never run."""
+    tree = git_out(clone, 'ls-tree', '-r', '--name-only', cb.PINNED_FROM).decode().split('\n')
+    # run_take.py puts scripts/ and scripts/colab/ on sys.path
+    local = {Path(p).stem: p for p in tree if p.endswith('.py') and Path(p).parent.as_posix() in ('scripts', 'scripts/colab')}
+    for path in cb.PINNED:
+        if not path.endswith('.py'):
+            continue
+        for node in ast.walk(ast.parse(git_out(clone, 'show', f'{cb.PINNED_FROM}:{path}'))):
+            names = [a.name for a in node.names] if isinstance(node, ast.Import) else \
+                [node.module] if isinstance(node, ast.ImportFrom) and node.module and not node.level else []
+            for name in names:
+                module = local.get(name.split('.')[0])
+                assert module is None or module in cb.PINNED, f'{path} imports {module}, which is not pinned'
+    assert set(GRAPHS.values()) <= set(cb.PINNED)
+    entry = git_out(clone, 'show', f'{cb.PINNED_FROM}:{cb.ENTRY}').decode()
+    for constant, graph in (('OPENJUTSU_GRAPH', GRAPHS['openjutsu_object']), ('OPENJUTSU_PEOPLE_GRAPH', GRAPHS['openjutsu_people'])):
+        assert re.search(rf'^{constant} = ROOT / "third_party" / "openjutsu" / "{Path(graph).name}"$', entry, re.M)
+        assert re.search(rf'^{constant}_SHA256 = "{cb.PINNED[graph]}"', entry, re.M)    # the hash run_take demands
