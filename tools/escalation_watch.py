@@ -252,10 +252,8 @@ def question_times() -> dict[str, list[float]] | None:
 
 
 def _has_lock(box: str) -> bool:
-    try:
-        return stat.S_ISREG(os.lstat(LOCKS_DIR / f"{box}.lock").st_mode)
-    except OSError:
-        return False
+    from tools import owner_relay as orl
+    return bool(_BOX_RE.fullmatch(box)) and orl._ours(LOCKS_DIR / f"{box}.lock")
 
 
 def live_box(box: str | None) -> str | None:
@@ -263,7 +261,9 @@ def live_box(box: str | None) -> str | None:
     its role's state/locks/<role>-active box when that one has. .spawned_by and the
     letters log can name a C-level session that ended (cto-c34459eb, cmo-ef04792e), and
     nobody drains its box. Neither live: `box` itself. A PH box is returned as it is."""
-    if not box or box.startswith("project_head-") or _has_lock(box):
+    if not box or not _BOX_RE.fullmatch(box):
+        return None
+    if box.startswith("project_head-") or _has_lock(box):
         return box
     alt = f"{box.split('-', 1)[0]}-{ls.read_lock(LOCKS_DIR / (box.split('-', 1)[0] + '-active'))}"
     return alt if _BOX_RE.fullmatch(alt) and _has_lock(alt) else box
@@ -623,6 +623,8 @@ def rewake(sessions, now: float, state: dict, due, *, mode: str, panes=capture_e
     or screen) or a cap (owner_relay.NO_TRY) spends no try: the first tick after the turn
     ends tries. Any other hold (a draft, a choice prompt, an unreadable screen, a wake
     that did not land) is a try. Mode dry prints and counts, live acts."""
+    if mode == "off":
+        return []
     from tools import owner_relay as orl
     woke = set() if woke is None else woke
     if wake is None:
@@ -654,6 +656,8 @@ def relay_tick(sessions, now: float, state: dict, *, mode: str, hub, panes=captu
     """One W2 tick on a loaded owner_relay state (mode dry or live): rewake_scan, then
     owner_relay.run with the ladder's owner lines in it (at most one letter and one wake
     per box), then rewake's tries. `sessions` is with_lock_boxes' list."""
+    if mode == "off":
+        return ["owner-relay off (state/owner_relay.mode)"]
     from tools import owner_relay as orl
     woke = set() if woke is None else woke
     lines, due = rewake_scan(sessions, now, state, budget=budget, tier_of=tier_of, unread=unread)
