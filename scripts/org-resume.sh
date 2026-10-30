@@ -9,15 +9,15 @@ mkdir -p state/restart
 exec > >(tee -a "state/restart/resume-$(date -u +%Y%m%dT%H%M%S).log") 2>&1
 export TMUX_TMPDIR=/tmp
 unset DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR TMUX
-deadline=$((SECONDS + 300))
+deadline=$((SECONDS + 600))
 until timeout 8 bash scripts/hub/org-python.sh -c '
-from lib import db
-assert db.pg_url(), "Postgres hub required"
-with db.get_conn(readonly=True, timeout=3) as conn:
+import os
+import psycopg
+with psycopg.connect(os.environ["ORG_DB_URL"], connect_timeout=3) as conn:
     conn.execute("SELECT 1").fetchone()
 ' >/dev/null 2>&1; do
   if (( SECONDS >= deadline )); then
-    echo 'Hub unavailable after 5 minutes (Postgres container: org-postgres)'
+    echo 'Hub unavailable after 10 minutes (Postgres container: org-postgres)'
     exit 1
   fi
   echo 'Waiting for org-postgres hub'
@@ -36,6 +36,14 @@ if ! [[ "$cgroup" =~ /org-tmux(-[0-9]+)?\.scope($|$'\n') ]]; then
   exit 1
 fi
 status=0
-bash scripts/hub/org-python.sh tools/restart_run.py --host contabo resume || status=$?
+for attempt in 0 1 2 3; do
+  status=0
+  bash scripts/hub/org-python.sh tools/restart_run.py --host contabo resume || status=$?
+  (( status == 0 )) && break
+  if (( attempt < 3 )); then
+    echo 'Resume failed; retrying in 60 seconds'
+    sleep 60
+  fi
+done
 bash scripts/hub/org-python.sh tools/restart_run.py --host contabo report --notify || status=$?
 exit "$status"

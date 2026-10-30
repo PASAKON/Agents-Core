@@ -42,6 +42,14 @@ Before restarting Chrome, Clean asks MoonieX-Console's relay CLI
 relay always blocks Chrome; if the CLI fails, Chrome is skipped unless `--chrome`
 is passed. Clean never reboots.
 
+## Boot order
+
+Docker can start before Tailscale assigns the Postgres bind address.
+`org-postgres-tailnet.service` waits up to five minutes for that address on an
+interface, then restarts the existing container once only if its listener is
+absent. Resume is ordered after this helper and independently checks the real
+hub with psycopg; a local snapshot cannot satisfy readiness.
+
 ## Install later, from a separate CEO card
 
 The unit is shipped only; this task does not install or enable it.
@@ -53,7 +61,10 @@ checks `/proc/<server-pid>/cgroup`; it refuses to launch sessions outside
 It unsets the user-bus environment so new panes inherit the server's scope.
 
 ```sh
-install -m 0644 /opt/MoonieXHQ/Agents/Core/deploy/systemd/org-resume.service /etc/systemd/system/org-resume.service && systemctl daemon-reload && systemctl enable org-resume.service
+cp /opt/MoonieXHQ/Agents/Core/deploy/systemd/org-postgres-tailnet.service /etc/systemd/system/
+cp /opt/MoonieXHQ/Agents/Core/deploy/systemd/org-resume.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable org-postgres-tailnet.service org-resume.service
 ```
 
 The root service uses the existing Run Inbox token file (never put a token in
@@ -67,9 +78,10 @@ compatibility exception to the requested one-option success card. The question
 is one line; context is at most four lines of 90 characters. Full missing names
 remain in the local log. Option answers use normal Inbox mailbox delivery.
 
-Resume retries a read-only Postgres hub query every 10 seconds for up to five
+Resume retries a direct Postgres hub query every 10 seconds for up to ten
 minutes (the database is in `org-postgres`). It then verifies tmux adoption,
-runs resume and report, and sends the report question. Logs go to
+runs resume with up to three retries 60 seconds apart, then runs report once
+and sends the report question. Live sessions are skipped on retries. Logs go to
 `state/restart/resume-<UTC timestamp>.log`. Notification failure is logged and
 fails the unit; it does not roll back successful session recovery. Retry just
 the notification with `bash scripts/hub/org-python.sh tools/restart_run.py

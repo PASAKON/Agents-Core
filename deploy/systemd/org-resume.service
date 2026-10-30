@@ -1,8 +1,8 @@
 [Unit]
 Description=Resume sessions after a prepared Contabo restart
 ConditionPathExists=/opt/MoonieXHQ/Agents/Core/state/restart/pending-contabo.json
-After=network-online.target docker.service
-Wants=network-online.target docker.service
+After=network-online.target docker.service org-postgres-tailnet.service
+Wants=network-online.target docker.service org-postgres-tailnet.service
 
 [Service]
 Type=oneshot
