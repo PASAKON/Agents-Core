@@ -7,6 +7,7 @@
     bash scripts/hub/org-python.sh tools/portfolio.py block black-liquidity --on ceo --what "pick the thumbnail"
     bash scripts/hub/org-python.sh tools/portfolio.py show [<id>]
     bash scripts/hub/org-python.sh tools/portfolio.py monitor          # the P3-E v1 JSON the widget reads
+    bash scripts/hub/org-python.sh tools/portfolio.py monitor --v 3 --counts   # ph_live=N ph_app=M unlinked=K
     bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --goal "..." --repos a/b,c/d
     bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --kind loop --cadence 24
     bash scripts/hub/org-python.sh tools/portfolio.py replan black-liquidity 1 --due 2026-11-02T00:00:00Z --why "first date"
@@ -290,7 +291,9 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("show", help="one project in full, or every project in brief")
     s.add_argument("id", nargs="?")
     s = sub.add_parser("monitor", help="print the monitor JSON")
-    s.add_argument("--v", type=int, choices=(1, 2), default=1)
+    s.add_argument("--v", type=int, choices=(1, 2, 3), default=1)
+    s.add_argument("--counts", action="store_true",
+                   help="with --v 3: print only ph_live=N ph_app=M unlinked=K (no ids, no names)")
     s = sub.add_parser("report")
     s.add_argument("--json", action="store_true")
     sub.add_parser("eta-stats")
@@ -478,8 +481,13 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
         if args.reimport and not args.import_status:
             raise pf.PortfolioError("--reimport goes with --import-status <file> --project <id>")
         if args.verb == "monitor":
-            payload = pf.monitor_payload(now) if args.v == 1 else pf.monitor_payload(now, version=2)
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            if args.counts and args.v != 3:
+                raise pf.PortfolioError("--counts goes with --v 3")
+            payload = pf.monitor_payload(now, version=args.v)
+            if args.counts:
+                print("ph_live={ph_live} ph_app={ph_app} unlinked={unlinked}".format(**pf.v3_counts(payload)))
+            else:
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
             return 0
         if args.verb == "report":
             rows = pf.report(now)
