@@ -61,7 +61,6 @@ APP_ID_RE = re.compile(r"session_[A-Za-z0-9]{1,100}")      # the same pattern as
 LEAD_RE = re.compile(r"(?:[a-z_]{2,20}-)?([a-z0-9]{4,16})")     # owner_session: "cmo-ef04792e", "cto-fresh"
 PH_STATES = ("running", "waiting", "idle", "parked", "offline", "unknown")
 IN_FLIGHT_STATUSES = ("pending", "in_progress", "review")  # a task row the PH delegated that is not finished
-UNLINKED_LANES = ("cto", "cmo", "coo", "cfo")
 MAX_PH_NAME = 80
 # project_events.kind has no value of its own for a PH link, and a new kind is a schema change (the CHECK in
 # lib/db_pg.py and docs/design/projecttrack-p1-ddl.sql). Nothing reads heartbeat_rollup, so the `ph` verb
@@ -1225,14 +1224,14 @@ def _ph_state(project, row, busy, pending) -> str:
 
 def _ph_name_lane(name) -> tuple[str | None, str]:
     """(project name, lane) from a PH session name `<emoji> PH#<id3> (<LANE>) - <Project>`; (None, "other")
-    for a name that is not one. The lane is cto, cmo, coo or cfo, else "other"."""
-    from lib import session_names
+    for a name that is not one. The lane is a C-level role from lib/roles.py, else "other"."""
+    from lib import roles, session_names
     m = session_names.PH_NAME_RE.match(session_names.split_name(name or "")[2])
     if not m:
         return None, "other"
     lane = (m.group("lane") or "").lower()
     proj = _cut((m.group("proj") or m.group("text") or "").strip(), MAX_PH_NAME)
-    return proj.strip() or None, lane if lane in UNLINKED_LANES else "other"
+    return proj.strip() or None, lane if lane in roles.c_level_roles() else "other"
 
 
 def _v3_extend(rows, projects, c) -> list[dict]:

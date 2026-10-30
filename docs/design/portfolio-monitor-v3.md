@@ -96,7 +96,7 @@ The Project Heads that are live and that no shown row names (section 6). Sorted 
 | `sid` | `^[a-z0-9]{4,16}$` | the session id |
 | `host` | `^[a-z0-9-]{1,32}$` or null | the live row's host |
 | `name` | string (at most 80 characters) or null | the project part of the PH's session name `<emoji> PH#<id3> (<LANE>) - <Project>`; null when the name is not of that form; control characters become spaces |
-| `lane` | `cto`, `cmo`, `coo`, `cfo` or `other` | the `(<LANE>)` of the name; `other` when absent or unknown |
+| `lane` | a C-level role from `lib/roles.py` (`cto`, `cmo`, `cgo`, `cfo`, `coo` today) or `other` | the `(<LANE>)` of the name; `other` when absent or unknown |
 | `app` | `session_...` pattern or null | as for `ph.app` |
 
 ## 4. `ph.state`
