@@ -90,9 +90,11 @@ def test_parked_caps_patterns_and_live_skip(isolated):
     for i in range(25):
         (locks / f"project_head-{i:08d}.project.parked").write_text("sample\n")
     (locks / "project_head-invalid!.project.parked").write_text("sample")
-    (locks / "project_head-00000001.project.parked").write_text("INVALID")
+    (locks / "project_head-00000001.project.parked").write_text("not a project!")
+    (locks / "project_head-00000009.project.parked").write_text("SampleName\n")  # display name -> id
     rows = pf._v4_parked({"00000000": {}})
     assert len(rows) == 20 and rows[0] == {"sid": "00000001", "project": None, "host": "node-a"}
+    assert next(r for r in rows if r["sid"] == "00000009")["project"] == "samplename"
     assert rows[-1]["sid"] == "00000020"
 
 

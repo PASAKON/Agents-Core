@@ -1307,7 +1307,7 @@ def _v4_parked(live):
             continue
         try:
             with path.open(encoding="utf-8") as stream:
-                project = stream.read(65).strip()
+                project = stream.read(65).strip().lower()  # the lock holds the display name (HQCare -> hqcare)
         except (OSError, UnicodeError):
             continue
         rows.append({"sid": sid, "project": project if re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", project) else None,
