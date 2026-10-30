@@ -1,5 +1,44 @@
 # REPORT task-c4939966
 
+## Iteration 6 (Claude Sonnet 5.5, on top of 89d91175): the 11 CI failures on PR #584
+
+Root causes and fixes, one per failing group:
+
+- **w04 + w15 (6 tests): the poller stopped polling.** The C4 `tick()` replaced `check_task` with `_publish_via_mesh` for winbox/mac rows and widened the row filter beyond `in_poller_set`. `tick()` now polls exactly `in_poller_set` again and calls `check_task`, as on main. The hub step moved into `_hub_remote_step`, reached from `_publish_via_mesh` inside `check_task` and from the review sweep. It acts only on rows `is_dispatched_here` (so a row dispatched by the Mac is still the Mac's), only with `ORG_MESH_DISPATCH` on, and only for a row's turn in the bounded batch (3 per host per phase per tick, rotating; the turn set lives for one `tick`). A row the hub moved to review returns from `check_task` at once. `_REMOTE_TURN` is `None` outside `tick`, so direct calls are unbounded.
+- **w27 verbs (4 tests).** The payload verbs now carry lowercase hex of a compact JSON object (`remote_maintenance.encode/decode`), not base64url: the old form had uppercase and `=`, which the build_argv plain-token rule (`[a-z0-9_-]`) refuses. `node_dispatch.PAYLOAD_RE` is `(?:[0-9a-f]{2}){1,3750}`. `_check_args` decodes the payload for `steward_reap`, `worker_completion`, `publish_ph` and the 2-argument `publish_branch`, and refuses one that does not name its target (`id` = task-hex8, `session_id` = hex8, `tasks` = list of at most 3, `publish_branch` id = its first argument). `worker_completion -` is refused at the parser. The 8192-character cap applies only to those payload forms; every other command keeps 256. The test oracle in `tests/test_w27_security.py` restates the same grammar independently (`_payload_ok`), and a new test `test_payload_verbs_take_exactly_one_hex_payload_that_names_a_target` covers acceptance, 18 refused tokens per verb, build_argv, and the lone dash.
+- **w27 git redaction (1 test).** `remote_maintenance.git()` now raises `git <sub> failed: <redacted, last 300 chars>` using node_dispatch's `_redact`; `reap` redacts its per-task error text; `hub_reap` redacts every string of a remote reply (`redact_reply`) before the audit row. Nothing but the redacted, bounded text leaves `git()`.
+- **Audit.** `_audit` writes the DB event first (as on main) and falls back to `state/mesh-audit/maintenance.jsonl` only when the DB write fails on winbox/mac for these four verbs. The C4 code wrote that file instead of the DB for ORG_HOST=mac, which broke the w27 "one event row per call" check and polluted the repo (a 74-line file had been committed from test runs; removed).
+
+**Dead worker, complete diff staged (real winbox run, task-18ff8da2).** The recorded pid is the CLI's, not the launcher's, so a dead pid alone does not prove the launcher is done. `completion()` now: pid dead; then if the winbox marker matches HEAD and tracked state is clean it is ready as before; if there is no marker (winbox) or tracked/staged changes (either host), it waits until the worktree's git state (`index`, `logs/HEAD`, no `index.lock`) has been still for `RECOVERY_QUIET_S` (300 s); then, with changes, `_recover_commit` stages tracked changes (`add -u`) and the task's own `docs/reports/<id>/REPORT.md` (header checked), unstages the launcher scratch files and media, commits with `--no-verify`, writes the winbox marker, and returns ready; the hub then flips the row to review and publishes. No report in the index: refuses and commits nothing. Untracked files are never added. `publish()` calls `completion(recover=False)`, so publish never commits. Tests use real git (`dead_worker` fixture): staged diff recovered, media and scratch excluded, untracked left, idempotent second call, unstaged tracked edit, recent state/live pid/`index.lock` wait, missing report, wrong report header, publish does not recover.
+
+Constraint from PH#a08 during this run: Contabo was over its host-fill limit, so the whole suite was NOT run here. Only the three failing files and the files of the code I touched, one pytest call at a time. CI on PR #584 runs the full suite.
+
+### Iteration 6 test tails (all from this worktree, `env -u ORG_DB_URL .venv/bin/python -m pytest -q -o addopts=''`)
+
+```text
+tests/test_w04_self_host_sites.py                46 passed in 11.13s
+tests/test_w15_duty_split.py                     87 passed in 8.23s
+tests/test_w27_security.py                       88 passed in 82.86s (0:01:22)
+tests/test_remote_maintenance.py                 61 passed
+tests/test_node_dispatch.py                      141 passed in 33.24s
+tests/test_branch_poller_reopen.py + test_disk_steward.py + test_spawn_worker_ps1_runners.py
+                                                 157 passed in 37.59s
+tests/test_w23_mesh_dispatch.py                  85 passed in 15.11s
+tests/test_node_dispatch_spawn_ph.py + test_node_dispatch_clevel_host.py + test_w33_node_dispatch_windows.py
+  + test_w46b_node_fixes.py + test_w35_wire.py + test_w28_mesh_destination.py
+                                                 755 passed, 1 skipped in 147.64s (0:02:27)
+```
+
+### Iteration 6 notes for the reviewer
+
+- **Guard.** `scripts/hook-self-repo-guard.py` (ADR 0020) lists this task's touches as `tools/disk_steward.py, tools/gc_stale_tasks.py, tools/workdir.py, windows/spawn-worker.ps1, tests/test_disk_steward_remote.py, tests/test_remote_branch_collect.py`. PR #584 changes `runners/branch_poller.py`, `tools/node_dispatch.py`, `tools/remote_maintenance.py`, `lib/mesh.py`, `config/storage-policy.yaml` too. A Bash `sed -i` on `tools/remote_maintenance.py` was refused. Three of my commits (`0ea55d02`, `49a2fe6b`, `23cd6a15`) had already changed `runners/branch_poller.py`, `tools/node_dispatch.py` and `tools/remote_maintenance.py` with python file writes the hook did not intercept. I sent PH#a08 a `dev_message` with the paths to add to `touches`, and stopped writing under `lib/ runners/ tools/ config/`. If PH declines, revert those three commits.
+- **What my change reaches.** `check_task`, `tick`, `_sweep_review_local_launchers` and `_publish_via_mesh` (callers: `check_task`, the review sweep; tests `test_w04`, `test_w15`, `test_w23`, `test_branch_poller_reopen`, `test_remote_maintenance`). `node_dispatch._check_args`, `parse_command`, `_audit` (every verb; tests `test_node_dispatch*`, `test_w23`, `test_w27`, `test_w33`, `test_w35`, `test_w46b`). `remote_maintenance.git/encode/decode/completion` (callers: `reap`, `publish`, `outgoing_check`, `hub_*`, `node_dispatch` verbs). Wire format change: every `encode()` caller is in this repo; both sides must deploy together.
+- **The real-handlers fuzz** (`test_fuzz_real_handlers_refuse_unknown_rows_before_any_backend`) loop went from 1500 to 2000 cases: three more verbs in the generator's pool left 191 effective cases against its unchanged `ran >= 200` floor. No threshold was lowered.
+- **Deploy order.** Hub and the winbox/Mac dispatcher checkouts must carry the same `remote_maintenance.py` and `node_dispatch.py`: an old node answers a hex payload with a refusal, and the row stays in review/in_progress (retry), never a wrong action.
+- **Not covered by the hub poller:** a winbox/mac row dispatched by a PH on winbox or the Mac (`dispatcher_host` is not Contabo). The W1.5 contract leaves those to their own dispatcher's poller; winbox has none, and the Windows launcher no longer pushes. A PH publishing its own branch uses `publish_ph`; a worker dispatched from winbox would need a poller there or a decision from the CTO. Not widened here.
+
+---
+
 Implemented C4 and C5 on `agent/codex-task-c4939966` in the assigned worktree. The launcher owns commit/push of this submission. No branch switch, sparse-checkout change, deployment, PR creation, role edit, or systemd edit was performed.
 
 ## Design
@@ -8,10 +47,10 @@ Read the approved `state/ph-briefs/hostspawn-host-fill-plan.md`, including the r
 
 ### C4 — publication
 
-1. `lib/db.py` is byte-identical to `origin/main`: status writes do not perform publication or synchronous mesh calls. Contabo's branch poller owns worker publication and retries persisted review rows, including workers dispatched by a remote PH. Completion and review sweeps rotate at most three tasks per host per phase per tick.
+1. `lib/db.py` is byte-identical to `origin/main`: status writes do not perform publication or synchronous mesh calls. Contabo's branch poller owns publication of the winbox/mac rows Contabo dispatched (W1.5 duty split) and retries persisted review rows; it needs `ORG_MESH_DISPATCH` on. Completion and review sweeps rotate at most three tasks per host per phase per tick.
 2. `worker_completion` supplies the independent completion channel before a branch exists on origin. It checks a dead worker PID, a committed report with the correct task header, report freshness when `spawned_at` is supplied, and no tracked edits. Windows additionally requires a launcher marker matching HEAD. The hub records review, triggering publication. Existing external-runner artefact validation runs after publication and records its validated SHA; a refused gate marks the task failed.
-3. `publish_branch <task-id> <base64url-json>` is the new hub call. It carries only the hub's task metadata and checks task/host/worktree/branch binding against native configured roots, without querying a remote DB. The legacy task-ID-only interface remains for existing callers. The new remote maintenance/publication audit is local `state/mesh-audit/maintenance.jsonl`; it needs no DB credentials.
-4. `publish_ph <base64url-json>` shares the outgoing-object guard and immutable-SHA push. PH branches are explicitly bound as `ph/<sid8>-<topic>` and their worktrees must end in `__ph-<sid8>` under the host worktree root. From Contabo, request review/publication with `python -m tools.remote_maintenance winbox <sid8> ph/<sid8>-<topic> '<native-worktree-path>'` (use `mac` for Mac). Existing PH branches with other names require an explicit migration to this binding; the interface does not accept arbitrary refspecs or default branches.
+3. `publish_branch <task-id> <hex-json>` is the new hub call. It carries only the hub's task metadata and checks task/host/worktree/branch binding against native configured roots, without querying a remote DB. The legacy task-ID-only interface remains for existing callers. The new remote maintenance/publication audit is local `state/mesh-audit/maintenance.jsonl`; it needs no DB credentials.
+4. `publish_ph <hex-json>` shares the outgoing-object guard and immutable-SHA push. PH branches are explicitly bound as `ph/<sid8>-<topic>` and their worktrees must end in `__ph-<sid8>` under the host worktree root. From Contabo, request review/publication with `python -m tools.remote_maintenance winbox <sid8> ph/<sid8>-<topic> '<native-worktree-path>'` (use `mac` for Mac). Existing PH branches with other names require an explicit migration to this binding; the interface does not accept arbitrary refspecs or default branches.
 5. All three Windows runners use `New-ReportStepBody`: preserve filtered staging, commit from the launcher, then write `org-publish-ready` in that worktree's Git administration directory. Claude reaches this one epilogue after both natural exit and its existing finish command; the finish command only ends the task's Claude process. Windows launchers no longer push. The shell launcher also leaves Mac/winbox publication to the hub; its other-host behavior remains intact.
 6. Publication fetches origin, walks outgoing commits and objects, rejects media extensions (including intermediate additions later deleted or blobs reused under another name), and rejects blobs over 1 MiB. It pushes the inspected SHA to one explicit branch, without force. This final gate is intentionally code-only even if a staging allow-list kept media.
 
@@ -142,6 +181,18 @@ SKIPPED [1] tests/test_disk_steward_hosts.py:33: requires native Windows handles
 
 ## Not checked / risk
 
+Iteration 6 additions:
+
+- The whole suite was not run (PH#a08: Contabo over its host-fill limit). Not run here: other files that import `node_dispatch`/`mesh` but whose code I did not change in behaviour (`test_mesh_followups`, `test_h1_node_probe`, `test_w25_spawn_c_level_mesh`, `test_start_clevel_remote`, `test_mesh_check*`, `test_multihost`, `test_l5_e2e`, others). If any reads the `_audit` fallback, the 256/8192 command cap, or `encode`, CI on #584 shows it.
+- `RECOVERY_QUIET_S = 300` is a judgement, not a measurement. The recovery commit was tested with real git on Linux only; never against the real PowerShell launcher or a real winbox worktree. If a launcher is mid-step with still git state for more than 5 minutes, the hub and the launcher could both commit; the launcher's `git diff --cached --quiet` then finds nothing to commit and still writes its marker, and the worst case is one `index.lock` error in the launcher.
+- The recovery commit takes tracked changes and the task's own report only. A new code file the worker never ran `git add` on stays untracked and is not published (the launcher's `add -A` would have taken it). A worker that leaves new files unstaged loses them from the branch; its report still reaches review.
+- Redaction is pattern-based (`node_dispatch._SECRET_PATTERNS`: URL userinfo, `gh*_`/`github_pat_` tokens, `sk-`, `bearer|token|basic <16+ chars>`). A credential in another shape would pass. The text is cut to the last 300 characters after redaction, never before.
+- Not verified on a live hub: the `ORG_MESH_DISPATCH` flag is on for the poller process (the hub step is silent without it, as the legacy publish already was).
+- I could not tell from here which pid the hub stores for a Claude worker on winbox; the launcher's step 7 records the CLI process (claude.exe, node/codex.exe, agy.exe), not the PowerShell launcher. The quiet-window rule above rests on that reading of `windows/spawn-worker.ps1`.
+- The three commits that touch `runners/`, `tools/` without a declared `touches` entry (see notes above) await PH#a08's decision.
+
+Earlier iterations:
+
 - Live Windows/Mac execution, SSH deployment, Drive authentication/restoration, native reparse points and PowerShell execution: **PH runs it**. The native Windows integration test is skipped on Linux.
 - Remote cleanup becomes eligible after 20 hours, leaving four hours for scheduling/retries within the one-day target. Local orphan cleanup retains its 14-day grace. Both hosts must receive the updated config; availability, apply scheduling, batch backlog and safety refusals can still delay cleanup.
 - `psutil` must be installed in the winbox and Mac venvs. Cleanup fails closed until it is installed; declaring the dependency here does not install it remotely.
@@ -156,8 +207,11 @@ SKIPPED [1] tests/test_disk_steward_hosts.py:33: requires native Windows handles
 
 ## Blockers
 
-- No sandbox blocker to delivering this implementation. Deployment and live E2E verification remain PH/CTO responsibilities as stated above.
+- `scripts/hook-self-repo-guard.py` (ADR 0020): this task's declared `touches` omit the files the PR changes; see the guard note in the iteration-6 reviewer notes. Deployment and live E2E verification remain PH/CTO responsibilities as stated above.
 
 ## Skill learning
 
-- (none)
+- MISSING [CXO_Protocol_DevSpawn §touches] : a worker task whose brief was replaced (iter 1 "this brief replaces the earlier brief, which is void") kept the void brief's `touches`, so the self-repo guard refuses the new brief's real files; the C-level has to rewrite `touches` when it replaces a brief · evidence: task-c4939966, hook message listing disk_steward/gc_stale_tasks/workdir only
+- MISSING [no owner] : the self-repo guard (ADR 0020) only reads Bash command text for write patterns, so a python heredoc that writes to tools/ or runners/ is not stopped, and the worker finds out about the declared touches only when a later `sed -i` is refused · evidence: task-c4939966 (3 commits under tools/ and runners/ before the first refusal) · prevented by: the DEV prompt naming the protected prefixes and the task's `touches` at spawn
+- COSTLY [no owner] : the w27 oracle, the 256-character command cap and the plain-token regex in build_argv are three separate statements of the verb grammar; a new verb needs all three in step, and the failure message names only one · evidence: task-c4939966 iter 6 · prevented by: one shared grammar table the tests import (rejected so far: the oracle is deliberately independent)
+- COSTLY [no owner] : a pytest run of w27 before the audit fix wrote 74 lines into the repo's `state/mesh-audit/maintenance.jsonl`, and `git add -A` committed them · evidence: commit 0ea55d02, removed in the next commits · prevented by: a `git status` look before `git add -A`
