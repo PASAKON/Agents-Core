@@ -19,12 +19,16 @@ Mirrors hook-log-reply.py but for DEV sessions. Gated by WORKER_TASK_ID env
 CTO's UserPromptSubmit hook tails cto.log and surfaces new lines into
 the next CTO turn, so DEV replies appear in the CTO chat automatically.
 
+ROOT is always this file's own checkout, as hook-log-prompt.py does (wake chain
+W1, 2026-10-30). runners/worker_init.py registers the hook by its absolute path
+in the hub checkout, so lib/ and tools/ are imported from that checkout and the
+logs land in its state/logs/. It used to be the Mac literal whenever the
+envelope flag was off: on any other host that names a tree with no lib/ or
+tools/, so the DB write and the relay to the owner failed silently and the log
+lines landed in a stray /Users/gob tree (measured on Contabo 2026-10-13 and
+again 2026-10-30: no worker report reached its Project Head).
+
 Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1):
-  * ROOT comes from this file's own location, as hook-log-prompt.py does.
-    The legacy literal is the Mac checkout: on any other host it names a tree
-    with no lib/ or tools/, so the DB write and the relay failed silently and
-    the log lines landed in a stray /Users/gob tree (measured 2026-10-13 on
-    Contabo: tasks.session_id NULL on five tasks).
   * tasks.session_id / last_checkpoint / rate-limit state are still written
     on every turn, with the hub call capped at HUB_TIMEOUT_S.
   * The log line and the relay to the owning C-level happen only on a turn
@@ -54,8 +58,7 @@ def _envelope_on() -> bool:
 
 
 ENVELOPE = _envelope_on()
-LEGACY_ROOT = Path("/Users/gob/MoonieXHQ/Agents/Core")
-ROOT = Path(__file__).resolve().parent.parent if ENVELOPE else LEGACY_ROOT
+ROOT = Path(__file__).resolve().parent.parent
 LOG = ROOT / "state" / "logs" / "cto.log"
 HUB_TIMEOUT_S = 3.0
 

@@ -118,11 +118,16 @@ def plain_turn(pid="p2", text="still working"):
 # ---------------------------------------------------------------- dev hook
 
 
-def test_flag_off_keeps_the_legacy_root(monkeypatch):
+def test_flag_off_root_is_the_scripts_own_checkout_too(monkeypatch):
+    """Wake chain W1 (2026-10-30): the Mac literal is gone. With the flag off
+    ROOT was /Users/gob/..., so on Contabo every worker report failed to import
+    tools.send_to_cto and reached no owner."""
     monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
     mod = load(DEV_HOOK, "devhook_off")
-    assert mod.ENVELOPE is False and mod.ROOT == mod.LEGACY_ROOT
+    assert mod.ENVELOPE is False and mod.ROOT == DEV_HOOK.resolve().parent.parent
+    assert not hasattr(mod, "LEGACY_ROOT")
     assert mod._log_for(None).name == "cto.log" and mod._log_for(CTO).name == f"cto-{CTO}.log"
+    assert mod._log_for(None).parent == mod._log_for(CTO).parent == mod.ROOT / "state" / "logs"
 
 
 def test_flag_on_root_is_the_scripts_own_checkout(monkeypatch):
