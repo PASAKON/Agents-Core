@@ -314,6 +314,7 @@ def watch(org, monkeypatch):
     monkeypatch.setattr(ew, "find", functools.partial(ew.find, panes=lambda t: w.screens.get(t, INPUT)))
     monkeypatch.setattr(ew, "nudge", functools.partial(ew.nudge, send=org.send, panes=org.panes))
     monkeypatch.setattr(ew, "_wake", org.wake)
+    monkeypatch.setattr(ew, "owner_tick", lambda *a, **k: [])   # W2 has its own tests
     return w
 
 

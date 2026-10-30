@@ -32,6 +32,16 @@ inline only when it is ENVELOPE_BODY_MAX characters or fewer; a longer one is
 read with `read_letter("<id>")` (org MCP) or `python -m tools.letters read <id>`.
 `lib.mailbox.drain` then marks the letters read instead of deleting them.
 Off, the output is exactly as before.
+
+CEO notes in full (wake chain W1, design C6, 2026-10-30), both modes: the
+Console's body line cuts what the CEO typed on /run (notify.js firstLine: a
+note to its first 120 characters, an "ask back" to its first line). The letter
+carries the full text, so after the body of a letter from run-inbox the hook
+prints each note in full, up to NOTE_MAX characters, as a quoted block:
+answer.text of a question letter, each answer.text of a question batch, and
+the question of an ask-back. A note the printed body already holds whole is
+not printed twice. No other field is printed: not a result's output tail, not
+the operator's name.
 """
 from __future__ import annotations
 
@@ -46,6 +56,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 ENVELOPE_BODY_MAX = 400
+NOTE_MAX = 2000          # the Console's own cap on a note (src/run/questions.js MAX_NOTE)
+NOTE_SENDER = "run-inbox"
 
 
 def _envelope_on() -> bool:
@@ -56,6 +68,57 @@ def _one_line(value, cap: int) -> str:
     """A field a sender wrote, as one bounded line: a newline in a subject or a
     sender name must not print a second envelope line."""
     return " ".join(str(value if value is not None else "").split())[:cap]
+
+
+def _answer_text(record) -> str | None:
+    answer = record.get("answer") if isinstance(record, dict) else None
+    text = answer.get("text") if isinstance(answer, dict) else None
+    return text if isinstance(text, str) else None
+
+
+def _ceo_notes(letter: dict) -> list[tuple[str, str, str]]:
+    """(what, card id, text) for each note the CEO typed on /run that a
+    run-inbox letter carries: the answer note of a question letter, of each
+    question in a batch, and the question of an ask-back on a pending command
+    card. Nothing for any other sender or field.
+
+    The letter's shape decides, not its kind: with the envelope flag on,
+    lib.mailbox._fill rewrites a kind it does not know ("question",
+    "question_batch") to "message" before this hook sees the letter."""
+    frm = letter.get("from")
+    if not isinstance(frm, dict) or frm.get("role") != NOTE_SENDER:
+        return []
+    found: list[tuple[str, object, str | None]] = []
+    if isinstance(letter.get("answer"), dict):          # one question (Console kind "question")
+        found.append(("note", letter.get("id"), _answer_text(letter)))
+    questions = letter.get("questions")
+    for q in questions if isinstance(questions, list) else []:   # "question_batch"
+        found.append(("note", q.get("id") if isinstance(q, dict) else None, _answer_text(q)))
+    if isinstance(letter.get("question"), str):         # an ask-back, the card still pending
+        found.append(("question", letter.get("id"), letter.get("question")))
+    return [(what, _one_line(card or "?", 96), text) for what, card, text in found
+            if text and text.strip()]
+
+
+def _note_lines(letter: dict, shown: str) -> list[str]:
+    """The quoted block printed after a letter's body (see the module
+    docstring). `shown` is the body text already printed in full, "" when it
+    was not printed. Never raises: a malformed letter gives no lines."""
+    try:
+        out: list[str] = []
+        for what, card, text in _ceo_notes(letter):
+            if text in shown:
+                continue                    # the body already holds it whole
+            # a lone surrogate (a \ud800 escape in the JSON) would make print() raise
+            # after the letter was drained: it becomes "?"
+            full = text[:NOTE_MAX].encode("utf-8", "replace").decode("utf-8")
+            out.append(f"    > CEO {what} in full ({card}):")
+            out.extend(f"    > {ln}" for ln in full.splitlines())
+            if len(text) > NOTE_MAX:
+                out.append(f"    > ...[cut at {NOTE_MAX} of {len(text)} chars]")
+        return out
+    except Exception:
+        return []
 
 
 def _print_envelopes(letters: list[dict]) -> None:
@@ -74,11 +137,15 @@ def _print_envelopes(letters: list[dict]) -> None:
         body = str(letter.get("body") or "")
         subject = _one_line(letter.get("subject") or body, 80)
         print(f"- [{lid}] {tag} from {who} · {_one_line(letter.get('sent_at', ''), 32)} · {subject}")
+        shown = ""
         if len(body) <= ENVELOPE_BODY_MAX:
             for ln in body.splitlines() or [""]:
                 print(f"    {ln}")
+            shown = body
         else:
             print(f"    ({len(body)} chars, not shown: read_letter(\"{lid}\"))")
+        for ln in _note_lines(letter, shown):
+            print(ln)
     print()
 
 
@@ -143,7 +210,10 @@ def main() -> int:
     for letter in letters:
         frm = letter.get("from") or {}
         role_label = str(frm.get("role") or "?").upper()
-        print(f"[{role_label}] : {letter.get('body', '')}")
+        body = letter.get("body", "")
+        print(f"[{role_label}] : {body}")
+        for ln in _note_lines(letter, str(body)):
+            print(ln)
         print(f"    ({frm.get('session_id', '?')} · {letter.get('sent_at', '')})")
         print()
     return 0
