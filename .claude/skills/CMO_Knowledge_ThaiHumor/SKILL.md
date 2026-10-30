@@ -16,7 +16,7 @@ refresh_after: "2027-01-29"
 Verified 2026-10-29 by PH project_head-8c76edf4 (project thaihumor, CEO order 29 Oct 2026 via CMO): YouTube watch-page
 metadata, most-replayed heatmaps and Thai auto-captions for 40+ clips (no video downloaded), plus platform and research
 pages opened at the source. Full evidence: `references/humour-map.md` (12 mechanisms, 33 links, views, timestamps),
-`references/thumbstop.md` (16 claims marked VERIFIED / ASSUMED / MEASURED), `references/hooks-20.md` (20 worked hooks).
+`references/thumbstop.md` (16 claims marked VERIFIED / ASSUMED / MEASURED), `references/hooks-20.md` (20 worked hooks), `references/real-jokes.md` + `references/jokes-round2.md` (the formula that works, CEO 2026-10-30).
 
 ## Why Thai viewers laugh (2026-10-29, humour-map.md)
 1. สนุก is expected everywhere, so comedy that breaks into a serious frame (news desk, court, lakorn, army, temple)
@@ -67,6 +67,29 @@ Checklist for every hook:
 8. The first cut (the reaction face) by second 2-3.
 9. By second 3 the viewer knows what the clip is about; the punch lands by second 6.
 10. Write it to work twice: with sound (voice + cue) and muted (face + subtitle).
+
+## The formula that works: decode a real bit, keep its frame, write our lines (CEO 2026-10-30)
+CEO 29 Oct on our first 5 jokes (concept gags like "the vegetable phoned"): "ไม่ขำเลยแม้แต่น้อย". CEO 30 Oct on
+the second 5, written with this method: "สูตรนี้ได้ผล ... ใช้ได้ทุกอัน" (some still a little bland). Evidence and
+the 9 decoded bits: `references/real-jokes.md`.
+
+**Research (do this before writing any joke):**
+1. Search YouTube for famous Thai comedy (ตลก 6 ฉาก, ชิงร้อยชิงล้าน, น้าค่อม, แจ๊ส ชวนชื่น, เดี่ยว โน้ส อุดม,
+   บริษัทฮาไม่จำกัด) and keep clips of 1-12 min with 1M+ views.
+2. Read the "most replayed" peak from the watch page and the Thai auto-captions (`yt-dlp --skip-download
+   --write-auto-subs --sub-langs th --sub-format json3`, no media). The lines 25 s before the peak are the setup,
+   the peak is the punch.
+3. Write down for each bit: the setup lines, the punch line, who plays the ตบ (the straight man), the step count.
+
+**Writing (what made round 2 land):**
+1. Start from a truth everyone has lived (upselling, haggling, "ใกล้ถึงแล้ว"), never a surreal idea.
+2. Someone is sure of something wrong, and says it with a straight face (the sun at night).
+3. Climb in three steps; step 3 leaves reality (45 / 85 / 125; "the spoon that has been washed").
+4. Always a ตบ: a second person says what the viewer thinks ("ป้า! ตกลงป้าลดหรือป้าขึ้นเนี่ย"). The second laugh
+   comes from there.
+5. Status flip in an everyday voice: scold the ghost like a mother scolds a child.
+6. Keep the frame of the real bit, never its lines; name the source bit in the script (CEO 2026-10-11 rule).
+7. Bland lines get one more step or a sharper ตบ, not a new idea.
 
 ## How to write a hook with this skill
 1. Pick the channel's job (ILAG moral drama, KhaoHom survival, Jade Tally drama dub, B-roll opener) and 1-2 mechanisms
