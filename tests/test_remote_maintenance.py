@@ -3,14 +3,65 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path, PureWindowsPath
 from types import SimpleNamespace
 import json
+import os
 import re
+import secrets
+import shutil
+import string
 import subprocess
 import sys
+import textwrap
 
 import pytest
 
 from tools import remote_maintenance as rm
 from lib import db, mesh
+
+# Looked up before any fixture puts a fake first on PATH: the real-binary tests
+# need it, and they are skipped on a host (a CI runner) that has none.
+REAL_GITLEAKS = shutil.which('gitleaks')
+ORIGINAL_PATH = os.environ['PATH']
+
+
+class FakeGitleaks:
+    """A `gitleaks` first on PATH. It records how it was called, writes the
+    report it was told to, prints `noise` on both streams and exits `code`."""
+
+    def __init__(self, monkeypatch, tmp_path):
+        self.dir = tmp_path / 'fakebin'
+        self.dir.mkdir()
+        self.log = tmp_path / 'gitleaks-calls.jsonl'
+        monkeypatch.setenv('PATH', str(self.dir) + os.pathsep + ORIGINAL_PATH)
+        self.set()
+
+    def set(self, code=0, findings=(), noise='', sleep=0):
+        cfg = json.dumps(dict(log=str(self.log), code=code, findings=list(findings), noise=noise, sleep=sleep))
+        script = self.dir / 'gitleaks'
+        script.write_text(f'#!{sys.executable}\n' + textwrap.dedent('''\
+            import json, os, sys, time
+            cfg = json.loads(%r)
+            argv = sys.argv[1:]
+            report = argv[argv.index('--report-path') + 1]
+            with open(cfg['log'], 'a') as stream:
+                stream.write(json.dumps(dict(argv=argv, cwd=os.path.realpath(os.getcwd()), report=report)) + '\\n')
+            time.sleep(cfg['sleep'])
+            with open(report, 'w') as stream:
+                json.dump(cfg['findings'], stream)
+            sys.stdout.write(cfg['noise'])
+            sys.stderr.write(cfg['noise'])
+            sys.exit(cfg['code'])
+            ''') % cfg)
+        script.chmod(0o755)
+
+    def calls(self):
+        return [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
+
+
+@pytest.fixture(autouse=True)
+def gitleaks(monkeypatch, tmp_path):
+    """Default: a scanner that finds nothing, so a host without the binary runs
+    every other test here. The tests of the scan itself reset it."""
+    return FakeGitleaks(monkeypatch, tmp_path)
 
 
 @pytest.mark.parametrize('path,root', [
@@ -570,3 +621,309 @@ def test_hub_does_nothing_for_remote_rows_with_the_mesh_off(monkeypatch):
     monkeypatch.delenv(mesh.ENV_FLAG)
     bp.tick()
     assert calls == []
+
+
+# --- iteration 7: no push without a secret scan, and one cat-file for the objects ---
+
+SECRET = 'not-a-real-' + 'secret-marker-7f3a9c'      # any text that must never be replied or audited
+BRANCH = 'agent/claude-task-1234abcd'
+
+
+def _token():
+    """A GitHub-token-shaped string built at run time, so no literal sits in this file."""
+    return 'gh' + 'p_' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(36))
+
+
+def _branch_worktree(tmp_path, branch=BRANCH, dirname='project__developer__task-1234abcd', files=None):
+    """Real git. origin has `main`; the worktree (git worktree add, as workers get
+    theirs) holds one outgoing commit. Returns (worktree, origin)."""
+    origin, repo, root = tmp_path / 'origin.git', tmp_path / 'repo', tmp_path / 'trees'
+    root.mkdir(exist_ok=True)
+    if not origin.exists():
+        _run(tmp_path, 'init', '-q', '--bare', '-b', 'main', str(origin))
+        _run(tmp_path, 'init', '-q', '-b', 'main', str(repo))
+        _run(repo, 'config', 'user.email', 'test@example.test')
+        _run(repo, 'config', 'user.name', 'Test')
+        (repo / 'base.py').write_text('base = 1\n')
+        _run(repo, 'add', 'base.py')
+        _run(repo, 'commit', '-q', '-m', 'base')
+        _run(repo, 'remote', 'add', 'origin', str(origin))
+        _run(repo, 'push', '-q', 'origin', 'main')
+    wt = root / dirname
+    _run(repo, 'worktree', 'add', '-q', '-b', branch, str(wt))
+    for name, data in (files or {'feature.py': b'feature = 1\n'}).items():
+        (wt / name).parent.mkdir(parents=True, exist_ok=True)
+        (wt / name).write_bytes(data)
+    _run(wt, 'add', '-A')
+    _run(wt, 'commit', '-q', '-m', 'work')
+    return wt, origin
+
+
+def _on_mac(monkeypatch, tmp_path):
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'mac')
+    monkeypatch.setattr(rm.config, 'host', lambda _: {'worktrees': str(tmp_path / 'trees')})
+
+
+@pytest.fixture
+def outgoing(monkeypatch, tmp_path):
+    wt, origin = _branch_worktree(tmp_path)
+    _on_mac(monkeypatch, tmp_path)
+    row = dict(id='task-1234abcd', host='mac', worktree=str(wt), branch=BRANCH, status='review')
+    return row, wt, origin
+
+
+def _pushed(origin, branch):
+    return _run(origin, 'branch', '--list', branch).strip() != ''
+
+
+def _no_db(monkeypatch, tmp_path):
+    """Audit goes to the local file, as on a host that holds no DB secret."""
+    from tools import node_dispatch as nd
+    monkeypatch.setattr(nd, 'MAINTENANCE_AUDIT_DIR', tmp_path / 'audit')
+
+    def refuse(*a, **k):
+        raise RuntimeError('no DB on this host')
+    monkeypatch.setattr(db, 'get_conn', refuse)
+    return nd
+
+
+LEAK = dict(RuleID='github-pat', File='src/cfg.py', StartLine=7, Secret=SECRET,
+            Match=f'token = "{SECRET}"', Description=SECRET, Message=SECRET,
+            Fingerprint=f'abc:src/cfg.py:github-pat:7:{SECRET}')
+
+
+def test_a_gitleaks_finding_refuses_the_push_and_no_secret_text_is_replied_or_audited(
+        outgoing, gitleaks, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    gitleaks.set(code=1, findings=[LEAK], noise=SECRET)
+    nd = _no_db(monkeypatch, tmp_path)
+
+    reply, code = nd.run_command(f"publish_branch {row['id']} {rm.encode(row)}")
+
+    assert code == 1 and not reply['ok']
+    assert 'github-pat src/cfg.py:7' in reply['error'] and 'not publishing' in reply['error']
+    audit = (tmp_path / 'audit' / 'maintenance.jsonl').read_text()
+    assert 'github-pat src/cfg.py:7' in audit
+    assert SECRET not in json.dumps(reply) and SECRET not in audit
+    assert 'Fingerprint' not in audit and 'abc:' not in audit
+    assert not _pushed(origin, row['branch'])                  # nothing reached the remote
+    [call] = gitleaks.calls()
+    assert not Path(call['report']).exists() and not Path(call['report']).parent.exists()   # temp file deleted
+
+
+def test_every_publish_path_goes_through_the_scan(outgoing, gitleaks, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    gitleaks.set(code=1, findings=[LEAK])
+    nd = _no_db(monkeypatch, tmp_path)
+    ph_wt, _ = _branch_worktree(tmp_path, branch='ph/1234abcd-fix', dirname='project__ph-1234abcd')
+    ph = dict(row, session_id='1234abcd', branch='ph/1234abcd-fix', worktree=str(ph_wt))
+    for command in (f"publish_branch {row['id']} {rm.encode(row)}", f"publish_ph {rm.encode(ph)}"):
+        reply, code = nd.run_command(command)
+        assert code == 1 and 'github-pat src/cfg.py:7' in reply['error'], (command[:20], reply)
+    assert not _pushed(origin, row['branch']) and not _pushed(origin, 'ph/1234abcd-fix')
+    assert len(gitleaks.calls()) == 2
+
+
+def test_a_secret_in_a_commit_the_hub_made_for_a_dead_worker_is_not_published(dead_worker, gitleaks):
+    row, wt = dead_worker
+    gitleaks.set(code=1, findings=[LEAK])
+    _stage_complete_diff(wt)                                    # recovery commits with --no-verify
+    assert rm.completion(rm.encode(row))['ready']
+    before = _run(wt, 'rev-parse', 'HEAD')
+    with pytest.raises(ValueError, match=r'github-pat src/cfg\.py:7.*not publishing'):
+        rm.publish(rm.encode({**row, 'status': 'review'}))
+    assert _run(wt, 'rev-parse', 'HEAD') == before
+    assert not _pushed(wt.parent.parent / 'origin.git', row['branch'])
+
+
+def test_no_gitleaks_on_path_refuses_and_pushes_nothing(outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    only_git = tmp_path / 'only-git'
+    only_git.mkdir()
+    os.symlink(shutil.which('git'), only_git / 'git')
+    monkeypatch.setenv('PATH', str(only_git))
+    with pytest.raises(ValueError) as caught:
+        rm.publish(rm.encode(row))
+    assert str(caught.value) == 'no gitleaks on mac: not publishing'
+    assert not _pushed(origin, row['branch'])
+
+
+def test_a_clean_scan_lets_the_push_go_ahead_and_runs_gitleaks_without_a_shell(outgoing, gitleaks):
+    row, wt, origin = outgoing
+    result = rm.publish(rm.encode(row))
+    head = _run(wt, 'rev-parse', 'HEAD').strip()
+    assert result == {'branch': row['branch'], 'head': head, 'pushed': True}
+    assert _run(origin, 'rev-parse', row['branch']).strip() == head
+    [call] = gitleaks.calls()
+    argv = call['argv']
+    assert argv[0] == 'git' and f'--log-opts={head} --not --remotes=origin' in argv   # one argv element, no shell
+    assert {'--redact', '--no-banner', '--ignore-gitleaks-allow'} <= set(argv)
+    assert argv[argv.index('--report-format') + 1] == 'json'
+    # The source is the repository's own git dir and the working directory an
+    # empty one: a .gitleaks.toml or .gitleaksignore the worker committed is never read.
+    common = Path(_run(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir').strip())
+    assert argv[-1] == str(common) and call['cwd'] != str(wt)
+
+
+@pytest.mark.parametrize('code,findings,text', [
+    (1, [], 'gitleaks failed (exit 1): not publishing'),         # leak exit but no usable report
+    (2, [], 'gitleaks failed (exit 2): not publishing'),         # the scanner itself broke
+    (1, [{'RuleID': 'a b', 'File': 'x\ny', 'StartLine': 'z'}], '1 finding'),
+])
+def test_any_non_zero_exit_refuses_with_nothing_but_rule_and_location(outgoing, gitleaks, code, findings, text):
+    row, wt, origin = outgoing
+    gitleaks.set(code=code, findings=findings, noise=SECRET)
+    with pytest.raises(ValueError, match=re.escape(text)) as caught:
+        rm.publish(rm.encode(row))
+    assert SECRET not in str(caught.value) and '\n' not in str(caught.value)
+    assert not _pushed(origin, row['branch'])
+
+
+def test_a_hung_gitleaks_is_refused_not_waited_for(outgoing, gitleaks, monkeypatch):
+    row, wt, origin = outgoing
+    gitleaks.set(sleep=30)
+    monkeypatch.setattr(rm, 'GITLEAKS_TIMEOUT_S', 1)
+    with pytest.raises(ValueError, match='gitleaks timed out: not publishing'):
+        rm.publish(rm.encode(row))
+    assert not _pushed(origin, row['branch'])
+
+
+def test_findings_are_capped_and_each_is_rule_and_location_only(outgoing, gitleaks):
+    row, wt, origin = outgoing
+    gitleaks.set(code=1, findings=[dict(LEAK, StartLine=n) for n in range(1, 10)])
+    with pytest.raises(ValueError) as caught:
+        rm.outgoing_check(wt, row['branch'])
+    message = str(caught.value)
+    assert message.count('github-pat') == rm.MAX_FINDINGS and '9 finding' in message
+    assert SECRET not in message
+
+
+needs_gitleaks = pytest.mark.skipif(REAL_GITLEAKS is None, reason='gitleaks is not installed on this host')
+
+
+@needs_gitleaks
+def test_the_real_scanner_passes_clean_code_and_stops_a_committed_token(outgoing, monkeypatch):
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)                  # the real binary, not the fake
+    assert rm.outgoing_check(wt, row['branch']) == _run(wt, 'rev-parse', 'HEAD').strip()
+    token = _token()
+    (wt / 'cfg.py').write_text(f'token = "{token}"\n')
+    _run(wt, 'add', 'cfg.py')
+    _run(wt, 'commit', '-q', '-m', 'config')
+    with pytest.raises(ValueError) as caught:
+        rm.publish(rm.encode(row))
+    assert 'github-pat cfg.py:1' in str(caught.value) and token[4:] not in str(caught.value)
+    assert not _pushed(origin, row['branch'])
+
+
+@needs_gitleaks
+@pytest.mark.parametrize('bypass', ['allowlist-config', 'ignore-file', 'allow-comment'])
+def test_the_real_scanner_cannot_be_told_by_the_worker_to_look_away(bypass, outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)
+    token = _token()
+    allow = '  # gitleaks:allow' if bypass == 'allow-comment' else ''
+    (wt / 'cfg.py').write_text(f'token = "{token}"{allow}\n')
+    _run(wt, 'add', 'cfg.py')
+    _run(wt, 'commit', '-q', '-m', 'config')
+    if bypass == 'allowlist-config':
+        (wt / '.gitleaks.toml').write_text("[allowlist]\npaths = ['''.*''']\nregexes = ['''.*''']\n")
+    elif bypass == 'ignore-file':
+        report = tmp_path / 'direct.json'
+        subprocess.run([REAL_GITLEAKS, 'git', f'--log-opts=HEAD --not --remotes=origin', '--no-banner', '--redact',
+                        '--report-format', 'json', '--report-path', str(report), str(wt)],
+                       cwd=wt, capture_output=True)
+        (wt / '.gitleaksignore').write_text(json.loads(report.read_text())[0]['Fingerprint'] + '\n')
+    _run(wt, 'add', '-A')
+    _run(wt, 'commit', '-q', '--allow-empty', '-m', 'the worker hides it')
+    # All three hide the token from a scan that reads the worktree: that is what
+    # the test is for. The hub scans the git dir from an empty directory.
+    naive = subprocess.run([REAL_GITLEAKS, 'git', '--log-opts=HEAD --not --remotes=origin', '--no-banner',
+                            str(wt)], cwd=wt, capture_output=True)
+    assert naive.returncode == 0, 'the bypass no longer works against a naive scan; rethink this test'
+    with pytest.raises(ValueError, match=r'github-pat cfg\.py:1'):
+        rm.outgoing_check(wt, row['branch'])
+    assert not _pushed(origin, row['branch'])
+
+
+@needs_gitleaks
+def test_the_real_scanner_looks_only_at_what_is_about_to_be_pushed(outgoing, monkeypatch):
+    """A secret already on origin must not block every later publish."""
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)
+    (wt / 'old.py').write_text(f'token = "{_token()}"\n')
+    _run(wt, 'add', 'old.py')
+    _run(wt, 'commit', '-q', '-m', 'already public')
+    _run(wt, 'push', '-q', 'origin', 'HEAD:refs/heads/' + row['branch'])
+    (wt / 'new.py').write_text('fine = 1\n')
+    _run(wt, 'add', 'new.py')
+    _run(wt, 'commit', '-q', '-m', 'more')
+    assert rm.outgoing_check(wt, row['branch']) == _run(wt, 'rev-parse', 'HEAD').strip()
+
+
+# --- the object listing: one cat-file --batch-check, same verdicts -------------
+
+def _count_cat_file(monkeypatch):
+    calls = []
+    real = rm.git
+
+    def spy(wt, *args, **kwargs):
+        if args and args[0] == 'cat-file':
+            calls.append(args)
+        return real(wt, *args, **kwargs)
+    monkeypatch.setattr(rm, 'git', spy)
+    return calls
+
+
+def test_a_big_branch_costs_one_cat_file_call(tmp_path, monkeypatch):
+    files = {f'pkg{n}/mod{m}.py': f'v = {n * 100 + m}\n'.encode() for n in range(6) for m in range(5)}
+    wt, _ = _branch_worktree(tmp_path, files=files)
+    calls = _count_cat_file(monkeypatch)
+    assert rm.outgoing_check(wt, BRANCH) == _run(wt, 'rev-parse', 'HEAD').strip()
+    assert len(calls) == 1 and calls[0][1].startswith('--batch-check')
+
+
+@pytest.mark.parametrize('name,size,message', [
+    ('my clip.MP4', 10, 'outgoing media'),                  # name with a space, upper-case extension
+    ('dir with space/shot.png', 10, 'outgoing media'),
+    ('data/blob.bin', 1048577, 'outgoing object exceeds 1 MB'),
+    ('data/blob.txt', 2 * 1048576, 'outgoing object exceeds 1 MB'),
+])
+def test_media_and_size_verdicts_are_unchanged_by_the_batch_call(tmp_path, name, size, message):
+    wt, _ = _branch_worktree(tmp_path, files={'ok.py': b'ok = 1\n', name: b'x' * size})
+    with pytest.raises(ValueError, match=message):
+        rm.outgoing_check(wt, BRANCH)
+
+
+def test_a_blob_of_exactly_one_megabyte_is_allowed_and_trees_are_not_blobs(tmp_path):
+    wt, _ = _branch_worktree(tmp_path, files={'a/b/c/data.bin': b'x' * 1048576, 'a/b/d.py': b'd = 1\n'})
+    assert rm.outgoing_check(wt, BRANCH) == _run(wt, 'rev-parse', 'HEAD').strip()
+
+
+def test_a_media_name_on_a_large_object_reports_media_first(tmp_path):
+    wt, _ = _branch_worktree(tmp_path, files={'big.mp4': b'x' * 2000000})
+    with pytest.raises(ValueError, match='outgoing media'):
+        rm.outgoing_check(wt, BRANCH)
+
+
+def test_a_missing_outgoing_object_is_refused(tmp_path, monkeypatch):
+    wt, _ = _branch_worktree(tmp_path)
+    real = rm.git
+
+    def lose_objects(wt, *args, **kwargs):
+        out = real(wt, *args, **kwargs)
+        if args and args[0] == 'cat-file':
+            return '\n'.join(line.split()[0] + ' missing' for line in out.splitlines())
+        return out
+    monkeypatch.setattr(rm, 'git', lose_objects)
+    with pytest.raises(ValueError, match='outgoing object missing'):
+        rm.outgoing_check(wt, BRANCH)
+
+
+def test_the_length_refusal_names_the_limit_that_applied():
+    from tools import node_dispatch as nd
+    with pytest.raises(nd.Refusal, match='longer than 256 chars'):
+        nd.parse_command('probe ' + 'a' * 300)
+    for command in ('worker_completion ' + 'a' * 9000, 'publish_branch task-1234abcd ' + 'a' * 9000):
+        with pytest.raises(nd.Refusal, match='longer than 8192 chars'):
+            nd.parse_command(command)

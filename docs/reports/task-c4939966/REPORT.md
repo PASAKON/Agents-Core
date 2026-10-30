@@ -1,5 +1,49 @@
 # REPORT task-c4939966
 
+## Iteration 7 (Claude Sonnet 5.5, on top of a846b332): secret scan before every remote push
+
+**STATUS: the source change is NOT in the tree.** The self-repo guard (ADR 0020) still refuses writes to `tools/remote_maintenance.py` and `tools/node_dispatch.py`: it reads the worktree sidecar `.org-task.json` (spawn time 08:36, old `touches`), and the PH's later `touches` change did not reach it. I asked twice and waited about 65 minutes; I did not write around the guard. The finished source change is one patch, `docs/reports/task-c4939966/iter7-source.patch`; it applies cleanly to a846b332 (`git apply --check` exit 0). To finish: `git apply docs/reports/task-c4939966/iter7-source.patch`, then re-run the files below. Until it is applied, the 17 new tests that exercise it fail on the tree (below), so do not merge this head without it.
+
+What the patch does (all in `outgoing_check`, which `publish` (publish_branch, publish_ph) and the legacy 1-arg `publish_branch` all call; the hub's recovery commit for a dead worker is published only through `publish`, so it passes the same gate):
+
+1. `shutil.which('gitleaks')` first; none → `ValueError('no gitleaks on <host>: not publishing')`, before any fetch.
+2. After the existing media/size checks: `gitleaks git --log-opts="<head> --not --remotes=origin" --redact --no-banner --ignore-gitleaks-allow --report-format json --report-path <tmp>/report.json <git-common-dir>` as an argv list (no shell), stdin/stdout/stderr discarded, 120 s timeout, working directory an empty temp dir. Refuse unless exit 0.
+3. The reply and the audit row carry only `<rule id> <path>:<line>` per finding (first 5, count of all), each made printable, passed through `_redact` and bounded. Matched text, secret, fingerprint, scanner stdout/stderr are never read into the message. Exit non-zero without a usable report: `gitleaks failed (exit N): not publishing`; timeout and exec failure have their own fixed text. The temp directory (report, empty cwd) is removed in all cases.
+4. Why the source is the git dir and not the worktree, and `--ignore-gitleaks-allow` (measured with gitleaks 8.30.1, not assumed): a `.gitleaks.toml` that allowlists everything, a `.gitleaksignore` with the finding's fingerprint, or a `# gitleaks:allow` comment, committed or left in the worker's worktree, each make a naive `gitleaks git` of the worktree exit 0 with the token in the range. A scan of the repository's git dir from an empty directory does not read the worktree's files, and the flag ignores allow comments. `tests/test_remote_maintenance.py::test_the_real_scanner_cannot_be_told_by_the_worker_to_look_away` runs all three against the real binary and also asserts that the naive scan really is fooled, so the test fails if the premise stops being true.
+5. Non-blocking items: `parse_command` now says `longer than 8192 chars` for payload verbs and `256` for the rest. `outgoing_check` types and sizes all outgoing objects with one `git cat-file --batch-check` (oids on stdin; `git()` gained an optional `stdin=`) instead of two calls per object; a `missing` line refuses (`outgoing object missing`), as the old per-object call did by failing. Media and size verdicts are identical (the media, size, 1 MB boundary, deleted-object and media-before-size tests pass on both the old and the new code).
+
+### Iteration 7 test tails (`env -u ORG_DB_URL .venv/bin/python -m pytest -o addopts=''`, one call at a time; Contabo over its fill limit, so no full suite)
+
+Tree as committed (patch NOT applied), `tests/test_remote_maintenance.py`: the proof that the new tests fail on a846b332's code:
+
+```text
+======================== 17 failed, 68 passed in 19.61s ========================
+```
+
+The 17 are: finding refuses + no secret text in reply/audit; every publish path goes through the scan; secret in a hub recovery commit not published; no gitleaks on PATH refuses; clean scan lets the push go ahead; non-zero exit ×3; hung gitleaks refused; findings capped; real scanner stops a committed token; real scanner cannot be told to look away ×3; one cat-file for a big branch; missing object refused; length text. The 68 that pass include the unchanged-verdict tests.
+
+With the patch loaded in place of the two modules (a scratch pytest plugin, `-p swap_rm`, outside the repo: it executes the patched files as `tools.remote_maintenance` / `tools.node_dispatch` with `ROOT` pointed at this worktree):
+
+```text
+tests/test_remote_maintenance.py   85 passed in 22.72s
+tests/test_w27_security.py         88 passed in 105.88s (0:01:45)
+tests/test_w15_duty_split.py       87 passed in 6.42s
+tests/test_w04_self_host_sites.py  46 passed in 12.74s
+tests/test_w23_mesh_dispatch.py + tests/test_node_dispatch.py, PATH=/usr/bin:/bin (no gitleaks, as on a CI runner)
+                                   226 passed in 51.38s
+```
+
+Not run: the remaining suite (CI on PR #584). `test_remote_maintenance.py` puts a fake `gitleaks` first on PATH for every test (autouse), so a host without the binary runs it; the real-binary tests skip there.
+
+### Iteration 7 notes for the reviewer
+
+- Reach of the patch: `outgoing_check` (callers `remote_maintenance.publish`, `node_dispatch.verb_publish_branch` 1-arg path; tests `test_remote_maintenance`, `test_node_dispatch` (stubs it), `test_w23`), `git()` (new keyword only, every other call unchanged), `parse_command` (message text only).
+- The legacy 1-arg `publish_branch` (Contabo-local rows) now needs gitleaks on Contabo too; it is installed there (8.30.1).
+- `scripts/spawn-worker-remote.sh:746` still runs `git push` from the launcher, but only when `ORG_HOST` is neither mac nor winbox, i.e. Contabo's own launcher, outside this change.
+- Mutation check for the risky logic: pointing the scan at the worktree instead of the git dir makes the `allowlist-config` and `ignore-file` real-scanner tests fail; the other new tests fail on the tree (table above).
+
+---
+
 ## Iteration 6 (Claude Sonnet 5.5, on top of 89d91175): the 11 CI failures on PR #584
 
 Root causes and fixes, one per failing group:
@@ -181,6 +225,15 @@ SKIPPED [1] tests/test_disk_steward_hosts.py:33: requires native Windows handles
 
 ## Not checked / risk
 
+Iteration 7 additions:
+
+- **The source patch is not applied in the tree** (guard, above); everything claimed for it was run with the patched modules loaded by a scratch plugin, not from the committed files. After `git apply` the same files must be re-run once from the tree.
+- **gitleaks must be installed on winbox and the Mac before E2E**, and be on the PATH of the ssh forced command (a non-login ssh on the Mac may not have `/opt/homebrew/bin`). Without it every remote publish refuses with `no gitleaks on <host>: not publishing`, the row stays in review and the hub retries each poll. Not checked: gitleaks on Windows (`gitleaks.exe`, path quoting of the git dir, `TemporaryDirectory` under the service account), or on the Mac.
+- gitleaks exits 0 having scanned nothing when its source path is not a repository (measured). The source is the output of `git rev-parse --git-common-dir` for a worktree git just fetched in, so that case should not arise; there is no separate check that commits were actually scanned.
+- The scan uses gitleaks' default rules only. A secret shape they do not know passes; the repo's own `.gitleaksignore` and any project config are deliberately not read (a worker could not be trusted to supply them). A finding on a commit whose fingerprint the repo already ignores would still refuse.
+- A refused scan repeats on every poll of that row (one scanner run per attempt, bounded by the 3-per-host rotation and the 120 s timeout); nothing records that a row was refused for a secret beyond the audit row and the reply.
+- Not measured: the time of one `cat-file --batch-check` or of gitleaks on a very large outgoing range against the 300 s mesh timeout.
+
 Iteration 6 additions:
 
 - The whole suite was not run (PH#a08: Contabo over its host-fill limit). Not run here: other files that import `node_dispatch`/`mesh` but whose code I did not change in behaviour (`test_mesh_followups`, `test_h1_node_probe`, `test_w25_spawn_c_level_mesh`, `test_start_clevel_remote`, `test_mesh_check*`, `test_multihost`, `test_l5_e2e`, others). If any reads the `_audit` fallback, the 256/8192 command cap, or `encode`, CI on #584 shows it.
@@ -207,6 +260,7 @@ Earlier iterations:
 
 ## Blockers
 
+- **Iteration 7:** the guard reads `.org-task.json` in the worktree (old touches, written 08:36) before the hub row, so it still refuses `tools/remote_maintenance.py` and `tools/node_dispatch.py` after the PH extended `touches`. The fix is a patch, `docs/reports/task-c4939966/iter7-source.patch`; either rewrite the sidecar and have the worker re-apply, or `git apply` it.
 - `scripts/hook-self-repo-guard.py` (ADR 0020): this task's declared `touches` omit the files the PR changes; see the guard note in the iteration-6 reviewer notes. Deployment and live E2E verification remain PH/CTO responsibilities as stated above.
 
 ## Skill learning
@@ -215,3 +269,6 @@ Earlier iterations:
 - MISSING [no owner] : the self-repo guard (ADR 0020) only reads Bash command text for write patterns, so a python heredoc that writes to tools/ or runners/ is not stopped, and the worker finds out about the declared touches only when a later `sed -i` is refused · evidence: task-c4939966 (3 commits under tools/ and runners/ before the first refusal) · prevented by: the DEV prompt naming the protected prefixes and the task's `touches` at spawn
 - COSTLY [no owner] : the w27 oracle, the 256-character command cap and the plain-token regex in build_argv are three separate statements of the verb grammar; a new verb needs all three in step, and the failure message names only one · evidence: task-c4939966 iter 6 · prevented by: one shared grammar table the tests import (rejected so far: the oracle is deliberately independent)
 - COSTLY [no owner] : a pytest run of w27 before the audit fix wrote 74 lines into the repo's `state/mesh-audit/maintenance.jsonl`, and `git add -A` committed them · evidence: commit 0ea55d02, removed in the next commits · prevented by: a `git status` look before `git add -A`
+- WRONG   [CXO_Protocol_DevSpawn §touches] : a C-level extending `touches` in the hub row does not unblock a running worker; the guard prefers the worktree sidecar `.org-task.json` (hook-self-repo-guard.py:194-203) · evidence: task-c4939966 iter 7, old list still refused 65 min after the PH's change · fix: the protocol should say the C-level rewrites the sidecar too, or the guard should merge sidecar and hub row
+- MISSING [no owner] : `gitleaks git <worktree>` is fooled by files the worker controls (`.gitleaks.toml`, `.gitleaksignore`, `# gitleaks:allow`); scan the git dir from an empty cwd with `--ignore-gitleaks-allow`, and gitleaks exits 0 on a non-repo path · evidence: task-c4939966 iter 7, measured with gitleaks 8.30.1, tests/test_remote_maintenance.py::test_the_real_scanner_cannot_be_told_by_the_worker_to_look_away
+- COSTLY [no owner] : the self-repo guard matches a path by name, so `cp tools/x.py scratch/x.py` was refused as a write to tools/x.py; a scratch copy needs a different basename (`git show HEAD:tools/x.py > scratch/x_scratch.py`) · evidence: task-c4939966 iter 7
