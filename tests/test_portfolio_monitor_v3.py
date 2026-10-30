@@ -697,7 +697,7 @@ def test_ph_refusals_are_logged(pg, capsys):
 
 
 @needs_pg
-@pytest.mark.parametrize("bad", ["", "abc", "x" * 17, "ABCDEFGH", "e3050822 ", "e305_822", "../e3050822",
+@pytest.mark.parametrize("bad", ["", "abc", "x" * 17, "ABCDEFGH", "e305 822", "e305_822", "../e3050822",
                                  "session_01AbCdEf", "project_head-", "é3050822"])
 def test_a_bad_session_id_is_exit_2_and_is_not_echoed(pg, capsys, bad):
     mk("p1")
@@ -717,7 +717,12 @@ def test_an_unknown_project_is_exit_2(pg, capsys):
 @needs_pg
 @pytest.mark.parametrize("stage", ["closed", "cancelled"])
 def test_a_finished_project_cannot_get_a_new_ph(pg, capsys, stage):
-    mk("p1", stage=stage)
+    mk("p1")
+    if stage == "closed":
+        pf.close("p1", "done", "nothing to learn", actor="x", now=at(2))
+    else:
+        pg.execute("UPDATE projects SET stage = 'cancelled' WHERE id = 'p1'")
+        pg.commit()
     assert ph_cmd("p1", "--session", "e3050822") == 2
     assert stage in capsys.readouterr().err and ph_of(pg, "p1") is None
 
