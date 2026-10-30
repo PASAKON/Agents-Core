@@ -210,6 +210,27 @@ def test_dry_mode_prints_the_ladder_and_sends_nothing(box):
 
 # --- C4: live owners -----------------------------------------------------------------
 
+def test_lock_and_box_hardening(box, monkeypatch):
+    p = box.path / "locks" / "cto-c34459eb.lock"
+    p.write_text("1\n")
+    p.chmod(0o664)
+    assert not ew._has_lock("cto-c34459eb")
+    assert ew.live_box("cto-c34459eb") == "cto-fresh"
+    def unexpected(*args, **kwargs):
+        raise AssertionError("invalid box reached filesystem")
+    monkeypatch.setattr(ew, "_has_lock", unexpected)
+    assert ew.live_box("../cto-fresh") is None
+
+
+def test_off_mode_hardening(box):
+    st = {"rewake": {PH: {"tries": 0}}, "dead_eps": {}}
+    before = json.dumps(st, sort_keys=True)
+    assert ew.rewake(box.sessions, NOW, st, [PH], mode="off") == []
+    assert ew.relay_tick(box.sessions, NOW, st, mode="off", hub=None) == [
+        "owner-relay off (state/owner_relay.mode)"]
+    assert json.dumps(st, sort_keys=True) == before
+
+
 def test_owner_box_falls_back_to_the_role_active_box_when_spawned_by_is_dead(box):
     assert ew.owner_box(PH_SID) == "cto-fresh"
     (box.path / "locks" / "cto-c34459eb.lock").write_text("1\n")
@@ -396,7 +417,7 @@ def test_dead_phs_and_a_task_event_for_one_owner_are_one_letter_and_one_wake(box
     assert len(box.sent) == 1                                   # once per episode
 
 
-def test_root_record_trusts_only_a_root_file_in_a_root_dir(tmp_path):
+def test_root_record_trusts_only_a_root_file_in_a_root_dir(tmp_path, monkeypatch):
     d = tmp_path / "sessions"
     d.mkdir()
     os.chmod(d, 0o700)
@@ -410,8 +431,12 @@ def test_root_record_trusts_only_a_root_file_in_a_root_dir(tmp_path):
     os.chmod(d, 0o770)
     assert not ew._root_record(d, p)                            # another account may swap files in
     os.chmod(d, 0o700)
-    if os.geteuid() == 0:
-        os.chown(d, 65534, 65534)                               # sompong's own registry dir
+    real_stat = os.stat
+    metadata = list(real_stat(d))
+    metadata[4] = max(os.geteuid(), 65534) + 1
+    with monkeypatch.context() as m:
+        m.setattr(os, "stat", lambda path, *a, **kw: os.stat_result(metadata)
+                  if path == d else real_stat(path, *a, **kw))
         assert not ew._root_record(d, p)
 
 
