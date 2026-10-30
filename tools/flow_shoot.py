@@ -41,6 +41,7 @@ after the CEO logs into the automation Chrome (a worker cannot).
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import math
 import os
@@ -1260,15 +1261,16 @@ class FlowBrowser:
                         action_choice = action.choice if _decision_is_confident(action) else None
                         return {"status": "refusal", "text": scoped,
                                 "moderation_choice": action_choice}
-            if len(self._captured_video_urls) > baseline:
+            in_editor = "/edit/" in getattr(page, "url", "/edit/")
+            if in_editor and len(self._captured_video_urls) > baseline:
                 return {"status": "download", "text": ""}
             # The editor may load the video before poll_result() installs its
             # baseline, or serve it entirely from Chrome's disk cache. In both
             # cases there is no *new* response event, but currentSrc still
             # exposes the same signed CDN URL used by download_card().
             try:
-                current_src = page.locator("video").first.evaluate(
-                    "v => v.currentSrc || v.src")
+                current_src = (page.locator("video").first.evaluate(
+                    "v => v.currentSrc || v.src") if in_editor else None)
                 if current_src and CDN_VIDEO_RE.search(current_src):
                     self._captured_video_urls.append(current_src)
                     return {"status": "download", "text": ""}
@@ -1315,7 +1317,7 @@ class FlowBrowser:
         url = self._captured_video_urls[-1]
         resp = self.page.request.get(url)
         if resp.status != 200:
-            raise RuntimeError(f"CDN fetch failed: HTTP {resp.status} for {url}")
+            raise RuntimeError(f"CDN fetch failed: HTTP {resp.status}")
         import tempfile
         path = Path(tempfile.mkdtemp()) / "clip.mp4"
         path.write_bytes(resp.body())
@@ -1416,8 +1418,11 @@ class FlowBrowser:
             path = self._pending_download
             self._pending_download = None
             return path
-        if self.download_resolution == "1080p":
-            return self._download_1080p_from_editor()
+        if self.download_resolution in ("720p", "1080p"):
+            card = self.find_card_by_dialogue(self._last_dialogue)
+            if card is None:
+                raise RuntimeError("original clip card unavailable")
+            return self.download_card(card)
         return self._fetch_captured_video()
 
     def find_card_by_dialogue(self, fragment: str):
@@ -1472,11 +1477,9 @@ class FlowBrowser:
         return path
 
     def download_card(self, card) -> Path:
-        """Open a feed card and download the configured export.
-
-        Normal 1080p uses the editor's free upscale menu. Explicit legacy
-        720p mode captures the signed CDN response/currentSrc.
-        """
+        """Pull the matched original; preserve the legacy 360p path."""
+        if self.download_resolution in ("720p", "1080p"):
+            return self.pull_original(card)
         baseline = len(self._captured_video_urls)
         card.click()
         self.page.wait_for_timeout(1000)
@@ -1484,19 +1487,6 @@ class FlowBrowser:
             self.page.evaluate(MUTE_JS)
         except Exception:
             pass
-        # Current UI first: the editor's own download button (no playback, no CDN capture).
-        if self.download_resolution in ("1080p", "720p"):
-            try:
-                self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
-                return self._download_from_editor_button(self.download_resolution)
-            except Exception as e:
-                try:
-                    self._close_download_menus()
-                except Exception:
-                    pass
-                _log(f"  editor download button path failed, falling back: {e!r}")
-        if self.download_resolution == "1080p":
-            return self._download_1080p_from_editor()
         deadline = time.time() + min(COMPLETION_TIMEOUT_S, CARD_OPEN_WAIT_S)
         while time.time() < deadline and len(self._captured_video_urls) <= baseline:
             # A clip already played in this Chrome profile may come entirely
@@ -1522,6 +1512,85 @@ class FlowBrowser:
                 "card opened but no new flow-content.google/video/ URL "
                 "appeared before timeout — refusing to reuse a prior clip URL")
         return self._fetch_captured_video()
+
+    def pull_original(self, card) -> Path:
+        """Fetch only this project's matched tile's video in its own session.
+
+        URLs and browser exception messages never cross the logging boundary.
+        No click, playback, download event, or generation is needed.
+        """
+        self._original_download = None
+        self._original_clip_id = None
+        try:
+            payload = card.evaluate(r"""async tile => {
+                const video = tile.querySelector('video');
+                const src = video && (video.currentSrc || video.src);
+                if (!src) throw new Error('missing video');
+                const link = tile.querySelector('a[href*="/edit/"]');
+                const match = ((link && link.href) || src).match(
+                    /(?:edit|video)\/([a-zA-Z0-9-]+)/);
+                const response = await fetch(src, {credentials: 'include'});
+                if (!response.ok) throw new Error('fetch failed');
+                const blob = await response.blob();
+                const data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                return {id: match ? match[1] : null, data};
+            }""")
+            path = Path(tempfile.mkdtemp()) / "original.mp4"
+            path.write_bytes(base64.b64decode(payload["data"], validate=True))
+            clip_id = payload.get("id")
+            if clip_id and re.fullmatch(r"[a-zA-Z0-9-]+", clip_id):
+                self._original_clip_id = clip_id
+            self._original_download = path
+            return path
+        except Exception:
+            raise RuntimeError("original pull failed; refusing to reuse a prior clip URL") from None
+
+    def upscale_original(self) -> Path:
+        if not self._original_clip_id or not self._project_url:
+            raise RuntimeError("clip editor identity unavailable")
+        self.page.goto(self._project_url.rstrip('/') + '/edit/' + self._original_clip_id,
+                       wait_until="domcontentloaded", timeout=60_000)
+        self.mute_all_media()
+        try:
+            return self._download_from_editor_button("1080p")
+        except Exception:
+            self._close_download_menus()
+            return self._download_1080p_from_editor()
+
+
+def save_verified_download(browser, downloaded, dest, shot_no, duration, resolution, aspect):
+    """Original first; a failed/invalid upscale must never replace that file."""
+    original = getattr(browser, "_original_download", None) == downloaded
+    clip = extract_clip(downloaded, dest, shot_no)
+    ok, reason = verify_clip(clip, duration,
+                             expected_resolution="720p" if original else resolution,
+                             aspect=aspect)
+    if original and ok:
+        clip_id = browser._original_clip_id or "unknown"
+        _log(f"clip {clip_id}: verified {clip.name}")
+        if resolution == "1080p":
+            try:
+                upgrade = browser.upscale_original()
+                candidate = extract_clip(upgrade, Path(tempfile.mkdtemp()), shot_no)
+                valid, upgraded_reason = verify_clip(
+                    candidate, duration, expected_resolution="1080p", aspect=aspect)
+                if not valid:
+                    raise RuntimeError("upscale verification failed")
+                # Stage on the destination filesystem so a failed copy cannot
+                # truncate the verified original we promise to retain.
+                with tempfile.TemporaryDirectory(dir=dest) as staging:
+                    replacement = Path(staging) / clip.name
+                    shutil.copyfile(candidate, replacement)
+                    replacement.replace(clip)
+                reason = upgraded_reason
+            except Exception:
+                _log(f"clip {clip_id}: upscale failed; kept verified 720p {clip.name}")
+    return clip, ok, reason
 
 
 # ── the runner ───────────────────────────────────────────────────────────────
@@ -1799,18 +1868,16 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
 
                 downloaded = browser.download()
                 time.sleep(DOWNLOAD_GAP_S)
-                clip_path = extract_clip(downloaded, dest, n)
-                row["file"] = str(clip_path)
-                row["status"] = "downloaded"
-                flow_ledger.save_ledger(ledger_path, rows)
-
                 expected_resolution = (
                     args.resolution if getattr(args, "resolution", None) == "360p"
                     else browser.download_resolution
                 )
-                ok, reason = verify_clip(
-                    clip_path, dur_s,
-                    expected_resolution=expected_resolution, aspect=args.aspect)
+                clip_path, ok, reason = save_verified_download(
+                    browser, downloaded, dest, n, dur_s, expected_resolution, args.aspect)
+                row["file"] = str(clip_path)
+                row["status"] = "downloaded"
+                flow_ledger.save_ledger(ledger_path, rows)
+
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 dup = duplicate_take_reason(row["sha256"], earlier)
@@ -1959,10 +2026,9 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 _log(f"shot {n}: needs_model — {row['note']}")
                 continue
             time.sleep(DOWNLOAD_GAP_S)
-            clip_path = extract_clip(downloaded, dest, n)
-            ok, reason = verify_clip(
-                clip_path, shot["dur_s"],
-                expected_resolution=browser.download_resolution, aspect=args.aspect)
+            clip_path, ok, reason = save_verified_download(
+                browser, downloaded, dest, n, shot["dur_s"],
+                browser.download_resolution, args.aspect)
             row["file"] = str(clip_path)
             row["sha256"] = sha256_file(clip_path)
             row["got_dur"] = reason
@@ -1981,7 +2047,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
         browser.close()
 
     print(flow_ledger.status_summary(ledger_path))
-    return 0
+    return 0 if all(rows[n]["status"] == "verified" for n in targets) else 1
 
 
 def cmd_status(args: argparse.Namespace) -> int:

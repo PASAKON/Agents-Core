@@ -1549,6 +1549,115 @@ def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
         browser.download_card(Card())
 
 
+@pytest.mark.parametrize("mode", ["run", "pull"])
+@pytest.mark.parametrize("fault", [None, "size", "duration"])
+@pytest.mark.parametrize("aspect", ["16:9", "9:16"])
+@pytest.mark.parametrize("export", ["720p", "1080p"])
+def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, aspect, export):
+    import base64
+    from types import SimpleNamespace
+
+    args = _run_args(tmp_path, "original.tsv")
+    args.aspect = aspect
+    args.download_resolution = export
+    real = flow_shoot.FlowBrowser()
+    real.download_resolution = export
+    real._project_url = "https://flow.google.com/project/project-id"
+    calls = []
+
+    def evaluate(script):
+        assert "tile.querySelector('video')" in script
+        assert "await fetch(src, {credentials: 'include'})" in script
+        calls.append("fetch")
+        return {"id": "clip-id", "data": base64.b64encode(b"original bytes").decode()}
+
+    tile = SimpleNamespace(evaluate=evaluate, click=lambda: None)
+    real.page = SimpleNamespace(
+        url=real._project_url,
+        wait_for_timeout=lambda ms: None,
+        wait_for_url=lambda *a, **kw: None,
+        goto=lambda url, **kw: calls.append(url),
+        evaluate=lambda script: None)
+    real.mute_all_media = lambda: None
+    def canceled(*args):
+        calls.append("canceled")
+        raise RuntimeError("Download.save_as: canceled secret-signed-url")
+    real._download_from_editor_button = canceled
+    real._download_1080p_from_editor = canceled
+    real._close_download_menus = lambda: None
+
+    class Browser(_DownloadStubBrowser):
+        def download(self):
+            path = real.download_card(tile)
+            self._original_download = path
+            self._original_clip_id = real._original_clip_id
+            return path
+        def download_card(self, card):
+            return self.download()
+        def find_card_by_dialogue(self, fragment):
+            return tile
+        def upscale_original(self):
+            return real.upscale_original()
+
+    stub = Browser(b"unused", tmp_path)
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    def duration(path):
+        assert path.read_bytes() == b"original bytes"
+        assert path.parent == Path(args.dest)
+        return 9 if fault == "duration" else 6
+    monkeypatch.setattr(flow_shoot.clip_review, "probe_duration", duration)
+    monkeypatch.setattr(flow_shoot.clip_review, "mean_db", lambda p: -20)
+    dimensions = (1280, 720) if aspect == "16:9" else (720, 1280)
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions",
+                        lambda p: (320, 240) if fault == "size" else dimensions)
+    if mode == "run":
+        code = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    else:
+        monkeypatch.setattr(flow_shoot, "FlowBrowser", lambda **kw: stub)
+        code = flow_shoot.cmd_pull(args)
+        assert not stub.submit_called
+    assert code == (1 if fault else 0)
+    row = flow_ledger.load_ledger(Path(args.ledger))[35]
+    assert (row["status"] == "verified") == (fault is None)
+    assert Path(row["file"]).read_bytes() == b"original bytes"
+    assert calls[0] == "fetch"
+    if fault is None and export == "1080p":
+        assert calls[1] == real._project_url + "/edit/clip-id"
+        assert "canceled" in calls
+        assert "kept verified 720p" in flow_shoot.LOG_PATH.read_text()
+    else:
+        assert calls == ["fetch"]
+    assert "secret-signed-url" not in flow_shoot.LOG_PATH.read_text()
+
+
+@pytest.mark.parametrize("outcome", ["valid", "invalid", "copy_failure"])
+def test_upscale_replaces_original_only_after_file_verification(tmp_path, monkeypatch, outcome):
+    from types import SimpleNamespace
+    original, upgrade = tmp_path / "original.mp4", tmp_path / "upgrade.mp4"
+    original.write_bytes(b"original")
+    upgrade.write_bytes(b"upgrade")
+    browser = SimpleNamespace(_original_download=original, _original_clip_id="clip-id",
+                              upscale_original=lambda: upgrade)
+    probes = []
+    def verify(path, duration, expected_resolution, aspect):
+        probes.append((path.read_bytes(), expected_resolution))
+        return (outcome != "invalid" or expected_resolution == "720p"), expected_resolution
+    monkeypatch.setattr(flow_shoot, "verify_clip", verify)
+    copy = flow_shoot.shutil.copyfile
+    def copyfile(src, dst):
+        if outcome == "copy_failure" and Path(dst).parent.parent == tmp_path / "out":
+            Path(dst).write_bytes(b"partial")
+            raise OSError("disk full")
+        return copy(src, dst)
+    monkeypatch.setattr(flow_shoot.shutil, "copyfile", copyfile)
+    path, ok, reason = flow_shoot.save_verified_download(
+        browser, original, tmp_path / "out", 2, 8, "1080p", "16:9")
+    assert ok
+    assert probes == [(b"original", "720p"), (b"upgrade", "1080p")]
+    assert path.read_bytes() == (b"upgrade" if outcome == "valid" else b"original")
+    assert reason == ("1080p" if outcome == "valid" else "720p")
+
+
 # ── a log write must never be able to stop a shoot ──────────────────────────
 # 2026-09-22: Act 5 died at shot 128 after 18 good ones. The log file was UTF-8,
 # but stdout on Windows is cp1252 and every line of this film is Thai, so one

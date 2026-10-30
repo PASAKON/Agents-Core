@@ -199,6 +199,21 @@ def test_one_get_per_clip(setup):
             assert (Path(argv[7]) / Path(name).name).read_bytes() == data
 
 
+@pytest.mark.parametrize('status,present,count', [
+    ('verified', True, 1), ('failed', True, 0), ('verified', False, 0)])
+def test_summary_counts_only_verified_received_files(setup, capsys, status, present, count):
+    argv, live = setup
+    runner = FakeRunner()
+    runner.outputs['ledger.tsv'] = (
+        'shot\tstatus\tfile\tsha256\n'
+        f'1\t{status}\tC:\\run\\out\\shot-01.mp4\t{card.digest(b"clip")}\n'
+    ).encode()
+    if not present:
+        del runner.outputs['out/shot-01.mp4']
+    card.main(argv, runner, live)
+    assert f'shots_verified={count}' in capsys.readouterr().out
+
+
 @pytest.mark.parametrize('name', ['ledger.tsv', 'out/shot-01.mp4'])
 def test_pull_hash_mismatch(setup, name):
     argv, live = setup
