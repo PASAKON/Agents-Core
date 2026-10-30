@@ -226,6 +226,27 @@ def test_owner_tick_letters_and_wakes_live_and_saves_its_state(box, monkeypatch)
     assert len(box.sent) == 1
 
 
+def test_a_live_c_level_box_with_no_session_record_is_woken_by_its_screen(box, monkeypatch):
+    """CTO Main drains cto-fresh; its session record names another id."""
+    orl.MODE_PATH.write_text("live\n")
+    monkeypatch.setattr(ew, "read_meta", lambda p: [])
+    box.wake_result = {"woke": True, "reason": "woke"}
+    hub = Hub()
+    hub.tasks = lambda ids: {"task-210cf323": {"id": "task-210cf323", "status": "stalled", "owner_cto": "fresh",
+                                               "owner_role": "cto", "delegate_log": ""}}
+    sessions = [s for s in box.sessions if s["box"] != "cto-fresh"]
+    ew.owner_tick(sessions, NOW, None, hub=hub, panes=lambda t: READY, wake=box.wake, send=box.send)
+    assert [to for to, _ in box.sent] == ["cto-fresh"] and box.woke == ["cto-fresh"]
+    hub.ev.append({"id": 8, "task_id": "task-210cf323", "actor": "watchdog", "kind": "status_stalled",
+                   "payload": "{}", "ts": iso(NOW + 200)})
+    busy = "✻ Thinking… (esc to interrupt)\n" + READY
+    from lib import pane_screen
+    assert pane_screen.pane_busy(busy) and not pane_screen.prompt_ready(busy)
+    out = ew.owner_tick(sessions, NOW + 300, None, hub=hub, panes=lambda t: busy, wake=box.wake, send=box.send)
+    assert len(box.sent) == 2 and box.woke == ["cto-fresh"]    # a running turn on screen: letter, no wake
+    assert any("wake held: screen not ready" in o for o in out)
+
+
 def test_owner_tick_is_off_with_the_mode_file_and_never_raises(box, monkeypatch):
     orl.MODE_PATH.write_text("off\n")
     assert ew.owner_tick(box.sessions, NOW, None, hub=Hub(), wake=box.wake, send=box.send) == \

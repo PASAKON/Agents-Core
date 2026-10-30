@@ -491,13 +491,14 @@ def _reviewed_by_worker(meta, task_id: str, box: str, t: float) -> bool:
                for m in meta)
 
 
-def collect(now: float, state: dict, *, hub, live: set[str], meta, inspect, queues, notes: list) -> list[dict]:
+def collect(now: float, state: dict, *, hub, live: set[str], meta, inspect, queues, notes: list,
+            host: str = HOST) -> list[dict]:
     """New lines from the hub and the queue files; the cursor and `seen` move here."""
     lines = []
     since = _iso(now - BOOTSTRAP_S)
     try:
         events = hub.events(state["cursor"], since)
-        runs = hub.running(HOST)
+        runs = hub.running(host)
     except Exception as e:
         notes.append(f"hub unreadable ({type(e).__name__}): no new task letters, cursor kept")
         return lines
@@ -627,8 +628,9 @@ def compose(box_lines: list[dict]) -> tuple[str, str, int]:
 
 def run(now: float, state: dict, *, mode: str, hub, sessions: dict, panes, meta=(), send=None, wake=None,
         inspect=inspect_state, queues=None, budget=None, tier_of=None, woke: set | None = None,
-        save=save_state) -> list[str]:
-    """One tick of C2. Returns output lines (boxes, task ids, kinds: never a body)."""
+        save=save_state, host: str = HOST) -> list[str]:
+    """One tick of C2. Returns output lines (boxes, task ids, kinds: never a body).
+    `host`: whose in_progress runs are probed for a dead worker (only local runs can be)."""
     if mode == "off":
         return ["owner-relay off (state/owner_relay.mode)"]
     send = send or mailbox.send
@@ -640,7 +642,8 @@ def run(now: float, state: dict, *, mode: str, hub, sessions: dict, panes, meta=
     queues = [(q, read_queue(p)) for q, p in QUEUES] if queues is None else queues
     notes, out = [], []
     live = set(sessions)
-    new = collect(now, state, hub=hub, live=live, meta=list(meta), inspect=inspect, queues=queues, notes=notes)
+    new = collect(now, state, hub=hub, live=live, meta=list(meta), inspect=inspect, queues=queues, notes=notes,
+                  host=host)
     by_box: dict[str, list[dict]] = {}
     for l in [l for ls_ in state["pending"].values() for l in ls_] + new:
         box, why = route(l["role"], l["sid"], live)

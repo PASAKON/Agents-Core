@@ -610,6 +610,11 @@ def rewake(sessions, now: float, state: dict, *, mode: str, panes=capture, wake=
             letter(to, f"blocker · urgent · rewake: PH {box} has a lock but no live session, with "
                        f"{len(waiting)} unread letter(s) since {_th_clock(waiting[0])} TH. Resume it "
                        f"(scripts/spawn-ph.sh --resume {box.split('-', 1)[1]}) or take its work.", box)
+    locked = {n[:-len(".lock")] for n in _ph_locks()}
+    for k in [k for k in lad if k not in by_box]:          # the session ended: its ladder too
+        del lad[k]
+    for k in [k for k in dead_eps if k not in locked]:     # lock gone (parked, closed): episode over
+        del dead_eps[k]
     return out
 
 
@@ -619,6 +624,18 @@ def _ph_locks() -> list[str]:
                       if re.fullmatch(r"project_head-[0-9a-f]{8}\.lock", p.name) and _has_lock(p.name[:-5]))
     except OSError:
         return []
+
+
+def with_lock_boxes(sessions) -> list[dict]:
+    """`sessions` plus each live C-level box (the <role>-active pointers with a lock, C4)
+    that no session record names: CTO Main drains cto-fresh while its record carries
+    another id, so without this nothing would ever wake it. Its tmux session has the box
+    name. Its status is unknown, so only the screen gates a wake: prompt_ready refuses a
+    running turn, a choice prompt and a draft. Never the COO."""
+    have = {s.get("box") for s in sessions}
+    extra = [{"box": b, "role": b.split("-", 1)[0], "sid": b.split("-", 1)[1], "status": "idle", "tmux": b,
+              "since": None, "name": b} for b in live_c_levels() if b not in have and not b.startswith("coo-")]
+    return list(sessions) + extra
 
 
 def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture, wake=None, send=None) -> list[str]:
@@ -632,15 +649,19 @@ def owner_tick(sessions, now: float, budget, *, hub=None, panes=capture, wake=No
             return ["owner-relay off (state/owner_relay.mode)"]
         st = orl.load_state(mode)
         woke: set[str] = set()
+        sessions = with_lock_boxes(sessions)
+        from lib import config
         out = orl.run(now, st, mode=mode, hub=hub or orl.Hub(), sessions={s["box"]: s for s in sessions},
                       panes=panes, meta=read_meta(mailbox.meta_path()), budget=budget, tier_of=tier_of,
-                      woke=woke, wake=wake, send=send)
+                      woke=woke, wake=wake, send=send, host=config.self_host())
         out += rewake(sessions, now, st, mode=mode, panes=panes, wake=wake, send=send or mailbox.send,
                       budget=budget, woke=woke)
         orl.save_state(st)
         return [f"[{mode}] {o}" for o in out]
-    except Exception as e:
-        return [f"note owner relay skipped ({type(e).__name__}: {str(e)[:120]})"]
+    except Exception as e:      # the type only: a driver error can echo a connection string
+        from tools import owner_relay as orl
+        why = f": {e}" if isinstance(e, orl.StateUnusable) else ""
+        return [f"note owner relay skipped ({type(e).__name__}{why})"]
 
 
 def main(argv=None) -> int:
