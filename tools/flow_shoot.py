@@ -41,7 +41,6 @@ after the CEO logs into the automation Chrome (a worker cannot).
 from __future__ import annotations
 
 import argparse
-import base64
 import hashlib
 import math
 import os
@@ -96,8 +95,7 @@ UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
 
-# The mute-before-anything-plays snippet, verbatim from the brief. A worker
-# (and this runner) has no ears; a clip playing is pure cost, zero information.
+# Mute media without starting playback.
 MUTE_JS = """
 document.querySelectorAll('video,audio').forEach(v => {v.muted = true; v.volume = 0;});
 new MutationObserver(() => document.querySelectorAll('video,audio')
@@ -129,6 +127,19 @@ class EstimateUnreadable(RuntimeError):
     into the generic per-shot exception handler, which marks one row
     failed and continues to the next todo shot, exactly the "quietly
     proceed past an unknown cost" failure this must not do)."""
+
+
+class PullFailure(RuntimeError):
+    """A fixed, safe reason for a failed editor pull."""
+
+    CODES = frozenset({"no_edit_route", "no_download_button",
+                       "no_free_720p_item", "download_timeout", "verify_failed"})
+
+    def __init__(self, code: str):
+        if code not in self.CODES:
+            raise ValueError("invalid pull failure code")
+        super().__init__(code)
+        self.code = code
 
 
 class ChipCountMismatch(RuntimeError):
@@ -398,6 +409,20 @@ def card_fragment(prompt: str) -> str | None:
     return action[:60] or None
 
 
+def prompt_search_candidates(prompt: str) -> list[str]:
+    """Narration fallback: 8 through 5 opening words from each sentence."""
+    sentences = re.split(r"(?<=[.!?])\s+|\n+", prompt)
+    words_by_sentence = [s.split() for s in sentences]
+    candidates = []
+    for length in range(8, 4, -1):
+        for words in words_by_sentence:
+            if len(words) >= length:
+                phrase = " ".join(words[:length]).strip()
+                if phrase not in candidates:
+                    candidates.append(phrase)
+    return candidates
+
+
 def extract_clip(downloaded: Path, dest_dir: Path, shot_no: int) -> Path:
     """Flow's download arrives as a .zip with one .mp4, or a bare .mp4."""
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -648,6 +673,7 @@ def resolve_log_path(ledger_path: Path, log_arg: str | None) -> Path:
 
 
 def _log(msg: str) -> None:
+    msg = re.sub(r"(?:https?://|blob:)[^\s'\"<>]+", "[redacted-url]", msg)
     line = f"{datetime.now().isoformat(timespec='seconds')}  {msg}"
     # The log file is UTF-8, but stdout on Windows defaults to cp1252 and every
     # shot in this production carries Thai dialogue. An un-encodable character
@@ -1293,19 +1319,13 @@ class FlowBrowser:
                     try:
                         self._pending_download = self.download_card(card)
                         return {"status": "download", "text": ""}
-                    except Exception as e:
-                        _log(f"  finished card found but no video yet, back to the feed: {e!r}")
+                    except Exception:
+                        _log("finished card unavailable; back to the feed")
                         try:
                             page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
                             self.mute_all_media()
                         except Exception:
                             pass
-            try:
-                page.evaluate(
-                    "() => { const v = document.querySelector('video'); "
-                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
-            except Exception:
-                pass
             time.sleep(POLL_S)
         return {"status": "timeout", "text": ""}
 
@@ -1440,15 +1460,14 @@ class FlowBrowser:
         search = page.locator('input[aria-label="ค้นหา"]')
         search.first.wait_for(state="visible", timeout=30_000)
         search.first.fill(fragment)
-        prompt_match = page.get_by_text(fragment, exact=False).first
+        batches = page.locator("div.batch-container").filter(has_text=fragment)
         try:
-            prompt_match.wait_for(state="visible", timeout=10_000)
+            batches.first.wait_for(state="visible", timeout=10_000)
         except Exception:
             return None
-        batch = prompt_match.locator(
-            'xpath=ancestor::div[contains(@class,"batch-container")]'
-        ).first
-        card = batch.locator("flow-grid-tile-container").first
+        if batches.count() != 1:
+            return None
+        card = batches.first.locator("flow-grid-tile-container").first
         return card if card.count() else None
 
     def _download_from_editor_button(self, resolution: str) -> Path:
@@ -1458,23 +1477,42 @@ class FlowBrowser:
         CEO's never-press-play rule forbids — so the CDN-capture path found nothing for a clip opened
         before it finished or opened a second time (taachang S58/S70/S73). This path needs no playback."""
         page = self.page
-        btn = page.locator('button[aria-label="ดาวน์โหลดสื่อ"]').first
-        btn.wait_for(state="visible", timeout=20_000)
+        try:
+            btn = page.locator('button[aria-label="ดาวน์โหลดสื่อ"]').first
+            btn.wait_for(state="visible", timeout=20_000)
+        except Exception:
+            raise PullFailure("no_download_button") from None
         deadline = time.time() + 60
-        while not btn.is_enabled() and time.time() < deadline:
-            page.wait_for_timeout(1_000)
-        btn.click()
-        option = page.locator('[role="menuitem"]', has_text=resolution).first
-        option.wait_for(state="visible", timeout=10_000)
-        validate_download_option(option.inner_text(), resolution)
+        try:
+            while not btn.is_enabled() and time.time() < deadline:
+                page.wait_for_timeout(1_000)
+            if not btn.is_enabled():
+                raise PullFailure("no_download_button")
+        except Exception:
+            raise PullFailure("no_download_button") from None
+        try:
+            btn.click()
+        except Exception:
+            raise PullFailure("no_download_button") from None
+        try:
+            option = page.locator('[role="menuitem"]', has_text=resolution).first
+            option.wait_for(state="visible", timeout=10_000)
+            validate_download_option(option.inner_text(), resolution)
+        except Exception:
+            if resolution == "720p":
+                raise PullFailure("no_free_720p_item") from None
+            raise
         wait_s = UPSCALE_TIMEOUT_S if resolution == "1080p" else 120
-        with page.expect_download(timeout=wait_s * 1000) as info:
-            option.click()
-        download = info.value
-        suffix = Path(download.suggested_filename).suffix or ".mp4"
-        path = Path(tempfile.mkdtemp()) / f"flow-{resolution}{suffix}"
-        download.save_as(str(path))
-        return path
+        try:
+            with page.expect_download(timeout=wait_s * 1000) as info:
+                option.click()
+            download = info.value
+            suffix = Path(download.suggested_filename).suffix or ".mp4"
+            path = Path(tempfile.mkdtemp()) / f"flow-{resolution}{suffix}"
+            download.save_as(str(path))
+            return path
+        except Exception:
+            raise PullFailure("download_timeout") from None
 
     def download_card(self, card) -> Path:
         """Pull the matched original; preserve the legacy 360p path."""
@@ -1500,12 +1538,6 @@ class FlowBrowser:
                     break
             except Exception:
                 pass
-            try:
-                self.page.evaluate(
-                    "() => { const v = document.querySelector('video'); "
-                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
-            except Exception:
-                pass
             self.page.wait_for_timeout(1000)
         if len(self._captured_video_urls) <= baseline:
             raise RuntimeError(
@@ -1514,41 +1546,26 @@ class FlowBrowser:
         return self._fetch_captured_video()
 
     def pull_original(self, card) -> Path:
-        """Fetch only this project's matched tile's video in its own session.
-
-        URLs and browser exception messages never cross the logging boundary.
-        No click, playback, download event, or generation is needed.
-        """
+        """Open this tile's editor and download its free original-size export."""
         self._original_download = None
         self._original_clip_id = None
         try:
-            payload = card.evaluate(r"""async tile => {
-                const video = tile.querySelector('video');
-                const src = video && (video.currentSrc || video.src);
-                if (!src) throw new Error('missing video');
-                const link = tile.querySelector('a[href*="/edit/"]');
-                const match = ((link && link.href) || src).match(
-                    /(?:edit|video)\/([a-zA-Z0-9-]+)/);
-                const response = await fetch(src, {credentials: 'include'});
-                if (!response.ok) throw new Error('fetch failed');
-                const blob = await response.blob();
-                const data = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-                return {id: match ? match[1] : null, data};
-            }""")
-            path = Path(tempfile.mkdtemp()) / "original.mp4"
-            path.write_bytes(base64.b64decode(payload["data"], validate=True))
-            clip_id = payload.get("id")
-            if clip_id and re.fullmatch(r"[a-zA-Z0-9-]+", clip_id):
-                self._original_clip_id = clip_id
-            self._original_download = path
-            return path
+            card.locator("flow-video-tile").first.click()
+            self.page.wait_for_url(
+                re.compile(r"/edit/[a-zA-Z0-9-]+(?:[/?#]|$)"), timeout=30_000)
+            match = re.search(r"/edit/([a-zA-Z0-9-]+)(?:[/?#]|$)", self.page.url)
+            if not match:
+                raise PullFailure("no_edit_route")
+            self._original_clip_id = match.group(1)
         except Exception:
-            raise RuntimeError("original pull failed; refusing to reuse a prior clip URL") from None
+            raise PullFailure("no_edit_route") from None
+        try:
+            self.mute_all_media()
+        except Exception:
+            raise PullFailure("no_edit_route") from None
+        path = self._download_from_editor_button("720p")
+        self._original_download = path
+        return path
 
     def upscale_original(self) -> Path:
         if not self._original_clip_id or not self._project_url:
@@ -1707,8 +1724,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
         try:
             browser.attach()
             browser.mute_all_media()
-        except Exception as e:
-            _log(f"cannot attach to Chrome at {cdp_url}: {e!r}")
+        except Exception:
+            _log("cannot attach to Chrome")
             _log("is windows/flow-chrome-debug.cmd running on winbox, "
                  "logged in, with the project tab open?")
             return 1
@@ -1973,8 +1990,8 @@ def cmd_pull(args: argparse.Namespace) -> int:
         try:
             browser.attach()
             browser.mute_all_media()
-        except Exception as e:
-            _log(f"cannot attach to Chrome at {cdp_url}: {e!r}")
+        except Exception:
+            _log("cannot attach to Chrome")
             _log("is windows/flow-chrome-debug.cmd running on winbox, "
                  "logged in, with the project tab open?")
             return 1
@@ -1982,6 +1999,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
             row = rows[n]
             shot = sheet_shots.get(n)
             dialogue = card_fragment(shot["prompt"]) if shot else None
+            fallback = shot is not None and dialogue is None
             if getattr(args, "search", None):
                 if len(targets) != 1:
                     raise SystemExit("--search needs exactly one target shot (--only N)")
@@ -1989,15 +2007,26 @@ def cmd_pull(args: argparse.Namespace) -> int:
                     raise SystemExit(f"--search text is not in shot {n}'s current prompt — "
                                      "it would find some other card")
                 dialogue = args.search
-            if not dialogue:
-                row["status"], row["note"] = "needs_model", "no dialogue line to search for"
-                flow_ledger.save_ledger(ledger_path, rows)
-                continue
-            card = browser.find_card_by_dialogue(dialogue)
+                fallback = False
+            card = None
+            if fallback:
+                for candidate in prompt_search_candidates(shot["prompt"]):
+                    try:
+                        card = browser.find_card_by_dialogue(candidate)
+                    except Exception:
+                        card = None
+                    if card is not None:
+                        dialogue = candidate
+                        break
+            elif dialogue:
+                try:
+                    card = browser.find_card_by_dialogue(dialogue)
+                except Exception:
+                    card = None
             if card is None:
-                row["status"], row["note"] = "needs_model", f"card not found for: {dialogue!r}"
+                row["status"], row["note"] = "needs_model", "needs --search"
                 flow_ledger.save_ledger(ledger_path, rows)
-                _log(f"shot {n}: needs_model — card not found")
+                _log(f"shot {n}: needs --search")
                 continue
             try:
                 check_free_space(expect_gb=args.expect_gb, project=args.project)
@@ -2007,42 +2036,54 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 _log(f"shot {n}: REFUSED (space) — stopping the whole pull: {e!r}")
                 break
             earlier = earlier_takes(ledger_path, n)
-            # A finished card can still fail to hand over its URL on one open (taachang S73,
-            # 2026-09-26: found by search, open timed out). Re-find and re-open a few times.
-            downloaded, last_err = None, None
+            # A transient editor failure can recover after re-finding the tile.
+            downloaded, last_code = None, "no_edit_route"
             for attempt in range(4):
                 try:
                     downloaded = browser.download_card(card)
                     break
                 except RuntimeError as e:
-                    last_err = e
-                    _log(f"  shot {n}: open {attempt + 1} gave no video, re-finding the card")
-                    card = browser.find_card_by_dialogue(dialogue)
+                    last_code = e.code if isinstance(e, PullFailure) else "no_edit_route"
+                    _log(f"shot {n}: retry {attempt + 1} {last_code}")
+                    try:
+                        card = browser.find_card_by_dialogue(dialogue)
+                    except Exception:
+                        card = None
                     if card is None:
                         break
             if downloaded is None:
-                row["status"], row["note"] = "needs_model", f"card found but no video after retries: {last_err!r}"
+                row["status"], row["note"] = "failed", last_code
                 flow_ledger.save_ledger(ledger_path, rows)
-                _log(f"shot {n}: needs_model — {row['note']}")
+                _log(f"shot {n}: failed {last_code}")
                 continue
             time.sleep(DOWNLOAD_GAP_S)
-            clip_path, ok, reason = save_verified_download(
-                browser, downloaded, dest, n, shot["dur_s"],
-                browser.download_resolution, args.aspect)
-            row["file"] = str(clip_path)
-            row["sha256"] = sha256_file(clip_path)
-            row["got_dur"] = reason
-            dup = duplicate_take_reason(row["sha256"], earlier)
-            if dup:
-                row["status"], row["note"], reason = "failed", dup, dup
-            elif ok:
-                row["status"] = "verified"
-            else:
-                bad_path = clip_path.with_name("bad-" + clip_path.name)
-                clip_path.rename(bad_path)
-                row["file"], row["status"], row["note"] = str(bad_path), "failed", reason
+            try:
+                clip_path, ok, reason = save_verified_download(
+                    browser, downloaded, dest, n, shot["dur_s"],
+                    browser.download_resolution, args.aspect)
+            except Exception:
+                row["status"], row["note"] = "failed", "verify_failed"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: failed verify_failed")
+                continue
+            try:
+                row["file"] = str(clip_path)
+                row["sha256"] = sha256_file(clip_path)
+                row["got_dur"] = reason
+                dup = duplicate_take_reason(row["sha256"], earlier)
+                if dup:
+                    row["status"], row["note"] = "failed", "verify_failed"
+                elif ok:
+                    row["status"] = "verified"
+                else:
+                    bad_path = clip_path.with_name("bad-" + clip_path.name)
+                    clip_path.rename(bad_path)
+                    row["file"], row["status"], row["note"] = str(bad_path), "failed", "verify_failed"
+            except Exception:
+                row["status"], row["note"] = "failed", "verify_failed"
             flow_ledger.save_ledger(ledger_path, rows)
-            _log(f"shot {n}: {row['status']} — {reason}")
+            _log(f"shot {n}: verified" if row["status"] == "verified"
+                 else f"shot {n}: failed verify_failed")
     finally:
         browser.close()
 
