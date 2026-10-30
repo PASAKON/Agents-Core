@@ -476,58 +476,92 @@ def _header_task_id(content: str, kind: str) -> str | None:
     return m.group(1) if m else None
 
 
-def _publish_via_mesh(task: dict) -> None:
+REMOTE_HOSTS = frozenset({'winbox', 'mac'})
+# Tick-scoped turn (phase -> task ids) so a backlog cannot monopolise ssh; None
+# outside `tick`, where every row gets its turn.
+_REMOTE_TURN: dict[str, set[str]] | None = None
+
+
+def _hub_publish_review(task: dict) -> None:
+    """Publish one `review` row's branch through the mesh, then (codex/agy) run
+    the artefact gate on what reached origin. Raises on any failure; the caller
+    logs it and the row stays in review for the next tick's retry."""
+    from tools.remote_maintenance import hub_publish
+    reply = hub_publish(task)
+    if not (reply and reply.get('ok') and _runner_of(task) in EXTERNAL_RUNNERS):
+        return
+    head = reply.get('result', {}).get('head')
+    validated = 'remote_publish_validated=' + str(head)
+    if not head or validated in (task.get('delegate_log') or ''):
+        return
+    repo = _repo_path_here(get_project(task['project']))
+    if not repo:
+        raise ValueError('no hub checkout for artefact validation')
+    fetch_branch(repo, task['branch'])
+    gate = _artefact_gate_for_external_runner(task, repo, task['branch'])
+    if not gate:
+        db.update_status(task['id'], 'failed', actor='branch_poller',
+                         delegate_log='artefact gate refused: ' + '; '.join(gate.reasons))
+    else:
+        db.set_fields(task['id'], actor='branch_poller',
+                      delegate_log=(task.get('delegate_log') or '') + '\n' + validated)
+
+
+def _hub_remote_step(task: dict) -> bool:
+    """C4: the hub, not the worker, moves a winbox/mac row to review and
+    publishes its branch. Only rows THIS box dispatched (W1.5 duty split) and
+    only with the mesh switched on. Never raises; True when this call moved an
+    `in_progress` row out of `in_progress`, so `check_task` stops there."""
+    status = task.get('status')
+    if status not in ('in_progress', 'review') or not mesh.enabled() or not is_dispatched_here(task):
+        return False
+    phase = 'completion' if status == 'in_progress' else 'review'
+    if _REMOTE_TURN is not None and task['id'] not in _REMOTE_TURN.get(phase, ()):
+        return False
+    moved = False
+    try:
+        if status == 'review':
+            _hub_publish_review(task)
+        else:
+            from tools.remote_maintenance import encode
+            metadata = {k: task.get(k) for k in ('id', 'host', 'branch', 'worktree', 'status', 'pid', 'spawned_at')}
+            reply = mesh.dispatch(row_host(task), 'worker_completion', encode(metadata))
+            result = reply.get('result', {})
+            if reply.get('ok') and result.get('ready'):
+                db.update_status(task['id'], 'review', report=result['report'], actor='branch_poller')
+                moved = True
+                _hub_publish_review({**task, 'status': 'review'})
+    except Exception as exc:
+        _log().warning('task %s: remote publication pending: %s', task['id'], type(exc).__name__)
+    return moved
+
+
+def _publish_via_mesh(task: dict) -> bool:
     """W2.3 (ORG_MESH_DISPATCH): a worker never pushes. When the row was
     dispatched by a different box than the one it runs on, ask the worker's
     host to publish the branch (`publish_branch <task-id>`, node_dispatch's
     `git push origin <agent branch>` from the worktree) before this tick looks
     for it on origin. Never raises, never changes the row: an unreachable host
     or a refusal only means "not published yet", and the branch check below
-    reads origin either way."""
-    if self_host() == 'contabo' and row_host(task) in {'winbox', 'mac'}:
-        from tools.remote_maintenance import encode, hub_publish
-        try:
-            if task.get('status') == 'in_progress':
-                metadata = {k: task.get(k) for k in ('id', 'host', 'branch', 'worktree', 'status', 'pid', 'spawned_at')}
-                reply = mesh.dispatch(row_host(task), 'worker_completion', encode(metadata))
-                result = reply.get('result', {})
-                if reply.get('ok') and result.get('ready'):
-                    db.update_status(task['id'], 'review', report=result['report'], actor='branch_poller')
-                    _publish_via_mesh({**task, 'status': 'review'})
-            elif task.get('status') == 'review':
-                reply = hub_publish(task)
-                if reply and reply.get('ok') and _runner_of(task) in EXTERNAL_RUNNERS:
-                    head = reply.get('result', {}).get('head')
-                    validated = 'remote_publish_validated=' + str(head)
-                    if head and validated not in (task.get('delegate_log') or ''):
-                        repo = _repo_path_here(get_project(task['project']))
-                        if not repo:
-                            raise ValueError('no hub checkout for artefact validation')
-                        fetch_branch(repo, task['branch'])
-                        gate = _artefact_gate_for_external_runner(task, repo, task['branch'])
-                        if not gate:
-                            db.update_status(task['id'], 'failed', actor='branch_poller',
-                                delegate_log='artefact gate refused: ' + '; '.join(gate.reasons))
-                        else:
-                            db.set_fields(task['id'], actor='branch_poller',
-                                delegate_log=(task.get('delegate_log') or '') + '\n' + validated)
-        except Exception as exc:
-            _log().warning('task %s: remote publication pending: %s', task['id'], type(exc).__name__)
-        return
+    reads origin either way. True only when the hub moved the row out of
+    `in_progress` (see `_hub_remote_step`)."""
+    if self_host() == 'contabo' and row_host(task) in REMOTE_HOSTS:
+        return _hub_remote_step(task)
     if not mesh.enabled() or row_dispatcher(task) == row_host(task):
-        return
+        return False
     task_id, host_name = task["id"], row_host(task)
     try:
         reply = mesh.dispatch(host_name, "publish_branch", task_id)
     except mesh.MeshUnreachable as e:
         _log().warning("task %s: publish_branch on %s got no answer: %s",
                        task_id, host_name, e)
-        return
+        return False
     if reply.get("ok"):
         _log().info("task %s: published by %s: %s", task_id, host_name, reply.get("result"))
     else:
         _log().info("task %s: publish_branch on %s said no: %s",
                     task_id, host_name, reply.get("error"))
+    return False
 
 
 def check_task(task: dict) -> None:
@@ -553,7 +587,8 @@ def check_task(task: dict) -> None:
                        task_id, task.get("project"), self_host())
         return
 
-    _publish_via_mesh(task)
+    if _publish_via_mesh(task):
+        return  # the hub moved a remote row to review itself
 
     if remote_branch_exists(repo_path, branch):
         fetch_branch(repo_path, branch)
@@ -679,19 +714,31 @@ def _remote_batch(tasks: list[dict], phase: str) -> list[dict]:
     return selected
 
 
+def _hub_remote_rows(tasks: list[dict]) -> list[dict]:
+    """Rows the hub itself publishes (C4): this box dispatched them, they run on
+    winbox/mac. The same W1.5 owner test as `in_poller_set`, never wider."""
+    if self_host() != 'contabo':
+        return []
+    return [t for t in tasks if row_host(t) in REMOTE_HOSTS and is_dispatched_here(t)]
+
+
 def _sweep_review_local_launchers() -> None:
     """A local launcher row is polled only while `in_progress`; once flipped to
     `review` nothing else would look at its tmux session again, so the "still
     alive after review + quiet period" close would never get a second chance.
     Re-offer each such row every tick; `_maybe_close_finished_local_launcher`
     returns at its first (cheap, tmux-only) check for the normal case where the
-    launcher already tore its own session down."""
+    launcher already tore its own session down.
+
+    C4: the hub also re-offers each winbox/mac review row it dispatched to the
+    mesh publish (bounded, rotating), so a publish that failed is retried."""
     reviews = db.list_tasks(status="review", limit=500)
-    remote_ids = {t['id'] for t in _remote_batch(reviews, 'review')} if self_host() == 'contabo' else set()
+    remote_rows = _hub_remote_rows(reviews)
+    if remote_rows and _REMOTE_TURN is not None:
+        _REMOTE_TURN['review'] = {t['id'] for t in _remote_batch(remote_rows, 'review')}
+    for t in remote_rows:
+        _publish_via_mesh(t)
     for t in reviews:
-        if self_host() == 'contabo' and row_host(t) in {'winbox', 'mac'}:
-            if t['id'] in remote_ids:
-                _publish_via_mesh(t)
         if not (t.get("branch") and is_local_row(t) and is_dispatched_here(t)
                 and _runner_of(t) in EXTERNAL_RUNNERS):
             continue
@@ -708,19 +755,19 @@ def tick() -> int:
     this box dispatched that run on another host, plus its own codex/agy
     launcher runs. Returns the count of tasks checked (not how many changed —
     0 changes on a normal tick is the common case, not a problem)."""
+    global _REMOTE_TURN
     tasks = [t for t in db.list_tasks(status="in_progress", limit=500)
-             if in_poller_set(t) or (self_host() == 'contabo' and row_host(t) in {'winbox', 'mac'})]
-    remote_ids = {t['id'] for t in _remote_batch(tasks, 'completion')} if self_host() == 'contabo' else set()
-    for t in tasks:
-        try:
-            if self_host() == 'contabo' and row_host(t) in {'winbox', 'mac'}:
-                if t['id'] in remote_ids:
-                    _publish_via_mesh(t)
-                continue
-            check_task(t)
-        except Exception as e:  # a bad task must never kill the loop
-            _log().error("check_task failed for %s: %s", t.get("id"), e)
-    _sweep_review_local_launchers()
+             if in_poller_set(t)]
+    _REMOTE_TURN = {'completion': {t['id'] for t in _remote_batch(_hub_remote_rows(tasks), 'completion')}}
+    try:
+        for t in tasks:
+            try:
+                check_task(t)
+            except Exception as e:  # a bad task must never kill the loop
+                _log().error("check_task failed for %s: %s", t.get("id"), e)
+        _sweep_review_local_launchers()
+    finally:
+        _REMOTE_TURN = None
     return len(tasks)
 
 
