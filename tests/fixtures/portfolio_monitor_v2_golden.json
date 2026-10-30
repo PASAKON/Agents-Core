@@ -1,0 +1,611 @@
+{
+  "v": 2,
+  "generated_at": "2026-10-14T03:20:00Z",
+  "counts": {
+    "in_progress": 20,
+    "parked": 2,
+    "late": 1,
+    "waiting_ceo": 1,
+    "no_plan": 18
+  },
+  "attention": [
+    {
+      "kind": "late",
+      "project_id": "p01",
+      "order_id": null,
+      "text": "เลยกำหนด: M1 first",
+      "since": "2026-10-14T02:00:00Z",
+      "decided": null
+    },
+    {
+      "kind": "waiting_ceo",
+      "project_id": "p02",
+      "order_id": null,
+      "text": "รอคุณตอบ",
+      "since": "2026-10-14T02:30:00Z",
+      "decided": "cto-c34459eb: took the cheaper runner"
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p02",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:02:00Z",
+      "decided": "cto-c34459eb: took the cheaper runner"
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p04",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:04:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p05",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:05:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p06",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:06:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p07",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:07:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p08",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:08:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p09",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:09:00Z",
+      "decided": null
+    },
+    {
+      "kind": "no_plan",
+      "project_id": "p10",
+      "order_id": null,
+      "text": "ไม่มีแผน",
+      "since": "2026-10-14T01:10:00Z",
+      "decided": null
+    }
+  ],
+  "projects": [
+    {
+      "id": "p01",
+      "name": "Project 1",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "working",
+      "state_since": "2026-10-14T03:13:00Z",
+      "last_active": "2026-10-14T03:18:00Z",
+      "active_today_s": 300,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": "2026-10-14T02:00:00Z",
+      "due_moved_from": null,
+      "late_s": 4800,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p02",
+      "name": "Project 2",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "waiting_ceo",
+      "state_since": "2026-10-14T02:30:00Z",
+      "last_active": "2026-10-14T03:12:00Z",
+      "active_today_s": 0,
+      "blocker": {
+        "on": "ceo",
+        "since": "2026-10-14T02:30:00Z",
+        "what": "pick one",
+        "ref": null
+      },
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p06",
+      "name": "Project 6",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T03:11:00Z",
+      "last_active": "2026-10-14T03:11:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": "write the tests",
+      "owner": "tester",
+      "beat": null
+    },
+    {
+      "id": "p04",
+      "name": "Project 4",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T03:10:00Z",
+      "last_active": "2026-10-14T03:10:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "loop",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": {
+        "n": 1,
+        "last_at": "2026-10-14T03:10:00Z",
+        "next_due": "2026-10-15T03:10:00Z"
+      }
+    },
+    {
+      "id": "p07",
+      "name": "Project 7",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "waiting",
+      "state_since": "2026-10-14T02:31:00Z",
+      "last_active": "2026-10-14T02:31:00Z",
+      "active_today_s": 0,
+      "blocker": {
+        "on": "external",
+        "since": "2026-10-14T02:31:00Z",
+        "what": "vendor reply",
+        "ref": null
+      },
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p20",
+      "name": "Project 20",
+      "lane": "cmo",
+      "pct": 100,
+      "milestones": {
+        "done": 1,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T02:20:00Z",
+      "last_active": "2026-10-14T02:20:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p15",
+      "name": "Project 15",
+      "lane": "cto",
+      "pct": 50,
+      "milestones": {
+        "done": 1,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T02:15:00Z",
+      "last_active": "2026-10-14T02:15:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p10",
+      "name": "Project 10",
+      "lane": "cmo",
+      "pct": 100,
+      "milestones": {
+        "done": 1,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T02:10:00Z",
+      "last_active": "2026-10-14T02:10:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p05",
+      "name": "Project 5",
+      "lane": "cto",
+      "pct": 50,
+      "milestones": {
+        "done": 1,
+        "total": 2
+      },
+      "state": "generating",
+      "state_since": "2026-10-14T03:02:00Z",
+      "last_active": "2026-10-14T02:05:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p19",
+      "name": "Project 19",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:19:00Z",
+      "last_active": "2026-10-14T01:19:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p18",
+      "name": "Project 18",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:18:00Z",
+      "last_active": "2026-10-14T01:18:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p17",
+      "name": "Project 17",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:17:00Z",
+      "last_active": "2026-10-14T01:17:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p16",
+      "name": "Project 16",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:16:00Z",
+      "last_active": "2026-10-14T01:16:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p14",
+      "name": "Project 14",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:14:00Z",
+      "last_active": "2026-10-14T01:14:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p13",
+      "name": "Project 13",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:13:00Z",
+      "last_active": "2026-10-14T01:13:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p12",
+      "name": "Project 12",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:12:00Z",
+      "last_active": "2026-10-14T01:12:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p11",
+      "name": "Project 11",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:11:00Z",
+      "last_active": "2026-10-14T01:11:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p09",
+      "name": "Project 9",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:09:00Z",
+      "last_active": "2026-10-14T01:09:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p08",
+      "name": "Project 8",
+      "lane": "cmo",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 1
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:08:00Z",
+      "last_active": "2026-10-14T01:08:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    },
+    {
+      "id": "p03",
+      "name": "Project 3",
+      "lane": "cto",
+      "pct": 0,
+      "milestones": {
+        "done": 0,
+        "total": 2
+      },
+      "state": "stalled",
+      "state_since": "2026-10-14T01:03:00Z",
+      "last_active": "2026-10-14T01:03:00Z",
+      "active_today_s": 0,
+      "blocker": null,
+      "parked": false,
+      "tier": "normal",
+      "kind": "finite",
+      "due_at": null,
+      "due_moved_from": null,
+      "late_s": null,
+      "next": null,
+      "owner": null,
+      "beat": null
+    }
+  ],
+  "orders": [
+    {
+      "id": "O-fixed-1",
+      "words": "make it faster",
+      "project_id": "p01",
+      "state": "working",
+      "pct": 0,
+      "due_at": null,
+      "taken_at": "2026-10-14T03:13:00Z",
+      "closed_at": null
+    },
+    {
+      "id": "O-fixed-2",
+      "words": "something unlinked",
+      "project_id": null,
+      "state": "taken",
+      "pct": null,
+      "due_at": null,
+      "taken_at": "2026-10-14T02:00:00Z",
+      "closed_at": null
+    }
+  ]
+}
