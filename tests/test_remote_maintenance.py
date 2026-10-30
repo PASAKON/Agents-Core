@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path, PureWindowsPath
 from types import SimpleNamespace
+import json
+import re
 import subprocess
 import sys
 
@@ -201,6 +203,7 @@ def test_remote_grace_reads_config(monkeypatch):
 
 def test_bootstrap_and_retry(monkeypatch):
     from runners import branch_poller as bp
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
     monkeypatch.setattr(bp, 'self_host', lambda: 'contabo')
     task = dict(id='task-1234abcd', host='winbox', status='in_progress')
     changes = []
@@ -283,7 +286,10 @@ def test_mesh_metadata_no_remote_db(remote, monkeypatch, tmp_path):
     from tools import node_dispatch as nd
     row, _, _, _ = remote
     monkeypatch.setattr(nd, 'MAINTENANCE_AUDIT_DIR', tmp_path / 'audit')
-    monkeypatch.setattr(db, 'get_conn', lambda *a, **k: pytest.fail('remote DB used'))
+
+    def no_db(*a, **k):  # this host holds no DB secret: the connection fails at once
+        raise RuntimeError('no DB on this host')
+    monkeypatch.setattr(db, 'get_conn', no_db)
     payload = rm.encode({'tasks': [row]})
     assert len('steward_reap ' + payload) > 256
     reply, code = nd.run_command('steward_reap ' + payload)
@@ -295,6 +301,7 @@ def test_hub_artefact_gate_retained(monkeypatch):
     from runners import branch_poller as bp
     task = dict(id='task-1234abcd', host='winbox', status='review', runner='agy',
                 project='project', branch='agent/agy-task-1234abcd')
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
     monkeypatch.setattr(bp, 'self_host', lambda: 'contabo')
     monkeypatch.setattr(rm, 'hub_publish', lambda t: {'ok': True, 'result': {'head': 'a' * 40}})
     monkeypatch.setattr(bp, 'get_project', lambda _: {})
@@ -371,3 +378,195 @@ def test_deleted_outgoing_object_refused(tmp_path, filename, size):
     run('commit', '-m', 'remove media', cwd=repo)
     with pytest.raises(ValueError, match='outgoing'):
         rm.outgoing_check(repo, branch)
+
+
+# --- worker_completion: a dead worker whose launcher never committed ---------
+
+def _run(cwd, *args):
+    return subprocess.run(['git', *args], cwd=cwd, check=True, capture_output=True, text=True).stdout
+
+
+@pytest.fixture
+def dead_worker(monkeypatch, tmp_path):
+    """Real git: a winbox worktree on its task branch, the worker's pid gone."""
+    from lib import proc
+    origin, root = tmp_path / 'origin.git', tmp_path / 'trees'
+    wt = root / 'project__developer__task-1234abcd'
+    root.mkdir()
+    _run(tmp_path, 'init', '--bare', '-b', 'main', str(origin))
+    _run(tmp_path, 'clone', '-q', str(origin), str(wt))
+    _run(wt, 'config', 'user.email', 'test@example.test')
+    _run(wt, 'config', 'user.name', 'Test')
+    (wt / 'base.py').write_text('base = 1\n')
+    _run(wt, 'add', 'base.py')
+    _run(wt, 'commit', '-q', '-m', 'base')
+    _run(wt, 'checkout', '-q', '-b', 'agent/claude-task-1234abcd')
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'winbox')
+    monkeypatch.setattr(rm.config, 'host', lambda _: {'worktrees': str(root)})
+    monkeypatch.setattr(proc, 'pid_alive', lambda _: False)
+    monkeypatch.setattr(rm, 'RECOVERY_QUIET_S', 0)
+    row = dict(id='task-1234abcd', host='winbox', worktree=str(wt), pid=4242,
+               branch='agent/claude-task-1234abcd', status='in_progress',
+               spawned_at=(datetime.now(timezone.utc) - timedelta(hours=1)).isoformat())
+    return row, wt
+
+
+def _stage_complete_diff(wt, report=True):
+    (wt / 'feature.py').write_text('feature = 1\n')
+    (wt / '.worker.json').write_text('{}')          # launcher scratch, staged by `add -A`
+    (wt / 'clip.mp4').write_bytes(b'\0' * 2048)      # media never goes to git
+    names = ['feature.py', '.worker.json', 'clip.mp4']
+    if report:
+        (wt / 'docs' / 'reports' / 'task-1234abcd').mkdir(parents=True)
+        (wt / 'docs' / 'reports' / 'task-1234abcd' / 'REPORT.md').write_text('# REPORT task-1234abcd\n\nDone\n')
+        names.append('docs/reports/task-1234abcd/REPORT.md')
+    _run(wt, 'add', '-f', *names)
+    (wt / 'notes.txt').write_text('untracked, stays untracked')
+
+
+def test_dead_pid_with_staged_diff_and_no_marker_is_committed_by_the_hub(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    before = _run(wt, 'rev-parse', 'HEAD').strip()
+
+    result = rm.completion(rm.encode(row))
+
+    head = _run(wt, 'rev-parse', 'HEAD').strip()
+    assert result['ready'] and result['head'] == head != before
+    assert result['report'].startswith('# REPORT task-1234abcd')
+    committed = _run(wt, 'show', '--name-only', '--format=', 'HEAD').split()
+    assert sorted(committed) == ['docs/reports/task-1234abcd/REPORT.md', 'feature.py']
+    assert _run(wt, 'status', '--porcelain', '--untracked-files=no') == ''
+    assert (wt / 'notes.txt').exists() and 'notes.txt' not in _run(wt, 'ls-files')
+    marker = Path(_run(wt, 'rev-parse', '--absolute-git-dir').strip()) / 'org-publish-ready'
+    assert marker.read_text() == head
+    # a second call (publish retry) sees the marker and commits nothing more
+    assert rm.completion(rm.encode(row))['head'] == head
+    assert _run(wt, 'rev-parse', 'HEAD').strip() == head
+
+
+def test_unstaged_tracked_edits_are_recovered_too(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    _run(wt, 'commit', '-q', '-m', 'worker commit')   # report + feature committed ...
+    (wt / 'base.py').write_text('base = 2\n')          # ... a tracked edit left unstaged
+    assert rm.completion(rm.encode(row))['ready']
+    assert _run(wt, 'show', 'HEAD:base.py') == 'base = 2\n'
+
+
+def test_recovery_waits_while_git_state_is_recent_or_the_pid_lives(dead_worker, monkeypatch):
+    from lib import proc
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    before = _run(wt, 'rev-parse', 'HEAD')
+    monkeypatch.setattr(rm, 'RECOVERY_QUIET_S', 3600)          # launcher may still be mid-step
+    assert not rm.completion(rm.encode(row))['ready']
+    monkeypatch.setattr(rm, 'RECOVERY_QUIET_S', 0)
+    monkeypatch.setattr(proc, 'pid_alive', lambda _: True)     # worker still running
+    assert not rm.completion(rm.encode(row))['ready']
+    (Path(_run(wt, 'rev-parse', '--absolute-git-dir').strip()) / 'index.lock').write_text('')
+    monkeypatch.setattr(proc, 'pid_alive', lambda _: False)    # a git command holds the index
+    assert not rm.completion(rm.encode(row))['ready']
+    assert _run(wt, 'rev-parse', 'HEAD') == before             # nothing was committed
+
+
+def test_recovery_refuses_without_a_report_and_commits_nothing(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt, report=False)
+    before = _run(wt, 'rev-parse', 'HEAD')
+    with pytest.raises(ValueError, match='no report'):
+        rm.completion(rm.encode(row))
+    assert _run(wt, 'rev-parse', 'HEAD') == before
+
+
+def test_recovery_refuses_a_report_for_another_task(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    (wt / 'docs' / 'reports' / 'task-1234abcd' / 'REPORT.md').write_text('# REPORT task-ffffffff\n')
+    with pytest.raises(ValueError, match='mismatch'):
+        rm.completion(rm.encode(row))
+
+
+def test_publish_never_recovers_on_its_own(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    before = _run(wt, 'rev-parse', 'HEAD')
+    with pytest.raises(ValueError, match='launcher has not completed'):
+        rm.publish(rm.encode({**row, 'status': 'review'}))
+    assert _run(wt, 'rev-parse', 'HEAD') == before
+
+
+# --- wire format, git output, duty split -------------------------------------
+
+@pytest.mark.parametrize('bad', ['-', '', 'AB', 'abc', 'zz', '00', '5b5d', 'ab' * 3751, 'ABCD1234'])
+def test_decode_refuses_anything_but_lowercase_hex_of_a_json_object(bad):
+    with pytest.raises((ValueError, TypeError)):
+        rm.decode(bad)
+
+
+def test_encode_is_plain_lowercase_hex():
+    assert re.fullmatch(r'[0-9a-f]+', rm.encode({'id': 'task-1234abcd', 'path': 'C:\\Users\\x y'}))
+
+
+def test_git_failure_text_is_redacted_and_bounded(monkeypatch, tmp_path):
+    token = 'ghp_' + 'A1b2C3d4' * 5
+    err = 'x' * 900 + f" fatal: Authentication failed for 'https://x-access-token:{token}@github.com/o/r.git/'"
+    monkeypatch.setattr(rm.subprocess, 'run',
+                        lambda argv, **kw: subprocess.CompletedProcess(argv, 128, '', err))
+    with pytest.raises(ValueError) as caught:
+        rm.git(tmp_path, 'fetch', '--prune', 'origin')
+    text = str(caught.value)
+    assert 'https://***@github.com' in text and len(text) < 400
+    assert token not in text and 'x-access-token' not in text
+
+
+def test_hub_audit_redacts_every_string_of_a_remote_reply():
+    token = 'ghp_' + 'Z' * 36
+    reply = {'results': [{'error': f'push https://u:{token}@h/x failed', 'bytes': 1}], 'n': None}
+    cleaned = rm.redact_reply(reply)
+    assert token not in json.dumps(cleaned) and cleaned['results'][0]['bytes'] == 1
+
+
+def _hub_poller(monkeypatch, bp, rows):
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
+    monkeypatch.setattr(bp, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(bp.db, 'list_tasks',
+                        lambda status=None, limit=0: [r for r in rows if r['status'] == status])
+    calls = []
+    monkeypatch.setattr(mesh, 'dispatch', lambda host, verb, *a: calls.append((host, verb, rm.decode(a[0])['id'])) or {'ok': True, 'result': {'ready': False}})
+    monkeypatch.setattr(bp, 'check_task', lambda t: bp._publish_via_mesh(t))
+    return calls
+
+
+def test_hub_only_asks_about_rows_it_dispatched(monkeypatch):
+    from runners import branch_poller as bp
+    rows = [dict(id=f'task-0000000{i}', host='winbox', dispatcher_host=d, status='in_progress')
+            for i, d in enumerate(['contabo', 'mac', 'winbox', None])]
+    calls = _hub_poller(monkeypatch, bp, rows)
+    bp.tick()
+    assert sorted(c[2] for c in calls) == ['task-00000000', 'task-00000003']   # contabo and NULL only
+
+
+def test_hub_asks_about_three_rows_per_host_per_tick_and_rotates(monkeypatch):
+    from runners import branch_poller as bp
+    rows = [dict(id=f'task-0000000{i}', host='winbox', dispatcher_host='contabo', status='in_progress')
+            for i in range(5)]
+    calls = _hub_poller(monkeypatch, bp, rows)
+    bp._REMOTE_CURSOR.clear()
+    bp.tick()
+    bp.tick()
+    asked = [c[2] for c in calls]
+    ids = [r['id'] for r in rows]
+    assert len(asked) == 6
+    assert sorted(asked[:3]) == ids[:3]                       # first tick: three rows
+    assert sorted(asked[3:]) == sorted([ids[3], ids[4], ids[0]])   # next tick: the rest, then wraps
+    bp._REMOTE_CURSOR.clear()
+
+
+def test_hub_does_nothing_for_remote_rows_with_the_mesh_off(monkeypatch):
+    from runners import branch_poller as bp
+    rows = [dict(id='task-00000000', host='winbox', dispatcher_host='contabo', status='in_progress')]
+    calls = _hub_poller(monkeypatch, bp, rows)
+    monkeypatch.delenv(mesh.ENV_FLAG)
+    bp.tick()
+    assert calls == []

@@ -5,7 +5,6 @@ locally; paths and Git identity are checked again before destructive work.
 """
 from __future__ import annotations
 
-import base64
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
@@ -14,18 +13,29 @@ from pathlib import Path, PureWindowsPath
 import re
 import stat
 import subprocess
+import time
 
 from lib import config
 from tools import disk_steward, workdir
+from tools.node_dispatch import PAYLOAD_RE, _redact
 
 MAX_TASKS = 3
 MAX_BYTES = 2 * 1024**3
 TERMINAL = {'done', 'merged', 'cancelled', 'failed'}
 MEDIA = set('png jpg jpeg gif webp heic mp4 mov webm mkv avi mp3 wav m4a aac flac ogg'.split())
+# The launcher's own scratch files: never part of a recovery commit.
+SCRATCH = ['.worker.pid', '.worker.json', 'TASK.md', '.org-task.json', '.org-worker.mcp.json',
+           'CTO-FEEDBACK.md', 'REPORT.md', 'BLOCKER.md', 'HEARTBEAT', 'MAILBOX.md', ':(glob)*.log']
+# A worker that exited without its launcher's commit step is recovered by the
+# hub only after its git state has been still this long (the launcher, a
+# separate process from the recorded worker pid, may still be mid-step).
+RECOVERY_QUIET_S = 300
 
 
 def encode(row):
-    return base64.urlsafe_b64encode(json.dumps(row, separators=(',', ':')).encode()).decode()
+    """Lowercase hex of the compact JSON: the only characters on the wire are
+    [0-9a-f], so no remote shell or parser has anything to re-read."""
+    return json.dumps(row, separators=(',', ':')).encode().hex()
 
 
 def reap_grace_seconds():
@@ -38,7 +48,9 @@ def reap_grace_seconds():
 
 
 def decode(payload):
-    value = json.loads(base64.b64decode(payload, altchars=b'-_', validate=True))
+    if not isinstance(payload, str) or not PAYLOAD_RE.fullmatch(payload):
+        raise ValueError('malformed payload')
+    value = json.loads(bytes.fromhex(payload).decode('utf-8'))
     if not isinstance(value, dict):
         raise ValueError('metadata must be an object')
     return value
@@ -72,7 +84,12 @@ def git(wt, *args):
                             text=True, timeout=120, stdin=subprocess.DEVNULL,
                             env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'})
     if result.returncode:
-        raise ValueError('git operation failed: ' + args[0])
+        # git echoes a remote URL with its credentials. Every failure leaves
+        # here redacted and bounded, so the reply and the audit row never see
+        # the raw text; the caller's own error paths need no second filter.
+        sub = next((a for a in args if not a.startswith('-')), 'command')
+        detail = _redact((result.stderr or result.stdout or '').strip())[-300:]
+        raise ValueError(f'git {sub} failed: {detail}')
     return result.stdout.strip()
 
 
@@ -203,7 +220,7 @@ def reap(payload):
                             'worktree', 'remove', str(wt))
                         result['status'] = 'run'
             except Exception as exc:
-                result.update(status='failed', error=str(exc))
+                result.update(status='failed', error=_redact(str(exc))[:300])
             results.append(result)
     return {'host': host, 'results': results, 'bytes': used, 'dry_run': not apply}
 
@@ -247,7 +264,7 @@ def publish(payload, *, ph=False):
             raise ValueError('worktree not bound to PH session')
     else:
         wt = identity(row)
-        if row['host'] == 'winbox' and not completion(payload).get('ready'):
+        if row['host'] == 'winbox' and not completion(payload, recover=False).get('ready'):
             raise ValueError('launcher has not completed')
     if row.get('status') != 'review':
         raise ValueError('publication requires review')
@@ -259,7 +276,55 @@ def publish(payload, *, ph=False):
     return {'branch': branch, 'head': head, 'pushed': True}
 
 
-def completion(payload):
+def _quiet(gitdir):
+    """True when the worktree's git state has not moved for RECOVERY_QUIET_S
+    and no git command holds the index. Unknown means not quiet."""
+    if (gitdir / 'index.lock').exists():
+        return False
+    times = [p.stat().st_mtime for p in (gitdir / 'index', gitdir / 'logs' / 'HEAD') if p.exists()]
+    return bool(times) and time.time() - max(times) >= RECOVERY_QUIET_S
+
+
+def _recover_commit(wt, row):
+    """The worker's process is gone and its launcher never committed (a real
+    winbox run, task-18ff8da2: complete diff staged, launcher step never ran).
+    Do what the launcher's step does, minus anything that is not code: stage
+    tracked changes and the task's own report, drop launcher scratch files and
+    media, commit. No hook runs, nothing is pushed, untracked files other than
+    the report stay untouched. The publish gate still checks every object."""
+    tid = row['id']
+    if git(wt, 'symbolic-ref', '--short', 'HEAD') != row['branch']:
+        raise ValueError('checked out branch mismatch')
+    report = wt / 'docs' / 'reports' / tid / 'REPORT.md'
+    git(wt, 'add', '-u')
+    if report.is_file() and not report.is_symlink() and report.stat().st_size <= 64000:
+        first = report.read_text(encoding='utf-8', errors='replace').splitlines()[:1]
+        if first != ['# REPORT ' + tid]:
+            raise ValueError('report task mismatch')
+        git(wt, 'add', '--', 'docs/reports/' + tid + '/REPORT.md')
+    git(wt, 'reset', '-q', '--', *SCRATCH)
+    if not git(wt, 'ls-files', '--', 'docs/reports/' + tid + '/REPORT.md'):
+        raise ValueError('no report to publish')
+    staged = git(wt, 'diff', '--cached', '--name-only', '-z', '--diff-filter=ACMRT').split('\0')
+    media = [n for n in staged if n and Path(n).suffix.lower().lstrip('.') in MEDIA]
+    if media:
+        git(wt, 'reset', '-q', '--', *media)
+    if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=str(wt), timeout=120,
+                      stdin=subprocess.DEVNULL).returncode:
+        git(wt, 'commit', '-q', '--no-verify', '-m', f'task {tid}: hub recovery commit',
+            '-m', 'The worker process ended before its launcher committed.')
+    head = git(wt, 'rev-parse', 'HEAD')
+    if row['host'] == 'winbox':
+        (Path(git(wt, 'rev-parse', '--absolute-git-dir')) / 'org-publish-ready').write_text(head)
+    return head
+
+
+def completion(payload, recover=True):
+    """Is this remote task finished, with its report on a commit? The recorded
+    pid is the CLI's, not the launcher's, so a dead pid alone is not enough:
+    the launcher's marker (winbox) or a still git state says the launcher is
+    done. When neither shows after RECOVERY_QUIET_S, the launcher is gone and
+    the hub commits the worker's tracked and staged changes itself."""
     from lib import proc
     row = decode(payload)
     wt = identity(row)
@@ -267,12 +332,19 @@ def completion(payload):
     if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0 or proc.pid_alive(pid):
         return {'ready': False}
     head = git(wt, 'rev-parse', 'HEAD')
-    if row['host'] == 'winbox':
-        marker = Path(git(wt, 'rev-parse', '--absolute-git-dir')) / 'org-publish-ready'
-        if not marker.exists() or marker.read_text().strip() != head:
-            return {'ready': False}
-    if git(wt, 'status', '--porcelain', '--untracked-files=no'):
+    gitdir = Path(git(wt, 'rev-parse', '--absolute-git-dir'))
+    marker = gitdir / 'org-publish-ready'
+    marked = row['host'] == 'winbox' and marker.exists() and marker.read_text().strip() == head
+    dirty = bool(git(wt, '--no-optional-locks', 'status', '--porcelain', '--untracked-files=no'))
+    if marked and dirty:
         return {'ready': False}
+    if not marked and (row['host'] == 'winbox' or dirty):
+        if not _quiet(gitdir):
+            return {'ready': False}
+        if dirty:
+            if not recover:
+                return {'ready': False}
+            head = _recover_commit(wt, row)
     report = git(wt, 'show', head + ':docs/reports/' + row['id'] + '/REPORT.md')
     if not report or report.splitlines()[0] != '# REPORT ' + row['id']:
         raise ValueError('report task mismatch')
@@ -307,6 +379,17 @@ def hub_publish_ph(host, session_id, branch, worktree):
         raise ValueError('remote PH publication is hub only')
     return mesh.dispatch(host, 'publish_ph', encode(dict(host=host,
         session_id=session_id, branch=branch, worktree=worktree, status='review')))
+
+
+def redact_reply(value):
+    """Every string leaf of a remote reply, redacted, before the audit row."""
+    if isinstance(value, str):
+        return _redact(value)
+    if isinstance(value, list):
+        return [redact_reply(v) for v in value]
+    if isinstance(value, dict):
+        return {k: redact_reply(v) for k, v in value.items()}
+    return value
 
 
 def hub_reap(*, apply=False):
@@ -361,7 +444,7 @@ def hub_reap(*, apply=False):
             for name in ('reap', 'orphans'):
                 disk_steward.record(dict(name=name, host=host, status=status,
                                          ts=datetime.now(timezone.utc).isoformat(),
-                                         rc=int(status == 'failed'), result=reply), False)
+                                         rc=int(status == 'failed'), result=redact_reply(reply)), False)
         if apply:
             temp = stamp.with_suffix('.tmp')
             temp.write_text(json.dumps(completed))
