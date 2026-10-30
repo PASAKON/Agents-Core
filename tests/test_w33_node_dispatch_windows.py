@@ -163,6 +163,10 @@ def test_node_dispatch_never_calls_os_kill():
 
 def _stub_machine(monkeypatch, *, ram=8 * 1024 ** 3):
     monkeypatch.setattr(nd, "_win_avail_phys_bytes", lambda: ram)
+    monkeypatch.setattr(nd, "_fill_facts", lambda: {
+        "ram_free_gb": nd._ram_free_gb(), "ram_total_gb": 16.0,
+        "cpu_pct": 35.0, "disk_total_gb": 200.0, "free_gb": 100.0,
+    })
     monkeypatch.setattr(nd, "_git_version", lambda: "abc1234")
     monkeypatch.setattr(nd, "_installed_runners", lambda: ["claude"])
     monkeypatch.setattr(nd, "_measure_provides", lambda: (["windows"], []))  # W4.4: no real ffmpeg/node

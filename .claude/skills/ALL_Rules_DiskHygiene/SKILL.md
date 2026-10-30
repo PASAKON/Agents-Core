@@ -32,6 +32,13 @@ Read this page for the law, then the one file for the box you are on.
 | winbox (Windows, 512 GB) | `references/winbox.md` | the CEO's game PC; a bot fills it 2-4 GB/day; steward tier only |
 | Contabo VPS (72 GB) | `references/contabo.md` | production; 7.8 GB free on 2026-09-28; the Green list runs without asking, any other delete needs the CEO's go |
 
+**winbox and the Mac take overflow work (CEO 2026-10-30).** When Contabo is 80% full, new work goes to whichever
+of them is less full (Core `CLAUDE.md` §Which host runs the work), so their disks fill with worktrees and `Work/`
+folders too. Each host's own steward runs the Green list. The steps that need the hub's database (reap,
+review-idle, orphans, close-orphans) run from Contabo over the mesh once PH HostSpawn's C5 lands. A task's
+`Work/<task>/out` goes to Drive, is checked by md5, and only then is deleted on that host
+(`tools/workdir.py close --archive`). PH DiskSteward owns this work.
+
 ## The one law
 
 > **Regenerable → delete it now, do not ask.

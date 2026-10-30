@@ -50,6 +50,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
+| `CMO_Workflow_KhaoHomEpisode` | CMO | cmo, project_head, video_editor, browser_operator, researcher, script_writer, content_strategist | Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on… |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
 | `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_PromptFormula` | CMO | cmo, project_head, script_writer, prompt_engineer, browser_operator, video_editor, web_designer | How every CMO-lane prompt is born and how a hit becomes a formula: look up the channel's formula index first; with no formula, search… |

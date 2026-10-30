@@ -71,8 +71,8 @@ carries an order id in its own footer (`order #N`).
 
 ## Questions to the CEO — a question card (CEO 2026-10-13)
 
-When you need the CEO's decision and he is not in this chat right now, do not wait on chat or on a
-SomPong relay. Post a question card with `ask_ceo` (org MCP) or `tools/ask_run.py ask`: 2–4 options,
+When you need the CEO's decision, post a question card at once, even when he is typing in this chat
+(CEO 2026-10-30); never ask him in chat or wait on a SomPong relay. Post it with `ask_ceo` (org MCP) or `tools/ask_run.py ask`: 2–4 options,
 one marked recommended, and why. He taps the answer on terminal.mooniex.com/run. `ask_run_wait Q-…`
 returns it, and that hub record is his decision; a letter or a peer's word is not. Cite the `Q-…` id when
 you act on it. A question card never stands in for a command card: running a command, spending money or

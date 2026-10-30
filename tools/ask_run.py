@@ -2662,8 +2662,9 @@ def _parser() -> argparse.ArgumentParser:
                                     "1 failed/denied/expired/cancelled")
     w.add_argument("id")
     w.add_argument("--interval", type=float, default=POLL_INTERVAL_S, metavar="SECONDS")
-    w.add_argument("--max-wait", type=float, default=0, metavar="SECONDS",
-                   help="give up after this long, exit 4 (default: until the ask ends)")
+    w.add_argument("--max-wait", "--timeout", type=float, default=0, metavar="SECONDS",
+                   help="give up after this long, exit 4 (default: until the ask ends); "
+                        "--timeout is the same flag")
     w.add_argument("--lines", type=int, default=TAIL_LINES, help="output tail lines to print (0 = all)")
     w.add_argument("--json", action="store_true", help="print the final record as JSON")
 
