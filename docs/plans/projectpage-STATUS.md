@@ -36,3 +36,8 @@ PH: project_head-e3050822 · lane CTO · host Contabo · brief state/ph-briefs/p
 - No worker running. Nothing merged or deployed since Console 67e8e30.
 - Resume: follow "NEXT STEP after the P3e Contabo reboot" above. Briefs ready:
   state/ph-briefs/projectpage/W4-console.md, W3-agentscore.md. No Console restart 21:30–00:30 TH.
+
+## 31 Oct 01:25 TH
+- W4 live: Console #52 merged 9294655, restart card RUN-20261030-1731-1753 done, service started 01:21:29 TH; /api/portfolio/messages answers 401 without the token.
+- W3: Agents-Core PR #607 (head eca2b9f1) ready; merge-ready list state/handoff/2026-10-30/ph-e3050822-merge-ready-list.md, NOT yet sent to CTO Main.
+- Left: find what runs tools/portfolio_push.py (tools/live_sessions.py loop; unit not found by name) and set PORTFOLIO_MONITOR_V=3 for the pusher only; then send the #607 list (kind blocker so it wakes); then M11 v3 layout.
