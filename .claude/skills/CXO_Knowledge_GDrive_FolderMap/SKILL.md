@@ -94,10 +94,13 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                           avoid all colliding as "line_item.jpeg")
 │   │   ├── Banners/              → Economic Calendar/
 │   │   ├── Policy .PDF File/     → Thai Version./, English Version./
-│   │   └── Bedrock Builds/       NEW 2026-10-13 (CEO picked "สร้าง Bedrock Builds" — session
+│   │   ├── Bedrock Builds/       NEW 2026-10-13 (CEO picked "สร้าง Bedrock Builds" — session
 │   │                             cto-f39cb080): MoonieX Minecraft Bedrock add-on builds (.mcaddon)
 │   │                             handed to testers, one file per V (lumina_skies_V2.5.mcaddon …),
 │   │                             flat, each shared anyone-with-the-link view. No sub-folders.
+│   │   └── LINE Sticker/         NEW 2026-10-30 (CEO Q-20261030-0525-ac9c via CMO, PH#254a2152):
+│   │                             MoonieX LINE sticker sets. V1 (สำเนา)/ = flat copy of the shared
+│   │                             Moon/ V1 (66 files, original untouched); V2/ V3/ V4/ = new sets.
 │   ├── LUNGNOTE/
 │   ├── BRAND PROMPT/
 │   ├── WARPCLIP/
@@ -489,6 +492,11 @@ Google Drive (root) — pass.gob1@gmail.com
 | `PROJECT` (root) | `1HVLTPS09R4WvhYyOPW_0HHrfWxWGF-hQ` | Important-but-not-video stuff per project: images, ideas, text/svg, government docs, company data, billing. **No video ever.** Max depth 4 (see Rule 8): project-name folder → category folder → optional bundle folder. One sub-folder per project, name = PROJECT NAME IN CAPS. |
 | `PROJECT/MOONIEX` | `1NjXdmQM2Fx0Payd-rqL5hW7B1DDQJSXY` | Merged 2026-08-04 from the old root-level `MoonieX` folder (renamed in place, so its ~19 pre-existing sub-folders like Company & Legal, Broker Info & Data, Mooniex Finance, Proposals, etc. came along and are NOT yet individually re-defined). |
 | `PROJECT/MOONIEX/Bedrock Builds` | `1Jqme99Pu-Jp5FgqiupeKllWZhwRJFlu1` | NEW 2026-10-13, created by Drive REST from the Mac (session cto-f39cb080) after the CEO picked "สร้าง Bedrock Builds (Recommended)", offered as: MoonieX Minecraft add-on files (.mcaddon) sent to testers, one file per version (V2.5, V2.6 …), no sub-folders. Each file is shared anyone-with-the-link view. First file: `lumina_skies_V2.5.mcaddon` (id `1U_4l… (full id: Drive, not in this public repo)`, md5 `d0ac0401…` read back by id), for the tester Champ. |
+| `PROJECT/MOONIEX/LINE Sticker` | `1Th7vh9S9BxdUo0JxUi5sz8DaXxKbnlOq` | NEW 2026-10-30, CEO Q-20261030-0525-ac9c (relayed by CMO e785343f), created by Drive REST from Contabo on card RUN-20261030-0536-b99c (PH project_head-254a2152). MoonieX LINE sticker sets, one sub-folder per version. |
+| `PROJECT/MOONIEX/LINE Sticker/V1 (สำเนา)` | `1ytiJUzUJsnUXDgMCprspdkKdw7luqwIc` | Copy of V1 from the shared-with-me `Moon/` folder (left untouched), flattened to stay within the L3 cap: 32 stickers 370x320, 32 large 2296x2000, Main.png, Tab.png; 66/66 md5 read back by id. |
+| `PROJECT/MOONIEX/LINE Sticker/V2` | `1JZiF40NZjX1zqBimIESBKJG1qpnDvXcG` | V2 set (40), CEO-picked, flat. |
+| `PROJECT/MOONIEX/LINE Sticker/V3` | `1_CqaW38LpnY6ln-z4UE0KLLQepns4je9` | V3 set, flat. |
+| `PROJECT/MOONIEX/LINE Sticker/V4` | `1rzkgB5qT9Xl2DOxOsrSOIbaqZgqEuxwE` | V4 set, flat. |
 | `PROJECT/LUNGNOTE` | `113iaRrHorZ7Z8be2bAGbw59tIPbdoWjB` | Empty, awaiting first files. |
 | `PROJECT/BRAND PROMPT` | `1A306O59m-X20MrqCsT_bZocAJ73RNAWT` | Empty, awaiting first files. |
 | `PROJECT/WARPCLIP` | `1K4d6daPrWr_IGiqMYM8KIEE4X8lOMueF` | Empty, awaiting first files. |
