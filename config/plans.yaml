@@ -28,31 +28,33 @@ buckets:              # one limit that runs out; a candidate "runner:model" belo
 shell_runners: [claude, codex]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
+  # 2026-10-30 ~23:45 TH CEO: "AGY ... เหลือเยอะมาก ใช้ไม่เคยหมด" · Opus 5.5 and Sonnet 5.5 on AGY never picked ·
+  # "Argon ก็เก่งมากๆ". With Claude on Pro, AGY Opus/Sonnet sit before codex and Claude Code in every edit-only class.
   # 2026-10-14: agy dropped claude-sonnet-4-6 ("not recognized", exit 1), so it is now claude-sonnet-5-5-high.
   # The Argon trial is done (9c078b65); CEO ruled 15 Oct that Argon beats Sonnet and goes first.
-  dev_general:    ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "agy:claude-sonnet-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
+  dev_general:    ["agy:gemini-4-argon-high", "agy:claude-opus-5-5-high", "agy:claude-sonnet-5-5-high", "agy:gemini-3.8-flash-high", "codex:", "claude:claude-sonnet-5-5"]
   # Jobs that must run shell commands (shell_runners only). "codex:" with an empty model = the CLI default;
   # a model label here would reach the launcher as `-m <label>` (H3, 8db9213f).
   dev_shell:      ["codex:", "claude:claude-sonnet-5-5"]
   c_level:        ["claude:claude-opus-5-5:xhigh"]
   c_level_openai: ["codex:sol:xhigh"]
-  complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
+  complex:        ["agy:claude-opus-5-5-high", "codex:astra:xhigh", "claude:claude-fable-5-1"]
   # GH #188: browser_operator tasks whose brief uses tools/agy_browse.py and names a
   # Browser Home CDP URL (tools/route.class_for). Not a role_classes entry on purpose.
   browser_agy:    ["agy:gemini-3.8-flash-high"]
   # Docs, copy, scripts and translation (edit-only: no shell). Maps content_strategist and script_writer.
-  doc_text:       ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "codex:", "claude:claude-sonnet-5-5"]
+  doc_text:       ["agy:gemini-4-argon-high", "agy:claude-sonnet-5-5-high", "agy:gemini-3.8-flash-high", "codex:", "claude:claude-sonnet-5-5"]
   # SomPong's researcher workers (CEO card Q-20261013-1948-4a33): web search + read-only reading inside
   # runners/coo_worker.py's box, report only. codex first (`--search`). ArgonEval 15 Oct (R1, R2): Argon
   # invented quotes and a "verbatim" code block on 2 of 2 jobs; agy Sonnet passed both with every quote
   # checked, at $0 Claude. Argon is dropped here; agy Sonnet second, Claude Code Sonnet last.
-  research:       ["codex:", "agy:claude-sonnet-5-5-high", "claude:claude-sonnet-5-5"]
+  research:       ["agy:claude-opus-5-5-high", "agy:claude-sonnet-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
   # Tests written edits-only, then run by the reviewer (ArgonEval T1, T2: 2/2 first pass, every seeded
   # revert red). The reviewer MUST run them: Argon cannot (B2 shipped a test with a bad import).
-  tests_edit:     ["agy:gemini-4-argon-high", "codex:", "claude:claude-sonnet-5-5"]
+  tests_edit:     ["agy:gemini-4-argon-high", "agy:claude-sonnet-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
   # Numbers from a file or an export the brief hands over (ArgonEval A1, A2: 2/2 first pass, every
   # number re-derived by the reviewer). The reviewer re-derives the headline numbers.
-  analysis:       ["agy:gemini-4-argon-high", "codex:", "claude:claude-sonnet-5-5"]
+  analysis:       ["agy:gemini-4-argon-high", "agy:claude-opus-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
 # Worker role (tasks.role) -> router class above. A role not listed stays on claude, no routing.
 # Browser, video, design and security roles need Claude-only tools: never list them here.
 # (A browser_operator brief that uses tools/agy_browse.py routes to browser_agy instead.)
