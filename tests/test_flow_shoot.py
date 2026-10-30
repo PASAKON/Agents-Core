@@ -23,6 +23,7 @@ import pytest
 from tools import flow_ledger, flow_shoot
 
 FIXTURE_SHEET = Path(__file__).resolve().parent.parent / "docs" / "scripts" / "banchi-ACT2.md"
+NARRATED_SHEET = Path(__file__).resolve().parent / "fixtures" / "flow_narrated_prompts.md"
 
 # REPORT-iter3 (task-04851451): a prior version of this suite wrote
 # 'shot 35: submitted (attempt 1, est 4 credits)' straight into the REAL
@@ -1529,24 +1530,131 @@ def test_attach_chip_closes_picker_when_search_has_no_result():
 
 def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
     class Card:
+        def locator(self, selector):
+            assert selector == "flow-video-tile"
+            return self
+
+        @property
+        def first(self):
+            return self
+
         def click(self):
             pass
 
     class Page:
-        def wait_for_timeout(self, _ms):
-            pass
+        url = "https://flow.google.com/project/project-id"
 
-        def evaluate(self, _script):
-            pass
+        def wait_for_url(self, _route, **kwargs):
+            raise RuntimeError("https://secret.example/browser-text")
 
     browser = flow_shoot.FlowBrowser()
-    browser.download_resolution = "720p"  # exercise the legacy CDN guard
+    browser.download_resolution = "720p"
     browser.page = Page()
     browser._captured_video_urls = ["https://flow-content.google/video/old"]
-    monkeypatch.setattr(flow_shoot, "COMPLETION_TIMEOUT_S", 0)
 
-    with pytest.raises(RuntimeError, match="refusing to reuse a prior clip URL"):
+    with pytest.raises(flow_shoot.PullFailure, match="^no_edit_route$"):
         browser.download_card(Card())
+
+
+def test_720p_pull_opens_editor_and_downloads_without_video_or_play(tmp_path):
+    from types import SimpleNamespace
+
+    calls = []
+    original = tmp_path / "original.mp4"
+    original.write_bytes(b"editor download")
+    project = "https://flow.google.com/project/project-id"
+
+    class Tile:
+        def click(self):
+            calls.append("tile click")
+            page.url = project + "/edit/clip-id"
+
+    class Card:
+        def locator(self, selector):
+            assert selector == "flow-video-tile"
+            return SimpleNamespace(first=Tile())
+
+        def evaluate(self, script):
+            raise AssertionError("feed tile must not be fetched")
+
+    class Page:
+        url = project
+
+        def wait_for_url(self, route, **kwargs):
+            calls.append("editor route")
+            assert route.search(self.url)
+
+        def evaluate(self, script):
+            assert "play()" not in script
+            calls.append("mute")
+
+    page = Page()
+    browser = flow_shoot.FlowBrowser()
+    browser.page = page
+    browser._project_url = project
+    browser.download_resolution = "720p"
+    browser.mute_all_media = lambda: calls.append("mute")
+    browser._download_from_editor_button = lambda resolution: (
+        calls.append("download " + resolution) or original)
+
+    result = browser.download_card(Card())
+
+    assert result == original
+    assert browser._original_download == original
+    assert browser._original_clip_id == "clip-id"
+    assert calls == ["tile click", "editor route", "mute", "download 720p"]
+
+
+@pytest.mark.parametrize("fault,code", [
+    ("button", "no_download_button"),
+    ("paid", "no_free_720p_item"),
+    ("timeout", "download_timeout"),
+])
+def test_720p_editor_failures_have_only_fixed_reason_codes(fault, code):
+    from types import SimpleNamespace
+
+    class Button:
+        def wait_for(self, **kwargs):
+            if fault == "button":
+                raise RuntimeError("https://secret.example/browser-text")
+
+        def is_enabled(self):
+            return True
+
+        def click(self):
+            pass
+
+    class Option:
+        def wait_for(self, **kwargs):
+            pass
+
+        def inner_text(self):
+            return ("720p ขนาดดั้งเดิม · 50 เครดิต" if fault == "paid"
+                    else "720p ขนาดดั้งเดิม")
+
+        def click(self):
+            pass
+
+    class DownloadContext:
+        def __enter__(self):
+            raise RuntimeError("https://secret.example/browser-text")
+
+        def __exit__(self, *args):
+            pass
+
+    class Page:
+        def locator(self, selector, **kwargs):
+            return SimpleNamespace(first=Button() if selector.startswith("button") else Option())
+
+        def expect_download(self, **kwargs):
+            return DownloadContext()
+
+    browser = flow_shoot.FlowBrowser()
+    browser.page = Page()
+    with pytest.raises(flow_shoot.PullFailure) as exc:
+        browser._download_from_editor_button("720p")
+    assert str(exc.value) == code
+    assert "https://" not in str(exc.value)
 
 
 @pytest.mark.parametrize("mode", ["run", "pull"])
@@ -1554,7 +1662,6 @@ def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
 @pytest.mark.parametrize("aspect", ["16:9", "9:16"])
 @pytest.mark.parametrize("export", ["720p", "1080p"])
 def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, aspect, export):
-    import base64
     from types import SimpleNamespace
 
     args = _run_args(tmp_path, "original.tsv")
@@ -1565,24 +1672,29 @@ def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, asp
     real._project_url = "https://flow.google.com/project/project-id"
     calls = []
 
-    def evaluate(script):
-        assert "tile.querySelector('video')" in script
-        assert "await fetch(src, {credentials: 'include'})" in script
-        calls.append("fetch")
-        return {"id": "clip-id", "data": base64.b64encode(b"original bytes").decode()}
-
-    tile = SimpleNamespace(evaluate=evaluate, click=lambda: None)
-    real.page = SimpleNamespace(
+    original = tmp_path / "original.mp4"
+    original.write_bytes(b"original bytes")
+    page = SimpleNamespace(
         url=real._project_url,
-        wait_for_timeout=lambda ms: None,
-        wait_for_url=lambda *a, **kw: None,
         goto=lambda url, **kw: calls.append(url),
-        evaluate=lambda script: None)
-    real.mute_all_media = lambda: None
+        wait_for_url=lambda route, **kw: calls.append("editor route") if route.search(page.url) else None)
+    real.page = page
+    real.mute_all_media = lambda: calls.append("mute")
+
+    def click_tile():
+        calls.append("tile click")
+        page.url = real._project_url + "/edit/clip-id"
+
+    tile = SimpleNamespace(locator=lambda selector: SimpleNamespace(
+        first=SimpleNamespace(click=click_tile)))
+
     def canceled(*args):
         calls.append("canceled")
         raise RuntimeError("Download.save_as: canceled secret-signed-url")
-    real._download_from_editor_button = canceled
+    def editor_download(resolution):
+        calls.append("download " + resolution)
+        return original if resolution == "720p" else canceled()
+    real._download_from_editor_button = editor_download
     real._download_1080p_from_editor = canceled
     real._close_download_menus = lambda: None
 
@@ -1594,7 +1706,7 @@ def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, asp
             return path
         def download_card(self, card):
             return self.download()
-        def find_card_by_dialogue(self, fragment):
+        def find_card_by_dialogue(self, fragment, unique=False):
             return tile
         def upscale_original(self):
             return real.upscale_original()
@@ -1619,14 +1731,17 @@ def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, asp
     assert code == (1 if fault else 0)
     row = flow_ledger.load_ledger(Path(args.ledger))[35]
     assert (row["status"] == "verified") == (fault is None)
+    if fault is not None and mode == "pull":
+        assert row["note"] == "verify_failed"
+        assert "failed verify_failed" in flow_shoot.LOG_PATH.read_text(encoding="utf-8")
     assert Path(row["file"]).read_bytes() == b"original bytes"
-    assert calls[0] == "fetch"
+    assert calls[:4] == ["tile click", "editor route", "mute", "download 720p"]
     if fault is None and export == "1080p":
-        assert calls[1] == real._project_url + "/edit/clip-id"
+        assert real._project_url + "/edit/clip-id" in calls
         assert "canceled" in calls
         assert "kept verified 720p" in flow_shoot.LOG_PATH.read_text()
     else:
-        assert calls == ["fetch"]
+        assert calls == ["tile click", "editor route", "mute", "download 720p"]
     assert "secret-signed-url" not in flow_shoot.LOG_PATH.read_text()
 
 
@@ -1698,6 +1813,14 @@ def test_log_leaves_an_ordinary_console_untouched(tmp_path, capsys, monkeypatch)
     assert "ผ่าน" in capsys.readouterr().out
 
 
+def test_log_redacts_http_and_blob_urls(tmp_path):
+    flow_shoot._log("failed https://secret.example/media blob:https://secret.example/id")
+    logged = flow_shoot.LOG_PATH.read_text(encoding="utf-8")
+    assert "https://" not in logged
+    assert "blob:" not in logged
+    assert logged.count("[redacted-url]") == 2
+
+
 # ── picker row matching: exact asset, never a prefix of another ──
 
 @pytest.mark.parametrize("handle,row_text,expected", [
@@ -1733,6 +1856,182 @@ def test_card_fragment_falls_back_to_the_action_not_the_location():
     frag = flow_shoot.card_fragment(p)
     assert frag.startswith("sits alone at the corner table")
     assert "five worn" not in frag and len(frag) <= 60
+
+
+@pytest.mark.parametrize("shot,working_phrase", [
+    (2, "raw scar of bare grey rock"),
+    (11, "40-foot wooden fishing troller"),
+    (38, "runs UP the forested slope"),
+])
+def test_narrated_prompt_fallback_finds_one_batch(tmp_path, monkeypatch, shot, working_phrase):
+    prompts = {s["shot"]: s["prompt"] for s in flow_ledger.parse_sheet(NARRATED_SHEET)}
+    prompt = prompts[shot]
+    assert flow_shoot.card_fragment(prompt) is None
+    candidates = flow_shoot.prompt_search_candidates(prompt)
+    assert any(working_phrase in candidate for candidate in candidates)
+    assert len(candidates[0].split()) == 8
+
+    source = tmp_path / "download.mp4"
+    source.write_bytes(b"original bytes")
+    card = object()
+
+    class Browser:
+        download_resolution = "720p"
+        _original_download = source
+        _original_clip_id = "clip-id"
+
+        def __init__(self, **kwargs):
+            self.searches = []
+            self.uniques = []
+
+        def attach(self):
+            pass
+
+        def mute_all_media(self):
+            pass
+
+        def close(self):
+            pass
+
+        def find_card_by_dialogue(self, phrase, unique=False):
+            self.searches.append(phrase)
+            self.uniques.append(unique)
+            return card if working_phrase in phrase else None
+
+        def download_card(self, found):
+            assert found is card
+            return source
+
+    browser = Browser()
+    monkeypatch.setattr(flow_shoot, "FlowBrowser", lambda **kwargs: browser)
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    monkeypatch.setattr(flow_shoot, "verify_clip", lambda *args, **kwargs: (True, "verified"))
+    args = flow_shoot.build_parser().parse_args([
+        "pull", "--sheet", str(NARRATED_SHEET), "--ledger", str(tmp_path / "narrated.tsv"),
+        "--dest", str(tmp_path / "out"), "--only", str(shot),
+        "--download-resolution", "720p",
+    ])
+    assert flow_shoot.cmd_pull(args) == 0
+    assert flow_ledger.load_ledger(tmp_path / "narrated.tsv")[shot]["status"] == "verified"
+    assert working_phrase in browser.searches[-1]
+    assert all(browser.uniques)
+
+
+def test_narrated_prompt_without_a_unique_match_needs_search(tmp_path, monkeypatch):
+    class Browser:
+        def __init__(self, **kwargs):
+            pass
+
+        def attach(self):
+            pass
+
+        def mute_all_media(self):
+            pass
+
+        def close(self):
+            pass
+
+        def find_card_by_dialogue(self, phrase, unique=False):
+            return None
+
+    monkeypatch.setattr(flow_shoot, "FlowBrowser", Browser)
+    args = flow_shoot.build_parser().parse_args([
+        "pull", "--sheet", str(NARRATED_SHEET), "--ledger", str(tmp_path / "miss.tsv"),
+        "--dest", str(tmp_path / "out"), "--only", "2",
+        "--download-resolution", "720p",
+    ])
+    assert flow_shoot.cmd_pull(args) == 1
+    row = flow_ledger.load_ledger(tmp_path / "miss.tsv")[2]
+    assert row["status"] == "needs_model"
+    assert row["note"] == "needs --search"
+
+
+@pytest.mark.parametrize("unique", [True, False])
+@pytest.mark.parametrize("batch_count", [0, 1, 2])
+def test_feed_search_requires_exactly_one_matching_batch(batch_count, unique):
+    class Locator:
+        @property
+        def first(self):
+            return self
+
+        def filter(self, **kwargs):
+            assert kwargs == {"has_text": "distinct phrase"}
+            return self
+
+        def fill(self, text):
+            assert text == "distinct phrase"
+
+        def wait_for(self, **kwargs):
+            if batch_count == 0:
+                raise RuntimeError("no batch")
+
+        def count(self):
+            return batch_count
+
+        def locator(self, selector):
+            assert selector == "flow-grid-tile-container"
+            return Card()
+
+    class Card(Locator):
+        def count(self):
+            return 1
+
+    class SearchBox(Locator):
+        def wait_for(self, **kwargs):
+            pass
+
+    class Page:
+        def goto(self, *args, **kwargs):
+            pass
+
+        def locator(self, selector):
+            assert selector in ('input[aria-label="ค้นหา"]', "div.batch-container")
+            return SearchBox() if selector.startswith("input") else Locator()
+
+    browser = flow_shoot.FlowBrowser()
+    browser.page = Page()
+    browser._project_url = "https://flow.google.com/project/project-id"
+    browser.mute_all_media = lambda: None
+    found = browser.find_card_by_dialogue("distinct phrase", unique=unique)
+    assert (found is not None) == (batch_count == 1 if unique else batch_count >= 1)
+
+
+def test_failed_pull_logs_reason_code_without_browser_text_or_url(tmp_path, monkeypatch):
+    card = object()
+
+    class Browser:
+        def __init__(self, **kwargs):
+            pass
+
+        def attach(self):
+            pass
+
+        def mute_all_media(self):
+            pass
+
+        def close(self):
+            pass
+
+        def find_card_by_dialogue(self, phrase, unique=False):
+            return card
+
+        def download_card(self, found):
+            raise RuntimeError("https://secret.example/browser-text")
+
+    monkeypatch.setattr(flow_shoot, "FlowBrowser", Browser)
+    args = flow_shoot.build_parser().parse_args([
+        "pull", "--sheet", str(NARRATED_SHEET), "--ledger", str(tmp_path / "fail.tsv"),
+        "--dest", str(tmp_path / "out"), "--only", "2",
+        "--download-resolution", "720p",
+    ])
+    assert flow_shoot.cmd_pull(args) == 1
+    row = flow_ledger.load_ledger(tmp_path / "fail.tsv")[2]
+    assert row["status"] == "failed"
+    assert row["note"] == "no_edit_route"
+    log = flow_shoot.LOG_PATH.read_text(encoding="utf-8")
+    assert "no_edit_route" in log
+    assert "https://" not in log
+    assert "browser-text" not in log
 
 
 # ── a submit only counts once a NEW batch is at the top of the feed ──
