@@ -1706,7 +1706,7 @@ def test_original_pull_file_verification(tmp_path, monkeypatch, mode, fault, asp
             return path
         def download_card(self, card):
             return self.download()
-        def find_card_by_dialogue(self, fragment):
+        def find_card_by_dialogue(self, fragment, unique=False):
             return tile
         def upscale_original(self):
             return real.upscale_original()
@@ -1882,6 +1882,7 @@ def test_narrated_prompt_fallback_finds_one_batch(tmp_path, monkeypatch, shot, w
 
         def __init__(self, **kwargs):
             self.searches = []
+            self.uniques = []
 
         def attach(self):
             pass
@@ -1892,8 +1893,9 @@ def test_narrated_prompt_fallback_finds_one_batch(tmp_path, monkeypatch, shot, w
         def close(self):
             pass
 
-        def find_card_by_dialogue(self, phrase):
+        def find_card_by_dialogue(self, phrase, unique=False):
             self.searches.append(phrase)
+            self.uniques.append(unique)
             return card if working_phrase in phrase else None
 
         def download_card(self, found):
@@ -1912,6 +1914,7 @@ def test_narrated_prompt_fallback_finds_one_batch(tmp_path, monkeypatch, shot, w
     assert flow_shoot.cmd_pull(args) == 0
     assert flow_ledger.load_ledger(tmp_path / "narrated.tsv")[shot]["status"] == "verified"
     assert working_phrase in browser.searches[-1]
+    assert all(browser.uniques)
 
 
 def test_narrated_prompt_without_a_unique_match_needs_search(tmp_path, monkeypatch):
@@ -1928,7 +1931,7 @@ def test_narrated_prompt_without_a_unique_match_needs_search(tmp_path, monkeypat
         def close(self):
             pass
 
-        def find_card_by_dialogue(self, phrase):
+        def find_card_by_dialogue(self, phrase, unique=False):
             return None
 
     monkeypatch.setattr(flow_shoot, "FlowBrowser", Browser)
@@ -1943,8 +1946,9 @@ def test_narrated_prompt_without_a_unique_match_needs_search(tmp_path, monkeypat
     assert row["note"] == "needs --search"
 
 
+@pytest.mark.parametrize("unique", [True, False])
 @pytest.mark.parametrize("batch_count", [0, 1, 2])
-def test_feed_search_requires_exactly_one_matching_batch(batch_count):
+def test_feed_search_requires_exactly_one_matching_batch(batch_count, unique):
     class Locator:
         @property
         def first(self):
@@ -1972,20 +1976,24 @@ def test_feed_search_requires_exactly_one_matching_batch(batch_count):
         def count(self):
             return 1
 
+    class SearchBox(Locator):
+        def wait_for(self, **kwargs):
+            pass
+
     class Page:
         def goto(self, *args, **kwargs):
             pass
 
         def locator(self, selector):
             assert selector in ('input[aria-label="ค้นหา"]', "div.batch-container")
-            return Locator()
+            return SearchBox() if selector.startswith("input") else Locator()
 
     browser = flow_shoot.FlowBrowser()
     browser.page = Page()
     browser._project_url = "https://flow.google.com/project/project-id"
     browser.mute_all_media = lambda: None
-    found = browser.find_card_by_dialogue("distinct phrase")
-    assert (found is not None) == (batch_count == 1)
+    found = browser.find_card_by_dialogue("distinct phrase", unique=unique)
+    assert (found is not None) == (batch_count == 1 if unique else batch_count >= 1)
 
 
 def test_failed_pull_logs_reason_code_without_browser_text_or_url(tmp_path, monkeypatch):
@@ -2004,7 +2012,7 @@ def test_failed_pull_logs_reason_code_without_browser_text_or_url(tmp_path, monk
         def close(self):
             pass
 
-        def find_card_by_dialogue(self, phrase):
+        def find_card_by_dialogue(self, phrase, unique=False):
             return card
 
         def download_card(self, found):

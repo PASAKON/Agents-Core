@@ -1326,6 +1326,12 @@ class FlowBrowser:
                             self.mute_all_media()
                         except Exception:
                             pass
+            try:
+                page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
+            except Exception:
+                pass
             time.sleep(POLL_S)
         return {"status": "timeout", "text": ""}
 
@@ -1445,7 +1451,7 @@ class FlowBrowser:
             return self.download_card(card)
         return self._fetch_captured_video()
 
-    def find_card_by_dialogue(self, fragment: str):
+    def find_card_by_dialogue(self, fragment: str, unique: bool = False):
         # `pull` may start on an editor URL left by a previous target. Return
         # to the project feed, then use its search input so virtualized cards
         # outside the rendered viewport can be found. Searching by dialogue is
@@ -1465,7 +1471,10 @@ class FlowBrowser:
             batches.first.wait_for(state="visible", timeout=10_000)
         except Exception:
             return None
-        if batches.count() != 1:
+        # A narrated fallback phrase is short and may also match another shot's batch, so it
+        # must match exactly one. A dialogue key or --search keeps the first batch: a re-rolled
+        # shot has several batches with the same prompt.
+        if unique and batches.count() != 1:
             return None
         card = batches.first.locator("flow-grid-tile-container").first
         return card if card.count() else None
@@ -1536,6 +1545,12 @@ class FlowBrowser:
                 if current_src and CDN_VIDEO_RE.search(current_src):
                     self._captured_video_urls.append(current_src)
                     break
+            except Exception:
+                pass
+            try:
+                self.page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
             except Exception:
                 pass
             self.page.wait_for_timeout(1000)
@@ -2012,7 +2027,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
             if fallback:
                 for candidate in prompt_search_candidates(shot["prompt"]):
                     try:
-                        card = browser.find_card_by_dialogue(candidate)
+                        card = browser.find_card_by_dialogue(candidate, unique=True)
                     except Exception:
                         card = None
                     if card is not None:
@@ -2046,7 +2061,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
                     last_code = e.code if isinstance(e, PullFailure) else "no_edit_route"
                     _log(f"shot {n}: retry {attempt + 1} {last_code}")
                     try:
-                        card = browser.find_card_by_dialogue(dialogue)
+                        card = browser.find_card_by_dialogue(dialogue, unique=fallback)
                     except Exception:
                         card = None
                     if card is None:
