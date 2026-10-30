@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
 import pathlib
 import shutil
 import sys
@@ -23,6 +24,7 @@ from pathlib import Path
 import pytest
 
 from lib import db as db_mod
+from lib import mailbox
 import tools.send_to_cto as send_to_cto_mod
 
 REPO = Path(__file__).resolve().parent.parent
@@ -59,15 +61,26 @@ def relays(monkeypatch):
 
 @pytest.fixture
 def writes(monkeypatch):
-    """Every path opened for writing, by Path.open or open()."""
+    """Every path opened for writing, by Path.open or by os.open (the hook's
+    log append opens relative to a directory fd: the path is resolved
+    through /proc/self/fd)."""
     seen: list[str] = []
     real_path_open = pathlib.Path.open
+    real_os_open = os.open
 
     def path_open(self, mode="r", *a, **kw):
         if any(c in mode for c in "wax+"):
             seen.append(str(self))
         return real_path_open(self, mode, *a, **kw)
+
+    def os_open(path, flags, mode=0o777, *, dir_fd=None):
+        fd = real_os_open(path, flags, mode, dir_fd=dir_fd)
+        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_APPEND):
+            base = os.readlink(f"/proc/self/fd/{dir_fd}") if dir_fd is not None else ""
+            seen.append(os.path.join(base, os.fspath(path)))
+        return fd
     monkeypatch.setattr(pathlib.Path, "open", path_open)
+    monkeypatch.setattr(os, "open", os_open)
     return seen
 
 
@@ -96,10 +109,15 @@ def transcript(tmp_path: Path, turns: list[list[dict]]) -> Path:
     return p
 
 
-def run_dev(mod, monkeypatch, tp: Path, task_id: str) -> int:
+def run_dev(mod, monkeypatch, tp: Path, task_id: str, *, cto: str | None = CTO,
+            owner_role: str | None = None) -> int:
     monkeypatch.setenv("WORKER_TASK_ID", task_id)
     monkeypatch.setenv("WORKER_ROLE", "developer")
-    monkeypatch.setenv("WORKER_CTO_ID", CTO)
+    for key, value in (("WORKER_CTO_ID", cto), ("WORKER_CTO_ROLE", owner_role)):
+        if value is None:
+            monkeypatch.delenv(key, raising=False)
+        else:
+            monkeypatch.setenv(key, value)
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({"transcript_path": str(tp)})))
     return mod.main()
 
@@ -118,11 +136,16 @@ def plain_turn(pid="p2", text="still working"):
 # ---------------------------------------------------------------- dev hook
 
 
-def test_flag_off_keeps_the_legacy_root(monkeypatch):
+def test_flag_off_root_is_the_scripts_own_checkout_too(monkeypatch):
+    """Wake chain W1 (2026-10-30): the Mac literal is gone. With the flag off
+    ROOT was /Users/gob/..., so on Contabo every worker report failed to import
+    tools.send_to_cto and reached no owner."""
     monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
     mod = load(DEV_HOOK, "devhook_off")
-    assert mod.ENVELOPE is False and mod.ROOT == mod.LEGACY_ROOT
+    assert mod.ENVELOPE is False and mod.ROOT == DEV_HOOK.resolve().parent.parent
+    assert not hasattr(mod, "LEGACY_ROOT")
     assert mod._log_for(None).name == "cto.log" and mod._log_for(CTO).name == f"cto-{CTO}.log"
+    assert mod._log_for(None).parent == mod._log_for(CTO).parent == mod.ROOT / "state" / "logs"
 
 
 def test_flag_on_root_is_the_scripts_own_checkout(monkeypatch):
@@ -143,7 +166,8 @@ def test_t16_no_file_outside_the_checkout_and_session_id_recorded(
     assert run_dev(mod, monkeypatch, tp, ledger) == 0
 
     row = db_mod.get_task(ledger)
-    assert row["session_id"] == "sess-0001" and row["last_checkpoint"]
+    assert row["session_id"] == "sess-0001"
+    assert row["last_checkpoint"] is None        # the Stop hook leaves dev_message's column alone
     assert writes, "the report turn writes the log"
     assert all(w.startswith(str(root.resolve())) for w in writes), writes
     assert not any(w.startswith("/Users/gob") for w in writes)
@@ -208,14 +232,192 @@ def test_hub_and_mailbox_down_fail_open(tmp_path, monkeypatch, ledger):
     assert (root / "state" / "logs" / "cto.log").exists()   # the log still gets the line
 
 
-def test_flag_off_still_relays_every_turn(tmp_path, monkeypatch, ledger, relays):
-    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
-    mod = load(DEV_HOOK, "devhook_legacy")
-    monkeypatch.setattr(mod, "ROOT", tmp_path / "Core")     # keep the legacy write off the real tree
-    tp = transcript(tmp_path, [report_turn(), plain_turn()])
+def guarded_checkout(tmp_path: Path, name: str):
+    """checkout() + the copy loaded. A copy whose ROOT is not its own checkout
+    (the old flag-off Mac literal) fails here, before it can write anywhere."""
+    root = checkout(tmp_path)
+    mod = load(root / "scripts" / DEV_HOOK.name, name)
+    assert mod.ROOT == root.resolve()
+    return root, mod
+
+
+def flag(monkeypatch, on) -> None:
+    if on:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    else:
+        monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+
+
+def api_limit(pid="p5"):
+    """This turn's own API error record: the session hit its limit."""
+    return [msg("user", "go on", pid),
+            msg("assistant", [{"type": "text", "text": "You've hit your session limit"}],
+                isApiErrorMessage=True, error="rate_limit")]
+
+
+def prose_429(pid="p0"):
+    """An earlier turn whose prose only mentions 429 (no API error record)."""
+    return [msg("user", "go", pid),
+            msg("assistant", [{"type": "text", "text": "Baseline: 1429 tests collected; "
+                                                       "the API returns HTTP 429 on burst"}])]
+
+
+def test_flag_off_a_progress_turn_sends_nothing(tmp_path, monkeypatch, ledger, relays, writes):
+    """Wake chain W1 review: with ROOT fixed, the flag-off path relayed every
+    Stop turn that had text, as a kind-less letter that woke the owner each
+    time. Only an event turn (or a rate limit) is logged and relayed now."""
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_off_quiet")
+    tp = transcript(tmp_path, [report_turn(),
+                               plain_turn(text="The full suite is running; I will report when it ends.")])
+    writes.clear()
     assert run_dev(mod, monkeypatch, tp, ledger) == 0
-    assert [r[1] for r in relays] == ["still working"]
-    assert "subject" not in relays[0][2] and "kind" not in relays[0][2]   # the old call
+    assert relays == [] and writes == []
+    assert db_mod.get_task(ledger)["session_id"] == "sess-0001"
+
+
+def test_flag_off_a_report_turn_names_its_kind(tmp_path, monkeypatch, ledger, relays):
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_off_report")
+    tp = transcript(tmp_path, [report_turn()])
+    assert run_dev(mod, monkeypatch, tp, ledger) == 0
+    assert len(relays) == 1
+    _, body, kw = relays[0]
+    assert body == "report · urgent · [submit_report] Done: 3 files, 12 tests pass."
+    assert kw == {"role": "developer", "cto_id": CTO, "owner_role": "cto",
+                  "kind": "report", "prio": "urgent"}
+    # no envelope fields with the flag off: the body's first word carries the kind
+    assert mailbox.letter_kind(None, body) == "report"
+
+
+@pytest.mark.parametrize("owner_role,woken", [("cto", False), ("project_head", True)])
+def test_flag_off_a_report_wakes_a_ph_box_never_a_c_level_box(
+        tmp_path, monkeypatch, ledger, owner_role, woken):
+    """Token rule 2 through the real send_to_cto: a report waits in a C-level
+    box for its next prompt; a Project Head box is woken (it must review)."""
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, f"devhook_off_wake_{owner_role}")
+    letters, wakes = [], []
+    monkeypatch.setattr(send_to_cto_mod.mailbox, "send", lambda *a, **kw: letters.append((a, kw)))
+    monkeypatch.setattr(send_to_cto_mod, "_attempt_wake", lambda *a: wakes.append(a))
+    tp = transcript(tmp_path, [report_turn()])
+    assert run_dev(mod, monkeypatch, tp, ledger, owner_role=owner_role) == 0
+    assert len(letters) == 1 and letters[0][0][:2] == (owner_role, CTO)
+    assert letters[0][1] == {}                  # flag off: the letter has no envelope fields
+    assert bool(wakes) is woken
+
+
+def test_flag_off_the_letter_is_at_most_600_chars(tmp_path, monkeypatch, ledger, relays):
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_off_cap")
+    turn = report_turn()
+    turn[-1] = msg("assistant", [{"type": "text", "text": "x" * 3000}])
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [turn]), ledger) == 0
+    body = relays[0][1]
+    assert len(body) == mod.RELAY_MAX_CHARS == 600 and body.endswith("...[truncated]")
+
+
+@pytest.mark.parametrize("on", [False, True])
+def test_old_429_prose_then_a_report_keeps_review(tmp_path, monkeypatch, ledger, relays, on):
+    """Wake chain W1 review (blocker): the flag-off scan matched "429" in any
+    earlier assistant prose, so the Stop after submit_report set a task in
+    review to rate_limited (merge_task then refuses it, nothing reaps it)."""
+    flag(monkeypatch, on)
+    root, mod = guarded_checkout(tmp_path, f"devhook_429_{on}")
+    db_mod.update_status(ledger, "review")
+    tp = transcript(tmp_path, [prose_429(), report_turn()])
+    assert run_dev(mod, monkeypatch, tp, ledger) == 0
+    row = db_mod.get_task(ledger)
+    assert row["status"] == "review" and row["retry_after_ts"] is None
+    assert len(relays) == 1
+    assert "rate limit" not in relays[0][1] and "auto-resume" not in relays[0][1]
+
+
+@pytest.mark.parametrize("on", [False, True])
+@pytest.mark.parametrize("status,after", [("in_progress", "rate_limited"), ("review", "review"),
+                                          ("done", "done"), ("cancelled", "cancelled")])
+def test_a_real_rate_limit_moves_only_a_task_at_work(
+        tmp_path, monkeypatch, ledger, relays, on, status, after):
+    flag(monkeypatch, on)
+    root, mod = guarded_checkout(tmp_path, f"devhook_rl_{on}_{status}")
+    db_mod.update_status(ledger, status)
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [api_limit()]), ledger) == 0
+    row = db_mod.get_task(ledger)
+    assert row["status"] == after
+    assert bool(row["retry_after_ts"]) is (after == "rate_limited")
+    assert len(relays) == 1 and "rate limit hit this turn" in relays[0][1]
+    assert relays[0][2]["kind"] == "fyi"        # no event: a fyi, which never wakes a C-level box
+
+
+@pytest.mark.parametrize("on", [False, True])
+def test_the_stop_hook_keeps_the_dev_message_text(tmp_path, monkeypatch, ledger, relays, on):
+    """runners/worker_mcp_server.dev_message keeps the worker's full text in
+    tasks.last_checkpoint (GH #54); the Stop right after wrote a timestamp over it."""
+    flag(monkeypatch, on)
+    root, mod = guarded_checkout(tmp_path, f"devhook_cp_{on}")
+    db_mod.set_fields(ledger, last_checkpoint="BLOCKED: the staging key is missing")
+    tp = transcript(tmp_path, [[msg("user", "go", "p9"), msg("assistant", tool("dev_message"))]])
+    assert run_dev(mod, monkeypatch, tp, ledger) == 0
+    row = db_mod.get_task(ledger)
+    assert row["last_checkpoint"] == "BLOCKED: the staging key is missing"
+    assert row["session_id"] == "sess-0001"
+
+
+def test_an_ownerless_task_is_logged_not_relayed(tmp_path, monkeypatch, ledger, relays):
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_ownerless")
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [report_turn()]), ledger, cto=None) == 0
+    assert relays == []
+    logs = root / "state" / "logs"
+    assert sorted(p.name for p in logs.iterdir()) == ["cto.log"]
+    assert "[submit_report] Done: 3 files" in (logs / "cto.log").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("on", [False, True])
+def test_a_planted_link_in_state_logs_is_not_followed(tmp_path, monkeypatch, ledger, relays, on):
+    """state/logs is writable by another account and the hook runs as root on
+    Contabo: a log name planted as a symlink or as a second hard link is
+    skipped, its target untouched. The relay still goes out."""
+    flag(monkeypatch, on)
+    root, mod = guarded_checkout(tmp_path, f"devhook_link_{on}")
+    logs = root / "state" / "logs"
+    logs.mkdir(parents=True)
+    victim, other = tmp_path / "victim.txt", tmp_path / "other.txt"
+    victim.write_text("keep\n", encoding="utf-8")
+    other.write_text("keep\n", encoding="utf-8")
+    (logs / "cto.log").symlink_to(victim)
+    os.link(other, logs / f"cto-{CTO}.log")
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [report_turn()]), ledger) == 0
+    assert victim.read_text(encoding="utf-8") == "keep\n"
+    assert other.read_text(encoding="utf-8") == "keep\n"
+    assert (logs / "cto.log").is_symlink() and len(relays) == 1
+
+
+def test_without_dir_fd_the_log_is_written_and_a_link_skipped(tmp_path, monkeypatch, ledger, relays):
+    """A platform with no dir_fd (Windows, as in lib.mailbox) takes a plain
+    append; it still refuses a log name that is a symlink."""
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_nodirfd")
+    monkeypatch.setattr(mod, "_DIRFD_OK", False)
+    logs = root / "state" / "logs"
+    logs.mkdir(parents=True)
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep\n", encoding="utf-8")
+    (logs / "cto.log").symlink_to(victim)
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [report_turn()]), ledger) == 0
+    assert victim.read_text(encoding="utf-8") == "keep\n"
+    assert "[submit_report] Done: 3 files" in (logs / f"cto-{CTO}.log").read_text(encoding="utf-8")
+
+
+def test_a_planted_logs_directory_link_is_not_followed(tmp_path, monkeypatch, ledger, relays):
+    flag(monkeypatch, False)
+    root, mod = guarded_checkout(tmp_path, "devhook_dirlink")
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (root / "state").mkdir()
+    (root / "state" / "logs").symlink_to(elsewhere, target_is_directory=True)
+    assert run_dev(mod, monkeypatch, transcript(tmp_path, [report_turn()]), ledger) == 0
+    assert list(elsewhere.iterdir()) == [] and len(relays) == 1
 
 
 def test_scan_scopes_events_to_the_current_turn(tmp_path, monkeypatch):
@@ -244,8 +446,11 @@ def test_rate_limit_comes_from_this_turns_api_error_only(tmp_path, monkeypatch):
     assert mod._scan_records(transcript(tmp_path, [prose, hit]))[1] is True
     assert mod._scan_records(transcript(tmp_path, [hit, plain_turn("p3")]))[1] is False
     monkeypatch.delenv("ORG_MAIL_ENVELOPE")
-    legacy = load(DEV_HOOK, "devhook_rl_legacy")
-    assert legacy._scan_records(transcript(tmp_path, [prose]))[1] is True   # the legacy over-match, kept when off
+    off = load(DEV_HOOK, "devhook_rl_off")
+    # flag off reads the same records (wake chain W1 review): prose is not a limit
+    assert off._scan_records(transcript(tmp_path, [prose]))[1] is False
+    assert off._scan_records(transcript(tmp_path, [prose, hit]))[1] is True
+    assert off._scan_records(transcript(tmp_path, [hit, plain_turn("p3")]))[1] is False
 
 # ------------------------------------------------------------- prompt hook
 
