@@ -272,11 +272,8 @@ def live_box(box: str | None) -> str | None:
 def live_c_levels() -> list[str]:
     """The live C-level boxes from the <role>-active pointers that have a lock (design
     C4): the session record's sid can be a different id from the box it drains."""
-    try:
-        from lib.roles import c_level_roles
-        roles = c_level_roles()
-    except Exception:
-        roles = ("cto", "cmo", "cfo", "coo")
+    from lib.roles import c_level_roles  # falls back to its static roster itself
+    roles = c_level_roles()
     out = []
     for role in roles:
         box = f"{role}-{ls.read_lock(LOCKS_DIR / f'{role}-active')}"
