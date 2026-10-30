@@ -1,23 +1,33 @@
 #!/usr/bin/env python3
-"""Stop hook: append last DEV assistant reply to state/logs/cto.log AND
-persist session-id + rate-limit signal back to the tasks DB so the
+"""Stop hook: append a DEV turn that has something to report to
+state/logs/cto.log, relay it to the owning Project Head or C-level, and
+persist the session id + rate-limit signal back to the tasks DB so the
 auto-resume scheduler can recover the work later.
 
 Mirrors hook-log-reply.py but for DEV sessions. Gated by WORKER_TASK_ID env
-(set by runners/worker_init.py before exec). Writes:
+(set by runners/worker_init.py before exec). Writes, on every turn:
 
-    [<ts>] Dev:<task_id>: <reply text>
+    * tasks.session_id      <- transcript filename stem (resume handle)
+    * tasks.updated_at      <- now (liveness)
+    * tasks.status          <- 'rate_limited', and tasks.retry_after_ts <-
+                               now + 5 min, when THIS turn holds an API error
+                               record that names a rate limit, and only while
+                               the task is still in_progress
 
-…and on top of that:
+tasks.last_checkpoint is not touched: runners/worker_mcp_server.dev_message
+keeps the worker's full last message there (GH #54), and a timestamp written
+over it at every Stop erased that text.
 
-    * tasks.session_id      ← transcript filename stem (resume handle)
-    * tasks.last_checkpoint ← ISO 8601 UTC of this hook fire
-    * tasks.status          ← 'rate_limited' if any record looks like a
-                              429 / rate_limit_error
-    * tasks.retry_after_ts  ← now + 5min (default backoff) when RL flagged
+The log line and the relay happen only on a turn that called submit_report,
+dev_message or file_blocker_issue, or that hit a rate limit (flag on or off;
+wake chain W1, 2026-10-30). Every other turn stays in the worker's own
+transcript. request_human_handoff is not on the list: the tool sends its own
+letter. The log line reads:
+
+    [<ts>] <Role Label> <task_id>: [<tools>] <reply text>
 
 CTO's UserPromptSubmit hook tails cto.log and surfaces new lines into
-the next CTO turn, so DEV replies appear in the CTO chat automatically.
+the next CTO turn, so DEV reports appear in the CTO chat automatically.
 
 ROOT is always this file's own checkout, as hook-log-prompt.py does (wake chain
 W1, 2026-10-30). runners/worker_init.py registers the hook by its absolute path
@@ -28,26 +38,31 @@ tools/, so the DB write and the relay to the owner failed silently and the log
 lines landed in a stray /Users/gob tree (measured on Contabo 2026-10-13 and
 again 2026-10-30: no worker report reached its Project Head).
 
+state/logs is writable by another account and this hook runs as root on
+Contabo, so each log is opened relative to the directory, with no symlink
+followed, and written only when it is a regular file with one link.
+
+The relay letter, flag on or off, is a report or a blocker (urgent), a
+dev_message (normal) or, for a rate limit with no event, a fyi (normal), at
+most RELAY_MAX_CHARS for the whole letter. send_to_cto gets that kind: a
+report or a fyi never wakes a C-level box (it waits for the session's next
+prompt, lib.mailbox.quiet_for); a Project Head box wakes. A task with no
+owner is not relayed (there is no box to send to); its log line stays.
+
 Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1):
-  * tasks.session_id / last_checkpoint / rate-limit state are still written
-    on every turn, with the hub call capped at HUB_TIMEOUT_S.
-  * The log line and the relay to the owning C-level happen only on a turn
-    that called submit_report, dev_message or file_blocker_issue (or hit a
-    rate limit). Every other turn stays in the worker's own transcript.
-    request_human_handoff is not on the list: the tool sends its own letter.
-  * The relay is an envelope letter: a report or a blocker is urgent, a
-    dev_message or a rate-limit notice is normal (the wake is debounced,
-    lib.mailbox.wake_due), with a one-line subject. A blocker wakes the C-level
-    at once; a report (like a fyi) never wakes a C-level box, it waits for the
-    session's next prompt (lib.mailbox.quiet_for).
-Off, everything is exactly as before.
+  * the hub call is capped at HUB_TIMEOUT_S;
+  * the letter carries subject, kind and prio as envelope fields; the wake is
+    debounced for a normal letter (lib.mailbox.wake_due).
+Off, the letter has no envelope fields, so its body names its kind in its
+first words (`report · urgent · ...`, the plain-text form lib.mailbox.body_kind
+reads), and a later reader of the box classes it as the envelope would.
 """
 from __future__ import annotations
 
 import json
 import os
 import re
-import subprocess
+import stat
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -87,9 +102,13 @@ def _log_for(cto_id: str | None) -> Path:
     if cto_id:
         return ROOT / "state" / "logs" / f"cto-{cto_id}.log"
     return ROOT / "state" / "logs" / "cto.log"
+
+
 MAX_CHARS = 4000
-RELAY_MAX_CHARS = 1500
+RELAY_MAX_CHARS = 600            # the whole letter (wake chain token rule 5)
+TRUNC = " ...[truncated]"
 DEFAULT_BACKOFF_S = 300
+LOG_MODE = 0o644                 # as the existing state/logs/cto-*.log files
 
 RATE_LIMIT_RE = re.compile(
     r"(rate[_-]?limit|rate limited|429|too many requests|usage limit|"
@@ -126,15 +145,15 @@ def _is_tool_result(content) -> bool:
 
 
 def _scan_records(transcript: Path) -> tuple[str, bool, list[str]]:
-    """Return (last_assistant_text, rate_limited_seen, turn_events): the last
-    is the EVENT_TOOLS names the current turn (since the last prompt) called.
+    """Return (last_assistant_text, rate_limited, turn_events): the last is
+    the EVENT_TOOLS names the current turn (since the last prompt) called.
 
-    Envelope mode reads rate_limited from the current turn's API error records
-    only. The legacy scan also matches any assistant prose that mentions "429"
-    or "rate limit" anywhere in the transcript, which then sets the task to
-    rate_limited on every later turn, a submitted report included."""
+    rate_limited comes from the current turn's API error records only, flag
+    on or off. Assistant prose is never read for it: a worker that wrote
+    "429" or "rate limit" in any earlier turn (a test count of 1429, an HTTP
+    429 it handled) used to set the task to rate_limited on every later
+    turn, its submitted report included."""
     last_text = ""
-    rl = False
     turn_rl = False
     events: list[str] = []
     turn_pid = None
@@ -170,17 +189,13 @@ def _scan_records(transcript: Path) -> tuple[str, bool, list[str]]:
                     text = extract_text(content)
                     if text.strip():
                         last_text = text
-                        if RATE_LIMIT_RE.search(text):
-                            rl = True
 
                 if rec.get("isApiErrorMessage") or rec.get("type") == "error":
-                    blob = json.dumps(rec)
-                    if RATE_LIMIT_RE.search(blob):
-                        rl = True
+                    if RATE_LIMIT_RE.search(json.dumps(rec)):
                         turn_rl = True
     except Exception:
         pass
-    return last_text, (turn_rl if ENVELOPE else rl), events
+    return last_text, turn_rl, events
 
 
 def _persist(task_id: str, session_id: str, rate_limited: bool) -> None:
@@ -191,22 +206,68 @@ def _persist(task_id: str, session_id: str, rate_limited: bool) -> None:
         # envelope mode caps the hub call: a slow hub must not hold the worker's turn
         with (db_lib.get_conn(timeout=HUB_TIMEOUT_S) if ENVELOPE else db_lib.get_conn()) as conn:
             conn.execute(
-                "UPDATE tasks SET session_id=?, last_checkpoint=?, updated_at=? "
-                "WHERE id=?",
-                (session_id, now, now, task_id),
+                "UPDATE tasks SET session_id=?, updated_at=? WHERE id=?",
+                (session_id, now, task_id),
             )
             if rate_limited:
                 retry_after = (
                     datetime.now(timezone.utc)
                     + timedelta(seconds=DEFAULT_BACKOFF_S)
                 ).isoformat(timespec="seconds")
+                # only a task still at work: never over review, done or cancelled
                 conn.execute(
                     "UPDATE tasks SET status='rate_limited', retry_after_ts=?, "
-                    "updated_at=? WHERE id=?",
+                    "updated_at=? WHERE id=? AND status='in_progress'",
                     (retry_after, now, task_id),
                 )
     except Exception:
         pass
+
+
+def _append_log(path: Path, text: str) -> None:
+    """Append `text` to `path`, which must be ROOT/state/logs/<name>, without
+    following a symlink at any level below ROOT: each directory is opened
+    O_NOFOLLOW relative to its parent (and made if missing), the file
+    O_NOFOLLOW | O_NONBLOCK relative to its directory, and written only when
+    fstat shows a regular file with one link. Any other path (an owner id
+    holding "/" or ".."), any refusal or any error skips the line."""
+    try:
+        parts = path.relative_to(ROOT).parts
+    except ValueError:
+        return
+    if len(parts) != 3 or parts[:2] != ("state", "logs") or parts[2] in (".", ".."):
+        return
+    cloexec = getattr(os, "O_CLOEXEC", 0)
+    dir_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | cloexec
+    fds: list[int] = []
+    try:
+        fds.append(os.open(str(ROOT), os.O_RDONLY | os.O_DIRECTORY | cloexec))
+        for name in parts[:-1]:
+            try:
+                os.mkdir(name, 0o775, dir_fd=fds[-1])
+            except FileExistsError:
+                pass
+            fds.append(os.open(name, dir_flags, dir_fd=fds[-1]))
+        fd = os.open(parts[-1], os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW
+                     | os.O_NONBLOCK | cloexec, LOG_MODE, dir_fd=fds[-1])
+        fds.append(fd)
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode) or st.st_nlink != 1:
+            return
+        data = text.encode("utf-8", "replace")
+        while data:
+            n = os.write(fd, data)
+            if n <= 0:
+                return
+            data = data[n:]
+    except (OSError, ValueError):
+        return
+    finally:
+        for fd in reversed(fds):
+            try:
+                os.close(fd)
+            except OSError:
+                pass
 
 
 def _role_label(role: str | None) -> str:
@@ -245,22 +306,26 @@ def main() -> int:
     session_id = _session_id_from_path(p)
     _persist(task_id, session_id, rate_limited)
 
+    if not events and not rate_limited:
+        return 0          # nothing to report: the turn stays in the worker's transcript
     last_text = (last_text or "").strip()
-    letter_kw: dict = {}
+    kind, prio = _letter_kind(events)
+    letter_kw: dict = {"kind": kind, "prio": prio}
     if ENVELOPE:
-        if not events and not rate_limited:
-            return 0          # nothing to report: the turn stays in the worker's transcript
-        kind, prio = _letter_kind(events)
         gist = " ".join(last_text.split()) or ("rate limited" if rate_limited else "see the task report")
-        letter_kw = {"subject": f"{kind} {task_id}: {gist}"[:80], "kind": kind, "prio": prio}
-        if events:
-            last_text = f"[{', '.join(events)}] " + (last_text or "(no closing text; see the task report)")
-    if not last_text and not rate_limited:
-        return 0
+        letter_kw["subject"] = f"{kind} {task_id}: {gist}"[:80]
+    if events:
+        last_text = f"[{', '.join(events)}] " + (last_text or "(no closing text; see the task report)")
     if len(last_text) > MAX_CHARS:
-        last_text = last_text[:MAX_CHARS] + " ...[truncated]"
+        last_text = last_text[:MAX_CHARS] + TRUNC
 
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    lines = ""
+    if last_text:
+        lines += f"[{ts}] {role_label} {task_id}: {last_text}\n"
+    if rate_limited:
+        lines += (f"[{ts}] RateLimit {role_label} {task_id}: status=rate_limited, "
+                  f"retry_after={DEFAULT_BACKOFF_S}s, session={session_id}\n")
     # Dual-write: global cto.log (legacy consumers) + the spawning CTO's
     # per-session log so multi-CTO setups don't cross feeds.
     targets = [_log_for(None)]
@@ -268,37 +333,25 @@ def main() -> int:
     if per != targets[0]:
         targets.append(per)
     for target in targets:
-        try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with target.open("a", encoding="utf-8") as f:
-                if last_text:
-                    f.write(f"[{ts}] {role_label} {task_id}: {last_text}\n")
-                if rate_limited:
-                    f.write(
-                        f"[{ts}] RateLimit {role_label} {task_id}: status=rate_limited, "
-                        f"retry_after={DEFAULT_BACKOFF_S}s, session={session_id}\n"
-                    )
-        except OSError:
-            pass
+        _append_log(target, lines)
 
-    # Bidirectional visible chat: type the DEV's reply into the CTO tab
-    # so the CEO can watch the conversation in real time.
     relay = last_text
     if rate_limited:
-        rl_note = (
-            f"(rate-limited; will auto-resume in ~{DEFAULT_BACKOFF_S}s)"
-        )
+        rl_note = f"(rate limit hit this turn; retry after ~{DEFAULT_BACKOFF_S}s)"
         relay = f"{relay}\n{rl_note}" if relay else rl_note
-    if relay:
-        if len(relay) > RELAY_MAX_CHARS:
-            relay = relay[:RELAY_MAX_CHARS] + " ...[truncated]"
-        try:
-            sys.path.insert(0, str(ROOT))
-            from tools.send_to_cto import send as send_to_cto
-            send_to_cto(task_id, relay, role=role, cto_id=cto_id,
-                        owner_role=owner_role, **letter_kw)
-        except Exception:
-            pass
+    if not ENVELOPE:
+        relay = f"{kind} · {prio} · {relay}"      # no envelope fields: the body names its kind
+    if len(relay) > RELAY_MAX_CHARS:
+        relay = relay[:RELAY_MAX_CHARS - len(TRUNC)] + TRUNC
+    if not cto_id:
+        return 0          # an ownerless task has no box; the log line above is its record
+    try:
+        sys.path.insert(0, str(ROOT))
+        from tools.send_to_cto import send as send_to_cto
+        send_to_cto(task_id, relay, role=role, cto_id=cto_id,
+                    owner_role=owner_role, **letter_kw)
+    except Exception:
+        pass
 
     return 0
 

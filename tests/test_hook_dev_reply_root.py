@@ -41,7 +41,7 @@ from contextlib import contextmanager
 class _Conn:
     def execute(self, sql, params=()):
         with open(os.environ["STUB_RECORD"], "a", encoding="utf-8") as f:
-            f.write(json.dumps({"db": " ".join(sql.split()[:3]), "params": list(params)}) + "\\n")
+            f.write(json.dumps({"db": " ".join(sql.split()), "params": list(params)}) + "\\n")
 
 
 @contextmanager
@@ -89,8 +89,20 @@ def _checkout(tmp_path: Path, stubs: bool = True) -> Path:
     return root
 
 
-def _report_transcript(tmp_path: Path) -> Path:
-    recs = [
+_PROSE_429 = [  # an earlier turn whose prose only mentions 429: no API error record
+    {"type": "user", "promptId": "p0", "message": {"role": "user", "content": "baseline"}},
+    {"type": "assistant", "message": {"role": "assistant", "content": [
+        {"type": "text", "text": "Baseline: 1429 tests collected; the API returns HTTP 429 on burst."}]}},
+]
+_PROGRESS = [  # a later turn with text and no event tool
+    {"type": "user", "promptId": "p2", "message": {"role": "user", "content": "status?"}},
+    {"type": "assistant", "message": {"role": "assistant", "content": [
+        {"type": "text", "text": "The full suite is running; I will report when it ends."}]}},
+]
+
+
+def _report_transcript(tmp_path: Path, before: list | None = None, after: list | None = None) -> Path:
+    recs = list(before or []) + [
         {"type": "user", "promptId": "p1", "message": {"role": "user", "content": "do it"}},
         {"type": "assistant", "message": {"role": "assistant", "content": [
             {"type": "tool_use", "id": "x", "name": "mcp__org__submit_report", "input": {}}]}},
@@ -98,7 +110,7 @@ def _report_transcript(tmp_path: Path) -> Path:
             {"type": "tool_result", "content": "OK"}]}},
         {"type": "assistant", "message": {"role": "assistant", "content": [
             {"type": "text", "text": "Done: PR ready for review, 4 tests pass."}]}},
-    ]
+    ] + list(after or [])
     p = tmp_path / "sess-w1root.jsonl"
     p.write_text("\n".join(json.dumps(r) for r in recs) + "\n", encoding="utf-8")
     return p
@@ -128,35 +140,67 @@ def test_a_link_to_the_checkout_resolves_to_the_checkout(tmp_path, monkeypatch):
     assert mod.ROOT == root.resolve()
 
 
-def test_flag_off_a_worker_report_reaches_its_project_head(tmp_path, monkeypatch):
-    """The live Contabo case: flag off, a PH-owned task, the worker's report turn.
-    The hub write, the relay and both log lines all go through the checkout
-    the script runs from."""
-    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
-    root = _checkout(tmp_path)
+def _run_flag_off(tmp_path: Path, tp: Path, name: str):
+    """Run the copied script in a fresh interpreter, flag off, as a Contabo
+    worker of a PH-owned task. Returns (root, db calls, send calls)."""
+    root = tmp_path / "Core"
     # the guard: an old copy fails here, before anything runs
-    assert _load(root / "scripts" / DEV_HOOK.name, "devhook_guard").ROOT == root.resolve()
-
+    assert _load(root / "scripts" / DEV_HOOK.name, name).ROOT == root.resolve()
     record = tmp_path / "calls.jsonl"
     env = {k: v for k, v in os.environ.items() if k not in _ENV_STRIP}
     env.update({"WORKER_TASK_ID": TASK, "WORKER_ROLE": "developer",
                 "WORKER_CTO_ID": OWNER, "WORKER_CTO_ROLE": "project_head",
                 "STUB_RECORD": str(record)})
-    tp = _report_transcript(tmp_path)
     res = subprocess.run([sys.executable, "-I", str(root / "scripts" / DEV_HOOK.name)],
                          input=json.dumps({"transcript_path": str(tp)}), cwd=str(tmp_path),
                          capture_output=True, text=True, env=env, timeout=30)
     assert res.returncode == 0, res.stderr
-
     calls = [json.loads(line) for line in record.read_text(encoding="utf-8").splitlines()]
-    db_calls = [c for c in calls if "db" in c]
-    sends = [c for c in calls if "send" in c]
-    assert [c["db"] for c in db_calls] == ["UPDATE tasks SET"]
+    return root, [c for c in calls if "db" in c], [c for c in calls if "send" in c]
+
+
+def test_flag_off_a_worker_report_reaches_its_project_head(tmp_path, monkeypatch):
+    """The live Contabo case: flag off, a PH-owned task, the worker's report turn.
+    The hub write, the relay and both log lines all go through the checkout
+    the script runs from. The letter names its kind (report: it wakes a PH box,
+    never a C-level box), and the hub write leaves last_checkpoint alone."""
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    _checkout(tmp_path)
+    root, db_calls, sends = _run_flag_off(tmp_path, _report_transcript(tmp_path), "devhook_guard")
+
+    assert [c["db"] for c in db_calls] == ["UPDATE tasks SET session_id=?, updated_at=? WHERE id=?"]
     assert db_calls[0]["params"][0] == "sess-w1root" and db_calls[0]["params"][-1] == TASK
-    assert sends == [{"send": [TASK, "Done: PR ready for review, 4 tests pass."],
-                      "kw": {"role": "developer", "cto_id": OWNER, "owner_role": "project_head"}}]
+    assert sends == [{"send": [TASK, "report · urgent · [submit_report] Done: PR ready for review, "
+                                     "4 tests pass."],
+                      "kw": {"role": "developer", "cto_id": OWNER, "owner_role": "project_head",
+                             "kind": "report", "prio": "urgent"}}]
 
     logs = root / "state" / "logs"
     assert sorted(p.name for p in logs.iterdir()) == ["cto-9f8e7d6c.log", "cto.log"]
     for name in ("cto.log", f"cto-{OWNER}.log"):
-        assert f"Developer {TASK}: Done: PR ready for review" in (logs / name).read_text(encoding="utf-8")
+        assert f"Developer {TASK}: [submit_report] Done: PR ready for review" in (
+            logs / name).read_text(encoding="utf-8")
+
+
+def test_flag_off_a_progress_turn_reaches_nobody(tmp_path, monkeypatch):
+    """A later turn with text and no event tool: the session id is recorded,
+    and nothing is logged, lettered or woken."""
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    _checkout(tmp_path)
+    tp = _report_transcript(tmp_path, after=_PROGRESS)
+    root, db_calls, sends = _run_flag_off(tmp_path, tp, "devhook_guard_progress")
+    assert [c["db"] for c in db_calls] == ["UPDATE tasks SET session_id=?, updated_at=? WHERE id=?"]
+    assert sends == []
+    assert not (root / "state" / "logs").exists()
+
+
+def test_flag_off_old_429_prose_does_not_rate_limit_the_report(tmp_path, monkeypatch):
+    """The review blocker, end to end: "1429 tests" and "HTTP 429" in an earlier
+    turn's prose used to send status='rate_limited' on the report turn's Stop."""
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    _checkout(tmp_path)
+    tp = _report_transcript(tmp_path, before=_PROSE_429)
+    root, db_calls, sends = _run_flag_off(tmp_path, tp, "devhook_guard_429")
+    assert not any("rate_limited" in c["db"] for c in db_calls)
+    assert len(sends) == 1 and "rate limit" not in sends[0]["send"][1]
+    assert "RateLimit" not in (root / "state" / "logs" / "cto.log").read_text(encoding="utf-8")
