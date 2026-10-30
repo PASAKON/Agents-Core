@@ -1,0 +1,14 @@
+# REPORT task-ddaec708
+
+Runner: agy
+Exit code: 0
+
+none
+
+Checked PR #603 (`cto/w1-hook-root-full-note`):
+
+- **Root writes under `state/` ([`scripts/hook-log-dev-reply.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-log-dev-reply.py))**: `_append_log` verifies `path.relative_to(ROOT).parts` is a 3-part `("state", "logs", <name>)` path with `<name>` not in `(".", "..")`, walks from `ROOT` using `dir_fd` with `O_RDONLY | O_DIRECTORY | O_NOFOLLOW` at each directory level, opens the log file with `O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_NONBLOCK` (`0o644`) relative to the `logs` `dir_fd`, and verifies `stat.S_ISREG(st.st_mode)` and `st.st_nlink == 1` via `os.fstat(fd)` before writing.
+- **Secret exposure & CEO note cap ([`scripts/hook-inbox.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-inbox.py), [`scripts/hook-log-dev-reply.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-log-dev-reply.py))**: `_ceo_notes` only extracts `answer.text`, `questions[*].answer.text`, and `question` when `from.role == "run-inbox"` (no operator names, result output tails, or env data), and `_note_lines` caps each note at `NOTE_MAX = 2000` characters while skipping notes already present in full in `shown`. Relay bodies in `hook-log-dev-reply.py` are capped at `RELAY_MAX_CHARS = 600` characters.
+- **Path construction from untrusted/worker values ([`scripts/hook-log-dev-reply.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-log-dev-reply.py))**: `ROOT` is resolved from `Path(__file__).resolve().parent.parent`, and any `cto_id` containing `/` or `..` in `_log_for(cto_id)` is rejected by the `relative_to(ROOT).parts` check in `_append_log`.
+- **Bounded sends & `off` mode ([`scripts/hook-log-dev-reply.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-log-dev-reply.py))**: `main()` exits early without logging or relaying on turns with no `EVENT_TOOLS` call and no current-turn API error rate-limit (`if not events and not rate_limited: return 0`), and exits before `send_to_cto` when `cto_id` is unset (`if not cto_id: return 0`).
+- **Hook error handling ([`scripts/hook-inbox.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-inbox.py), [`scripts/hook-log-dev-reply.py`](file:///opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-ddaec708/scripts/hook-log-dev-reply.py))**: `_note_lines` replaces lone UTF-16 surrogates via `.encode("utf-8", "replace").decode("utf-8")` and catches exceptions so a malformed note never aborts printing after `mailbox.drain()` has already consumed the letter; `_persist` guards `status='rate_limited'` updates with `AND status='in_progress'` and leaves `last_checkpoint` intact.
