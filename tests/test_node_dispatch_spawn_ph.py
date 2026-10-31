@@ -542,7 +542,8 @@ def test_the_mesh_command_refuses_a_bad_project_before_dialling(clevel, capsys, 
 def test_the_mesh_command_refuses_an_owner_session_the_verb_could_not_take(clevel, monkeypatch, capsys):
     monkeypatch.setenv("CTO_SESSION_ID", "main-session")           # send_to_cxo accepts it; the verb needs 8 hex
     assert spawn_ph.main(["mesh", "--host", "winbox", "--project", "LuminaSkies"]) == 1
-    assert "8 lowercase hex" in capsys.readouterr().err
+    # spawn_ph maps a launcher id to the hub id first; an id it cannot map is refused there
+    assert "cannot map session id" in capsys.readouterr().err
     clevel.assert_not_called()
 
 
