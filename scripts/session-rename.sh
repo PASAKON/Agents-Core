@@ -32,8 +32,9 @@
 #
 # Called by /session-open step 3 (right after tab-title/tab-main), and now also
 # by /session-worktree and /session-close so the display name tracks the topic
-# without a caller having to remember to run it — the recorded-topic check
-# below makes repeat calls a no-op whenever nothing actually changed.
+# without a caller having to remember to run it — the recorded-name check
+# below makes repeat calls a no-op whenever the full rendered name is the same
+# (not merely the topic: a PH whose project changed renders a new name).
 #
 # Guards:
 #   - no org session id (a plain terminal, a worker) → nothing requested, exit 0;
@@ -118,14 +119,6 @@ if [ -n "$PREFIX" ]; then
   RECORD_KEY="$PREFIX $TOPIC"
 fi
 
-if [ "$FORCE" != "1" ] && [ -n "$TOPIC_FILE" ] && [ -f "$TOPIC_FILE" ]; then
-  RECORDED="$(cat "$TOPIC_FILE")"
-  if [ "$RECORDED" = "$RECORD_KEY" ]; then
-    echo "unchanged: $RECORD_KEY"
-    exit 0
-  fi
-fi
-
 # M10b (Agents-Core #272, CEO 2026-10-14): a session never types into its own pane.
 # This script only sends a REQUEST (the topic and the state glyph, never a name)
 # to /run/rename-service/sock; tools/rename_service.py (root, systemd) checks with
@@ -144,6 +137,17 @@ if [ -z "$PREVIEW" ]; then
   echo "no rule name for $ROLE-$SID (a PH needs its .project/.spawned_by; --prefix is one of ✅ ⏸ ⛔): nothing requested" >&2
   exit 1
 fi
+
+# "unchanged" is decided by the FULL rendered name, not by the topic alone: the name is built from
+# more than the topic (a PH's project in its .project file, the lane, the host, the persona), so
+# the same topic can render a different name after one of those changed. The record is the
+# rendered name this script last had accepted by the service (<role>-<id>.rendered). No record
+# (a session from before it existed, or a request that never landed) asks again.
+NAME_FILE="$LOCKS_DIR/$ROLE-$SID.rendered"
+if [ "$FORCE" != "1" ] && [ -f "$NAME_FILE" ] && [ "$(cat "$NAME_FILE")" = "$PREVIEW" ]; then
+  echo "unchanged: $RECORD_KEY"
+  exit 0
+fi
 set +e
 REPLY="$(cd "$ROOT" && "$PY" tools/rename_service.py request --role "$ROLE" --sid "$SID" \
   --topic "$TOPIC" --prefix "$PREFIX" 2>&1)"
@@ -159,4 +163,5 @@ echo "requested: /rename $PREVIEW (the rename service types it once this session
 if [ -n "$TOPIC_FILE" ]; then
   mkdir -p "$LOCKS_DIR"
   printf '%s' "$RECORD_KEY" > "$TOPIC_FILE"
+  printf '%s' "$PREVIEW" > "$NAME_FILE"
 fi
