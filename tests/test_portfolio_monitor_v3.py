@@ -523,7 +523,7 @@ def test_v1_and_v2_carry_no_v3_key(hub):
 
 @needs_pg
 def test_an_unknown_version_is_refused(hub):
-    for v in (0, 4, "3", None):
+    for v in (0, 5, "3", None):
         with pytest.raises(pf.PortfolioError, match="1, 2 or 3"):
             pf.monitor_payload(T, version=v)
 

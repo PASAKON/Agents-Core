@@ -23,6 +23,8 @@ PH, OWNER = "project_head-40fefb4e", "cto-fresh"
 
 @pytest.fixture
 def box(tmp_path, monkeypatch):
+    monkeypatch.setattr(pw.portfolio_delivery, "watch_box", lambda box, lane=None: box)
+    monkeypatch.setattr(pw.mail_wake, "wake", lambda *a: {"woke": True})
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
     monkeypatch.setenv("ORG_LETTERS_META", str(tmp_path / "meta.jsonl"))
     monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
@@ -82,6 +84,29 @@ def test_a_late_project_writes_the_ph_once_and_a_second_run_writes_nothing(box, 
     go(T + timedelta(minutes=5))
     go(T + timedelta(hours=3, minutes=59))
     assert len(letters(PH)) == 1 and letters(OWNER) == []
+
+
+def test_delivery_wakes_the_live_fallback_after_writing(box, monkeypatch):
+    Source(monkeypatch, finding())
+    monkeypatch.setattr(pw.portfolio_delivery, "watch_box", lambda box, lane=None: "cto-current")
+    woken = []
+
+    def wake(box, label):
+        assert len(letters(box)) == 1
+        woken.append((box, label))
+        return {"woke": True}
+    monkeypatch.setattr(pw.mail_wake, "wake", wake)
+    assert go(T)[0] == 0
+    assert woken == [("cto-current", "PORTFOLIO-WATCH")]
+    assert letters(PH) == []
+    assert state()["proj:late"]["sent"] == ["first"]
+
+
+def test_no_live_watch_recipient_stays_due(box, monkeypatch):
+    Source(monkeypatch, finding())
+    monkeypatch.setattr(pw.portfolio_delivery, "watch_box", lambda box, lane=None: None)
+    assert go(T)[0] == 1
+    assert letters(PH) == [] and state()["proj:late"]["sent"] == []
 
 
 def test_after_4_hours_the_owner_hears_once_and_after_24_the_episode_goes_red_without_a_letter(box, monkeypatch):

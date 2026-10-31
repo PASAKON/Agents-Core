@@ -29,6 +29,7 @@ DEFAULT_ENDPOINT = "https://terminal.mooniex.com/api/portfolio/monitor"
 
 @pytest.fixture(autouse=True)
 def _env(monkeypatch):
+    monkeypatch.setattr(pp, "collect", lambda *a, **kw: None)
     monkeypatch.setenv("PORTFOLIO_PUSH_TOKEN", TOKEN)
     monkeypatch.delenv("PORTFOLIO_PUSH_URL", raising=False)
 

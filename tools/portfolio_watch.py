@@ -51,6 +51,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import mailbox  # noqa: E402
+from tools import mail_wake, portfolio_delivery  # noqa: E402
 
 PREFIX = "portfolio_watch: "
 FROM = ("system", "portfolio-watch")
@@ -187,6 +188,7 @@ def findings(now: datetime, conn=None) -> Found:
                 "waiting_ceo": "waiting on CEO"}[kind]
         out.append({"key": f"{a['project_id']}:{kind}", "kind": kind, "id": a["project_id"],
                     "name": _line(p["name"], 40), "what": what, "since": since,
+                    "lane": p["lane"],
                     "ph": _ph_box(p["ph_session"]), "owner": _owner_box(p["lane"], p["owner_session"])})
     for p in portfolio.idea_with_live_ph(now, conn=conn):   # last: a failed read aborts a PG transaction
         out.append({"key": f"{p['project_id']}:idea_live_ph", "kind": "idea_live_ph", "id": p["project_id"],
@@ -307,7 +309,9 @@ def plan(found, state: dict, now: datetime) -> list[dict]:
                 steps.append(("owner", f["owner"]))
         for step, box in steps:
             if step not in ep["sent"] and box:
-                due.append({"key": f["key"], "step": step, **_letter(f, step, box, now)})
+                due.append({"key": f["key"], "step": step,
+                            "lane": f.get("lane") or (f.get("owner") or "").partition("-")[0],
+                            **_letter(f, step, box, now)})
     return due
 
 
@@ -317,9 +321,15 @@ def deliver(letters, state: dict, *, send=mailbox.send) -> tuple[list[dict], lis
     that fails to send stays unrecorded and goes out on the next run."""
     sent, errors = [], []
     for letter in letters:
-        role, sid = letter["box"].split("-", 1)
         try:
+            box = portfolio_delivery.watch_box(letter["box"], letter.get("lane"))
+            if not box:
+                errors.append("no live recipient")
+                continue
+            letter = {**letter, "box": box}
+            role, sid = box.split("-", 1)
             send(role, sid, letter["body"], *FROM, kind="blocker", subject=letter["subject"])
+            mail_wake.wake(box, "PORTFOLIO-WATCH")
         except Exception as e:
             errors.append(f"{letter['box']} <- {letter['subject']}: {type(e).__name__}")
             continue
