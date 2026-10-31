@@ -1,4 +1,5 @@
 """Live mailbox routing shared by the portfolio collector and watch."""
+import os
 import re
 from pathlib import Path
 
@@ -35,7 +36,22 @@ def lane_box(lane: str, live: set[str]) -> str | None:
     box = sid if sid.startswith(f"{lane}-") else f"{lane}-{sid}"
     if box in live:
         return box
-    return next(iter(sorted(b for b in live if b.startswith(f"{lane}-"))), None)
+    lane_live = sorted(b for b in live if b.startswith(f"{lane}-"))
+    # The hub can list the lane's session under another id than its box (live 31 Oct: CTO Main's pointer and tmux
+    # session say "fresh", the hub row says f69c4825, and a letter to cto-f69c4825 is never read). The lane's own
+    # pointer wins while the lane is live and that box's inbox is a real folder.
+    if lane_live and sid and BOX.fullmatch(box) and _inbox_dir(box):
+        return box
+    return next(iter(lane_live), None)
+
+
+def _inbox_dir(box: str) -> bool:
+    import stat
+    from lib import mailbox
+    try:
+        return stat.S_ISDIR(os.lstat(Path(mailbox.INBOX_ROOT) / box).st_mode)
+    except OSError:
+        return False
 
 
 def target(project: dict, live: set[str]) -> tuple[str | None, str]:
