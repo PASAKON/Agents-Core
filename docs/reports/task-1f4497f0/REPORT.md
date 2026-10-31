@@ -49,9 +49,9 @@ explicitly verifies address and listener readiness. No sysctl was changed.
   damaged; helper deliberately fails rather than changing its network/volume.
 - Listener detection checks the specific IPv4 bind, not application health;
   the separate psycopg probe supplies database readiness.
-- Existing 15-minute resume service timeout remains: a ten-minute hub wait and
-  three one-minute retry sleeps leave about two minutes for recovery commands
-  in the worst case. Large/slow recovery may still need a manual retry.
+- PH raised the resume service timeout from 15 to 30 minutes (10-minute hub wait
+  + 3 one-minute retry sleeps + resume time). It is a ceiling, not a guarantee:
+  each session wait defaults to 600 s, so a slow recovery may still need a manual retry.
 - Deadline checks can overrun by one bounded probe/poll interval; Docker restart
   is ultimately bounded by the helper unit's six-minute timeout.
 
