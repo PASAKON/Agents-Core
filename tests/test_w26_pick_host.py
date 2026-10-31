@@ -547,7 +547,7 @@ def test_flag_on_a_full_named_host_is_queued_not_swapped_for_a_free_one(flow, mo
     assert row_["status"] == "pending"
     assert row_["delegate_log"] == "no_host: winbox(full 3/3)"
     assert flow.spawn_hosts == [] and flow.local_spawns == []
-    assert [e["host"] for e in host_queue.disk_queue._load(host_queue.QUEUE_PATH)] == ["winbox"]
+    assert [e["host"] for e in host_queue.load()] == ["winbox"]
 
 
 def test_flag_on_picks_the_lightest_host_and_it_reaches_route_and_spawn(flow, monkeypatch):

@@ -1,6 +1,64 @@
 # REPORT task-c02aee60
 
-Iteration 6 (PR #617 CI: 93 failures in six files the earlier iterations never ran). Branch
+## Iteration 7 (CTO Main merge gate 2b on PR #617)
+
+`tools/host_queue.py` runs as root from the watchdog and opens `state/host_queue.lock` and
+`state/host_queue.jsonl`; `state/` is group-writable. Both opens used to follow a link or wait on a pipe
+(`open("a")` for the lock, `disk_queue._load` / `_save` for the queue).
+
+- `tools/host_queue.py`: no longer calls `disk_queue._load` / `_save` (`disk_queue.py` is untouched).
+  - Lock: `safe_file._open(..., O_RDWR|O_CREAT, mode=0o600, single_link=True)`, then `fcntl.flock` on that fd;
+    closing the fd drops the lock.
+  - Read: `safe_file.read_text(QUEUE_PATH, 1 MiB)`, JSON lines parsed as before. A missing file is `[]`. A line
+    that is not JSON, or has no `task_id`, is skipped (the old code raised `KeyError` on the second case).
+  - Write: `safe_file.write_text_atomic`. New public `load()` replaces the tests' use of `host_queue.disk_queue`.
+- `lib/safe_file.py`: new `write_text_atomic(path, text, mode=0o600)`. Temp file `.<name>.<pid>.<rand>.tmp`
+  opened `O_EXCL|O_NOFOLLOW` through the folder's fd, written, fsync'd, then `os.replace(src_dir_fd=dfd,
+  dst_dir_fd=dfd)`, then the folder is fsync'd. A link or pipe at the target name is replaced, never followed or
+  written through. On failure the temp file is removed and the old file is untouched.
+- A refused file raises `OSError` (`safe_file.Unsafe`) out of `enqueue` / `drain` / `load`. The watchdog already
+  catches it (`watchdog host queue drain error`). In `delegate_task` the error goes to the caller and the task stays
+  `pending` with its `delegate_log` set, so a task is not silently lost.
+
+Tests (`tests/test_router.py`; names state the guarantee):
+
+- `test_queue_round_trip_leaves_only_its_two_files` (mode 0600, same task twice = one entry, no temp left)
+- `test_queue_refuses_a_planted_link_at_the_lock`, `test_queue_refuses_a_second_hard_link_at_the_lock`
+- `test_queue_does_not_follow_a_link_at_the_queue_file[enqueue|drain|load]` (target text unchanged)
+- `test_queue_refuses_a_pipe_at_either_file_without_waiting[queue.jsonl|queue.lock]` (5 s guard thread)
+- `test_atomic_write_replaces_a_link_at_the_name_and_leaves_its_target_alone`
+- `test_atomic_write_keeps_the_old_file_and_no_temp_file_when_it_fails`
+- Three existing assertions in `test_router.py`, `test_router_hub_only.py`, `test_w26_pick_host.py` read the queue
+  with `host_queue.load()` instead of `host_queue.disk_queue._load(...)`; no expectation changed.
+
+```text
+env -u ORG_DB_URL /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -q -o addopts='' \
+  tests/test_router.py tests/test_router_hub_only.py tests/test_w26_pick_host.py
+120 passed in 9.01s
+tests/test_portfolio_collector.py (the other `safe_file` user): 55 passed
+```
+
+Mutation check (each undone after, files compared byte for byte): lock opened with plain `os.open`; lock without
+`single_link`; queue read with `Path.read_text`; atomic write replaced by a plain write; temp file left behind on
+failure. Each made at least one of the new tests fail. `git diff --check` clean.
+
+### Not checked / risk (iteration 7)
+
+- Only the three named files plus `test_portfolio_collector.py` were run. The 10 files of iteration 6 and the rest of
+  the suite were not re-run after this change; `host_queue` is used by `tools/delegate.py` and `runners/watchdog.py`,
+  both read but not changed.
+- The folder (`state/`) itself being a link is refused by `O_DIRECTORY|O_NOFOLLOW` in `_open` and `write_text_atomic`,
+  but `_locked` calls `mkdir(parents=True, exist_ok=True)` first; that call was not tested with a planted folder.
+- A queue file with a second hard link is still read (the brief asked for `read_text` only). It is safe to read, and
+  the next save replaces the name with a fresh file, so the other link keeps the old bytes.
+- Not run as root and not on the Postgres hub. The tests use a plain tmp folder, so permission and group-writable
+  behaviour were not exercised. Pipe refusal relies on `O_NONBLOCK`, tested on Linux only.
+- A stale `.host_queue.jsonl.*.tmp` is left only if the process is killed between creating and renaming it; nothing
+  sweeps those.
+
+## Iteration 6
+
+PR #617 CI: 93 failures in six files the earlier iterations never ran. Branch
 `agent/codex-task-c02aee60`, started at `e7700445` (PR head `03db02bc` merged with main `067da6f6`).
 
 ## What changed (iteration 6)

@@ -91,7 +91,7 @@ def test_delegate_queues_without_spawn(monkeypatch, tmp_path):
     monkeypatch.setattr(host_queue, "QUEUE_PATH", tmp_path / "queue.jsonl")
     result = asyncio.run(delegate._delegate_task("task-test", host="mac"))
     assert result["status"] == "pending"
-    assert host_queue.disk_queue._load(host_queue.QUEUE_PATH)[0]["host"] == "mac"
+    assert host_queue.load()[0]["host"] == "mac"
 
 
 def test_launcher_guard_wiring():

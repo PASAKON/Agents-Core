@@ -2,12 +2,14 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+import os
 import sqlite3
+import threading
 from unittest.mock import Mock
 
 import pytest
 
-from lib import router
+from lib import router, safe_file
 from tools import host_fill, host_queue
 
 REAL_PROBE = host_fill.probe
@@ -175,10 +177,94 @@ def test_queue_retries_pin_and_drops_cancelled(monkeypatch):
     host_queue.enqueue(TASK["id"], "owner", host="mac")
     asyncio.run(host_queue.drain())
     assert calls == [(TASK["id"], {"host": "mac"})]
-    assert len(host_queue.disk_queue._load(host_queue.QUEUE_PATH)) == 1
+    assert len(host_queue.load()) == 1
     row["status"] = "cancelled"
     asyncio.run(host_queue.drain())
-    assert host_queue.disk_queue._load(host_queue.QUEUE_PATH) == []
+    assert host_queue.load() == []
+
+
+def _within(seconds, fn, *args):
+    """fn(*args) -> ("ok", value) | ("raised", exception); fails the test if it has not returned in time."""
+    box = []
+
+    def run():
+        try:
+            box.append(("ok", fn(*args)))
+        except BaseException as exc:    # noqa: BLE001 -- the caller inspects what came back
+            box.append(("raised", exc))
+
+    worker = threading.Thread(target=run, daemon=True)
+    worker.start()
+    worker.join(seconds)
+    assert not worker.is_alive(), "the call is waiting on the file instead of refusing it"
+    return box[0]
+
+
+def test_queue_round_trip_leaves_only_its_two_files():
+    host_queue.enqueue("task-a", "owner", host="mac")
+    host_queue.enqueue("task-b", "owner")
+    host_queue.enqueue("task-a", "owner", host="winbox")       # same task again: updated, not duplicated
+    assert [(e["task_id"], e["host"]) for e in host_queue.load()] == [("task-a", "winbox"), ("task-b", None)]
+    assert sorted(os.listdir(host_queue.QUEUE_PATH.parent)) == ["queue.jsonl", "queue.lock"]
+    assert host_queue.QUEUE_PATH.stat().st_mode & 0o777 == 0o600
+
+
+def test_queue_refuses_a_planted_link_at_the_lock(tmp_path):
+    target = tmp_path / "elsewhere"
+    target.write_text("keep")
+    host_queue.QUEUE_PATH.with_suffix(".lock").symlink_to(target)
+    kind, err = _within(5, host_queue.enqueue, "task-a", "owner")
+    assert kind == "raised" and isinstance(err, OSError)
+    assert target.read_text() == "keep" and not host_queue.QUEUE_PATH.exists()
+
+
+def test_queue_refuses_a_second_hard_link_at_the_lock(tmp_path):
+    target = tmp_path / "elsewhere"
+    target.write_text("keep")
+    os.link(target, host_queue.QUEUE_PATH.with_suffix(".lock"))
+    kind, err = _within(5, host_queue.enqueue, "task-a", "owner")
+    assert kind == "raised" and isinstance(err, safe_file.Unsafe)
+    assert target.read_text() == "keep" and not host_queue.QUEUE_PATH.exists()
+
+
+@pytest.mark.parametrize("call", ["enqueue", "drain", "load"])
+def test_queue_does_not_follow_a_link_at_the_queue_file(tmp_path, call):
+    target = tmp_path / "elsewhere"
+    target.write_text('{"task_id": "task-x"}\n')
+    host_queue.QUEUE_PATH.symlink_to(target)
+    fn = {"enqueue": lambda: host_queue.enqueue("task-a", "owner"),
+          "drain": lambda: asyncio.run(host_queue.drain()), "load": host_queue.load}[call]
+    kind, err = _within(5, fn)
+    assert kind == "raised" and isinstance(err, OSError)
+    assert target.read_text() == '{"task_id": "task-x"}\n'
+    assert host_queue.QUEUE_PATH.is_symlink()
+
+
+@pytest.mark.parametrize("name", ["queue.jsonl", "queue.lock"])
+def test_queue_refuses_a_pipe_at_either_file_without_waiting(name):
+    os.mkfifo(host_queue.QUEUE_PATH.parent / name)
+    kind, err = _within(5, host_queue.enqueue, "task-a", "owner")
+    assert kind == "raised" and isinstance(err, OSError)
+
+
+def test_atomic_write_replaces_a_link_at_the_name_and_leaves_its_target_alone(tmp_path):
+    target = tmp_path / "elsewhere"
+    target.write_text("keep")
+    name = tmp_path / "out.txt"
+    name.symlink_to(target)
+    safe_file.write_text_atomic(name, "new\n")
+    assert target.read_text() == "keep"
+    assert not name.is_symlink() and name.read_text() == "new\n"
+    assert sorted(os.listdir(tmp_path)) == ["elsewhere", "out.txt"]
+
+
+def test_atomic_write_keeps_the_old_file_and_no_temp_file_when_it_fails(tmp_path, monkeypatch):
+    name = tmp_path / "out.txt"
+    name.write_text("old\n")
+    monkeypatch.setattr(safe_file.os, "fsync", Mock(side_effect=OSError("disk")))
+    with pytest.raises(OSError):
+        safe_file.write_text_atomic(name, "new\n")
+    assert name.read_text() == "old\n" and os.listdir(tmp_path) == ["out.txt"]
 
 
 def test_local_winbox_probe_reports_lease(monkeypatch):
