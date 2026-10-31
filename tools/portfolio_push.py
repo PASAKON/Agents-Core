@@ -224,7 +224,11 @@ def _collector_round(base, token, *, dry_run=False):
                       + ("wake immediately" if box else "no live recipient"))
                 continue
             if action == "done" and project.get("blocker_on") is not None:
-                portfolio.unblock(pid, actor="system")
+                try:
+                    portfolio.unblock(pid, actor="system")
+                except Exception as exc:  # the push login may be read-only on projects: still deliver the press
+                    _log(f"unblock {pid} refused ({type(exc).__name__}), letter asks the recipient")
+                    sentence += f"\n(The automatic unblock was refused: run tools/portfolio.py unblock {pid}.)"
             receipt = {"kind": kind, "letter": None, "acked": False, "wake_pending": bool(box),
                        "ack": {"delivered_to": recipient, "woke": False,
                                "reason": "no live recipient" if not box else "wake not completed"}}

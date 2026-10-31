@@ -356,3 +356,50 @@ def test_safe_file_refuses_second_hard_link(tmp_path):
     with pytest.raises(safe_file.Unsafe):
         safe_file.open_append(tmp_path / "b")
     assert safe_file.read_text(tmp_path / "a") == "x"
+
+
+def test_refused_unblock_still_delivers_the_press_and_the_rest(console, monkeypatch, capsys):
+    """Live 31 Oct: the push login is read-only on projects, so unblock raised InsufficientPrivilege and the whole
+    round stopped, holding back every press behind it. Now the letter goes out and asks the recipient to unblock."""
+    class InsufficientPrivilege(Exception):
+        pass
+
+    def refuse(pid, **kw):
+        raise InsufficientPrivilege("permission denied")
+    monkeypatch.setattr(portfolio, "unblock", refuse)
+    nudge(console, "done")
+    console["pending"]["messages"] = [{"id": "pm-1", "project": "demo", "text": "hello"}]
+    console["run"]()
+    bodies = [json.loads(p.read_text())["body"] for p in letters()]
+    assert len(bodies) == 2
+    assert any("automatic unblock was refused" in b and "unblock demo" in b for b in bodies)
+    assert "unblock demo refused (InsufficientPrivilege)" in capsys.readouterr().err
+    assert len([r for r in console["requests"] if r[1].endswith("/ack")]) == 2
+
+
+def test_lane_pointer_wins_when_the_hub_lists_another_id(console, tmp_path):
+    """Live 31 Oct: cto-active says "fresh" (its tmux session and inbox), the hub lists CTO Main as f69c4825, and the
+    CEO's message went to the unread cto-f69c4825 box. The pointer's box wins while its inbox is a real folder."""
+    locks = tmp_path / "state" / "locks"
+    locks.mkdir(parents=True)
+    (locks / "cto-active").write_text("fresh\n")
+    console["live"].discard("cto-fresh")
+    console["live"].add("cto-f69c4825")
+    assert delivery.lane_box("cto", console["live"]) == "cto-f69c4825"  # no cto-fresh inbox yet: old fallback
+    (tmp_path / "inbox" / "cto-fresh").mkdir(parents=True)
+    assert delivery.lane_box("cto", console["live"]) == "cto-fresh"
+    (tmp_path / "inbox" / "cmo-x").mkdir()
+    (locks / "cmo-active").write_text("x\n")
+    assert delivery.lane_box("cmo", console["live"]) is None  # lane not live: never a dead box
+
+
+def test_lane_pointer_inbox_symlink_is_not_trusted(console, tmp_path):
+    locks = tmp_path / "state" / "locks"
+    locks.mkdir(parents=True)
+    (locks / "cto-active").write_text("fresh\n")
+    console["live"].discard("cto-fresh")
+    console["live"].add("cto-f69c4825")
+    (tmp_path / "inbox").mkdir(exist_ok=True)
+    (tmp_path / "elsewhere").mkdir()
+    (tmp_path / "inbox" / "cto-fresh").symlink_to(tmp_path / "elsewhere")
+    assert delivery.lane_box("cto", console["live"]) == "cto-f69c4825"
