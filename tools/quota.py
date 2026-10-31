@@ -13,6 +13,7 @@ import glob
 import json
 import os
 from pathlib import Path
+import re
 import shlex
 import subprocess
 import sys
@@ -152,6 +153,7 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
 
         last_rate_limits = None
         stopped = False
+        last_stop_error = None
         for line in lines:
             line = line.strip()
             if not line:
@@ -169,9 +171,24 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
                     ):
                         last_rate_limits = rl
                     if payload.get("type") == "task_complete":
-                        stopped = _is_usage_limit_error(payload.get("error"))
+                        err = payload.get("error")
+                        stopped = _is_usage_limit_error(err)
+                        last_stop_error = err if stopped else None
 
         if last_rate_limits is None:
+            if stopped:
+                limit_until = _extract_reset_time(last_stop_error)
+                return Quota(
+                    provider="codex",
+                    weekly_remaining=0.0,
+                    daily_remaining=0.0,
+                    weekly_resets_at=limit_until,
+                    daily_resets_at=None,
+                    source=source,
+                    error=None,
+                    limit_hit=True,
+                    limit_until=limit_until,
+                )
             raise ValueError("no payload.rate_limits found in codex session data")
 
         weekly_remaining = None
@@ -366,11 +383,57 @@ def _parse_bonus_time(val: str | datetime | None, is_end: bool = False) -> datet
 
 
 def _is_usage_limit_error(err) -> bool:
+    if isinstance(err, str):
+        low = err.lower()
+        return low.startswith("usage_limit") or "hit your usage limit" in low
     if not isinstance(err, dict):
         return False
     info = str(err.get("codex_error_info") or "").lower()
     msg = str(err.get("message") or "").lower()
     return info.startswith("usage_limit") or "hit your usage limit" in msg
+
+
+def _extract_reset_time(err) -> str | None:
+    """Extract reset time from error payload or text if parseable, else None."""
+    if not err:
+        return None
+
+    if isinstance(err, dict):
+        for k in ("resets_at", "reset_time", "limit_until", "resets"):
+            val = err.get(k)
+            if val is not None:
+                try:
+                    dt = _parse_bonus_time(val)
+                    if dt:
+                        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+                except Exception:
+                    pass
+        text = str(err.get("message") or "")
+    elif isinstance(err, str):
+        text = err
+    else:
+        text = ""
+
+    if not text:
+        return None
+
+    try:
+        dt = _parse_bonus_time(text)
+        if dt:
+            return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        pass
+
+    m_iso = re.search(r"\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?\b", text)
+    if m_iso:
+        try:
+            dt = _parse_bonus_time(m_iso.group(0))
+            if dt:
+                return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        except Exception:
+            pass
+
+    return None
 
 
 def _as_utc(now: datetime | str | None) -> datetime:
