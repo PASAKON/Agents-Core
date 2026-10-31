@@ -356,3 +356,22 @@ def test_safe_file_refuses_second_hard_link(tmp_path):
     with pytest.raises(safe_file.Unsafe):
         safe_file.open_append(tmp_path / "b")
     assert safe_file.read_text(tmp_path / "a") == "x"
+
+
+def test_refused_unblock_still_delivers_the_press_and_the_rest(console, monkeypatch, capsys):
+    """Live 31 Oct: the push login is read-only on projects, so unblock raised InsufficientPrivilege and the whole
+    round stopped, holding back every press behind it. Now the letter goes out and asks the recipient to unblock."""
+    class InsufficientPrivilege(Exception):
+        pass
+
+    def refuse(pid, **kw):
+        raise InsufficientPrivilege("permission denied")
+    monkeypatch.setattr(portfolio, "unblock", refuse)
+    nudge(console, "done")
+    console["pending"]["messages"] = [{"id": "pm-1", "project": "demo", "text": "hello"}]
+    console["run"]()
+    bodies = [json.loads(p.read_text())["body"] for p in letters()]
+    assert len(bodies) == 2
+    assert any("automatic unblock was refused" in b and "unblock demo" in b for b in bodies)
+    assert "unblock demo refused (InsufficientPrivilege)" in capsys.readouterr().err
+    assert len([r for r in console["requests"] if r[1].endswith("/ack")]) == 2
