@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import math
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -44,6 +45,7 @@ IDLE_S = 24 * 3600                           # a heartbeat this fresh is "idle",
 MAX_ROWS = 20
 MAX_ROWS_V3 = 40                             # v3 only: v1 and v2 keep MAX_ROWS (docs/design/portfolio-monitor-v3.md)
 MAX_UNLINKED_PH = 20
+MAX_BODY = 128 * 1024
 GENERATING_MAX_AGE_S = IDLE_S                # a task row untouched this long is not "generating"
 LIVE_PH_S = 15 * 60                          # a live_sessions row seen this recently is a live session
 
@@ -913,10 +915,10 @@ def monitor_rows(now: datetime | None = None, *, conn=None) -> list[dict]:
 def monitor_payload(now: datetime | None = None, *, conn=None, version=1, attention_cap=10) -> dict:
     """The whole P3-E v1 response body. `counts` are before the row cap."""
     now = _utc(now)
-    if version in (2, 3):
+    if version in (2, 3, 4):
         return _monitor_v2(now, conn=conn, attention_cap=attention_cap, version=version)
     if version != 1:
-        raise PortfolioError("monitor version must be 1, 2 or 3")
+        raise PortfolioError("monitor version must be 1, 2 or 3, or 4")
     rows = _monitor_all(now, conn)
     counts = {"in_progress": sum(1 for r in rows if not r["parked"]),
               "parked": sum(1 for r in rows if r["parked"])}
@@ -1286,6 +1288,123 @@ def v3_counts(payload) -> dict:
             "unlinked": len(payload["unlinked_ph"])}
 
 
+_WORK_STATES = {"in_progress": "running", "pending": "queued", "blocked_host": "waiting_host",
+                "blocked": "blocked", "stalled": "stalled", "review": "review"}
+
+
+def _v4_text(value, limit):
+    text = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", str(value or ""))
+    return APP_ID_RE.sub("", text)[:limit]
+
+
+def _v4_parked(live):
+    from lib import config
+    host = _wire_host(config.self_host())
+    rows = []
+    for path in sorted((config.ROOT / "state" / "locks").glob("project_head-*.project.parked")):
+        sid = path.name[len("project_head-"):-len(".project.parked")]
+        if not PH_SID_RE.fullmatch(sid) or sid in live:
+            continue
+        try:  # never through a planted link, never blocked by a FIFO (CTO gate 2b)
+            from lib import safe_file
+            project = safe_file.read_text(path, 256).strip().lower()  # the display name (HQCare -> hqcare)
+        except (OSError, UnicodeError):
+            continue
+        rows.append({"sid": sid, "project": project if re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", project) else None,
+                     "host": host})
+    return rows[:20]
+
+
+def _v4_hosts(c):
+    try:
+        from lib import config
+        from tools import host_fill, live_sessions
+        readings = host_fill.collect()
+    except Exception:
+        return []
+    live = live_sessions._snapshot_from_hub(c, live_sessions.DEFAULT_TTL_S)["rows"]
+    waiting = {r["host"]: r["n"] for r in c.execute(
+        "SELECT host, count(*) AS n FROM tasks WHERE status = 'blocked_host' GROUP BY host").fetchall()}
+
+    def number(value):
+        return float(value) if isinstance(value, (int, float, Decimal)) and math.isfinite(value) and value >= 0 else None
+
+    rows = []
+    for reading in sorted(readings, key=lambda r: r.get("name") or ""):
+        name = _wire_host(reading.get("name"))
+        if name is None:
+            continue
+        fill = number(reading.get("fill_pct"))
+        basis = reading.get("fill_basis", reading.get("highest"))
+        # node_dispatch._fill_facts reports load per core as cpu_pct on Unix.
+        # Preserve an explicit basis if a newer collector supplies one.
+        if "fill_basis" not in reading and basis == "cpu":
+            if config.hosts().get(name, {}).get("os") in ("linux", "darwin"):
+                basis = "load"
+        rows.append({"name": name, "online": bool(reading.get("online")),
+                     "fill_pct": min(999, int(fill + .5)) if fill is not None else None,
+                     "fill_basis": basis if basis in ("ram", "cpu", "disk", "load") else None,
+                     "ram_free_gb": number(reading.get("ram_free_gb")),
+                     "disk_free_gb": number(reading.get("disk_free_gb")),
+                     "waiting_host": waiting.get(name, 0),
+                     "sessions": sum(r["host"] == name and not r["stale"] for r in live)})
+    return rows[:5]
+
+
+def _v4_extend(rows, projects, c, now):
+    tasks = [dict(r) for r in c.execute(
+        "SELECT id, owner_cto, title, status, host, created_at, updated_at FROM tasks "
+        "WHERE status IN ('in_progress', 'pending', 'blocked_host', 'blocked', 'stalled', 'review')").fetchall()]
+    recent = [t for t in tasks if (_as_utc(t["updated_at"]) or datetime.min.replace(tzinfo=timezone.utc))
+              >= now - timedelta(days=7)]
+    recent.sort(key=lambda t: (_as_utc(t["created_at"]) or datetime.min.replace(tzinfo=timezone.utc), t["id"]), reverse=True)
+
+    def worker(t):
+        return {"title": _v4_text(t["title"], 60), "state": _WORK_STATES[t["status"]], "host": _wire_host(t["host"])}
+
+    for row in rows:
+        p = projects[row["id"]]
+        sid = row["ph"]["sid"] if row["ph"] else None
+        owners = {sid, "project_head-" + sid} if sid else set()
+        row.update(opened_at=_stamp(p["opened_at"]),
+                   stage=p["stage"] if p["stage"] in ("active", "parked", "ready", "closed") else "other",
+                   workers=[worker(t) for t in recent if t["owner_cto"] in owners][:8],
+                   review_n=sum(t["status"] == "review" and t["owner_cto"] in owners for t in tasks))
+    ph_owners = {_bare_session(p["ph_session"]) for p in projects.values() if p["ph_session"]}
+    work = []
+    for t in recent:
+        owner = t["owner_cto"] or ""
+        if (t["status"] == "review" or not re.fullmatch(r"(?:cto|cmo|coo|cfo|cgo)-.+", owner)
+                or owner in ph_owners or owner.split("-", 1)[-1] in ph_owners):
+            continue
+        work.append(dict(lane=owner.split("-", 1)[0], **worker(t), created_at=_stamp(t["created_at"])))
+    return {"clevel_work": work[:20], "hosts": _v4_hosts(c), "parked_ph": _v4_parked(_live_by_sid(c))}
+
+
+def _v4_limit(payload):
+    def fits():
+        return len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) <= MAX_BODY
+    for row in sorted(payload["projects"], key=lambda r: (r["opened_at"] or "", r["id"])):
+        if fits():
+            return
+        row["workers"] = []
+    if not fits():
+        payload["clevel_work"] = []
+    if not fits():
+        raise PortfolioError("monitor v4 payload exceeds 128 KB")
+
+
+def _v4_public(value, key=None):
+    """Keep app identifiers confined to app fields, including inherited text."""
+    if isinstance(value, dict):
+        return {k: _v4_public(v, k) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_v4_public(v) for v in value]
+    if isinstance(value, str) and key != "app":
+        return _v4_text(value, len(value))
+    return value
+
+
 def _monitor_v2(now, *, conn=None, attention_cap=10, version=2):
     # attention_cap: the wire contract's 10; tools/portfolio_watch.py asks for every item.
     # version 3 is v2 plus per-row ph, lead, last_event_at and a top-level unlinked_ph (_v3_extend).
@@ -1324,13 +1443,22 @@ def _monitor_v2(now, *, conn=None, attention_cap=10, version=2):
             orders.append({"id": order["id"], "words": _cut(order["words"], 120), "project_id": order["project_id"],
                            "state": state, "pct": progress, "due_at": _stamp(order["due_at"]),
                            "taken_at": _stamp(order["taken_at"]), "closed_at": _stamp(closed)})
+            if version == 4:
+                by = (order["taken_by"] or "").split("-", 1)[0]
+                project = projects.get(order["project_id"], {})
+                project_closed = _as_utc(project.get("closed_at"))
+                taken = _as_utc(order["taken_at"])
+                orders[-1].update(by=(by if LANE_RE.fullmatch(by) else "other") if order["taken_by"] else None,
+                                  project_closed=bool(project.get("stage") == "closed" and project_closed
+                                                      and taken and project_closed >= taken))
             if not closed and not order["project_id"] and now - _as_utc(order["taken_at"]) > timedelta(minutes=30):
                 attention.append({"kind": "unlinked_order", "project_id": None, "order_id": order["id"],
                                   "text": "ยังไม่ผูกโปรเจค", "since": _stamp(order["taken_at"]), "decided": None})
         priority = {"late": 0, "waiting_ceo": 1, "no_plan": 2, "unlinked_order": 3}
         attention.sort(key=lambda r: (priority[r["kind"]], r["since"], r["project_id"] or r["order_id"]))
-        shown = rows[:MAX_ROWS_V3 if version == 3 else 20]
-        unlinked = _v3_extend(shown, projects, c) if version == 3 else None     # reads rows by their stored id
+        shown = rows[:MAX_ROWS_V3 if version in (3, 4) else 20]
+        unlinked = _v3_extend(shown, projects, c) if version in (3, 4) else None
+        extra = _v4_extend(shown, projects, c, now) if version == 4 else None
         # Legacy registry ids permit 63 characters; the v2 wire contract permits 40.
         # Apply wire limits after all lookups, preserving v1 and the stored identifiers.
         for row in rows:
@@ -1341,6 +1469,10 @@ def _monitor_v2(now, *, conn=None, attention_cap=10, version=2):
                    "projects": shown, "orders": orders[:20]}
         if unlinked is not None:
             payload["unlinked_ph"] = unlinked
+        if extra is not None:
+            payload.update(extra)
+            payload = _v4_public(payload)
+            _v4_limit(payload)
         return payload
 
 
