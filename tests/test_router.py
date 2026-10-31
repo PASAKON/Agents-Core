@@ -103,6 +103,15 @@ def test_cpu_exception(monkeypatch, ram, disk, free, allowed):
     assert choose(row, host="contabo").host is None
 
 
+def test_cpu_exception_fails_closed_when_the_slot_cannot_be_read(monkeypatch):
+    def boom(*args):
+        raise RuntimeError("hub down")
+    monkeypatch.setattr(router, "_exception_slot", boom)
+    pick = choose(reading("contabo", 95), host="contabo")
+    assert pick.host is None
+    assert pick.rejected["contabo"] == "CPU exception slot unreadable (RuntimeError)"
+
+
 def test_exception_slot_atomic_and_active_past_ttl(monkeypatch, tmp_path):
     path = tmp_path / "fake.db"
     @contextmanager

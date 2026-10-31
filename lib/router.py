@@ -490,11 +490,17 @@ def _decide(rows: list[dict], names: list[str], *, task: dict, policy: dict, reg
                 r["running"], -(ram if ram is not None else -1.0), r["host"])
 
     best = min(survivors, key=rank)
-    if best["host"] in cpu_exception and not _exception_slot(
-            task.get("id"), reserve, (policy.get("cpu_exception") or {}).get("slot_ttl_s", 600)):
-        rejected[best["host"]] = "CPU exception slot busy"
-        rej = " ".join(f"{h}({rejected[h]})" for h in names if h in rejected)
-        return HostPick(None, f"no_host: {rej}{seen}", rejected)
+    if best["host"] in cpu_exception:
+        try:
+            free = _exception_slot(task.get("id"), reserve,
+                                   (policy.get("cpu_exception") or {}).get("slot_ttl_s", 600))
+            busy = "CPU exception slot busy"
+        except Exception as e:  # noqa: BLE001 -- no hub, no proof the slot is free
+            free, busy = False, f"CPU exception slot unreadable ({type(e).__name__})"
+        if not free:
+            rejected[best["host"]] = busy
+            rej = " ".join(f"{h}({rejected[h]})" for h in names if h in rejected)
+            return HostPick(None, f"no_host: {rej}{seen}", rejected)
     cap = best["max_workers"]
     line = (f"host: {best['host']} · load {_num(best.get('load_per_core'), '.2f')}/core"
             f" · ram {_num(best.get('ram_free_gb'), '.1f')} GB"
