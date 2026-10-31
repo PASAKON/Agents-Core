@@ -1,8 +1,8 @@
 [Unit]
 Description=Resume sessions after a prepared Contabo restart
 ConditionPathExists=/opt/MoonieXHQ/Agents/Core/state/restart/pending-contabo.json
-After=network-online.target docker.service
-Wants=network-online.target docker.service
+After=network-online.target docker.service org-postgres-tailnet.service
+Wants=network-online.target docker.service org-postgres-tailnet.service
 
 [Service]
 Type=oneshot
@@ -13,7 +13,7 @@ Environment=HOME=/root
 EnvironmentFile=-/etc/mooniex/org-resume.env
 ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/org-resume.sh
 KillMode=process
-TimeoutStartSec=15min
+TimeoutStartSec=30min
 
 [Install]
 WantedBy=multi-user.target
