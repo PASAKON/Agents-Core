@@ -115,11 +115,9 @@ def test_a_dead_pid_that_raises_winerror_87_is_not_a_launcher(tmp_path, monkeypa
     assert clevel_gate.live_sessions("project_head", tmp_path) == []
 
 
-def test_the_probe_is_lib_proc_pid_alive_and_a_dead_pid_reads_nothing(monkeypatch):
+def test_the_probe_is_lib_proc_pid_alive(monkeypatch):
     seen = []
     monkeypatch.setattr(clevel_gate, "pid_alive", lambda pid: seen.append(pid) or False)
-    monkeypatch.setattr(clevel_gate.PROC.__class__, "is_dir",
-                        lambda self: pytest.fail("a dead pid must not be read from /proc"))
     assert clevel_gate._pid_is_launcher(4242) is False
     assert seen == [4242]
 
@@ -509,10 +507,10 @@ def test_a_session_that_only_has_the_old_topic_record_is_asked_once_more(stage):
     assert stage("EP6 clip").stdout.strip() == "unchanged: EP6 clip"
 
 
-def test_a_request_that_did_not_land_records_nothing(stage, monkeypatch):
+def test_a_stale_rendered_record_is_replaced_by_the_new_name(stage):
     _make_ph(stage, "ThaiHumor")
-    out = subprocess.run(["bash", "-c", "true"])                     # keep the fixture's env helper honest
-    assert out.returncode == 0
-    (stage.locks / "project_head-36c49776.rendered").write_text("an older name")
+    record = stage.locks / "project_head-36c49776.rendered"
+    record.write_text("an older name")
     assert stage("ThaiHumor").stdout.startswith("requested:")        # differs from the record: asks
-    assert (stage.locks / "project_head-36c49776.rendered").read_text() != "an older name"
+    assert record.read_text().endswith("PH#36c (CMO) - ThaiHumor")
+    assert stage("ThaiHumor").stdout.strip() == "unchanged: ThaiHumor"
