@@ -74,3 +74,14 @@ Goal: study popular one-episode short films, turn their structure into our own I
 - Sheet: /opt/MoonieXHQ/Work/filmformula-m4-sheet/out/sheet_m4.md, durations now 4/6/8/10 s only. Skip 2, 11, 38 (locked).
 - Next: check host_fill (contabo 0 running, ram_free_gb >= 1.6), then card 2 = shots 3,4,9,10,12,13,14,15,16,17, cap 120, --aspect 16:9 --resolution 720p, template state/handoff/2026-10-29/cto-flow-real-card.md. Then cards 3-10 in order (~88 shots left). Direction shot fails twice -> aftermath plate.
 - Also open: PR for branch cmo/filmformula-m4 (11478ae3, worktree /opt/MoonieXHQ/Work/task-bfc3ea80/tmp/wt4); milestone 5 done after the shoot; Flow skill field note: Omni durations are 4/6/8/10 s only (7 s fails at 0 cr); F2-true-disaster.md v1 after the pilot.
+
+## 31 Oct · M4 delivered for CMO review (order O-20261031-0957-be78: finish today, no paid calls)
+- PR #616 (branch cmo/filmformula-m4-final): SCRIPT.md v1.1, FORMULA-MAP.md, SHOTLIST.csv (97 rows), SHEET.md (95-shot Flow prompt sheet, 4/6/8/10 s only), LOGLINES.md, Flow skill field note (durations). #614 closed (superseded).
+
+## NEXT PHASE (out of scope for this close): shoot the Lituya pilot
+- Needs: a Flow credit budget card per batch (~12 cr/shot, cap 120/card) and winbox Chrome 9226 (Flow project 98308833).
+- State: look set S002 r2, S011 r1, S038 r3 (/opt/MoonieXHQ/Work/filmformula-m4-looktest/out); shots 1, 5, 6, 8 verified (/opt/MoonieXHQ/Work/filmformula-m4-shoot/out, ledger.tsv); 88 shots left in ~9 cards. Task task-446c4044.
+- Sheet: docs/reports/filmformula/M4/SHEET.md. Card 2 = 3,4,9,10,12,13,14,15,16,17. Template state/handoff/2026-10-29/cto-flow-real-card.md, --aspect 16:9 --resolution 720p; check host_fill slot first.
+- Pull is fixed (#595): `flow_shoot pull --download-resolution 720p` verified 3/3 at 0 cr.
+- Rules: direction shot fails twice -> aftermath plate; no Flow 20:00-21:30 TH.
+- After the cut: write formulas/F2-true-disaster.md v1 from what the pilot proves.
