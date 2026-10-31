@@ -117,7 +117,13 @@ _SHA_RE = re.compile(r"[0-9a-f]{40}")
 CARD_BRIEF_MAX = 300
 CARD_ARGS_MAX = 480     # the hub refuses script args over 500 characters
 # Hosts with a `spawn_ph` verb: winbox (a scheduled task reaches the desktop) and the Mac (a detached tmux session).
-MESH_HOSTS = ("winbox", "mac")
+MESH_HOSTS = ("contabo", "winbox", "mac")
+
+
+def pick_ph_host(project: str, host: str | None = None):
+    from lib import router
+    return router.pick_host({"project": project, "role": "project_head",
+                             "runner": "claude", "host": host})
 MCP_SCREEN_RE = re.compile(r"MCP server", re.IGNORECASE)
 
 
@@ -536,13 +542,30 @@ def ready_schedule(kind=None, due=None, cadence=None):
 
 def spawn(project: str, brief: str = "", *, dry_run: bool = False,
           card: list[str] | None = None, tier: str | None = None,
-          kind=None, due=None, cadence=None) -> dict:
+          kind=None, due=None, cadence=None, host: str | None = None) -> dict:
     """`card`: the argv of a Run Inbox card run (M13b); project and brief must be
     the ones in it."""
     from lib.portfolio import TIERS
     schedule = ready_schedule(kind, due, cadence)
     if tier is not None and tier not in TIERS:
         raise Refused(f"unknown tier {tier!r}")
+    from lib import config, router, mesh
+    if card is None and (host is not None or router.enabled()):
+        lane, sid = _caller()
+        pick = pick_ph_host(project, host)
+        if pick.host is None:
+            raise Refused(pick.line)
+        if pick.host != config.self_host():
+            call = {"host": pick.host, "verb": "spawn_ph", "args": [lane, sid, project]}
+            if dry_run:
+                return {**call, **schedule, "tier": tier, "dry_run": True}
+            reply = mesh.dispatch(pick.host, "spawn_ph", lane, sid, project)
+            if not reply.get("ok"):
+                raise Refused(f"PH spawn on {pick.host} was refused")
+            plan = {**reply["result"], **schedule, "tier": tier, "lane": lane}
+            _register_project(plan)
+            return {**plan, "host": pick.host, "brief_to_send": brief,
+                    "next_step": "Send the brief to the PH, as for spawn_ph mesh."}
     if card is not None:
         a = parse_card_args(card)
         if (a["project"], a["brief"]) != (project, brief):
@@ -750,7 +773,7 @@ def _mesh_main(argv: list[str]) -> int:
     and the owner session are this C-level session's own identity: no flag
     names them."""
     ap = argparse.ArgumentParser(prog="python -m tools.spawn_ph mesh")
-    ap.add_argument("--host", required=True, choices=MESH_HOSTS)
+    ap.add_argument("--host", choices=MESH_HOSTS)
     ap.add_argument("--project", required=True)
     ap.add_argument("--dry-run", action="store_true",
                     help="print the dispatch that would be sent and send nothing")
@@ -762,13 +785,21 @@ def _mesh_main(argv: list[str]) -> int:
             why = f"owner session id {sid!r} is not 8 lowercase hex characters, which the mesh verb requires"
         if why:
             raise Refused(why)
-        call = {"host": args.host, "verb": "spawn_ph", "args": [lane, sid, args.project]}
+        pick = pick_ph_host(args.project, args.host)
+        if pick.host is None:
+            raise Refused(pick.line)
+        call = {"host": pick.host, "verb": "spawn_ph", "args": [lane, sid, args.project]}
         if args.dry_run:
             print(json.dumps({**call, "dry_run": True}, ensure_ascii=False))
             return 0
         from lib import mesh
         try:
-            reply = mesh.dispatch(args.host, call["verb"], *call["args"])
+            from lib.config import self_host
+            if pick.host == self_host():
+                from tools.node_dispatch import verb_spawn_ph
+                reply = {"ok": True, "result": verb_spawn_ph(*call["args"])}
+            else:
+                reply = mesh.dispatch(pick.host, call["verb"], *call["args"])
         except mesh.MeshUnreachable as e:
             raise Refused(f"{args.host} did not answer over the mesh: {e}") from e
     except Refused as e:
@@ -885,6 +916,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tier", choices=("critical", "normal", "low"),
                     help="set the project's tier (default: keep the registry's, normal for a new row)")
     ap.add_argument("--project")
+    ap.add_argument("--host", choices=MESH_HOSTS)
     ap.add_argument("--kind", choices=("finite", "loop"))
     ap.add_argument("--due")
     ap.add_argument("--cadence", type=int)
@@ -899,7 +931,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.resume is not None:
         if (args.project is not None or args.brief or args.brief_file or args.from_card or args.sha
-                or args.kind or args.due or args.cadence is not None or args.tier):
+                or args.kind or args.due or args.cadence is not None or args.tier or args.host):
             ap.error("--resume takes only a session id and optional --dry-run")
         try:
             print(json.dumps(resume(args.resume, dry_run=args.dry_run), ensure_ascii=False))
@@ -915,10 +947,12 @@ def main(argv: list[str] | None = None) -> int:
     card = None
     try:
         if args.from_card is not None or args.sha is not None:
+            if args.host is not None:
+                raise Refused("a spawn card already names its host")
             card = argv
             parse_card_args(card)
         print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card, tier=args.tier,
-                               kind=args.kind, due=args.due, cadence=args.cadence),
+                               kind=args.kind, due=args.due, cadence=args.cadence, host=args.host),
                          ensure_ascii=False, default=str))
     except Refused as e:
         print(f"spawn-ph: {e}", file=sys.stderr)

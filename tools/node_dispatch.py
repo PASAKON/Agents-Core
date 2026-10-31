@@ -516,6 +516,12 @@ def verb_probe() -> dict:
         "probe_errors": probe_errors,
     }
     facts.update(_fill_facts())
+    if _is_windows():
+        try:
+            from tools.spawn_ph import ceo_hold_refusal
+            facts["ceo_hold"] = bool(ceo_hold_refusal())
+        except Exception as e:  # noqa: BLE001 — the hold read must not cost the whole probe
+            probe_errors.append(f"ceo_hold: {type(e).__name__}")
     # Probe fields only. `status` is left alone on purpose: it is the join
     # state machine's (pending_identity -> online), not a measurement.
     db.upsert_host(
@@ -1178,7 +1184,7 @@ def verb_spawn_ph(lane: str, owner_sid: str, project: str) -> dict:
     the owner; the verb takes no text for the brief."""
     if _is_windows():
         launch, windows, via = _launch_ph_schtask, True, "schtask"
-    elif _os_name() == "darwin":
+    elif _os_name() in ("darwin", "linux"):
         launch, windows, via = _launch_ph_tmux, False, "tmux"
     else:
         raise Refusal("spawn_ph over the mesh runs on winbox and the Mac only; Linux spawns locally or by card")
