@@ -514,3 +514,14 @@ def test_a_stale_rendered_record_is_replaced_by_the_new_name(stage):
     assert stage("ThaiHumor").stdout.startswith("requested:")        # differs from the record: asks
     assert record.read_text().endswith("PH#36c (CMO) - ThaiHumor")
     assert stage("ThaiHumor").stdout.strip() == "unchanged: ThaiHumor"
+
+
+def test_a_link_at_the_record_is_not_written_through(stage, tmp_path):
+    _make_ph(stage, "ThaiHumor")
+    target = tmp_path / "elsewhere.txt"
+    target.write_text("keep")
+    for suffix in (".rendered", ".topic"):
+        (stage.locks / f"project_head-36c49776{suffix}").symlink_to(target)
+    assert stage("ThaiHumor").stdout.startswith("requested:")
+    assert target.read_text() == "keep"
+    assert not list(stage.locks.glob(".rename.*"))

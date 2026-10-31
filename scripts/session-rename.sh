@@ -162,6 +162,18 @@ echo "requested: /rename $PREVIEW (the rename service types it once this session
 
 if [ -n "$TOPIC_FILE" ]; then
   mkdir -p "$LOCKS_DIR"
-  printf '%s' "$RECORD_KEY" > "$TOPIC_FILE"
-  printf '%s' "$PREVIEW" > "$NAME_FILE"
+  # state/locks is shared, so a record is never written through a link: refuse a path that
+  # is a link or not a regular file, write a fresh temp file, and rename it into place (a
+  # rename replaces a link, it never follows one).
+  write_record() {
+    local file="$1" value="$2" tmp
+    if [ -L "$file" ] || { [ -e "$file" ] && [ ! -f "$file" ]; }; then
+      echo "session-rename: not writing $file: not a regular file" >&2
+      return 0
+    fi
+    tmp="$(mktemp "$LOCKS_DIR/.rename.XXXXXX")" || return 0
+    printf '%s' "$value" > "$tmp" && mv -fT "$tmp" "$file" || rm -f "$tmp"
+  }
+  write_record "$TOPIC_FILE" "$RECORD_KEY"
+  write_record "$NAME_FILE" "$PREVIEW"
 fi
