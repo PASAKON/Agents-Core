@@ -17,7 +17,7 @@ from tools import node_dispatch
 HOSTS = ("contabo", "winbox", "mac")
 
 
-def fill(facts: dict) -> tuple[float | None, str | None, list[str]]:
+def fill(facts: dict, *, rounded: bool = True) -> tuple[float | None, str | None, list[str]]:
     """Return the maximum known sensor, explicitly naming missing readings."""
     values = {}
     for name, free_key, total_key in (
@@ -43,27 +43,31 @@ def fill(facts: dict) -> tuple[float | None, str | None, list[str]]:
     if not values:
         return None, None, missing
     highest = max(values, key=values.get)
-    return round(values[highest], 1), highest, missing
+    return (round(values[highest], 1) if rounded else values[highest]), highest, missing
 
 
-def probe(host: str) -> dict:
+def probe(host: str, timeout: int = 10) -> dict:
     row = {"name": host, "online": False, "fill_pct": None, "highest": None,
            "running": None, "max_workers": config.host(host)["max_workers"],
            "ram_free_gb": None, "missing": ["ram", "cpu", "disk"]}
     try:
         if host == config.self_host():
             facts = node_dispatch._fill_facts()
+            facts["runners"] = node_dispatch._installed_runners()
+            if config.host(host).get("os") == "windows":
+                from tools.spawn_ph import ceo_hold_refusal
+                facts["ceo_hold"] = bool(ceo_hold_refusal())
             try:
                 facts["running"] = node_dispatch._running_workers(host)
             except Exception:
                 facts["running"] = None
         else:
-            reply = mesh.dispatch(host, "probe", timeout=10)
+            reply = mesh.dispatch(host, "probe", timeout=timeout)
             if not reply.get("ok") or not isinstance(reply.get("result"), dict):
                 return row
             facts = reply["result"]
         pct, highest, missing = fill(facts)
-        row.update(online=True, fill_pct=pct, highest=highest, missing=missing,
+        row.update(facts=facts, online=True, fill_pct=pct, highest=highest, missing=missing,
                    running=facts.get("running"), ram_free_gb=facts.get("ram_free_gb"))
     except (mesh.MeshUnreachable, OSError, ValueError):
         pass

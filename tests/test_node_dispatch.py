@@ -492,10 +492,10 @@ def test_start_clevel_linux_resume_passes_a_full_uuid(rec, monkeypatch):
     monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     monkeypatch.setattr(nd, "_os_name", lambda: "linux")
     monkeypatch.setattr(session_status, "resume_target", lambda role, sid: UUID)
-    out, code = nd.run_command("start_clevel cto --resume 1234abcd")
+    out, code = nd.run_command("start_clevel cmo --resume 1234abcd")
     assert code == 0, out
     cmd = [c for c in rec.calls if c[0] == "tmux_create"][0][3]
-    assert cmd.endswith(f"--role cto -r {UUID}")
+    assert cmd.endswith(f"--role cmo -r {UUID}")
 
 
 @pytest.mark.parametrize("target", [None, "", "1234abcd", UUID + "; id"])

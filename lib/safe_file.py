@@ -47,3 +47,33 @@ def open_append(path: Path):
     """A binary append handle on a file this process may create; a planted link, FIFO or second link is refused."""
     fd = _open(Path(path), os.O_WRONLY | os.O_CREAT | os.O_APPEND, mode=0o600, single_link=True)
     return os.fdopen(fd, "ab")
+
+
+def write_text_atomic(path: Path, text: str, *, mode: int = 0o600) -> None:
+    """Replace `path` with `text` so a reader sees the old file or the new one, never half of it.
+
+    The text goes to a fresh temp file in the same folder (O_EXCL|O_NOFOLLOW, opened through the folder's fd), is
+    fsync'd, and then renamed over the name with the folder's fd on both sides, so nothing is looked up by path
+    after the folder is open. If something sits at the name, the rename replaces that entry; it is never followed
+    and what it pointed to is not written. On any failure the temp file is removed and the old file is untouched.
+    """
+    path = Path(path)
+    dfd = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | _SAFE)
+    tmp = f".{path.name}.{os.getpid()}.{os.urandom(4).hex()}.tmp"
+    try:
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | _SAFE, mode, dir_fd=dfd)
+        try:
+            with os.fdopen(fd, "wb") as fh:
+                fh.write(text.encode("utf-8"))
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, path.name, src_dir_fd=dfd, dst_dir_fd=dfd)
+        except BaseException:
+            try:
+                os.unlink(tmp, dir_fd=dfd)
+            except FileNotFoundError:
+                pass
+            raise
+        os.fsync(dfd)
+    finally:
+        os.close(dfd)

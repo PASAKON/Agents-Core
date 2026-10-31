@@ -317,7 +317,10 @@ def launcher_pid(fake_launcher):
 
 def test_gate_off_reads_nothing(tmp_path, launcher_pid):
     (tmp_path / "cto-aaaa1111.lock").write_text(str(launcher_pid))
-    assert clevel_gate.refusal("cto", host="mac", locks_dir=tmp_path) is None
+    (tmp_path / "cmo-aaaa1111.lock").write_text(str(launcher_pid))
+    assert clevel_gate.refusal("cmo", host="mac", locks_dir=tmp_path) is None
+    # CTO's Contabo-only rule holds with the gate off (CEO 30 Oct)
+    assert "Contabo only" in clevel_gate.refusal("cto", host="mac", locks_dir=tmp_path)
 
 
 def test_gate_refuses_off_contabo_unless_emergency(tmp_path, monkeypatch):
@@ -326,7 +329,9 @@ def test_gate_refuses_off_contabo_unless_emergency(tmp_path, monkeypatch):
     monkeypatch.setattr(clevel_gate, "_self_host", lambda: None)  # unresolved fails closed
     assert "unresolved" in clevel_gate.refusal("cto", locks_dir=tmp_path)
     monkeypatch.setenv("ORG_CLEVEL_EMERGENCY", "1")
-    assert clevel_gate.refusal("cto", host="mac", locks_dir=tmp_path) is None
+    # CTO stays on Contabo even in an emergency (CEO 30 Oct); other C-levels may move
+    assert "Contabo only" in clevel_gate.refusal("cto", host="mac", locks_dir=tmp_path)
+    assert clevel_gate.refusal("cmo", host="mac", locks_dir=tmp_path) is None
 
 
 def test_gate_refuses_a_second_live_session(tmp_path, monkeypatch, launcher_pid):
