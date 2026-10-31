@@ -349,7 +349,7 @@ def scan_outgoing(repo, head, exe):
     """Run gitleaks over exactly the commits about to be pushed, merge commits
     included (-m), in the hub's scratch repository. It runs from an empty
     working directory with the hub's own rules and `gitleaks:allow` comments
-    ignored, so nothing the worker wrote or committed can tell it to look away.
+    ignored, so nothing the worker wrote or committed changes what is reported.
     argv is a list: no shell."""
     with tempfile.TemporaryDirectory(prefix='gitleaks-', ignore_cleanup_errors=True) as tmp:
         report = os.path.join(tmp, 'report.json')

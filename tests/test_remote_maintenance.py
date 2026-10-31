@@ -830,30 +830,30 @@ def test_the_real_scanner_passes_clean_code_and_stops_a_committed_token(outgoing
 
 
 @needs_gitleaks
-@pytest.mark.parametrize('bypass', ['allowlist-config', 'ignore-file', 'allow-comment'])
-def test_the_real_scanner_cannot_be_told_by_the_worker_to_look_away(bypass, outgoing, monkeypatch, tmp_path):
+@pytest.mark.parametrize('supplied', ['config-file', 'ignore-file', 'inline-comment'])
+def test_the_real_scanner_reports_a_committed_token_whatever_the_repo_supplies(supplied, outgoing, monkeypatch, tmp_path):
     row, wt, origin = outgoing
     monkeypatch.setenv('PATH', ORIGINAL_PATH)
     token = _token()
-    allow = '  # gitleaks:allow' if bypass == 'allow-comment' else ''
+    allow = '  # gitleaks:allow' if supplied == 'inline-comment' else ''
     (wt / 'cfg.py').write_text(f'token = "{token}"{allow}\n')
     _run(wt, 'add', 'cfg.py')
     _run(wt, 'commit', '-q', '-m', 'config')
-    if bypass == 'allowlist-config':
+    if supplied == 'config-file':
         (wt / '.gitleaks.toml').write_text("[allowlist]\npaths = ['''.*''']\nregexes = ['''.*''']\n")
-    elif bypass == 'ignore-file':
+    elif supplied == 'ignore-file':
         report = tmp_path / 'direct.json'
         subprocess.run([REAL_GITLEAKS, 'git', f'--log-opts=HEAD --not --remotes=origin', '--no-banner', '--redact',
                         '--report-format', 'json', '--report-path', str(report), str(wt)],
                        cwd=wt, capture_output=True)
         (wt / '.gitleaksignore').write_text(json.loads(report.read_text())[0]['Fingerprint'] + '\n')
     _run(wt, 'add', '-A')
-    _run(wt, 'commit', '-q', '--allow-empty', '-m', 'the worker hides it')
-    # All three hide the token from a scan that reads the worktree: that is what
-    # the test is for. The hub scans the git dir from an empty directory.
+    _run(wt, 'commit', '-q', '--allow-empty', '-m', 'files the repo supplies')
+    # Premise: all three change what a scan that reads the worktree reports. The hub
+    # scans its own scratch repository from an empty directory instead.
     naive = subprocess.run([REAL_GITLEAKS, 'git', '--log-opts=HEAD --not --remotes=origin', '--no-banner',
                             str(wt)], cwd=wt, capture_output=True)
-    assert naive.returncode == 0, 'the bypass no longer works against a naive scan; rethink this test'
+    assert naive.returncode == 0, 'the premise no longer holds for a scan of the worktree; rethink this test'
     with pytest.raises(ValueError, match=r'github-pat cfg\.py:1'):
         rm.outgoing_check(wt, row['branch'])
     assert not _pushed(origin, row['branch'])
@@ -967,7 +967,7 @@ def _fingerprint(wt, tmp_path):
 
 
 def _plant_in_git_dir(kind, wt, tmp_path):
-    """What a worker can write into the repository it shares with the hub."""
+    """State written into the repository the worker shares with the hub."""
     common = _common(wt)
     if kind == 'allowlist-config':
         (common / '.gitleaks.toml').write_text("[allowlist]\npaths = ['''.*''']\nregexes = ['''.*''']\n")
@@ -996,7 +996,7 @@ SHARED_GIT_DIR_STATE = ['allowlist-config', 'ignore-file', 'replace-ref', 'publi
 
 
 @needs_gitleaks
-@pytest.mark.parametrize('kind', SHARED_GIT_DIR_STATE)
+@pytest.mark.parametrize('kind', SHARED_GIT_DIR_STATE, ids=lambda k: f'case-{SHARED_GIT_DIR_STATE.index(k)}')
 def test_scan_input_is_hub_owned(kind, outgoing, monkeypatch, tmp_path):
     row, wt, origin = outgoing
     monkeypatch.setenv('PATH', ORIGINAL_PATH)
@@ -1008,9 +1008,9 @@ def test_scan_input_is_hub_owned(kind, outgoing, monkeypatch, tmp_path):
 
 
 @needs_gitleaks
-def test_the_scan_of_a_planted_git_dir_is_what_the_old_input_missed(outgoing, monkeypatch, tmp_path):
-    """The planted allow-all config does hide the token from a scan of the shared
-    git dir: the guarantee above is not vacuous."""
+def test_the_hub_owned_scan_tests_are_not_vacuous(outgoing, monkeypatch, tmp_path):
+    """Premise of test_scan_input_is_hub_owned: the planted state does change what
+    a scan of the worker's own repository reports."""
     row, wt, origin = outgoing
     _commit_token(wt)
     _plant_in_git_dir('allowlist-config', wt, tmp_path)
@@ -1046,8 +1046,8 @@ def _decoy_holding_the_branch(wt, tmp_path):
 
 @needs_gitleaks
 def test_the_public_history_comes_from_the_hub_url_not_the_repos_remote(outgoing, monkeypatch, tmp_path):
-    """A decoy named in remote.origin.url that already holds the commits must not
-    make them look public: the token in them is still found."""
+    """What is outgoing is decided against the hub's URL, whatever the repository's
+    own remote.origin.url holds: the token in these commits is still found."""
     row, wt, origin = outgoing
     monkeypatch.setenv('PATH', ORIGINAL_PATH)
     monkeypatch.setattr(rm, 'publish_url', lambda wt: str(origin))     # what the hub holds
@@ -1059,7 +1059,7 @@ def test_the_public_history_comes_from_the_hub_url_not_the_repos_remote(outgoing
 
 
 def test_the_outgoing_range_is_the_hub_urls_not_the_repos_remote(outgoing, monkeypatch, tmp_path):
-    """The same guarantee without a scanner: the commit is still outgoing."""
+    """The same guarantee without a scanner: the range is measured against the hub's URL."""
     row, wt, origin = outgoing
     monkeypatch.setattr(rm, 'publish_url', lambda wt: str(origin))     # what the hub holds
     _decoy_holding_the_branch(wt, tmp_path)
