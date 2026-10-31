@@ -43,7 +43,9 @@ class FakeGitleaks:
             argv = sys.argv[1:]
             report = argv[argv.index('--report-path') + 1]
             with open(cfg['log'], 'a') as stream:
-                stream.write(json.dumps(dict(argv=argv, cwd=os.path.realpath(os.getcwd()), report=report)) + '\\n')
+                rules = open(argv[argv.index('--config') + 1]).read() if '--config' in argv else None
+                stream.write(json.dumps(dict(argv=argv, cwd=os.path.realpath(os.getcwd()), report=report,
+                                             config=rules)) + '\\n')
             time.sleep(cfg['sleep'])
             with open(report, 'w') as stream:
                 json.dump(cfg['findings'], stream)
@@ -62,6 +64,13 @@ def gitleaks(monkeypatch, tmp_path):
     """Default: a scanner that finds nothing, so a host without the binary runs
     every other test here. The tests of the scan itself reset it."""
     return FakeGitleaks(monkeypatch, tmp_path)
+
+
+@pytest.fixture(autouse=True)
+def hub_url(monkeypatch):
+    """The URL the hub holds, in these tests: where the fixture repository's origin
+    really is. The tests of the URL rules set their own."""
+    monkeypatch.setattr(rm, 'publish_url', lambda wt: _run(wt, 'config', 'remote.origin.url').strip())
 
 
 @pytest.mark.parametrize('path,root', [
@@ -179,6 +188,7 @@ def test_clean_origin_refuses(monkeypatch, tmp_path, dirty, remote_sha):
 
 def test_hub_dispatch_and_accounting(remote, monkeypatch, tmp_path):
     row, _, _, _ = remote
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
     monkeypatch.setattr(rm.config, 'self_host', lambda: 'contabo')
     monkeypatch.setattr(rm.disk_steward, 'STATE', tmp_path / 'state')
     monkeypatch.setattr(db, 'list_tasks', lambda **kw: [row])
@@ -221,6 +231,7 @@ def test_review_status_write_does_not_publish(monkeypatch):
 @pytest.mark.parametrize('host', ['winbox', 'mac'])
 def test_remote_grace_independent_of_local_orphans(remote, monkeypatch, tmp_path, hours, eligible, host):
     row, _, _, _ = remote
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
     row['host'] = host
     row['updated_at'] = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     assert rm.workdir._abandon_days() == 14
@@ -280,15 +291,16 @@ def test_ph_publish_exact_commit(remote, monkeypatch):
     ph_wt = wt.parent / 'project__ph-1234abcd'
     ph_wt.mkdir()
     branch = 'ph/1234abcd-fix'
-    monkeypatch.setattr(rm, 'outgoing_check', lambda *_: 'a' * 40)
+    checked = []
+    monkeypatch.setattr(rm, 'outgoing_check', lambda *a, **k: checked.append((a, k)) or 'a' * 40)
     def git(wt, *args):
         calls.append(args)
         return branch if args[0] == 'symbolic-ref' else ''
     monkeypatch.setattr(rm, 'git', git)
     result = rm.publish(rm.encode({**row, 'session_id': '1234abcd', 'branch': branch,
                                   'worktree': str(ph_wt), 'status': 'review'}), ph=True)
-    assert result['pushed']
-    assert calls[-1] == ('push', 'origin', 'a' * 40 + ':refs/heads/' + branch)
+    assert result == {'branch': branch, 'head': 'a' * 40, 'pushed': True}
+    assert checked == [((ph_wt, branch), {'push': True})]     # the checked head is the pushed head
 
 
 def test_completion_waits_for_launcher_commit(remote, monkeypatch, tmp_path):
@@ -756,13 +768,14 @@ def test_a_clean_scan_lets_the_push_go_ahead_and_runs_gitleaks_without_a_shell(o
     assert _run(origin, 'rev-parse', row['branch']).strip() == head
     [call] = gitleaks.calls()
     argv = call['argv']
-    assert argv[0] == 'git' and f'--log-opts={head} --not --remotes=origin' in argv   # one argv element, no shell
+    assert argv[0] == 'git' and f'--log-opts={head} --not --remotes=public -m' in argv   # one argv element, no shell
     assert {'--redact', '--no-banner', '--ignore-gitleaks-allow'} <= set(argv)
     assert argv[argv.index('--report-format') + 1] == 'json'
-    # The source is the repository's own git dir and the working directory an
-    # empty one: a .gitleaks.toml or .gitleaksignore the worker committed is never read.
+    # The source is the hub's own scratch repository, the working directory an
+    # empty one, and the rules the hub's: nothing of the worker's is read.
     common = Path(_run(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir').strip())
-    assert argv[-1] == str(common) and call['cwd'] != str(wt)
+    assert Path(argv[-1]).name == 'scan.git' and common not in Path(argv[-1]).parents
+    assert call['cwd'] != str(wt) and call['config'] == rm.HUB_GITLEAKS_TOML
 
 
 @pytest.mark.parametrize('code,findings,text', [
@@ -927,3 +940,334 @@ def test_the_length_refusal_names_the_limit_that_applied():
     for command in ('worker_completion ' + 'a' * 9000, 'publish_branch task-1234abcd ' + 'a' * 9000):
         with pytest.raises(nd.Refusal, match='longer than 8192 chars'):
             nd.parse_command(command)
+
+
+# --- iteration 8: the scan input and the push target belong to the hub --------
+
+REAL_PUBLISH_URL = rm.publish_url          # before the autouse fixture replaces it
+
+
+def _common(wt):
+    return Path(_run(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir').strip())
+
+
+def _commit_token(wt, name='cfg.py'):
+    token = _token()
+    (wt / name).write_text(f'token = "{token}"\n')
+    _run(wt, 'add', name)
+    _run(wt, 'commit', '-q', '-m', 'config')
+    return token
+
+
+def _fingerprint(wt, tmp_path):
+    report = tmp_path / 'direct.json'
+    subprocess.run([REAL_GITLEAKS, 'git', '--log-opts=HEAD --not --remotes=origin', '--no-banner', '--redact',
+                    '--report-format', 'json', '--report-path', str(report), str(wt)], cwd=wt, capture_output=True)
+    return json.loads(report.read_text())[0]['Fingerprint']
+
+
+def _plant_in_git_dir(kind, wt, tmp_path):
+    """What a worker can write into the repository it shares with the hub."""
+    common = _common(wt)
+    if kind == 'allowlist-config':
+        (common / '.gitleaks.toml').write_text("[allowlist]\npaths = ['''.*''']\nregexes = ['''.*''']\n")
+    elif kind == 'ignore-file':
+        (common / '.gitleaksignore').write_text(_fingerprint(wt, tmp_path) + '\n')
+    elif kind == 'replace-ref':
+        twin = _run(wt, 'commit-tree', '-p', 'HEAD~1', '-m', 'clean twin', 'HEAD~1^{tree}').strip()
+        _run(wt, 'replace', 'HEAD', twin)
+    elif kind == 'public-head-symref':
+        _run(wt, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/heads/' + BRANCH)
+    elif kind == 'binary-attribute':
+        (common / 'info').mkdir(exist_ok=True)
+        (common / 'info' / 'attributes').write_text('* -diff\n')
+    elif kind == 'textconv':
+        (common / 'info').mkdir(exist_ok=True)
+        (common / 'info' / 'attributes').write_text('* diff=hide\n')
+        _run(wt, 'config', 'diff.hide.textconv', 'true')
+    elif kind == 'committed-attributes':
+        (wt / '.gitattributes').write_text('* -diff\n')
+        _run(wt, 'add', '.gitattributes')
+        _run(wt, 'commit', '-q', '-m', 'attributes')
+
+
+SHARED_GIT_DIR_STATE = ['allowlist-config', 'ignore-file', 'replace-ref', 'public-head-symref',
+                        'binary-attribute', 'textconv', 'committed-attributes']
+
+
+@needs_gitleaks
+@pytest.mark.parametrize('kind', SHARED_GIT_DIR_STATE)
+def test_scan_input_is_hub_owned(kind, outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)
+    _commit_token(wt)
+    _plant_in_git_dir(kind, wt, tmp_path)
+    with pytest.raises(ValueError, match=r'github-pat cfg\.py:1'):
+        rm.publish(rm.encode(row))
+    assert not _pushed(origin, row['branch'])
+
+
+@needs_gitleaks
+def test_the_scan_of_a_planted_git_dir_is_what_the_old_input_missed(outgoing, monkeypatch, tmp_path):
+    """The planted allow-all config does hide the token from a scan of the shared
+    git dir: the guarantee above is not vacuous."""
+    row, wt, origin = outgoing
+    _commit_token(wt)
+    _plant_in_git_dir('allowlist-config', wt, tmp_path)
+    old_input = subprocess.run([REAL_GITLEAKS, 'git', '--log-opts=HEAD --not --remotes=origin', '--no-banner',
+                                str(_common(wt))], cwd=tmp_path, capture_output=True)
+    assert old_input.returncode == 0
+
+
+@needs_gitleaks
+def test_merge_commits_are_scanned(outgoing, monkeypatch):
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)
+    _run(wt, 'checkout', '-q', '-b', 'side', 'HEAD~1')
+    (wt / 'side.py').write_text('side = 1\n')
+    _run(wt, 'add', 'side.py')
+    _run(wt, 'commit', '-q', '-m', 'side')
+    _run(wt, 'checkout', '-q', BRANCH)
+    _run(wt, 'merge', '-q', '--no-ff', '--no-commit', 'side')
+    _commit_token(wt)                      # the token enters only with the merge commit itself
+    assert len(_run(wt, 'rev-list', '--merges', 'HEAD').split()) == 1
+    with pytest.raises(ValueError, match=r'github-pat cfg\.py:1'):
+        rm.publish(rm.encode(row))
+    assert not _pushed(origin, row['branch'])
+
+
+def _decoy_holding_the_branch(wt, tmp_path):
+    decoy = tmp_path / 'decoy.git'
+    _run(tmp_path, 'init', '-q', '--bare', str(decoy))
+    _run(wt, 'push', '-q', str(decoy), 'HEAD:refs/heads/' + BRANCH)
+    _run(wt, 'config', 'remote.origin.url', str(decoy))
+    return decoy
+
+
+@needs_gitleaks
+def test_the_public_history_comes_from_the_hub_url_not_the_repos_remote(outgoing, monkeypatch, tmp_path):
+    """A decoy named in remote.origin.url that already holds the commits must not
+    make them look public: the token in them is still found."""
+    row, wt, origin = outgoing
+    monkeypatch.setenv('PATH', ORIGINAL_PATH)
+    monkeypatch.setattr(rm, 'publish_url', lambda wt: str(origin))     # what the hub holds
+    _commit_token(wt)
+    _decoy_holding_the_branch(wt, tmp_path)
+    with pytest.raises(ValueError, match=r'github-pat cfg\.py:1'):
+        rm.publish(rm.encode(row))
+    assert not _pushed(origin, row['branch'])
+
+
+def test_the_outgoing_range_is_the_hub_urls_not_the_repos_remote(outgoing, monkeypatch, tmp_path):
+    """The same guarantee without a scanner: the commit is still outgoing."""
+    row, wt, origin = outgoing
+    monkeypatch.setattr(rm, 'publish_url', lambda wt: str(origin))     # what the hub holds
+    _decoy_holding_the_branch(wt, tmp_path)
+    ranges, real = [], rm.git
+
+    def spy(where, *args, **kwargs):
+        out = real(where, *args, **kwargs)
+        if args and args[0] == 'rev-list' and '--objects' not in args:
+            ranges.append(out)
+        return out
+    monkeypatch.setattr(rm, 'git', spy)
+    head = rm.outgoing_check(wt, BRANCH)
+    assert ranges == [head]
+
+
+def test_the_push_goes_to_the_hub_url_and_nowhere_else(outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    decoy = tmp_path / 'decoy.git'
+    _run(tmp_path, 'init', '-q', '--bare', str(decoy))
+    _run(wt, 'config', 'remote.origin.url', str(decoy))
+    head = _run(wt, 'rev-parse', 'HEAD').strip()
+    monkeypatch.setattr(rm, 'publish_url', lambda wt: str(origin))
+    assert rm.publish(rm.encode(row))['head'] == head
+    assert _run(origin, 'rev-parse', row['branch']).strip() == head
+    assert _run(decoy, 'branch', '--list').strip() == ''
+
+
+def test_a_pushurl_that_differs_from_url_is_refused(outgoing, gitleaks, tmp_path):
+    row, wt, origin = outgoing
+    _run(wt, 'config', 'remote.origin.pushurl', str(tmp_path / 'elsewhere.git'))
+    with pytest.raises(ValueError, match='pushurl differs from url'):
+        rm.publish(rm.encode(row))
+    assert gitleaks.calls() == [] and not _pushed(origin, row['branch'])
+
+
+def test_a_pushurl_equal_to_url_is_not_a_split(outgoing):
+    row, wt, origin = outgoing
+    _run(wt, 'config', 'remote.origin.pushurl', _run(wt, 'config', 'remote.origin.url').strip())
+    assert rm.publish(rm.encode(row))['pushed']
+
+
+def test_publish_url_is_the_projects_remote_in_ssh_form_and_nothing_from_the_repo(tmp_path):
+    wt = tmp_path / 'mooniex-agents__developer__task-1234abcd'      # no repository at all
+    assert REAL_PUBLISH_URL(wt) == 'git@github.com:PASAKON/mooniex-agents.git'
+    with pytest.raises(ValueError, match='no publish URL'):
+        REAL_PUBLISH_URL(tmp_path / 'no-such-project__developer__task-1234abcd')
+
+
+# --- the hub's own git calls -------------------------------------------------
+
+def test_hub_git_calls_ignore_replace_refs_and_hooks_and_carry_no_hub_secrets(outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    monkeypatch.setenv('ORG_DB_URL', 'postgresql://hub-secret-marker')
+    monkeypatch.setenv('INFISICAL_TOKEN', 'hub-secret-marker')
+    env = rm.hub_env()
+    assert env['GIT_NO_REPLACE_OBJECTS'] == '1' and env['GIT_TERMINAL_PROMPT'] == '0'
+    assert 'ORG_DB_URL' not in env and 'INFISICAL_TOKEN' not in env
+    marker = tmp_path / 'hook-ran'
+    hook = _common(wt) / 'hooks' / 'reference-transaction'
+    hook.write_text(f'#!/bin/sh\necho "$ORG_DB_URL$GIT_NO_REPLACE_OBJECTS" >> {marker}\n')
+    hook.chmod(0o755)
+    rm.git(wt, 'update-ref', 'refs/hub/x', 'HEAD')
+    assert not marker.exists()                                        # no hook of the worker's runs
+    rm.git(wt, 'update-ref', 'refs/hub/y', 'HEAD', hooks=True)
+    assert marker.exists() and 'hub-secret-marker' not in marker.read_text()   # the proof the hook was live
+
+
+def test_the_recovery_commit_runs_the_repos_pre_commit_hook(dead_worker):
+    row, wt = dead_worker
+    _stage_complete_diff(wt)
+    hook = wt / '.git' / 'hooks' / 'pre-commit'
+    hook.write_text('#!/bin/sh\nexit 1\n')
+    hook.chmod(0o755)
+    before = _run(wt, 'rev-parse', 'HEAD')
+    with pytest.raises(ValueError, match='git commit failed'):
+        rm.completion(rm.encode(row))
+    assert _run(wt, 'rev-parse', 'HEAD') == before                    # unrecovered, nothing committed
+
+
+# --- the free-RAM floor on winbox, entered through every verb -----------------
+
+GIB = 1024**3
+
+
+def _verb_commands(row, wt):
+    ph = dict(row, session_id='1234abcd', branch='ph/1234abcd-fix', status='review')
+    return {
+        'publish_branch': f"publish_branch {row['id']} {rm.encode(dict(row, status='review'))}",
+        'publish_ph': f'publish_ph {rm.encode(ph)}',
+        'worker_completion': f'worker_completion {rm.encode(row)}',
+        'steward_reap': f"steward_reap {rm.encode({'tasks': []})}",
+    }
+
+
+@pytest.mark.parametrize('free', [None, GIB, 4 * GIB - 1])
+@pytest.mark.parametrize('verb', ['publish_branch', 'publish_ph', 'worker_completion', 'steward_reap'])
+def test_every_winbox_verb_needs_4_gib_free_before_it_starts_git(verb, free, outgoing, gitleaks, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    nd = _no_db(monkeypatch, tmp_path)
+    monkeypatch.setattr(rm, '_native_windows', lambda: True)
+    monkeypatch.setattr(nd, '_win_avail_phys_bytes', lambda: free)
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'winbox')
+    started = []
+    monkeypatch.setattr(rm, 'git', lambda *a, **k: started.append(a) or '')
+    reply, code = nd.run_command(_verb_commands(dict(row, host='winbox', pid=4242), wt)[verb])
+    assert code == 1 and 'winbox requires 4 GB free RAM' in reply['error'], reply
+    assert started == [] and gitleaks.calls() == [] and not _pushed(origin, row['branch'])
+
+
+@pytest.mark.parametrize('verb', ['publish_branch', 'publish_ph', 'worker_completion', 'steward_reap'])
+def test_with_4_gib_free_a_winbox_verb_gets_past_the_floor(verb, outgoing, monkeypatch, tmp_path):
+    row, wt, origin = outgoing
+    nd = _no_db(monkeypatch, tmp_path)
+    monkeypatch.setattr(rm, '_native_windows', lambda: True)
+    monkeypatch.setattr(nd, '_win_avail_phys_bytes', lambda: 4 * GIB)
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'winbox')
+    reply, _ = nd.run_command(_verb_commands(dict(row, host='winbox', pid=4242), wt)[verb])
+    assert 'free RAM' not in reply.get('error', '')
+
+
+# --- the hub side: the flag, the PH's review state, the stamp file -----------
+
+class PortfolioConn:
+    def __init__(self, stages):
+        self.stages = stages
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        pass
+
+    def execute(self, sql, params):
+        assert 'FROM projects' in sql and params == ('1234abcd',)
+        return SimpleNamespace(fetchall=lambda: [{'stage': s} for s in self.stages])
+
+
+@pytest.mark.parametrize('stages,flag,allowed', [
+    (['review'], '1', True), (['active', 'review'], '1', True),
+    (['active'], '1', False), ([], '1', False),                  # the hub row says not in review
+    (['review'], None, False),                                   # mesh dispatch off
+])
+def test_ph_publish_reads_the_hub_row_and_the_flag(stages, flag, allowed, monkeypatch):
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(db, 'get_conn', lambda **kw: PortfolioConn(stages))
+    if flag:
+        monkeypatch.setenv(mesh.ENV_FLAG, flag)
+    sent = []
+    monkeypatch.setattr(mesh, 'dispatch', lambda *a: sent.append(a) or {'ok': True})
+    if allowed:
+        assert rm.hub_publish_ph('winbox', '1234abcd', 'ph/1234abcd-fix', 'C:\\w\\x__ph-1234abcd') == {'ok': True}
+        assert len(sent) == 1
+    else:
+        with pytest.raises(ValueError):
+            rm.hub_publish_ph('winbox', '1234abcd', 'ph/1234abcd-fix', 'C:\\w\\x__ph-1234abcd')
+        assert sent == []
+
+
+def test_hub_reap_sends_nothing_with_the_mesh_flag_off(monkeypatch, tmp_path):
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(rm.disk_steward, 'STATE', tmp_path / 'state')
+    sent = []
+    monkeypatch.setattr(mesh, 'dispatch', lambda *a: sent.append(a) or {'ok': True})
+    assert rm.hub_reap(apply=True) == 0 and sent == []
+    assert not (tmp_path / 'state').exists()                       # not even the lock
+
+
+def _reap_state(monkeypatch, tmp_path):
+    state = tmp_path / 'state'
+    state.mkdir()
+    monkeypatch.setenv(mesh.ENV_FLAG, '1')
+    monkeypatch.setattr(rm.config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(rm.disk_steward, 'STATE', state)
+    monkeypatch.setattr(rm.disk_steward, 'record', lambda *a: None)
+    monkeypatch.setattr(db, 'list_tasks', lambda **kw: [])
+    monkeypatch.setattr(mesh, 'dispatch', lambda *a: {'ok': True, 'result': {'results': []}})
+    return state
+
+
+def test_the_reap_stamp_is_never_read_through_a_link(monkeypatch, tmp_path):
+    state = _reap_state(monkeypatch, tmp_path)
+    secret = tmp_path / 'elsewhere.json'
+    secret.write_text('{"cursor:winbox": "planted"}')
+    os.symlink(secret, state / 'remote-reaped.json')
+    with pytest.raises(OSError):
+        rm.hub_reap(apply=True)
+    assert secret.read_text() == '{"cursor:winbox": "planted"}'
+
+
+def test_the_reap_stamp_is_never_waited_for_on_a_pipe(monkeypatch, tmp_path):
+    import signal
+    state = _reap_state(monkeypatch, tmp_path)
+    os.mkfifo(state / 'remote-reaped.json')
+    signal.signal(signal.SIGALRM, lambda *a: pytest.fail('hub_reap blocked on a pipe'))
+    signal.alarm(10)
+    try:
+        with pytest.raises(ValueError, match='not a regular file'):
+            rm.hub_reap(apply=True)
+    finally:
+        signal.alarm(0)
+
+
+def test_the_reap_stamp_is_written_without_following_a_planted_temp_link(monkeypatch, tmp_path):
+    state = _reap_state(monkeypatch, tmp_path)
+    victim = tmp_path / 'victim.txt'
+    victim.write_text('keep')
+    os.symlink(victim, state / 'remote-reaped.json.tmp')
+    assert rm.hub_reap(apply=True) == 0
+    assert victim.read_text() == 'keep'
+    assert json.loads((state / 'remote-reaped.json').read_text()) == {}
+    assert not (state / 'remote-reaped.json.tmp').exists()

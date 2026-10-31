@@ -80,7 +80,6 @@ _CALLER_RE = re.compile(r"[0-9A-Fa-f:.]{1,45}")
 # Code's "new MCP servers found" screen in a pane nobody is watching.
 SPAWN_PROMPT_DELAY_S = float(os.environ.get("NODE_DISPATCH_SPAWN_PROMPT_DELAY_S", "12"))
 SPAWN_SCRIPT_TIMEOUT_S = 120
-GIT_PUSH_TIMEOUT_S = 120
 
 
 class Refusal(Exception):
@@ -678,16 +677,10 @@ def verb_publish_branch(task_id: str, metadata: str | None = None) -> dict:
     if not worktree.is_dir():
         raise Refusal(f"worktree {_show(worktree)} does not exist")
     from tools.remote_maintenance import outgoing_check
-    head = outgoing_check(worktree, branch)
-    # Never the base branch (BRANCH_RE forces agent/...), never --force.
-    r = subprocess.run(
-        ["git", "push", "origin", head + ':refs/heads/' + branch], cwd=str(worktree),
-        capture_output=True, text=True, timeout=GIT_PUSH_TIMEOUT_S,
-        stdin=subprocess.DEVNULL, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
-    )
-    if r.returncode != 0:
-        raise Failure(f"git push exit {r.returncode}: "
-                      f"{(r.stderr or r.stdout).strip()[-300:]}")
+    # Checks the outgoing history, then pushes from the same checked repository
+    # to the URL the hub holds: never the base branch (BRANCH_RE forces
+    # agent/...), never --force, and a git failure comes back redacted.
+    outgoing_check(worktree, branch, push=True)
     return {"task_id": task_id, "branch": branch, "pushed": True}
 
 

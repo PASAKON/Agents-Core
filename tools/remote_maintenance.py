@@ -5,6 +5,7 @@ locally; paths and Git identity are checked again before destructive work.
 """
 from __future__ import annotations
 
+import atexit
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
@@ -32,9 +33,15 @@ SCRATCH = ['.worker.pid', '.worker.json', 'TASK.md', '.org-task.json', '.org-wor
 # hub only after its git state has been still this long (the launcher, a
 # separate process from the recorded worker pid, may still be mid-step).
 RECOVERY_QUIET_S = 300
-# Every push of a worker's commits to the public repo is preceded by a secret
-# scan. The mesh call that carries it times out at 300 s (lib/mesh.py).
+# What this module scans before it pushes: the publish verbs below (publish_branch
+# and publish_ph, which codex/agy workers reach through the hub) and the commit the
+# hub makes for a dead worker. A claude worker's own `git push` is not covered yet;
+# that changes with the role contract, not here. The mesh call that carries a
+# publish times out at 300 s (lib/mesh.py).
 GITLEAKS_TIMEOUT_S = 120
+# The scanner's rules: its built-in set, named explicitly so no other config is looked up.
+HUB_GITLEAKS_TOML = '[extend]\nuseDefault = true\n'
+WINBOX_MIN_FREE_RAM = 4 * 1024**3
 MAX_FINDINGS = 5
 
 
@@ -85,11 +92,36 @@ def contained(path, root):
     return p
 
 
-def git(wt, *args, stdin=None):
-    result = subprocess.run(['git', *args], cwd=str(wt), capture_output=True,
+_NO_HOOKS = []
+
+
+def _no_hooks():
+    """An empty directory to use as core.hooksPath: no hook in the worker's repo runs."""
+    if not _NO_HOOKS or not os.path.isdir(_NO_HOOKS[0]):
+        _NO_HOOKS[:] = [tempfile.mkdtemp(prefix='hub-nohooks-')]
+        atexit.register(shutil.rmtree, _NO_HOOKS[0], True)
+    return _NO_HOOKS[0]
+
+
+def hub_env():
+    """The environment of every git and gitleaks process the hub starts: replace
+    refs are never followed, nothing prompts, and the hub's own database and
+    Infisical values are not passed on to anything a worker could have planted."""
+    env = {k: v for k, v in os.environ.items() if k != 'ORG_DB_URL' and not k.startswith('INFISICAL_')}
+    env.update(GIT_NO_REPLACE_OBJECTS='1', GIT_TERMINAL_PROMPT='0')
+    return env
+
+
+def git(wt, *args, stdin=None, hooks=False):
+    """One git call from the hub. Hooks and the file-system monitor of the repo
+    are off unless the caller asks for the repo's hooks (the recovery commit)."""
+    flags = ['-c', 'core.fsmonitor=false', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false']
+    if not hooks:
+        flags += ['-c', 'core.hooksPath=' + _no_hooks()]
+    result = subprocess.run(['git', *flags, *args], cwd=str(wt), capture_output=True,
                             text=True, timeout=120,
                             **({'input': stdin} if stdin is not None else {'stdin': subprocess.DEVNULL}),
-                            env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'})
+                            env=hub_env())
     if result.returncode:
         # git echoes a remote URL with its credentials. Every failure leaves
         # here redacted and bounded, so the reply and the audit row never see
@@ -98,6 +130,46 @@ def git(wt, *args, stdin=None):
         detail = _redact((result.stderr or result.stdout or '').strip())[-300:]
         raise ValueError(f'git {sub} failed: {detail}')
     return result.stdout.strip()
+
+
+def _native_windows():
+    return os.name == 'nt'
+
+
+def require_free_ram():
+    """winbox runs a live EA: every verb that starts git or the scanner there
+    first needs 4 GiB of free RAM. Fails closed when the figure is unknown."""
+    if _native_windows():
+        from tools.node_dispatch import _win_avail_phys_bytes
+        free = _win_avail_phys_bytes()
+        if free is None or free < WINBOX_MIN_FREE_RAM:
+            raise ValueError('winbox requires 4 GB free RAM')
+
+
+def publish_url(wt):
+    """The one URL the hub fetches from and pushes to. It comes from
+    config/projects.yaml on this host, by the project in the worktree's name
+    (<project>__<role>__<task>), never from the worker's repository config."""
+    from tools.delegate import _ssh_remote_url
+    try:
+        return _ssh_remote_url(config.get_project(Path(wt).name.partition('__')[0]).get('remote') or '')
+    except ValueError:
+        raise ValueError('no publish URL for this worktree') from None
+
+
+def _refuse_split_remote(wt):
+    """The repository's own remote.origin settings are not used to publish, but a
+    push URL that differs from the fetch URL is a repository set up to send
+    commits somewhere else: refuse it."""
+    urls, pushurls = set(), set()
+    for entry in git(wt, 'config', '--list', '--null').split('\0'):
+        key, _, value = entry.partition('\n')
+        if key == 'remote.origin.url':
+            urls.add(value)
+        elif key == 'remote.origin.pushurl':
+            pushurls.add(value)
+    if pushurls - urls:
+        raise ValueError('remote.origin.pushurl differs from url: not publishing')
 
 
 def identity(row):
@@ -177,11 +249,7 @@ def reap(payload):
     host = config.self_host()
     if host not in {'winbox', 'mac'}:
         raise ValueError('remote hosts only')
-    if os.name == 'nt':
-        from tools.node_dispatch import _win_avail_phys_bytes
-        free = _win_avail_phys_bytes()
-        if free is None or free < 4 * 1024**3:
-            raise ValueError('winbox requires 4 GB free RAM')
+    require_free_ram()
     work_root = Path(disk_steward.machine(host)['hq']) / 'Work'
     results, used = [], 0
     with host_lock(work_root):
@@ -257,22 +325,45 @@ def _findings(report):
     return len(rows), shown
 
 
-def scan_outgoing(wt, head, exe):
-    """Run gitleaks over exactly the commits about to be pushed. Refuse unless
-    it exits 0. The scanner reads the repository's own git dir from an empty
-    working directory with `gitleaks:allow` comments ignored, so a
-    .gitleaks.toml, a .gitleaksignore or an allow comment the worker committed
-    cannot tell it to look away. argv is a list: no shell."""
-    source = git(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir')
-    with tempfile.TemporaryDirectory(prefix='gitleaks-') as tmp:
+@contextmanager
+def scratch_repo(wt, url, head):
+    """A repository the hub owns, built for one publish. It has none of the
+    worker's config, hooks, attributes, refs or replace refs: it reads the
+    worker's object store through `alternates` (an object is named by its hash,
+    so what is scanned is what is pushed) and holds the public history, fetched
+    from `url`, under refs/remotes/public. Everything that decides what is
+    outgoing, and the push itself, runs here."""
+    with tempfile.TemporaryDirectory(prefix='publish-', ignore_cleanup_errors=True) as tmp:
+        repo = Path(tmp) / 'scan.git'
+        git(tmp, 'init', '-q', '--bare', '--template=', str(repo))
+        objects = repo / 'objects' / 'info'
+        objects.mkdir(parents=True, exist_ok=True)
+        common = git(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir')
+        (objects / 'alternates').write_text(common + '/objects\n', encoding='utf-8')
+        git(repo, 'fetch', '-q', '--no-tags', url, '+refs/heads/*:refs/remotes/public/*')
+        git(repo, 'rev-parse', '--verify', head + '^{commit}')
+        yield repo
+
+
+def scan_outgoing(repo, head, exe):
+    """Run gitleaks over exactly the commits about to be pushed, merge commits
+    included (-m), in the hub's scratch repository. It runs from an empty
+    working directory with the hub's own rules and `gitleaks:allow` comments
+    ignored, so nothing the worker wrote or committed can tell it to look away.
+    argv is a list: no shell."""
+    with tempfile.TemporaryDirectory(prefix='gitleaks-', ignore_cleanup_errors=True) as tmp:
         report = os.path.join(tmp, 'report.json')
+        rules = os.path.join(tmp, 'hub.toml')
         empty = os.path.join(tmp, 'cwd')
         os.mkdir(empty)
-        argv = [exe, 'git', '--log-opts=' + head + ' --not --remotes=origin', '--redact', '--no-banner',
-                '--ignore-gitleaks-allow', '--report-format', 'json', '--report-path', report, source]
+        with open(rules, 'w', encoding='utf-8') as stream:
+            stream.write(HUB_GITLEAKS_TOML)
+        argv = [exe, 'git', '--config', rules, '--log-opts=' + head + ' --not --remotes=public -m', '--redact',
+                '--no-banner', '--ignore-gitleaks-allow', '--report-format', 'json', '--report-path', report,
+                str(repo)]
         try:
             done = subprocess.run(argv, cwd=empty, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                  stderr=subprocess.DEVNULL, timeout=GITLEAKS_TIMEOUT_S)
+                                  stderr=subprocess.DEVNULL, timeout=GITLEAKS_TIMEOUT_S, env=hub_env())
         except subprocess.TimeoutExpired:
             raise ValueError('gitleaks timed out: not publishing') from None
         except OSError:
@@ -287,48 +378,58 @@ def scan_outgoing(wt, head, exe):
                      f"({'; '.join(shown)}): not publishing")
 
 
-def outgoing_check(wt, branch):
+def outgoing_check(wt, branch, *, push=False):
     """The gate in front of every push of a worker's commits (publish_branch,
     publish_ph, and the commit the hub makes for a dead worker, which is pushed
-    only through here). Check all outgoing history, including blobs deleted
-    before HEAD, for media and size; then scan it for secrets."""
+    only through here). All outgoing history is checked in the hub's own scratch
+    repository: media and size for every object, including blobs deleted before
+    HEAD, then a secret scan. What is public is read from one URL the hub holds
+    (publish_url), not from the worker's remote settings. With push=True the
+    same repository then pushes to that URL, so what is pushed is what was
+    checked."""
+    require_free_ram()
     exe = shutil.which('gitleaks')
     if not exe:
         raise ValueError(f'no gitleaks on {config.self_host()}: not publishing')
-    git(wt, 'fetch', '--prune', 'origin')
+    url = publish_url(wt)
+    _refuse_split_remote(wt)
     head = git(wt, 'rev-parse', 'refs/heads/' + branch)
-    commits = git(wt, 'rev-list', head, '--not', '--remotes=origin')
-    for commit in commits.splitlines():
-        # A blob may have both a text and a media name; rev-list's object
-        # name alone is not sufficient to enforce the extension policy.
-        paths = git(wt, 'diff-tree', '--root', '-m', '--no-commit-id',
-                    '--name-only', '-r', '-z', '--diff-filter=AMT', commit)
-        if any(Path(name).suffix.lower().lstrip('.') in MEDIA for name in paths.split('\0')):
-            raise ValueError('outgoing media path')
-    entries = [line.partition(' ') for line in
-               git(wt, 'rev-list', '--objects', head, '--not', '--remotes=origin').splitlines() if line]
-    if entries:
-        # One process for every object, not two per object: a large branch
-        # must finish inside the 300 s the mesh call allows.
-        info = git(wt, 'cat-file', '--batch-check=%(objecttype) %(objectsize)',
-                   stdin=''.join(oid + '\n' for oid, _, _ in entries)).splitlines()
-        if len(info) != len(entries):
-            raise ValueError('outgoing object listing mismatch')
-        for (oid, _, name), line in zip(entries, info):
-            if line.endswith(' missing'):
-                raise ValueError('outgoing object missing')
-            kind, _, size = line.partition(' ')
-            if kind != 'blob':
-                continue
-            if Path(name).suffix.lower().lstrip('.') in MEDIA:
-                raise ValueError('outgoing media object')
-            if int(size) > 1048576:
-                raise ValueError('outgoing object exceeds 1 MB')
-    scan_outgoing(wt, head, exe)
+    with scratch_repo(wt, url, head) as repo:
+        commits = git(repo, 'rev-list', head, '--not', '--remotes=public')
+        for commit in commits.splitlines():
+            # A blob may have both a text and a media name; rev-list's object
+            # name alone is not sufficient to enforce the extension policy.
+            paths = git(repo, 'diff-tree', '--root', '-m', '--no-commit-id',
+                        '--name-only', '-r', '-z', '--diff-filter=AMT', commit)
+            if any(Path(name).suffix.lower().lstrip('.') in MEDIA for name in paths.split('\0')):
+                raise ValueError('outgoing media path')
+        entries = [line.partition(' ') for line in
+                   git(repo, 'rev-list', '--objects', head, '--not', '--remotes=public').splitlines() if line]
+        if entries:
+            # One process for every object, not two per object: a large branch
+            # must finish inside the 300 s the mesh call allows.
+            info = git(repo, 'cat-file', '--batch-check=%(objecttype) %(objectsize)',
+                       stdin=''.join(oid + '\n' for oid, _, _ in entries)).splitlines()
+            if len(info) != len(entries):
+                raise ValueError('outgoing object listing mismatch')
+            for (oid, _, name), line in zip(entries, info):
+                if line.endswith(' missing'):
+                    raise ValueError('outgoing object missing')
+                kind, _, size = line.partition(' ')
+                if kind != 'blob':
+                    continue
+                if Path(name).suffix.lower().lstrip('.') in MEDIA:
+                    raise ValueError('outgoing media object')
+                if int(size) > 1048576:
+                    raise ValueError('outgoing object exceeds 1 MB')
+        scan_outgoing(repo, head, exe)
+        if push:
+            git(repo, 'push', url, head + ':refs/heads/' + branch)
     return head
 
 
 def publish(payload, *, ph=False):
+    require_free_ram()
     row = decode(payload)
     if ph:
         sid = row.get('session_id', '')
@@ -350,8 +451,7 @@ def publish(payload, *, ph=False):
     branch = row['branch']
     if git(wt, 'symbolic-ref', '--short', 'HEAD') != branch:
         raise ValueError('checked out branch mismatch')
-    head = outgoing_check(wt, branch)
-    git(wt, 'push', 'origin', head + ':refs/heads/' + branch)
+    head = outgoing_check(wt, branch, push=True)
     return {'branch': branch, 'head': head, 'pushed': True}
 
 
@@ -369,8 +469,11 @@ def _recover_commit(wt, row):
     winbox run, task-18ff8da2: complete diff staged, launcher step never ran).
     Do what the launcher's step does, minus anything that is not code: stage
     tracked changes and the task's own report, drop launcher scratch files and
-    media, commit. No hook runs, nothing is pushed, untracked files other than
-    the report stay untouched. The publish gate still checks every object."""
+    media, commit. The repository's own commit hooks run (its pre-commit secret
+    scan is the point of them), the hub's other git calls run with hooks off;
+    if a hook refuses, the row stays unrecovered. Nothing is pushed, untracked
+    files other than the report stay untouched. The publish gate still checks
+    every object."""
     tid = row['id']
     if git(wt, 'symbolic-ref', '--short', 'HEAD') != row['branch']:
         raise ValueError('checked out branch mismatch')
@@ -388,10 +491,9 @@ def _recover_commit(wt, row):
     media = [n for n in staged if n and Path(n).suffix.lower().lstrip('.') in MEDIA]
     if media:
         git(wt, 'reset', '-q', '--', *media)
-    if subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=str(wt), timeout=120,
-                      stdin=subprocess.DEVNULL).returncode:
-        git(wt, 'commit', '-q', '--no-verify', '-m', f'task {tid}: hub recovery commit',
-            '-m', 'The worker process ended before its launcher committed.')
+    if git(wt, 'diff', '--cached', '--name-only'):
+        git(wt, 'commit', '-q', '-m', f'task {tid}: hub recovery commit',
+            '-m', 'The worker process ended before its launcher committed.', hooks=True)
     head = git(wt, 'rev-parse', 'HEAD')
     if row['host'] == 'winbox':
         (Path(git(wt, 'rev-parse', '--absolute-git-dir')) / 'org-publish-ready').write_text(head)
@@ -405,6 +507,7 @@ def completion(payload, recover=True):
     done. When neither shows after RECOVERY_QUIET_S, the launcher is gone and
     the hub commits the worker's tracked and staged changes itself."""
     from lib import proc
+    require_free_ram()
     row = decode(payload)
     wt = identity(row)
     pid = row.get('pid')
@@ -447,6 +550,16 @@ def hub_publish(task):
     return reply
 
 
+def ph_stages(session_id):
+    """The stages of the projects this PH session owns, read from the hub's
+    portfolio: the review state is the hub's record, not a field the caller
+    writes into the request."""
+    from lib import db
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute('SELECT stage FROM projects WHERE ph_session = ?', (session_id,)).fetchall()
+    return {row['stage'] for row in rows}
+
+
 def hub_publish_ph(host, session_id, branch, worktree):
     """Explicit PH review request, sent by the hub through the same push guard.
 
@@ -456,6 +569,10 @@ def hub_publish_ph(host, session_id, branch, worktree):
     from lib import mesh
     if config.self_host() != 'contabo' or host not in {'winbox', 'mac'}:
         raise ValueError('remote PH publication is hub only')
+    if not mesh.enabled():
+        raise ValueError('mesh dispatch is off: not publishing')
+    if not re.fullmatch(r'[0-9a-f]{8}', session_id or '') or 'review' not in ph_stages(session_id):
+        raise ValueError('publication requires the PH project to be in review')
     return mesh.dispatch(host, 'publish_ph', encode(dict(host=host,
         session_id=session_id, branch=branch, worktree=worktree, status='review')))
 
@@ -471,63 +588,107 @@ def redact_reply(value):
     return value
 
 
+STAMP = 'remote-reaped.json'
+
+
+def _stamp_dir():
+    """state/storage as a directory fd: the stamp files below are opened relative
+    to it, so a link planted in the path cannot redirect this root-run code."""
+    return os.open(disk_steward.STATE, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+
+
+def _read_stamp(dir_fd):
+    try:
+        fd = os.open(STAMP, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=dir_fd)
+    except FileNotFoundError:
+        return {}
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_size > 16 * 1024**2:
+            raise ValueError('reap stamp is not a regular file of this user')
+        with os.fdopen(fd, 'rb', closefd=False) as stream:
+            return json.loads(stream.read().decode('utf-8'))
+    finally:
+        os.close(fd)
+
+
+def _write_stamp(dir_fd, completed):
+    temp = STAMP + '.tmp'
+    try:
+        os.unlink(temp, dir_fd=dir_fd)            # a leftover of a crashed run; unlink never follows a link
+    except FileNotFoundError:
+        pass
+    fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=dir_fd)
+    try:
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(json.dumps(completed).encode('utf-8'))
+    except BaseException:
+        os.unlink(temp, dir_fd=dir_fd)
+        raise
+    os.replace(temp, STAMP, src_dir_fd=dir_fd, dst_dir_fd=dir_fd)
+
+
 def hub_reap(*, apply=False):
-    """One bounded batch per host; selection and audit stay on Contabo."""
+    """One bounded batch per host; selection and audit stay on Contabo. Off
+    unless mesh dispatch is on: with the flag unset nothing is sent to a host."""
     from lib import db, mesh
     if config.self_host() != 'contabo':
         raise ValueError('hub only')
+    if not mesh.enabled():
+        return 0
     failed = False
     with host_lock(disk_steward.STATE):
-        stamp = disk_steward.STATE / 'remote-reaped.json'
-        completed = json.loads(stamp.read_text()) if stamp.exists() else {}
-        tasks = db.list_tasks(limit=10000)
-        for host in ('winbox', 'mac'):
-            candidates = []
-            for row in tasks:
-                if row.get('host') != host or row.get('status') not in TERMINAL:
-                    continue
-                if completed.get(host + ':' + row['id']) == row.get('updated_at'):
-                    continue
-                try:
-                    ts = datetime.fromisoformat(row['updated_at'])
-                    ts = ts.replace(tzinfo=timezone.utc) if ts.tzinfo is None else ts
-                    if (datetime.now(timezone.utc) - ts).total_seconds() < reap_grace_seconds():
+        dir_fd = _stamp_dir()
+        try:
+            completed = _read_stamp(dir_fd)
+            tasks = db.list_tasks(limit=10000)
+            for host in ('winbox', 'mac'):
+                candidates = []
+                for row in tasks:
+                    if row.get('host') != host or row.get('status') not in TERMINAL:
                         continue
-                except (KeyError, TypeError, ValueError):
-                    continue
-                candidates.append({k: row.get(k) for k in
-                                   ('id', 'host', 'branch', 'worktree', 'status', 'updated_at', 'pid')})
-            candidates.sort(key=lambda r: r['id'])
-            cursor = completed.get('cursor:' + host, '')
-            candidates = ([r for r in candidates if r['id'] > cursor] +
-                          [r for r in candidates if r['id'] <= cursor])
-            if apply and candidates:
-                completed['cursor:' + host] = candidates[:MAX_TASKS][-1]['id']
-            try:
-                reply = mesh.dispatch(host, 'steward_reap', encode({'tasks': candidates[:MAX_TASKS], 'apply': apply}))
-                results = reply.get('result', {}).get('results', [])
-                expected = {r['id'] for r in candidates[:MAX_TASKS]}
-                allowed = {'run', 'absent'} if apply else {'planned', 'absent'}
-                ok = (reply.get('ok') and len(results) == len(expected)
-                      and {r.get('task_id') for r in results} == expected
-                      and all(r.get('status') in allowed for r in results))
-                status = ('run' if apply else 'planned') if ok else 'failed'
-                if apply and reply.get('ok'):
-                    for result in results:
-                        if result['status'] in {'run', 'absent'}:
-                            match = next(r for r in candidates if r['id'] == result['task_id'])
-                            completed[host + ':' + match['id']] = match['updated_at']
-            except Exception as exc:
-                reply, status = {'error': type(exc).__name__}, 'failed'
-            failed |= status == 'failed'
-            for name in ('reap', 'orphans'):
-                disk_steward.record(dict(name=name, host=host, status=status,
-                                         ts=datetime.now(timezone.utc).isoformat(),
-                                         rc=int(status == 'failed'), result=redact_reply(reply)), False)
-        if apply:
-            temp = stamp.with_suffix('.tmp')
-            temp.write_text(json.dumps(completed))
-            temp.replace(stamp)
+                    if completed.get(host + ':' + row['id']) == row.get('updated_at'):
+                        continue
+                    try:
+                        ts = datetime.fromisoformat(row['updated_at'])
+                        ts = ts.replace(tzinfo=timezone.utc) if ts.tzinfo is None else ts
+                        if (datetime.now(timezone.utc) - ts).total_seconds() < reap_grace_seconds():
+                            continue
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    candidates.append({k: row.get(k) for k in
+                                       ('id', 'host', 'branch', 'worktree', 'status', 'updated_at', 'pid')})
+                candidates.sort(key=lambda r: r['id'])
+                cursor = completed.get('cursor:' + host, '')
+                candidates = ([r for r in candidates if r['id'] > cursor] +
+                              [r for r in candidates if r['id'] <= cursor])
+                if apply and candidates:
+                    completed['cursor:' + host] = candidates[:MAX_TASKS][-1]['id']
+                try:
+                    reply = mesh.dispatch(host, 'steward_reap', encode({'tasks': candidates[:MAX_TASKS], 'apply': apply}))
+                    results = reply.get('result', {}).get('results', [])
+                    expected = {r['id'] for r in candidates[:MAX_TASKS]}
+                    allowed = {'run', 'absent'} if apply else {'planned', 'absent'}
+                    ok = (reply.get('ok') and len(results) == len(expected)
+                          and {r.get('task_id') for r in results} == expected
+                          and all(r.get('status') in allowed for r in results))
+                    status = ('run' if apply else 'planned') if ok else 'failed'
+                    if apply and reply.get('ok'):
+                        for result in results:
+                            if result['status'] in {'run', 'absent'}:
+                                match = next(r for r in candidates if r['id'] == result['task_id'])
+                                completed[host + ':' + match['id']] = match['updated_at']
+                except Exception as exc:
+                    reply, status = {'error': type(exc).__name__}, 'failed'
+                failed |= status == 'failed'
+                for name in ('reap', 'orphans'):
+                    disk_steward.record(dict(name=name, host=host, status=status,
+                                             ts=datetime.now(timezone.utc).isoformat(),
+                                             rc=int(status == 'failed'), result=redact_reply(reply)), False)
+            if apply:
+                _write_stamp(dir_fd, completed)
+        finally:
+            os.close(dir_fd)
     return int(failed)
 
 

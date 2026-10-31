@@ -140,6 +140,27 @@ def test_daily_stamps_and_orphan_close(monkeypatch, tmp_path):
     assert not any('transcripts' in c.args[0] or 'orphans' in c.args[0] for c in run.call_args_list)
 
 
+@pytest.mark.parametrize('flag,sends', [(None, False), ('1', True)])
+def test_the_live_tick_reaps_remote_hosts_only_when_mesh_dispatch_is_on(monkeypatch, tmp_path, flag, sends):
+    from lib import db, mesh
+    from tools import remote_maintenance
+    monkeypatch.setenv('ORG_DB_URL', 'postgresql://unused-test-only')
+    if flag:
+        monkeypatch.setenv(mesh.ENV_FLAG, flag)
+    monkeypatch.setattr(ds, 'STATE', tmp_path/'state')
+    monkeypatch.setattr(ds, 'lane_usage', lambda _: {})
+    monkeypatch.setattr(ds, 'machine', lambda _: {'hq':str(tmp_path), 'home':str(tmp_path), 'claude_config_dir':str(tmp_path/'.claude')})
+    monkeypatch.setattr(ds.shutil, 'disk_usage', lambda _: SimpleNamespace(free=25*ds.GB))
+    monkeypatch.setattr(ds.subprocess, 'run', Mock(return_value=SimpleNamespace(returncode=0, stdout='[]')))
+    monkeypatch.setattr(remote_maintenance.config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(db, 'list_tasks', lambda **kw: [])
+    dispatch = Mock(return_value={'ok': True, 'result': {'results': []}})
+    monkeypatch.setattr(mesh, 'dispatch', dispatch)
+    ds.tick('contabo')
+    assert (dispatch.call_count > 0) == sends
+    assert {c.args[1] for c in dispatch.call_args_list} <= {'steward_reap'}
+
+
 def test_letter_dedupe_reuses_delivery(monkeypatch, tmp_path):
     from lib import mailbox
     monkeypatch.setattr(ds, 'STATE', tmp_path)

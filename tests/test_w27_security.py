@@ -970,6 +970,8 @@ def test_a_token_git_prints_never_reaches_the_reply_or_the_audit_row(monkeypatch
                         lambda argv, **kw: subprocess.CompletedProcess(argv, 128, "", stderr))
     # The secret-scan gate needs gitleaks on PATH before git runs; CI has none.
     monkeypatch.setattr(shutil, "which", lambda name, *a, **kw: "/usr/bin/" + name)
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, "publish_url", lambda wt: "git@example.test:o/r.git")
     tid = _review_task(tmp_path)
 
     out, code = nd.run_command(f"publish_branch {tid}")
