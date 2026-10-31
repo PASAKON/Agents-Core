@@ -368,7 +368,8 @@ def test_spawn_schedule_and_resume_registry(store):
     finite = spawn_ph.ready_schedule("finite", "2026-10-27T00:00:00Z")
     assert finite["due_at"] == datetime(2026, 10, 27, tzinfo=timezone.utc)
     assert spawn_ph.ready_schedule("loop", cadence=24)["cadence_h"] == 24
-    plan = {"project": "p", "lane": "cto", "owner": ACTOR, "session_id": "12345678", **finite}
+    # a new row is opened under a PascalCase name ("P"); its id is the slug "p"
+    plan = {"project": "P", "lane": "cto", "owner": ACTOR, "session_id": "12345678", **finite}
     assert spawn_ph._register_project(plan) == "normal"
     before = pf.get_project("p")
     assert spawn_ph._register_project({k: v for k, v in plan.items() if k not in finite}) == "normal"
