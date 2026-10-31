@@ -169,8 +169,8 @@ def refusal(role: str, session_id: str | None = None, host: str | None = None,
     """None when `role` may start a session here (or the gate is off), else why not."""
     role = (role or "").strip().lower()
     host = (host or _self_host() or "").strip().lower()
-    if role == "cto" and host != HOME_HOST:
-        return "CTO runs on Contabo only. Open it on Contabo."
+    if role == "cto" and host != HOME_HOST:  # no emergency escape (CEO 30 Oct)
+        return f"CTO runs on Contabo only; this host is {host or 'unresolved'}. Open it on Contabo."
     if not single_on():
         return None
     if not _is_c_level(role):
