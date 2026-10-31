@@ -104,6 +104,7 @@ LAUNCHER = ROOT / "scripts" / "cxo-claude.sh"
 ROLE_DOC = ROOT / "roles" / f"{roles.PH_ROLE}.md"
 SPAWN_PROMPT_DELAY_S = float(os.environ.get("SPAWN_PH_PROMPT_DELAY_S", "12"))
 _SID_RE = re.compile(r"[0-9a-f]{8}")
+_UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 BRIEF_MAX = 20_000
 CLAIM_GRACE_S = 60
 SPAWN_SCRIPT = "scripts/spawn-ph.sh"
@@ -135,8 +136,25 @@ class Refused(Exception):
     """The Project Head was not started; the message says why."""
 
 
+def hub_sid(lane: str, lock_id: str, locks_dir: Path | None = None) -> str:
+    """The session id the hub knows C-level `lane`-`lock_id` by. A launcher id of 8 hex is that
+    id. A launcher id like `fresh` (CTO Main's lock is cto-fresh) is not: the hub names that
+    session by the last 8 hex of its UUID, which the launcher wrote to <lane>-<lock id>.uuid
+    (tools/live_sessions: a fresh launcher's sid is session_id[-8:]). The owner a Project Head
+    reports to must be the hub's id, or its reports and every lookup by owner miss it."""
+    if _SID_RE.fullmatch(lock_id):
+        return lock_id
+    from tools import live_sessions
+    uuid_ = live_sessions.read_lock(Path(locks_dir or LOCKS_DIR) / f"{lane}-{lock_id}.uuid").lower()
+    if not _UUID_RE.fullmatch(uuid_):
+        raise Refused(f"cannot map session id {lock_id!r} of {lane} to the hub's session id: "
+                      f"state/locks/{lane}-{lock_id}.uuid holds no session UUID")
+    return uuid_[-8:]
+
+
 def _caller() -> tuple[str, str]:
-    """(lane, owner session id) of the C-level session running this."""
+    """(lane, owner session id) of the C-level session running this. The id is the hub's
+    (hub_sid), not the launcher's lock id."""
     from tools import send_to_cxo
     from tools.agent_transport import current_identity
     try:
@@ -155,7 +173,7 @@ def _caller() -> tuple[str, str]:
         send_to_cxo.authorize(ident, roles.PH_ROLE, None, spawning=True)
     except PermissionError as e:
         raise Refused(str(e)) from e
-    return ident.role, sid
+    return ident.role, hub_sid(ident.role, sid)
 
 
 def spawn_script(host: str) -> str:
@@ -468,6 +486,7 @@ def _register_project(plan: dict) -> str:
     tier = plan.get("tier")
     if tier is not None and tier not in pf.TIERS:
         raise Refused(f"unknown tier {tier!r}")
+    display = None
     try:
         with pf._tx() as conn:
             row = conn.execute("SELECT * FROM projects WHERE id = ? OR lower(name) = lower(?)",
@@ -484,8 +503,14 @@ def _register_project(plan: dict) -> str:
                 row = pf.open_project(pid, plan["project"], plan["lane"], actor=plan["owner"],
                                       owner_session=plan["owner"], ph_session=plan["session_id"],
                                       conn=conn, kind=plan["kind"], due_at=plan.get("due_at"),
-                                      cadence_h=plan.get("cadence_h"), due_set_by="clevel")
+                                      cadence_h=plan.get("cadence_h"), due_set_by="clevel",
+                                      pascal_name=True)
             else:
+                # The row may have been found by its id or in other case ("hostspawn"): the PH is
+                # named by the registry's display name ("HostSpawn"), when that is a usable name.
+                shown = row.get("name")
+                if isinstance(shown, str) and roles.ph_project_refusal(shown) is None:
+                    display = shown
                 old_due = pf._as_utc(row.get("due_at"))
                 if old_due and plan.get("due_at") and old_due != plan["due_at"]:
                     pf.replan(row["id"], 0, plan["due_at"], actor=plan["owner"],
@@ -496,9 +521,24 @@ def _register_project(plan: dict) -> str:
             if tier is not None and tier != row.get("tier"):
                 pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
             tier = tier or row.get("tier") or "normal"
+    except pf.PortfolioError as exc:      # its text names a rule (a bad id, a name that is not PascalCase)
+        raise Refused(f"project registration failed: {exc}") from exc
     except Exception as exc:
         raise Refused(f"project registration failed ({type(exc).__name__})") from exc
+    if display and display != plan["project"]:
+        _set_project(plan, display)
     return tier
+
+
+def _set_project(plan: dict, project: str) -> None:
+    """Name the plan's project `project`, and rebuild the launch command that carries it, so the
+    claim file and the launcher's --project say the same name. Only a spawn gets here: a resume
+    keeps the name its records hold."""
+    plan["project"] = project
+    if "command" in plan:
+        owner = plan["owner"].split("-", 1)[1]
+        plan["command"] = launch_command(plan["session_id"], plan["lane"], project, owner,
+                                         first_prompt(plan["session_id"], plan["lane"], project, owner))
 
 
 def _write_claim(plan: dict, brief_text: str) -> None:

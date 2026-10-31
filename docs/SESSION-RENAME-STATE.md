@@ -56,16 +56,28 @@ is unaffected) — the dedupe/no-op check below compares that combined value,
 so a prefix change alone (e.g. `⏸` → `✅` on the same topic, a save followed
 by a close) still sends, it does not falsely read as unchanged.
 
+## The rendered-name record
+
+`state/locks/<role>-<session_id>.rendered` holds the full name the service last
+accepted for this session (`rename_service.py preview`'s output: host emoji,
+state glyph, role or PH id and lane, project, topic). The no-op rule below
+compares **this**, not the topic: the name is built from more than the topic
+(a Project Head's project comes from its `.project` file), so the same topic
+can render a different name once the project, lane or host has changed. A
+session with no `.rendered` file (it predates the record, or its last request
+never landed) is asked once more, then recorded.
+
 ## The no-op rule
 
 On every invocation (other than `--show`) the script trims the requested
-topic to 40 chars, then compares it against the recorded value:
+topic to 40 chars, renders the full name (`preview`), then compares it against
+the recorded rendered name:
 
-| requested vs. recorded | effect |
+| rendered name vs. recorded | effect |
 |---|---|
 | same, no `--force` | prints `unchanged: <topic>`, exits 0, sends **no** keys |
-| different, or no record yet | sends `/rename ...` as before, then writes the record |
-| `--force` | sends regardless of the comparison, then writes the record |
+| different, or no record yet | sends `/rename ...` as before, then writes the records |
+| `--force` | sends regardless of the comparison, then writes the records |
 | no `$TMUX` | prints the would-run line, exits 0 — **never writes the record**, because nothing was actually applied (see Guards below) |
 
 This is what makes it safe to call routinely: `/session-worktree` and

@@ -340,6 +340,24 @@ def win_restore_owner(row, dry_run):
         path.write_text(record + '\n', encoding='utf-8')
 
 
+def win_hub_sid(lane, lock_id):
+    """The hub's session id (8 hex) of C-level `lane`-`lock_id`, else ''. A launcher id such as
+    `fresh` names a session by its lock; the hub's c_level_sessions row for (lane, lock id) holds
+    the session's UUID in resume_uuid (tools/session_status), and the hub knows the session by
+    that UUID's last 8 hex. Any hub error, a missing row or a UUID of another shape gives ''."""
+    from lib import db
+    try:
+        with db.get_conn() as conn:
+            found = conn.execute('SELECT resume_uuid FROM c_level_sessions WHERE role = ? AND session_id = ?',
+                                 (lane, lock_id)).fetchone()
+        uuid = str((dict(found) if found is not None else {}).get('resume_uuid') or '').lower()
+    except Exception:  # the hub is down, the table has no such column, a driver error
+        return ''
+    if not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', uuid):
+        return ''
+    return uuid[-8:]
+
+
 def win_hub_ph(sid):
     """(record, why): a Project Head's project, lane and owner as the hub's portfolio registry
     holds them (projects.ph_session = this session, the row tools/spawn_ph.py writes). The
@@ -363,11 +381,14 @@ def win_hub_ph(sid):
     lane = row.get('lane') or ''
     if roles.ph_lane_refusal(lane):
         return None, f"project {row['id']} has no usable lane (hub says {lane!r})"
-    # tools/spawn_ph.py stores "<lane>-<owner session>". Only a real session id counts: the
-    # hub also holds placeholders such as "cto-fresh", and an owner record naming a session
-    # that does not exist would send the Project Head's reports nowhere.
+    # tools/spawn_ph.py stores "<lane>-<owner session>". Only a real session id counts: an
+    # owner record naming a session that does not exist would send the Project Head's reports
+    # nowhere. Rows written before spawn_ph used the hub's id hold the launcher's lock id
+    # ("cto-fresh"): win_hub_sid maps that to the hub's id, or to '' when it cannot.
     owner = row.get('owner_session') or ''
     owner_sid = owner[len(lane) + 1:] if owner.startswith(lane + '-') else ''
+    if owner_sid and not re.fullmatch(r'[0-9a-f]{8}', owner_sid):
+        owner_sid = win_hub_sid(lane, owner_sid)
     if not re.fullmatch(r'[0-9a-f]{8}', owner_sid):
         return None, f"project {row['id']} has no owner session '<lane>-<8 hex>' (hub says {owner!r})"
     spawned_by = f'cxo:{lane}:{owner_sid}'
