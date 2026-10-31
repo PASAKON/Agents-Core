@@ -1305,9 +1305,9 @@ def _v4_parked(live):
         sid = path.name[len("project_head-"):-len(".project.parked")]
         if not PH_SID_RE.fullmatch(sid) or sid in live:
             continue
-        try:
-            with path.open(encoding="utf-8") as stream:
-                project = stream.read(65).strip().lower()  # the lock holds the display name (HQCare -> hqcare)
+        try:  # never through a planted link, never blocked by a FIFO (CTO gate 2b)
+            from lib import safe_file
+            project = safe_file.read_text(path, 256).strip().lower()  # the display name (HQCare -> hqcare)
         except (OSError, UnicodeError):
             continue
         rows.append({"sid": sid, "project": project if re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", project) else None,

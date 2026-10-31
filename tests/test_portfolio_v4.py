@@ -206,7 +206,8 @@ def test_legacy_empty_payload_bytes(monkeypatch, version):
 
 
 @pytest.mark.parametrize("value,want", [(None, 2), ("1", 1), ("2", 2), ("3", 3), ("4", 4)])
-def test_pusher_versions(monkeypatch, value, want):
+def test_pusher_versions(monkeypatch, tmp_path, value, want):
+    monkeypatch.setattr(portfolio_push, "VERSION_FILE", tmp_path / "portfolio_monitor.version")
     monkeypatch.delenv("PORTFOLIO_MONITOR_V", raising=False)
     if value:
         monkeypatch.setenv("PORTFOLIO_MONITOR_V", value)
@@ -225,3 +226,67 @@ def test_integration_orders_and_legacy_bytes(hub, isolated):
     pf.close("p01", "complete", "synthetic lesson", actor="cto-fresh", now=T)
     payload = pf.monitor_payload(T, version=4)
     assert next(o for o in payload["orders"] if o["project_id"] == "p01")["project_closed"] is True
+
+
+# CTO gate 2b (31 Oct): the version file and the parked locks sit in group-writable folders that root reads.
+@pytest.fixture
+def no_hang():
+    import signal
+
+    def boom(*_):
+        raise AssertionError("blocked on a planted FIFO")
+    old = signal.signal(signal.SIGALRM, boom)
+    signal.alarm(10)
+    yield
+    signal.alarm(0)
+    signal.signal(signal.SIGALRM, old)
+
+
+@pytest.fixture
+def version_file(monkeypatch, tmp_path):
+    path = tmp_path / "portfolio_monitor.version"
+    monkeypatch.setattr(portfolio_push, "VERSION_FILE", path)
+    monkeypatch.setattr(portfolio_push, "_version_warned", False)
+    monkeypatch.setattr(pf, "monitor_payload", lambda version=1: version)
+    monkeypatch.setenv("PORTFOLIO_MONITOR_V", "3")
+    return path
+
+
+def test_version_file_wins_over_env(version_file):
+    version_file.write_text("4\n")
+    assert portfolio_push.build_payload() == 4
+
+
+@pytest.mark.parametrize("body", ["9\n", "four", ""])
+def test_bad_version_file_falls_back_to_env_and_logs_once(version_file, body, capsys):
+    version_file.write_text(body)
+    assert portfolio_push.build_payload() == 3
+    assert portfolio_push.build_payload() == 3
+    assert capsys.readouterr().err.count("version file") == 1
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo"])
+def test_planted_version_file_is_refused(version_file, kind, tmp_path, no_hang, capsys):
+    import os
+    if kind == "symlink":
+        (tmp_path / "elsewhere").write_text("4\n")
+        version_file.symlink_to(tmp_path / "elsewhere")
+    else:
+        os.mkfifo(version_file)
+    assert portfolio_push.build_payload() == 3
+    assert "version file refused" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo"])
+def test_planted_parked_lock_is_skipped(isolated, kind, tmp_path, no_hang):
+    import os
+    locks = tmp_path / "state" / "locks"
+    locks.mkdir(parents=True, exist_ok=True)
+    (locks / "project_head-00000001.project.parked").write_text("good\n")
+    planted = locks / "project_head-00000002.project.parked"
+    if kind == "symlink":
+        (tmp_path / "elsewhere").write_text("stolen\n")
+        planted.symlink_to(tmp_path / "elsewhere")
+    else:
+        os.mkfifo(planted)
+    assert [r["sid"] for r in pf._v4_parked({})] == ["00000001"]

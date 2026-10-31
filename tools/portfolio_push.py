@@ -12,7 +12,9 @@ Environment:
   PORTFOLIO_PUSH_TOKEN   required, the bearer token (Infisical MoonieX-Console/prod)
   PORTFOLIO_PUSH_URL     default https://terminal.mooniex.com; https only, http only on loopback
   ORG_DB_URL             the hub the payload is built from
-  PORTFOLIO_MONITOR_V    unset: v2. 1/2/3/4: v1/v2/v3/v4 (deploy Console support first; docs/design/portfolio-monitor-v4.md)
+  PORTFOLIO_MONITOR_V    unset: v2. 1/2/3/4: v1/v2/v3/v4 (deploy Console support first; docs/design/portfolio-monitor-v4.md).
+                         The file state/portfolio_monitor.version (one line, 1-4) wins over it: ensure_publisher respawns
+                         the publisher from hooks without this env, and the file survives that.
 
 POST <url>/api/portfolio/monitor, `Authorization: Bearer <token>`, 10 s timeout, urllib only.
 Console answers 204 on a good push; 400, 401, 413 or 503 otherwise.
@@ -83,13 +85,40 @@ def endpoint(base: str | None = None) -> str | None:
     return None
 
 
+VERSION_FILE = ROOT / "state" / "portfolio_monitor.version"
+VERSIONS = ("1", "2", "3", "4")
+_version_warned = False
+
+
+def monitor_version() -> str | None:
+    """The file's version, else PORTFOLIO_MONITOR_V. A refused or bad file logs once and falls back (CTO gate 2b:
+    root reads it from a group-writable folder, so a planted link or FIFO is never followed)."""
+    global _version_warned
+    from lib import safe_file
+    try:
+        value = safe_file.read_text(VERSION_FILE, 16).strip()
+    except FileNotFoundError:
+        value = None
+    except (OSError, UnicodeError) as exc:
+        value, why = None, type(exc).__name__
+        if not _version_warned:
+            _log(f"version file refused ({why}), using the env")
+            _version_warned = True
+    if value is not None and value not in VERSIONS:
+        if not _version_warned:
+            _log("version file holds no 1-4, using the env")
+            _version_warned = True
+        value = None
+    return value or os.environ.get("PORTFOLIO_MONITOR_V")
+
+
 def build_payload() -> dict:
     from lib import portfolio
     # v2 by default since Console 15399d5 stores v2 and still serves v1 to the old widget;
     # PORTFOLIO_MONITOR_V=1 pushes the v1 body again (ProjectTrack P4). PORTFOLIO_MONITOR_V=3 pushes v3
     # (docs/design/portfolio-monitor-v3.md): only after the Console that accepts v3 is deployed, or
     # the page goes stale.
-    version = os.environ.get("PORTFOLIO_MONITOR_V")
+    version = monitor_version()
     if version == "1":
         return portfolio.monitor_payload()
     return portfolio.monitor_payload(version=int(version) if version in ("3", "4") else 2)
