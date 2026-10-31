@@ -46,6 +46,12 @@
 
 set -uo pipefail
 
+# BSD base64 uses -D; GNU uses -d. All other commands below use the
+# shared bash/tmux path; GNU timeout is already optional.
+decode_base64() {
+  if [ "$(uname -s)" = Darwin ]; then base64 -D; else base64 -d; fi
+}
+
 DRY_RUN=0
 SPARSE=1   # --no-sparse: a task outside the sparse_worktree scope (ADR 0030) keeps a full checkout
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
@@ -84,7 +90,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$RUNNER_MODEL" ] && [ -n "$TASK_META_B64" ]; then
-  DECODED_META=$(printf '%s' "$TASK_META_B64" | base64 -d 2>/dev/null || true)
+  DECODED_META=$(printf '%s' "$TASK_META_B64" | decode_base64 2>/dev/null || true)
   if [ -n "$DECODED_META" ]; then
     if command -v python3 >/dev/null 2>&1; then
       RUNNER_MODEL=$(printf '%s' "$DECODED_META" | python3 -c 'import sys, json; data = json.load(sys.stdin); print(data.get("runner_model") or "")' 2>/dev/null || true)
@@ -398,7 +404,7 @@ set +f
 # can't sweep it onto the worker's own branch.
 grep -qxF ".org-task.json" "$EXCLUDE_FILE" 2>/dev/null || echo ".org-task.json" >> "$EXCLUDE_FILE"
 if [ -n "$TASK_META_B64" ]; then
-  if ! printf '%s' "$TASK_META_B64" | base64 -d > "$WT/.org-task.json" 2>/dev/null; then
+  if ! printf '%s' "$TASK_META_B64" | decode_base64 > "$WT/.org-task.json" 2>/dev/null; then
     echo "spawn-worker-remote.sh: --task-meta-b64 did not decode as base64" >&2
     rm -f "$WT/.org-task.json"
   else

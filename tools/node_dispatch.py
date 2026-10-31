@@ -516,6 +516,12 @@ def verb_probe() -> dict:
         "probe_errors": probe_errors,
     }
     facts.update(_fill_facts())
+    if _is_windows():
+        try:
+            from tools.spawn_ph import ceo_hold_refusal
+            facts["ceo_hold"] = bool(ceo_hold_refusal())
+        except Exception as e:  # noqa: BLE001 — the hold read must not cost the whole probe
+            probe_errors.append(f"ceo_hold: {type(e).__name__}")
     # Probe fields only. `status` is left alone on purpose: it is the join
     # state machine's (pending_identity -> online), not a measurement.
     db.upsert_host(

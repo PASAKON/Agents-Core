@@ -1425,7 +1425,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # W2.3: with ORG_MESH_DISPATCH on, a remote spawn is one node_dispatch verb
     # over the org_dispatch key (lib/mesh.py), not the launcher ssh below. Off
     # (the default) this block is skipped and every line after it is unchanged.
-    if mesh.enabled() and not local and host_name != self_host():
+    if (mesh.enabled() or host_cfg.get("os") == "darwin") and not local and host_name != self_host():
         if dry_run:
             try:
                 printable = " ".join(shlex.quote(c) for c in
@@ -1440,7 +1440,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         return await asyncio.to_thread(mesh_spawn_worker, task_id, host_name)
 
     os_name = host_cfg.get("os")
-    if os_name not in ("windows", "linux"):
+    if os_name not in ("windows", "linux", "darwin"):
         raise NotImplementedError(
             f"host {host_name!r} (os={os_name}) has no remote launcher yet — "
             f"only winbox (Phase 1) and contabo (Phase 2, task-a5c0549d) are "
@@ -1684,6 +1684,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--repo-path", repo_path, "--worktree-root", worktree_root,
         "--claude-args", claude_args, "--model", model, "--effort", effort,
         "--session-name", session_name, "--runner", runner,
+        "--org-host", host_name,
         "--task-meta-b64", task_meta_b64,
     ]
     if work_dir:
@@ -2101,15 +2102,12 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
 async def _route_host(task: dict, host: str | None) -> tuple[str | None, str]:
     """(host, delegate_log line) for a delegate with ORG_HOST_ROUTER on.
 
-    Only reached with the flag on. An explicit `host` argument or a non-NULL
-    `tasks.host` wins as before (line starts `manual:`); otherwise
-    lib/router.pick_host chooses, off the event loop because it may do a cold
-    quota read through tools.route. A None host means "no host fits"."""
-    if host is not None:
-        return host, host_router.manual_line(host, "host= argument")
-    if task.get("host"):
-        return task["host"], host_router.manual_line(task["host"], "tasks.host")
-    pick = await asyncio.to_thread(host_router.pick_host, task)
+    An explicit host restricts the picker to that machine, retaining resource
+    checks. The picker runs off the event loop for probes and runner routing.
+    A None host means "no host fits"."""
+    pick = await asyncio.to_thread(host_router.pick_host,
+                                   {**task, "host": host or task.get("host")},
+                                   reserve_exception=True)
     return pick.host, pick.line
 
 
@@ -2136,8 +2134,7 @@ def _keep_host_line(task_id: str, line: str) -> None:
 # delegates started together — the model's parallel tool calls,
 # delegate_parallel, the watchdog beside the MCP server — cannot both take the
 # last slot. A marker whose pid is dead or whose row has left 'pending' no
-# longer counts. Same host only: a Project Head and its workers run on Contabo
-# (cross-host is plan Phase 4).
+# longer counts. These slots count workers across hosts, including queued_remote.
 _PH_LIVE_STATUSES = ("in_progress", "rate_limited", "queued_remote", "stalled")
 _PH_SLOTS_DIR = ROOT / "state" / "locks" / "ph-slots"
 _PH_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
@@ -2266,6 +2263,11 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                                     kickoff=kickoff, host=host, dry_run=dry_run)
     finally:
         _ph_release_slot(task_id)
+        if host_router.enabled():
+            try:
+                host_router.release_exception(task_id)
+            except Exception:
+                warn(f"host router slot cleanup deferred task={task_id}")
 
 
 async def _delegate_task(task_id: str, *, wait: bool = False,
@@ -2322,15 +2324,17 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
     #
     # W2.6/H2 (PLAN-auto-dispatch §4): with ORG_HOST_ROUTER on (default OFF),
     # a task that names no host is given one by lib/router.pick_host, and no
-    # fitting host means the task stays pending with `no_host: <why>` in
-    # delegate_log and NO spawn. An explicit host= / tasks.host still wins and
-    # is logged as `manual:`. With the flag off the else-branch below is the
+    # fitting host means the task stays pending in the host queue. An explicit
+    # host= / tasks.host restricts the picker to that machine.
+    # With the flag off the else-branch below is the
     # resolution exactly as it was before.
     host_line = None
     if host_router.enabled():
         resolved_host, host_line = await _route_host(task, host)
         db.set_fields(task_id, delegate_log=host_line, actor="cto")
         if resolved_host is None:
+            from tools import host_queue
+            host_queue.enqueue(task_id, task.get("owner_cto"), host=host or task.get("host"))
             warn(f"{host_line} task={task_id}")
             return db.get_task(task_id)
     else:

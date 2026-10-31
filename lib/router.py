@@ -1,12 +1,10 @@
-"""Host router (PLAN-auto-dispatch H2, Org Mesh W2.6): pick the machine for a task.
+"""Host router (PLAN-auto-dispatch H2, Org Mesh W2.6, host-fill rule 2026-10-30).
 
     pick_host(task) -> HostPick
 
-WHICH runner a task uses is tools/route.py's job (CTO #24ca1c0a's lane). This
-module answers WHERE. It is called from tools/delegate.py's host-resolution
-block only when the task names no host of its own, and only when the env flag
-ORG_HOST_ROUTER is on (default OFF -- with it off, nothing in here runs and
-delegate keeps today's `host= arg > tasks.host > self_host()`).
+WHICH runner a task uses is tools/route.py's job. This module answers WHERE. It is
+called from tools/delegate.py's host-resolution block only when the router switch is
+on (config/hosts.yaml `router.enabled`, or env ORG_HOST_ROUTER, which wins).
 
 A host is a candidate only if ALL of these hold (each rejection gets exactly one
 reason, the first check that failed, and the reasons go to delegate_log):
@@ -16,24 +14,44 @@ reason, the first check that failed, and the reasons go to delegate_log):
   2. `provides` contains every name in the task's `needs: a, b` description line
   3. `running < max_workers`
   4. the project has `paths.<host>` in config/projects.yaml
-  5. at least one runner the role can use is installed on the host
+  5. the host-fill rules of config/hosts.yaml `router:` (CEO 2026-10-30): the
+     project is not in `never_on` for the host (ExpertAdvisor never on winbox), the
+     host keeps its `min_free_ram_gb` (winbox 4 GB), a Project Head does not start
+     on winbox while the PC lease is held, and the host's fill (max of RAM, CPU and
+     disk used %) is under `fill_limit_pct` (80). Only a row that carries fill
+     sensors is judged on fill; a missing sensor makes winbox and the Mac not
+     eligible, Contabo keeps the old rule while the readings it has are under the limit.
+  6. at least one runner the role can use is installed on the host
      (`hosts.runners`, from the probe)
 
-Survivors are ranked by lowest `load_per_core` (no reading ranks last), then
-most `ram_free_gb`, then name. No survivor -> HostPick.host is None and `line` is `no_host: ...`; the
-caller leaves the task pending and does not spawn. There is no fallback host:
-a stale or missing probe means "unknown", and unknown is never "fine".
+CPU exception (CEO, Q-20261030-0315-9f03): work pinned to Contabo may start at
+80 % or more when CPU is the highest reading, RAM and disk are under the limit and
+at least `cpu_exception.min_free_ram_gb` is free; one such job at a time, org-wide.
 
-`needs` has no column (lib/db.py is locked to other tasks); it is read from a
-description line, the same way route.check_override reads `override:`. Both
-read it from the description's HEADER only (see `header` below): a `needs:`
-pasted further down is text, not a directive (W2.7 review F11, W2.11).
+Survivors rank: Contabo first while it passes, then the lowest fill (no reading
+ranks last), then the fewest running workers, then most `ram_free_gb`, then name. A
+task that names its host (`task["host"]`) is judged on that host alone: it is never
+moved, but the same checks apply. No survivor -> HostPick.host is None and `line` is
+`no_host: ...`; the caller leaves the task pending and queues it for the host
+(tools/host_queue.py). There is no fallback host: a stale or missing probe means
+"unknown", and unknown is never "fine".
+
+`hosts_rows` (tests, mesh_check) are hub rows or `tools.host_fill.probe` rows. With
+none, the hub table is read and Contabo is probed live; winbox and the Mac are
+probed live (10 s, in parallel) only when Contabo does not take the task.
+
+`needs` has no column; it is read from a description line, the same way
+route.check_override reads `override:`. Both read it from the description's HEADER
+only (see `header` below): a `needs:` pasted further down is text, not a directive
+(W2.7 review F11, W2.11).
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+import yaml
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -101,7 +119,13 @@ def add_header_line(description: str | None, line: str) -> str:
 def enabled() -> bool:
     """ORG_HOST_ROUTER is 1/true/on. Default off (same switch shape as
     lib.mesh.enabled)."""
-    return os.environ.get(ENV_FLAG, "").strip().lower() in ("1", "true", "on")
+    value = os.environ.get(ENV_FLAG)
+    return (value.strip().lower() in ("1", "true", "on") if value is not None
+            else bool(settings().get("enabled", False)))
+
+
+def settings() -> dict:
+    return yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8")).get("router", {})
 
 
 @dataclass
@@ -228,32 +252,207 @@ def _num(v, fmt: str) -> str:
     return "?" if v is None else format(v, fmt)
 
 
+def _exception_slot(task_id: str, reserve: bool, ttl: int) -> bool:
+    """One shared DB slot; active jobs retain it beyond the pending-start TTL."""
+    from datetime import timedelta
+    key = "host-router:contabo-cpu"
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    expires = (datetime.now(timezone.utc) + timedelta(seconds=ttl)).isoformat(timespec="seconds")
+    with db.get_conn() as conn:
+        conn.execute(
+            "DELETE FROM locks WHERE key=? AND NOT EXISTS "
+            "(SELECT 1 FROM tasks WHERE tasks.id=locks.owner AND "
+            "(tasks.status IN ('in_progress','queued_remote','rate_limited','stalled') "
+            "OR (tasks.status='pending' AND locks.expires_at>?)))", (key, now))
+        if not reserve:
+            return conn.execute("SELECT owner FROM locks WHERE key=?", (key,)).fetchone() is None
+        row = conn.execute(
+            "INSERT INTO locks (key,owner,expires_at) VALUES (?,?,?) "
+            "ON CONFLICT(key) DO NOTHING RETURNING owner", (key, task_id, expires)).fetchone()
+        if row is not None:
+            return True
+        # A mesh handoff rechecks the same task on the target host. It is
+        # still one job, so its reservation must survive that second check.
+        existing = conn.execute("SELECT owner FROM locks WHERE key=?", (key,)).fetchone()
+        return existing is not None and existing["owner"] == task_id
+
+
+def release_exception(task_id: str) -> None:
+    task = db.get_task(task_id)
+    if not task or task.get("status") not in ("in_progress", "queued_remote", "rate_limited", "stalled"):
+        db.release_lock("host-router:contabo-cpu", task_id)
+
+
+
+
+# --- host-fill rules (CEO 2026-10-30), added on top of the hub-row checks ---
+
+_FILL_KEYS = ("ram_total_gb", "disk_total_gb", "cpu_pct")
+_JOIN_BLOCKED = ("pending_identity", "leaving", "left")
+
+
+def _hub_shape(r: dict, registry: dict, now: datetime) -> dict:
+    """A `tools.host_fill.probe` row as a hub row; a hub row passes through.
+
+    The probe was taken just now, so the row is fresh by definition. What the
+    probe does not carry (provides, cap, runners) comes from config/hosts.yaml."""
+    if "host" in r or "name" not in r:
+        return r
+    name, cfg, facts = r["name"], registry.get(r["name"]) or {}, r.get("facts") or {}
+    cpu = facts.get("cpu_pct")
+    row = {"host": name, "status": "online" if r.get("online") else "offline",
+           "probed_at": now.isoformat(), "facts": facts,
+           "provides": facts.get("provides", cfg.get("provides")),
+           "max_workers": r.get("max_workers", cfg.get("max_workers")),
+           "running": r.get("running"), "ram_free_gb": facts.get("ram_free_gb"),
+           "load_per_core": facts.get("load_per_core", None if cpu is None else cpu / 100),
+           "runners": facts.get("runners", cfg.get("runners"))}
+    if not r.get("online"):
+        row["unanswered"] = True
+    return row
+
+
+def _fill_facts(row: dict) -> dict:
+    return {**row, **(row.get("facts") or {})}
+
+
+def _used_pct(facts: dict, free_key: str, total_key: str) -> float | None:
+    try:
+        return 100 * (1 - float(facts[free_key]) / float(facts[total_key]))
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
+        return None
+
+
+def _cap_reason(name: str, row: dict, task: dict, policy: dict,
+                pin: str | None) -> tuple[str | None, bool]:
+    """(why not, CPU exception used) for the host-fill rules; (None, False) passes."""
+    from tools import host_fill
+    facts = _fill_facts(row)
+    project = str(task.get("project") or "")
+    if name in (policy.get("never_on") or {}).get(project.casefold(), []):
+        return f"{project} never runs on {name}", False
+    floor = (policy.get("min_free_ram_gb") or {}).get(name)
+    capable = any(k in facts for k in _FILL_KEYS)
+    if floor is not None:
+        free = facts.get("ram_free_gb")
+        if free is None:
+            return f"free RAM unknown (floor {floor} GB)", False
+        if free < floor:
+            return f"free RAM {free:.1f} GB under the {floor} GB floor", False
+    if capable and task.get("role") == "project_head" and name == "winbox" \
+            and facts.get("ceo_hold", True):
+        return "PC lease held or unknown", False
+    if not capable:
+        return None, False        # hub-only row: no fill sensors, the old checks decide
+    pct, highest, missing = host_fill.fill(facts, rounded=False)
+    limit = policy.get("fill_limit_pct", 80)
+    if pct is not None and pct >= limit:
+        ram = _used_pct(facts, "ram_free_gb", "ram_total_gb")
+        disk = _used_pct(facts, "free_gb", "disk_total_gb")
+        exception = (
+            pin == name == "contabo" and highest == "cpu" and bool(task.get("id"))
+            and ram is not None and ram < limit and disk is not None and disk < limit
+            and facts["ram_free_gb"] >= (policy.get("cpu_exception") or {}).get("min_free_ram_gb", 1.6))
+        return (None, True) if exception else (f"fill {pct:.1f}% ({highest}) at or above {limit}%", False)
+    if missing and (pct is None or name != policy.get("first_host", "contabo")):
+        return f"fill incomplete (no {', '.join(missing)} reading)", False
+    return None, False
+
+
+def _live_rows(names: list[str], timeout) -> dict[str, dict]:
+    """`tools.host_fill.probe` of each host, in parallel and bounded by `timeout`."""
+    from tools import host_fill
+    if not names:
+        return {}
+
+    def one(name):
+        try:
+            return host_fill.probe(name, timeout=timeout)
+        except Exception:  # noqa: BLE001 -- a host that cannot be probed is a host that did not answer
+            return {"name": name, "online": False}
+
+    with ThreadPoolExecutor(max_workers=len(names)) as pool:
+        return dict(zip(names, pool.map(one, names)))
+
+
+def _merge_live(rows: list[dict], live: dict[str, dict], registry: dict, now: datetime) -> list[dict]:
+    """Hub rows with the live probes laid over them. The hub keeps what a probe
+    cannot know: the join state (leaving / left / pending_identity) and `provides`."""
+    by = {r["host"]: r for r in rows if "host" in r}
+    for name, probe in live.items():
+        row = _hub_shape(probe, registry, now)
+        hub = by.get(name)
+        if hub and not row.get("unanswered"):
+            if hub.get("provides") is not None:
+                row["provides"] = hub["provides"]
+            if (hub.get("status") or "").strip().lower() in _JOIN_BLOCKED:
+                row["status"] = hub["status"]
+        by[name] = row
+    return list(by.values())
+
+
 def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
-              now: datetime | None = None) -> HostPick:
+              now: datetime | None = None, reserve_exception: bool = False) -> HostPick:
     """Choose a host for `task` (a tasks row), or say why none fits.
 
-    `hosts_rows` (default: the `hosts` table) and `now` exist for tests.
+    `hosts_rows` and `now` exist for tests and mesh_check; without rows the hub
+    table is read and the hosts are probed live (module docstring).
     Never raises on bad data: an unreadable table or router error is a
     rejection of every host, with the error as the reason.
     """
     now = now or datetime.now(timezone.utc)
-    needs = parse_needs(task.get("description"))
-    project = task.get("project")
+    pin = (task.get("host") or "").strip().lower() or None
     try:
-        rows = db.list_hosts() if hosts_rows is None else hosts_rows
-        by_name = {r["host"]: r for r in rows}
-        configured = set(config.hosts())
-        names = sorted(configured | set(by_name))
-        known_project = project in config.projects()
+        policy, registry = settings(), config.hosts()
+        rows = db.list_hosts() if hosts_rows is None else list(hosts_rows)
+        configured = set(registry)
+        known_project = task.get("project") in config.projects()
+        scope = [pin] if pin else sorted(configured | {r.get("host") or r.get("name") for r in rows})
     except Exception as e:  # noqa: BLE001 -- see docstring
         return HostPick(None, f"no_host: router error: {type(e).__name__}: {e}")
+    ctx = dict(task=task, policy=policy, registry=registry, known_project=known_project,
+               now=now, pin=pin, reserve=reserve_exception)
+    if hosts_rows is not None:
+        return _decide([_hub_shape(r, registry, now) for r in rows], scope, **ctx)
+    first, timeout = policy.get("first_host", "contabo"), policy.get("probe_timeout_s", 10)
+    probeable = [n for n in scope if n in configured]
+    live: dict[str, dict] = {}
+    probed: list[str] = []
+    pick = None
+    for stage in ([n for n in probeable if n == first], [n for n in probeable if n != first]):
+        if not stage:
+            continue
+        live.update(_live_rows(stage, timeout))
+        probed += stage
+        pick = _decide(_merge_live(rows, live, registry, now),
+                       [n for n in scope if n in probed or n not in configured], **ctx)
+        if pick.host:
+            return pick
+    return pick or _decide(_merge_live(rows, live, registry, now), scope, **ctx)
 
+
+def _decide(rows: list[dict], names: list[str], *, task: dict, policy: dict, registry: dict,
+            known_project: bool, now: datetime, pin: str | None, reserve: bool) -> HostPick:
+    from tools import host_fill
+    needs, project = parse_needs(task.get("description")), task.get("project")
+    by_name = {r["host"]: r for r in rows if "host" in r}
+    configured = set(registry)
     rejected: dict[str, str] = {}
     alive: list[dict] = []
+    cpu_exception: set[str] = set()
+    fills: list[str] = []
     for name in names:
         row = by_name.get(name)
         why = ("not in config/hosts.yaml" if name not in configured
                else _reject_reason(name, row, needs, project, known_project, now))
+        if not why and name in configured:
+            why, used = _cap_reason(name, row, task, policy, pin)
+            if used:
+                cpu_exception.add(name)
+        if row and any(k in _fill_facts(row) for k in _FILL_KEYS):
+            pct, highest, _ = host_fill.fill(_fill_facts(row), rounded=False)
+            if pct is not None:
+                fills.append(f"{name} {pct:.1f}% ({highest})")
         if why:
             rejected[name] = why
         else:
@@ -275,19 +474,39 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
                     f" · host: {','.join(has) or 'none'})")
 
     rej = " ".join(f"{h}({rejected[h]})" for h in names if h in rejected)
+    seen = f" · fill: {' · '.join(fills)}" if fills else ""
     if not survivors:
-        return HostPick(None, f"no_host: {rej or 'no hosts configured'}", rejected)
+        return HostPick(None, f"no_host: {rej or 'no hosts configured'}{seen}", rejected)
 
-    # Unknown load (the probe has none on Windows) ranks last: such a host is
-    # still picked when nothing with a reading is eligible, never ahead of one.
-    best = min(survivors, key=lambda r: (
-        float("inf") if r.get("load_per_core") is None else r["load_per_core"],
-        -(r["ram_free_gb"] if r.get("ram_free_gb") is not None else -1.0),
-        r["host"]))
-    line = (f"host: {best['host']} · load {_num(best['load_per_core'], '.2f')}/core"
+    first = policy.get("first_host", "contabo")
+
+    def rank(r):
+        # Contabo first while it passes, then the lowest fill (no reading ranks
+        # last: the Windows probe has no loadavg, yet winbox stays pickable),
+        # then the fewest running workers, then the most free RAM, then name.
+        pct = host_fill.fill(_fill_facts(r), rounded=False)[0]
+        ram = r.get("ram_free_gb")
+        return (r["host"] != first, float("inf") if pct is None else pct,
+                r["running"], -(ram if ram is not None else -1.0), r["host"])
+
+    best = min(survivors, key=rank)
+    if best["host"] in cpu_exception:
+        try:
+            free = _exception_slot(task.get("id"), reserve,
+                                   (policy.get("cpu_exception") or {}).get("slot_ttl_s", 600))
+            busy = "CPU exception slot busy"
+        except Exception as e:  # noqa: BLE001 -- no hub, no proof the slot is free
+            free, busy = False, f"CPU exception slot unreadable ({type(e).__name__})"
+        if not free:
+            rejected[best["host"]] = busy
+            rej = " ".join(f"{h}({rejected[h]})" for h in names if h in rejected)
+            return HostPick(None, f"no_host: {rej}{seen}", rejected)
+    cap = best["max_workers"]
+    line = (f"host: {best['host']} · load {_num(best.get('load_per_core'), '.2f')}/core"
             f" · ram {_num(best.get('ram_free_gb'), '.1f')} GB"
-            f" · running {best['running']}/{best['max_workers']}"
-            f" · rejected: {rej or 'none'}")
+            f" · running {best['running']}/{cap}"
+            f" · rejected: {rej or 'none'}{seen}"
+            + (" · CPU exception" if best["host"] in cpu_exception else ""))
     return HostPick(best["host"], line, rejected)
 
 
@@ -295,7 +514,9 @@ def _reject_reason(name: str, row: dict | None, needs: list[str],
                    project: str | None, known_project: bool,
                    now: datetime) -> str | None:
     """First of checks 1-4 (module docstring) that `name` fails, or None.
-    Check 5 (runners) needs route and runs only for hosts that got this far."""
+    Checks 5-6 (fill rules, runners) run only for hosts that got this far."""
+    if row and row.get("unanswered"):
+        return "status offline (no answer to the live probe)"
     why = _probe_problem(row, now)
     if why:
         return why

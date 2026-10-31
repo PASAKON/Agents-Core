@@ -475,7 +475,7 @@ fi
 # check-then-lock one step against a second launcher starting in the same second;
 # it is released as soon as this session's own lock is written below.
 SINGLE_FD_OPEN=0
-if org_flag ORG_SINGLE_CLEVEL && [ "$IS_PH" = "0" ]; then
+if { [ "$ROLE" = "cto" ] || org_flag ORG_SINGLE_CLEVEL; } && [ "$IS_PH" = "0" ]; then
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$LOCKS_DIR/.single-$ROLE.flock"
     SINGLE_FD_OPEN=1

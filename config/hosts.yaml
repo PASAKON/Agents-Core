@@ -24,6 +24,19 @@
 # for a session anyway: scripts/terminal-open.sh <id>, on that host.
 # Read by lib.config.terminal_window().
 
+router:
+  enabled: false
+  fill_limit_pct: 80
+  first_host: contabo
+  probe_timeout_s: 10
+  min_free_ram_gb:
+    winbox: 4
+  never_on:
+    mooniex-expertadvisor: [winbox]
+  cpu_exception:
+    min_free_ram_gb: 1.6
+    slot_ttl_s: 600
+
 hosts:
   mac:
     chrome_device_id: 35a05d33-19a5-4d2e-bab0-08503bad0a9b   # 'Browser 1 (macOS)' in list_connected_browsers
@@ -40,7 +53,7 @@ hosts:
     agents_root: /Users/gob/MoonieXHQ/Agents/Core
     worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
     provides: [chrome, macos_cu, blender_bridge]
-    max_workers: 4
+    max_workers: 2
     # Worker CLI(s) this host can spawn (task-adbc6f43). claude and agy are
     # supported locally — agy is wired via runners/agy_local.py (2026-09-29).
     # codex is not signed in on Mac (use contabo).
@@ -66,9 +79,8 @@ hosts:
     agents_root: 'C:\Users\passg\mooniex'
     worktrees: 'C:\Users\passg\mooniex\worktrees'
     provides: [chrome, blender, win_gui]
-    # CEO 2026-09-09: "เปิดไม่เกิน 2 Worker ก็พอแล้ว" — two on winbox is inside
-    # that rule; the second is a read-only tab (tab_registry keeps them apart).
-    max_workers: 2
+    # CEO 2026-10-30 host-fill plan: three workers, with a 4 GB RAM floor.
+    max_workers: 3
     max_browser_operators: 2
     # Measured 2026-09-20, RECONCILED 2026-09-22 (CTO REVIEW-ITER2.md, doc
     # commit 0d8490f9): claude.exe (.local\bin, working), codex.cmd

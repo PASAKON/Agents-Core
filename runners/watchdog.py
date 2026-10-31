@@ -1314,6 +1314,11 @@ def scan_once() -> dict:
     # free space clears gauge.orange + DISK_QUEUE_RESUME_MARGIN_GB. See
     # _drain_disk_queue()'s docstring.
     try:
+        from tools import host_queue
+        asyncio.run(host_queue.drain())
+    except Exception as e:
+        warn(f"watchdog host queue drain error: {e}")
+    try:
         disk_queue_spawned = _drain_disk_queue()
     except Exception as e:
         warn(f"watchdog disk queue drain error: {e}")

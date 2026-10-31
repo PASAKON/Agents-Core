@@ -154,7 +154,7 @@ printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
 # ORG_SINGLE_CLEVEL=1; tools/clevel_gate.py decides, under a flock released as
 # soon as this session's lock is written. Same block as cxo-claude.sh.
 SINGLE_FD_OPEN=0
-if org_flag ORG_SINGLE_CLEVEL; then
+if true; then  # CTO's host guard is unconditional; singleton policy remains in Python.
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$LOCKS_DIR/.single-cto.flock"
     SINGLE_FD_OPEN=1

@@ -1296,6 +1296,11 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
     if refusal:
         _audit("spawn_c_level", role, "rejected", f"singleton role, host={host}")
         return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
+    # An unknown role is answered as one before the gate sees it: the gate's
+    # CTO-on-Contabo rule is about the role `cto` only, not about a "CTO" typo.
+    rejection = _reject_unknown_role("spawn_c_level", role, host=host)
+    if rejection:
+        return rejection
     # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
     from tools import clevel_gate
     # No session id: a resume starts under a new id (node_dispatch), so the
@@ -1306,9 +1311,6 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
         return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
     if mesh.enabled():
         return _spawn_c_level_mesh(role, host, resume_session_id)
-    rejection = _reject_unknown_role("spawn_c_level", role, host=host)
-    if rejection:
-        return rejection
     if host not in HOSTS:
         _audit("spawn_c_level", role, "rejected", f"unknown host {host!r}")
         return json.dumps({
