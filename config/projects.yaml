@@ -408,8 +408,12 @@ projects:
     # Contabo (lib.config.project_path_for_host). SomPong changes its repo itself; the root inbox runs
     # a release made by scripts/sompong-inbox-deploy.sh (red Run card). Read it as root only through
     # `runuser -u sompong -- git -C /opt/MoonieXHQ/Projects/MoonieX/SomPong ...`.
+    # CEO 2026-10-31 (Q-20261031-0309-6df9): workers may build on Contabo in a ROOT-owned clone from
+    # GitHub (paths.contabo below). It is never sompong's live checkout, so no sompong .git runs as
+    # root; the live service still changes only through scripts/sompong-inbox-deploy.sh (red card).
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
+      contabo: /opt/MoonieXHQ/Agents/Core/worktrees/sompong-root-clone
     spawn_backend: tmux
 
   - key: mooniex-option
