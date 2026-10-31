@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-66 org skills by kind — Rules 8 · Knowledge 17 · Workflow 5 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+67 org skills by kind — Rules 8 · Knowledge 18 · Workflow 5 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -35,6 +35,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
 | `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and credit lanes), the 2.0 / 2.0 Fast / 2.0… |
+| `CMO_Knowledge_ThaiHumor` | CMO | cmo, script_writer, content_strategist, video_editor, project_head | What Thai viewers find funny and why (12 measured comedy mechanisms with clip evidence, timing, voice, sound cues), the decode-a-real-bit… |
 | `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 20,000-character… |
 | `CTO_Knowledge_AGY` | CTO | cxo | What Antigravity (agy) is in the org (its two weekly buckets, the file-only headless contract, the agy_browse lane) and how it has… |
 | `CTO_Knowledge_Codex` | CTO | cxo | What Codex CLI is in the org (where it runs, its weekly bucket, that it can run a shell) and how it has measured as a worker, per job… |
