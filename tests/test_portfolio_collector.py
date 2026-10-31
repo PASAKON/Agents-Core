@@ -291,3 +291,68 @@ def test_main_collects_after_push_and_redacts_errors(console, monkeypatch, capsy
     assert push.main() == push.EXIT_REFUSED
     output = capsys.readouterr()
     assert "private CEO text" not in output.err and console["token"] not in output.err
+
+
+# CTO gate 2b (31 Oct): root reads these from shared folders, so a planted link or FIFO is refused, never followed.
+@pytest.fixture
+def no_hang():
+    """Fail instead of hanging when an open blocks on a FIFO."""
+    import signal
+
+    def boom(*_):
+        raise AssertionError("blocked on a planted FIFO")
+    old = signal.signal(signal.SIGALRM, boom)
+    signal.alarm(10)
+    yield
+    signal.alarm(0)
+    signal.signal(signal.SIGALRM, old)
+
+
+def _plant(path, kind, target):
+    import os
+    if kind == "symlink":
+        target.write_text("{}")
+        path.symlink_to(target)
+    else:
+        os.mkfifo(path)
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo"])
+def test_planted_lock_is_refused(console, kind, tmp_path, no_hang):
+    nudge(console)
+    _plant(push.COLLECTOR_STATE.with_suffix(".lock"), kind, tmp_path / "elsewhere")
+    with pytest.raises(OSError):  # ELOOP for a link, ENXIO or Unsafe for a FIFO
+        console["run"]()
+    assert not letters() and not console["requests"]
+
+
+@pytest.mark.parametrize("kind", ["symlink", "fifo"])
+def test_planted_state_is_refused(console, kind, tmp_path, no_hang):
+    nudge(console)
+    _plant(push.COLLECTOR_STATE, kind, tmp_path / "elsewhere")
+    with pytest.raises(OSError):
+        console["run"]()
+    assert not letters() and not console["requests"]
+
+
+def test_planted_lane_pointer_is_ignored(tmp_path, monkeypatch, no_hang):
+    import os
+    locks = tmp_path / "state" / "locks"
+    locks.mkdir(parents=True)
+    (tmp_path / "secret").write_text("cto-wrong")
+    (locks / "cto-active").symlink_to(tmp_path / "secret")
+    os.mkfifo(locks / "cmo-active")
+    monkeypatch.setattr(delivery, "ROOT", tmp_path)
+    live = {"cto-wrong", "cto-fresh", "cmo-main"}
+    assert delivery.lane_box("cto", live) == "cto-fresh"
+    assert delivery.lane_box("cmo", live) == "cmo-main"
+
+
+def test_safe_file_refuses_second_hard_link(tmp_path):
+    import os
+    from lib import safe_file
+    (tmp_path / "a").write_text("x")
+    os.link(tmp_path / "a", tmp_path / "b")
+    with pytest.raises(safe_file.Unsafe):
+        safe_file.open_append(tmp_path / "b")
+    assert safe_file.read_text(tmp_path / "a") == "x"

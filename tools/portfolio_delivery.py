@@ -2,6 +2,8 @@
 import re
 from pathlib import Path
 
+from lib import safe_file
+
 ROOT = Path(__file__).resolve().parent.parent
 BOX = re.compile(r"([a-z_]{2,20})-([A-Za-z0-9][A-Za-z0-9-]{0,63})")
 
@@ -27,7 +29,7 @@ def lane_box(lane: str, live: set[str]) -> str | None:
     if lane not in _lanes():
         return None
     try:
-        sid = (ROOT / "state" / "locks" / f"{lane}-active").read_text().strip()
+        sid = safe_file.read_text(ROOT / "state" / "locks" / f"{lane}-active").strip()
     except OSError:
         sid = ""
     box = sid if sid.startswith(f"{lane}-") else f"{lane}-{sid}"

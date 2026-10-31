@@ -151,7 +151,11 @@ def _collector_round(base, token, *, dry_run=False):
             raise TimeoutError("collector round budget exhausted")
         return _collector_request(base, token, path, body, timeout=min(TIMEOUT_S, remaining))
 
-    state = json.loads(COLLECTOR_STATE.read_text()) if COLLECTOR_STATE.exists() else {}
+    from lib import safe_file
+    try:
+        state = json.loads(safe_file.read_text(COLLECTOR_STATE))
+    except FileNotFoundError:
+        state = {}
     # A corrupt ledger must stop delivery, never silently resend every letter.
     if not isinstance(state, dict):
         raise ValueError("invalid collector state")
@@ -242,7 +246,8 @@ def collect(base, token, *, dry_run=False):
     if dry_run:
         return _collector_round(base, token, dry_run=True)
     COLLECTOR_STATE.parent.mkdir(parents=True, exist_ok=True)
-    with COLLECTOR_STATE.with_suffix(".lock").open("a") as lock:
+    from lib import safe_file
+    with safe_file.open_append(COLLECTOR_STATE.with_suffix(".lock")) as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
