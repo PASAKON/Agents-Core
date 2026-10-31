@@ -26,13 +26,22 @@ Exit: 0 pushed (204)
 One line on stderr per run, starting `portfolio_push: `. The token and the response body are
 never printed, and a hub error is named by its class only (a psycopg message can name the host).
 Module level is stdlib only; lib.portfolio loads inside the function that needs it.
+
+After a successful push, collect up to 20 CEO items/receipts. Delivery state is private in
+state/portfolio_collector.json; touch state/portfolio_collector.off to stop collection.
+--dry-run fetches pending items and prints action/project/recipient only, without pushing,
+writing mail, waking, unblocking, or acknowledging. CEO message text is never printed.
 """
 from __future__ import annotations
 
 import json
+import argparse
+import fcntl
 import os
 import re
 import sys
+import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -68,6 +77,182 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 _OPENER = urllib.request.build_opener(_NoRedirect)
+COLLECTOR_STATE = ROOT / "state" / "portfolio_collector.json"
+COLLECTOR_OFF = ROOT / "state" / "portfolio_collector.off"
+COLLECTOR_CAP = 20
+COLLECTOR_BUDGET_S = 15  # share the publisher's 30-second child timeout with the push
+SENTENCES = {
+    "done": "CEO pressed ทำแล้ว on your blocker: it is unblocked, continue",
+    "report": "CEO requested a progress report: report the current status and next step.",
+    "resume": "CEO requested that you resume this project: continue the next step now.",
+    "lead": "CEO requested leadership on this project: take ownership and drive the next step.",
+}
+
+
+def _collector_request(base, token, path, body=None, *, timeout=TIMEOUT_S):
+    req = urllib.request.Request(base + "/api/portfolio/" + path,
+        data=None if body is None else json.dumps(body).encode(),
+        method="GET" if body is None else "POST",
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json",
+                 "User-Agent": "mooniex-agents-portfolio-push/1"})
+    try:
+        response = _OPENER.open(req, timeout=timeout)
+    except urllib.error.HTTPError as exc:
+        # An ack may have committed before its response was lost.
+        if body is not None and path.endswith("/ack") and exc.code == 409:
+            exc.close()
+            return None
+        raise
+    with response as resp:
+        if body is not None:
+            return None
+        raw = resp.read(256 * 1024 + 1)
+        if len(raw) > 256 * 1024:
+            raise ValueError("collector response too large")
+        items = json.loads(raw)
+        if not isinstance(items, list):
+            raise ValueError("collector response is not a list")
+        return items
+
+
+def _save_collector(state):
+    fd, tmp = tempfile.mkstemp(dir=COLLECTOR_STATE.parent, prefix=".portfolio_collector.")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            json.dump(state, fh)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, COLLECTOR_STATE)
+    finally:
+        Path(tmp).unlink(missing_ok=True)
+
+
+def _wake_receipt(receipt, state):
+    from tools import mail_wake
+    if not receipt.get("wake_pending"):
+        return
+    result = mail_wake.wake(Path(receipt["letter"]).parent.name, "CEO-PORTFOLIO")
+    receipt["ack"]["woke"] = bool(result.get("woke"))
+    # Fixed reason: transport errors must not leak private data to Console.
+    receipt["ack"]["reason"] = "woke" if receipt["ack"]["woke"] else "no live session reached"
+    receipt["wake_pending"] = False
+    _save_collector(state)
+
+
+def _collector_round(base, token, *, dry_run=False):
+    from lib import mailbox, portfolio
+    from tools import portfolio_delivery
+
+    deadline = time.monotonic() + COLLECTOR_BUDGET_S
+
+    def request(path, body=None):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("collector round budget exhausted")
+        return _collector_request(base, token, path, body, timeout=min(TIMEOUT_S, remaining))
+
+    from lib import safe_file
+    try:
+        state = json.loads(safe_file.read_text(COLLECTOR_STATE))
+    except FileNotFoundError:
+        state = {}
+    # A corrupt ledger must stop delivery, never silently resend every letter.
+    if not isinstance(state, dict):
+        raise ValueError("invalid collector state")
+    if not dry_run:
+        _save_collector(state)  # verify persistence before writing any letter
+    count = 0
+    for nid, receipt in list(state.items()):
+        if count >= COLLECTOR_CAP:
+            break
+        path = receipt["kind"] + "/" + nid
+        if dry_run:
+            continue
+        if not receipt["acked"]:
+            count += 1
+            _wake_receipt(receipt, state)
+            request(path + "/ack", receipt["ack"])
+            receipt["acked"] = True
+            _save_collector(state)
+        elif receipt["letter"] and not Path(receipt["letter"]).exists():
+            count += 1
+            request(path + "/read", {})
+            del state[nid]
+            _save_collector(state)
+        elif not receipt["letter"]:
+            del state[nid]
+            _save_collector(state)
+
+    live = None
+    for kind in ("nudges", "messages"):
+        items = request(kind)
+        for item in items:
+            if count >= COLLECTOR_CAP:
+                break
+            if not isinstance(item, dict):
+                continue
+            nid, pid = item.get("id", ""), item.get("project", "")
+            if not isinstance(nid, str) or not re.fullmatch(r"[a-zA-Z0-9-]{1,80}", nid):
+                continue
+            if nid in state:
+                continue
+            if not isinstance(pid, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", pid):
+                continue
+            action = "message" if kind == "messages" else item.get("action")
+            if action == "message":
+                text = item.get("text")
+                if not isinstance(text, str) or not 1 <= len(text) <= 2000:
+                    continue
+                sentence = "CEO wrote:\n" + text
+            elif isinstance(action, str) and action in SENTENCES:
+                sentence = SENTENCES[action]
+            else:
+                continue
+            try:
+                project = portfolio.get_project(pid)
+            except portfolio.PortfolioError:
+                project = {}  # unknown project: ack as none instead of failing every round
+            if live is None:
+                live = portfolio_delivery.live_boxes()
+            box, recipient = portfolio_delivery.target(project, live)
+            count += 1
+            if dry_run:
+                # Never print the CEO's text, even in preview mode.
+                print(f"would send CEO {action} · {pid} to {recipient}; kind=ask; "
+                      + ("wake immediately" if box else "no live recipient"))
+                continue
+            if action == "done" and project.get("blocker_on") is not None:
+                portfolio.unblock(pid, actor="system")
+            receipt = {"kind": kind, "letter": None, "acked": False, "wake_pending": bool(box),
+                       "ack": {"delivered_to": recipient, "woke": False,
+                               "reason": "no live recipient" if not box else "wake not completed"}}
+            if box:
+                role, sid = box.split("-", 1)
+                body = f"CEO {action} · {pid}\n{sentence}"
+                receipt["letter"] = str(mailbox.send(role, sid, body, "system", "portfolio-collector",
+                    kind="ask", subject=body.splitlines()[0], prio="urgent"))
+            state[nid] = receipt
+            _save_collector(state)
+            _wake_receipt(receipt, state)
+            request(kind + "/" + nid + "/ack", receipt["ack"])
+            receipt["acked"] = True
+            _save_collector(state)
+
+
+def collect(base, token, *, dry_run=False):
+    """One bounded round, serialized against manual invocations. No secret/text logging."""
+    if COLLECTOR_OFF.exists():
+        return
+    if dry_run:
+        return _collector_round(base, token, dry_run=True)
+    COLLECTOR_STATE.parent.mkdir(parents=True, exist_ok=True)
+    from lib import safe_file
+    with safe_file.open_append(COLLECTOR_STATE.with_suffix(".lock")) as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        _collector_round(base, token)
 
 
 def _log(line: str) -> None:
@@ -110,7 +295,10 @@ def _post(url: str, token: str, body: bytes) -> int:
         return exc.code
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args([] if argv is None else argv)
     token = os.environ.get("PORTFOLIO_PUSH_TOKEN", "").strip()
     if not token:
         _log("PORTFOLIO_PUSH_TOKEN is unset, nothing sent")
@@ -122,6 +310,13 @@ def main() -> int:
     if url is None:
         _log("PORTFOLIO_PUSH_URL must be https (http only on loopback), nothing sent")
         return EXIT_NOT_CONFIGURED
+    if args.dry_run:
+        try:
+            collect(url[:-len(PATH)], token, dry_run=True)
+        except Exception as exc:
+            _log(f"collector failed ({type(exc).__name__})")
+            return EXIT_REFUSED
+        return EXIT_OK
     try:
         payload = build_payload()
     except Exception as exc:
@@ -134,6 +329,11 @@ def main() -> int:
         _log(f"console unreachable ({type(exc.__cause__ or exc).__name__})")
         return EXIT_REFUSED
     if status == 204:
+        try:
+            collect(url[:-len(PATH)], token)
+        except Exception as exc:
+            _log(f"collector failed ({type(exc).__name__})")
+            return EXIT_REFUSED
         _log(f"ok 204, {len(payload.get('projects', []))} projects, {len(body)} bytes")
         return EXIT_OK
     why = STATUS_WHY.get(status)
@@ -142,4 +342,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))
