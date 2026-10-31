@@ -46,6 +46,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import org_flags  # noqa: E402
+from lib.proc import pid_alive  # noqa: E402
 
 LOCKS_DIR = ROOT / "state" / "locks"
 HOME_HOST = "contabo"
@@ -114,12 +115,10 @@ def _ps_argv(pid: int) -> list[str] | None:
 
 def _pid_is_launcher(pid: int, role: str | None = None) -> bool:
     """`pid` is alive and is a launcher (of `role`, when given), read from /proc or ps."""
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
+    # lib.proc.pid_alive, not os.kill(pid, 0): on Windows that call is no probe, and
+    # for a dead pid it raises WinError 87 (#579). A pid owned by another user counts alive.
+    if not pid_alive(pid):
         return False
-    except PermissionError:
-        pass  # alive, owned by another user
     if PROC.is_dir():
         try:
             raw = (PROC / str(pid) / "cmdline").read_bytes()

@@ -320,6 +320,14 @@ if (Test-Path $lockFile) {
 }
 Set-Content -Path $lockFile -Value "$PID" -Encoding ASCII -NoNewline
 
+# #579: from here to the end every failure (a throw under $ErrorActionPreference =
+# 'Stop', not only claude exiting) runs the finally below, which removes the lock, the
+# .uuid file and, for a Project Head, its claim and owner record. Without it a launch that
+# died before claude started left a lock for a dead pid; on the next spawn the liveness
+# probe read that pid and failed (WinError 87). The block is deliberately not indented, so
+# the diff stays small and nothing below changes meaning.
+try {
+
 # Active-session pointer: only for non-ephemeral launches (no -Session
 # override) -- an ephemeral spawn must never clobber the CEO's primary tab
 # pointer (same rule cxo-claude.sh enforces).
@@ -515,9 +523,8 @@ $code = 1
 # claude takes its project (CLAUDE.md, .claude, memory slug) from the cwd. A
 # scheduled task starts in C:\WINDOWS\system32 (PH #5b17d4c7, 2026-10-17).
 Set-Location -LiteralPath $root
-try {
-    Invoke-NativeExe -Exe $claude -Arguments $fullArgs
-    $code = $LASTEXITCODE
+Invoke-NativeExe -Exe $claude -Arguments $fullArgs
+$code = $LASTEXITCODE
 } finally {
     if ($mcpConfig) { Remove-Item -Force -ErrorAction SilentlyContinue $mcpConfig }
     Remove-Item -Force -ErrorAction SilentlyContinue $lockFile
