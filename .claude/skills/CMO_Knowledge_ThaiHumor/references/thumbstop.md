@@ -32,7 +32,7 @@ Count: 16 claims: 9 VERIFIED (1-8, 11), 1 split (13: verified for banners, assum
 - **TikTok: sound on is the default** (claim 8). Voice tone, the cue sound and timing carry the joke.
 - **Reels / Facebook: assume muted** (claim 10, dated but never contradicted). The face plus a big subtitle must carry it.
 - **So every hook is written twice-proof:** it works with sound (voice + cue) and muted (face + subtitle). Deadpan,
-  พากย์นรก with burned subtitles, slapstick and the lakorn zoom pass both; มุขแป้ก silence and คำผวน need the subtitle.
+  พากย์นรก with burned subtitles, slapstick and the lakorn zoom pass both; มุกแป้ก silence and คำผวน need the subtitle.
 
 ## The first 3 seconds checklist (for script writers)
 1. **Frame 1: a face**, close, mid-expression (not neutral, not smiling at camera yet). (3, 6, 13)
@@ -44,8 +44,8 @@ Count: 16 claims: 9 VERIFIED (1-8, 11), 1 split (13: verified for banners, assum
 7. **Seconds 1-2: open a loop:** a question, a mishearing, a promise ("สุดท้ายใครโดน...") that the end pays off. (12)
 8. **Seconds 2-3: the first cut** (≥2 shots in 5 s), usually the reaction face. (6)
 9. **By second 3 the viewer knows what the clip is about;** the punch lands by second 6. (1)
-10. **Benign check:** the broken rule is harmless and nobody is mocked for who they are. If it would hurt someone in
-    real life, cut it. (11 + brief rules)
+10. **Works twice and is benign:** voice + cue carry it with sound, face + subtitle carry it muted, and nobody is
+    mocked for who they are. If it would hurt someone in real life, cut it. (8, 10, 11 + brief rules)
 
 ## Not checked / risk
 - TikTok's own "Evolution of Sound" numbers are US samples, commissioned by TikTok. No Thai sound-on/off figure was found.

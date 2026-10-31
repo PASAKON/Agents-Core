@@ -1,15 +1,15 @@
 ---
 name: CMO_Knowledge_ThaiHumor
 kind: knowledge
-description: "KNOWLEDGE — What Thai viewers find funny and why (12 measured comedy mechanisms with clip evidence, timing, voice, sound cues), what stops the thumb in the first 3 seconds, and 20 worked hook examples for our channels. Trigger on /CMO_Knowledge_ThaiHumor and on \"มุกตลก\", \"ตลกแบบไทย\", \"เขียนมุก\", \"hook ตลก\", \"เปิดคลิปให้หยุดนิ้ว\", \"thumb-stop\", \"Thai humour\", \"comedy hook\", \"ทำให้คนดูขำ\". Do NOT use for drama story structure (CMO_Standard_Story_ThaiMoralDrama) or narrator voice rules (CMO_Standard_HumanVoice_TH)."
+description: "KNOWLEDGE: What Thai viewers find funny and why (12 measured comedy mechanisms with clip evidence, timing, voice, sound cues), the decode-a-real-bit formula, what stops the thumb in the first 3 seconds, and 20 worked hook examples for our channels. Trigger on /CMO_Knowledge_ThaiHumor and on \"มุกตลก\", \"ตลกแบบไทย\", \"เขียนมุก\", \"hook ตลก\", \"เปิดคลิปให้หยุดนิ้ว\", \"thumb-stop\", \"Thai humour\", \"Thai humor\", \"comedy hook\", \"ทำให้คนดูขำ\". Do NOT use for drama story structure (CMO_Standard_Story_ThaiMoralDrama) or narrator voice rules (CMO_Standard_HumanVoice_TH)."
 owner: CMO
 created_by: agent
-author: {role: project_head, date: "2026-10-29"}
+author: {role: project_head, date: "2026-10-30"}
 audience: [cmo, script_writer, content_strategist, video_editor, project_head]
 improved_by: []
 aka: []
-verified: "2026-10-29"
-refresh_after: "2027-01-29"
+verified: "2026-10-30"
+refresh_after: "2027-01-30"
 ---
 # Thai humour for our scripts: what lands, why, and the first 3 seconds
 
@@ -92,13 +92,13 @@ the 9 decoded bits: `references/real-jokes.md`.
 7. Bland lines get one more step or a sharper ตบ, not a new idea.
 
 ## How to write a hook with this skill
-1. Pick the channel's job (ILAG moral drama, KhaoHom survival, Jade Tally drama dub, B-roll opener) and 1-2 mechanisms
-   from the table that fit a hook.
-2. Write frame 1 first (checklist 1-4), then the line, then the timing in seconds, then the voice direction.
-3. Run the benign check (below), then `scripts/check-post-text.sh` on anything public.
-4. Copy the format of `references/hooks-20.md`. Those 20 are ours to reuse; test 2-3 per channel before scaling.
-5. Before writing, open `knowledge/brand-knowledge/brands/<channel>/formulas/INDEX.md`: a proven hook formula that
+1. Before writing, open `knowledge/brand-knowledge/brands/<channel>/formulas/INDEX.md`: a proven hook formula that
    fits is followed as written (`CMO_Workflow_PromptFormula`).
+2. Pick the channel's job (ILAG moral drama, KhaoHom survival, Jade Tally drama dub, B-roll opener) and 1-2 mechanisms
+   from the table that fit a hook.
+3. Write frame 1 first (checklist 1-4), then the line, then the timing in seconds, then the voice direction.
+4. Copy the format of `references/hooks-20.md`. Those 20 are ours to reuse; test 2-3 per channel before scaling.
+5. Run the benign check (below), then `scripts/check-post-text.sh` on anything public.
 
 ## Proven hooks become formulas (CEO 2026-10-30, via CMO)
 Seven days after a post, compare it with the channel's own average of its last 5 posts (`CMO_Workflow_PromptFormula`
@@ -108,7 +108,7 @@ timing, so the next EP repeats it and other channels can adopt it.
 
 ## Rules that apply here (pointers)
 - Others' jokes are ideas only (CEO 2026-10-11): learn the mechanism, never copy a line, catchphrase or sketch.
-- No crude words (no มึง/กู, no swearing), even though many popular clips use them. Never write blush/หน้าแดง/หูแดง.
+- No crude words (no swearing or crude pronouns), even though many popular clips use them. Never write face-colour or ear-colour embarrassment cues (see `CMO_Standard_HumanVoice_TH`).
 - No punching down. **DON'T USE** forms seen in the sample: jokes on gender identity (common in พากย์นรก Shorts),
   body shape or looks, disability, skin colour, ethnicity, region-as-insult accent mockery, and bawdy คำผวน whose
   decoded form is sexual. Hitting a person: show the sound or the freeze before contact, never the hit.
@@ -118,3 +118,4 @@ timing, so the next EP repeats it and other channels can adopt it.
 - 2026-10-29 [MISSING] YouTube caption URLs (timedtext) now return empty without a token; `yt-dlp --skip-download --write-auto-subs --sub-langs th --sub-format json3` fetches captions only (no media) and worked on 33 clips · evidence: project thaihumor, /opt/MoonieXHQ/Work/thaihumor/subs · status: pending
 - 2026-10-29 [COSTLY] An AGY researcher worker died at once ("tool permission auto-denied") on a web-research brief; the same failure is logged in the CnDrama and ILAG STATUS files. Budget for doing web research yourself or on another runner · evidence: task-5e0c0111 · status: pending
 - 2026-10-29 [COSTLY] An AGY read-only reviewer died in 0.6 min ("read_file" auto-denied): agy gets `--add-dir <its worktree>` only, and the PR files sat on a branch not in that worktree. Tell a worker to `git show FETCH_HEAD:<path> > tmp/<file>` first, or route the review to Codex · evidence: task-b5f822a5 .launch-task-b5f822a5/agy-events.log · status: pending
+- 2026-10-31 [COSTLY] An AGY headless reviewer refuses every shell command ("command" auto-denied, task-05286854), and on winbox a 66 KB prompt never started (task-27510f80). What worked: paste the PR files into the brief and run AGY on Contabo (task-ec774583, 11 fixes, 10 of them applied) · evidence: .launch-task-*/agy-events.log · status: pending

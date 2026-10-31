@@ -14,26 +14,26 @@ Benign check passed on every hook: nobody is mocked for who they are; no crude w
 - Voice: first half high, trembling, lakorn vibrato; second half flat, a market voice at 4 pm.
 - Muted: subtitle in two lines; the second appears only on the punch.
 
-**H2. The vegetable that phoned** (#7 deadpan + #6 literal answer)
-- Frame 1: close-up, a customer squeezes a bunch of greens, doubtful.
-- Line: ลูกค้า: "ป้า ผักนี่สดไหมครับ" | ป้า (not looking up, counting change): "สดค่ะ เมื่อเช้ามันยังโทรหาป้าอยู่เลย"
-- Timing: 0.0-1.2 question | answer starts at 1.4 with no pause | 3.0 the customer slowly puts the greens down.
-- Voice: ป้า calm, low, polite ค่ะ; no smile. The customer's silence is the laugh.
-- Muted: works on the customer's face.
+**H2. Reverse haggling** (#6 literal answer + #7 deadpan, frame from น้าค่อม "ขายไม้จิ้มฟัน" youtu.be/HpJsjUKeeZU)
+- Frame 1: close-up on ป้า's sympathetic face holding two lemons, subtitle on screen: "เมื่อขอแม่ค้าลดราคามะนาวสามลูกสิบสอง"
+- Line: ลูกค้า: "มะนาวสามลูกสิบสองได้ไหมป้า" | ป้า (sympathetic, deadpan): "อย่าต่อเลยลูก เอาไปสองลูกสิบสองพอ" | ลูกค้า (ตบ): "ป้า! นั่นป้าขึ้นราคา!"
+- Timing: 0.0-1.2 question + cash-register ding | 1.3-2.8 ป้า's answer | 2.9-4.2 cut to customer's reaction + ตบ line.
+- Voice: ป้า warm and motherly as if doing a favour; customer stunned.
+- Muted: Frame 1 face + subtitle, then cut to customer counting on fingers at 2.9 s.
 
 **H3. Freeze before the slap** (#8 reversal + #7 deadpan narrator)
-- Frame 1: freeze frame, a hand mid-air, the other person's back to camera. No contact is ever shown.
-- Line: narrator (low, even): "ฝ่ามือนี้ จะเป็นฝ่ามือที่แพงที่สุดในตลาด" | 0.6 s pause | "เพราะคนที่กำลังจะโดน... คือเจ้าของตลาด"
-- Timing: 0.0-2.2 line 1 | 2.2-2.8 pause | 2.8-4.6 line 2 | 4.8 the back turns: the market owner.
+- Frame 1: close-up of the villain's angry face raising a hand mid-swing (slow-motion movement + whoosh sting at 0.2 s), subtitle: "ฝ่ามือที่แพงที่สุดในตลาดนัดแห่งนี้". No contact is ever shown.
+- Line: narrator (low, even): "ฝ่ามือนี้ จะเป็นฝ่ามือที่แพงที่สุดในตลาด" | cut at 2.2 s to the calm face of the target turning around | "เพราะคนที่กำลังจะโดน... คือเจ้าของตลาด"
+- Timing: 0.0-2.1 line 1 (slow-mo swing) | 2.2 cut to the market owner's face | 2.4-4.2 line 2 + villain freezes.
 - Voice: documentary narrator, no drama in the voice; the picture does the drama.
 - Muted: big subtitle; the reveal is visual.
 
-**H4. กล่ำ or กรรม** (#5 sound play + karma theme)
-- Frame 1: แม่ค้า holds up a cabbage, already mid-shout; the bully of the episode walks past behind her.
-- Line: แม่ค้า: "กล่ำมาแล้วจ้า! กล่ำสดๆ ใครทำไว้ได้คืนทุกคน!" | bully stops, uneasy: "ป้า... หมายถึงผักใช่ไหม"
-- Timing: 0.0-2.4 shout | 2.5 bully freezes (0.7 s hold) | 3.2-4.4 his line | 4.5 ป้า just smiles and holds the cabbage higher.
+**H4. กำ or กรรม** (#5 sound play + karma theme)
+- Frame 1: แม่ค้า holds up bunches of greens, already mid-shout; the bully of the episode walks past behind her.
+- Line: แม่ค้า: "ผักเป็นกำจ้า! กำใครกำมัน รับไปเลยคนละกำ!" | bully stops, uneasy: "ป้า... หมายถึงผักใช่ไหม"
+- Timing: 0.0-2.4 shout | 2.5 bully freezes (0.7 s hold) | 3.2-4.4 his line | 4.5 ป้า just smiles and holds the bunch higher.
 - Voice: ป้า loud, cheerful, market sing-song; bully quiet, a little scared.
-- Muted: subtitle shows กล่ำ, then a small second line "(กรรม?)" on the bully's face.
+- Muted: subtitle shows กำ, then a small second line "(กรรม?)" on the bully's face.
 
 **H5. The subtitle knows** (#10 cheeky subtitle + open loop)
 - Frame 1: close-up of the villain, smug, centre frame.
@@ -47,8 +47,8 @@ Assumed: the hero is called ข้าวหอม; rename if the channel uses an
 
 **H6. Everything we need** (#7 deadpan + #8 reversal)
 - Frame 1: ข้าวหอม on a tiny island, already waving at a passing plane that does not stop.
-- Line: narrator (newsreader calm): "วันที่หนึ่งบนเกาะร้าง ข้าวหอมมีทุกอย่างที่ต้องใช้" | camera pans: one coconut | "...หนึ่งลูก"
-- Timing: 0.0-2.4 line | 2.4-3.2 pan | 3.3-3.9 "หนึ่งลูก" | 4.0 the coconut rolls into the sea.
+- Line: narrator (newsreader calm): "วันที่หนึ่งบนเกาะร้าง ข้าวหอมมีทุกอย่างที่ต้องใช้" | camera pans: one coconut | "...มะพร้าวหนึ่งลูก"
+- Timing: 0.0-2.4 line | 2.4-3.2 pan | 3.3-3.9 "มะพร้าวหนึ่งลูก" | 4.0 the coconut rolls into the sea.
 - Voice: deep, official, slow; the last two words even flatter.
 - Muted: subtitle; the pan carries it.
 
@@ -68,13 +68,13 @@ Assumed: the hero is called ข้าวหอม; rename if the channel uses an
 
 **H9. A fishing rod in the desert** (#8 open loop, payoff at the end)
 - Frame 1: ข้าวหอม walking through the desert with an umbrella and a fishing rod, sun blazing.
-- Line: big text on frame 1: "ทำไมต้องพาเบ็ดตกปลามาทะเลทราย" | ข้าวหอม, to camera, confident: "เดี๋ยวก็รู้"
+- Line: big text on frame 1: "ทำไมต้องพกเบ็ดตกปลามาทะเลทราย" | ข้าวหอม, to camera, confident: "เดี๋ยวก็รู้"
 - Timing: text 0.0-2.0 | "เดี๋ยวก็รู้" at 2.2 | 2.8 cut away. Payoff at the end of the episode (the oasis, or the rain).
 - Voice: cheerful, too sure of himself.
 - Muted: the text is the hook.
 
 **H10. Water count** (#1 sound cue + #7 deadpan)
-- Frame 1: three water bottles in a row, ข้าวหอม's hand already reaching.
+- Frame 1: close-up on ข้าวหอม's parched face already gulping from bottle #1, two more bottles beside him, subtitle: "น้ำสามขวดสุดท้ายบนเกาะร้าง".
 - Line: narrator: "ข้าวหอมมีน้ำสามขวด" (gulp sound) "สองขวด" (gulp) "หนึ่งขวด" (gulp) | pause | "ผ่านไปห้านาที"
 - Timing: a count every 0.9 s, 0.0-2.7 | 2.7-3.2 silence | 3.2-4.2 punch + ตบมุก sting on the last word.
 - Voice: steady count, then the punch slower.
@@ -91,7 +91,7 @@ Light comedy on a drama: one cheeky line, then the drama keeps going. Respect th
 - Muted: two-line subtitle; the abacus close-up lands it.
 
 **H12. Priceless or worthless** (#5 double meaning, ties to EP02 ไข่ที่ไม่มีราคา)
-- Frame 1: a plain egg in the merchant's palm, close.
+- Frame 1: close-up on the greedy merchant's face holding a plain egg up to the hero, subtitle: "ไข่ธรรมดาฟองนี้ราคาเท่าไหร่กันแน่".
 - Line: พ่อค้า: "ไข่ฟองนี้ ราคาเท่าไร" | hero, clicks abacus once: "ไม่มีราคา" | พ่อค้า, delighted: "ฟรีหรือ!" | hero: "ไม่ขอรับ ไม่มีใครจ่ายไหว"
 - Timing: 0.0-1.2 | click 1.3 | 1.5-2.2 "ไม่มีราคา" | 2.4-2.9 "ฟรีหรือ" | 3.1-4.6 punch.
 - Voice: hero calm, slow, sure; merchant greedy and fast.
@@ -105,7 +105,7 @@ Light comedy on a drama: one cheeky line, then the drama keeps going. Respect th
 - Muted: the hero's not looking up carries it.
 
 **H14. Everything has a price** (#8 reversal + hierarchy play)
-- Frame 1: abacus beads snapping in slow motion, sting.
+- Frame 1: close-up on the hero's solemn face flicking abacus beads in slow motion (sting at 0.2 s), subtitle: "ในแผ่นดินนี้ทุกสิ่งล้วนมีราคา".
 - Line: hero, voice-over grand: "ในแผ่นดินนี้ ทุกสิ่งมีราคา" | wife, off-screen, plain: "แล้วค่าเช่าเดือนนี้ล่ะ" | hero freezes mid-click.
 - Timing: 0.0-2.2 | 2.4-3.4 wife | 3.4-4.2 freeze, one bead slides back alone (tick).
 - Voice: hero like a trailer narrator; wife ordinary, not angry.
@@ -122,13 +122,13 @@ Light comedy on a drama: one cheeky line, then the drama keeps going. Respect th
 Reusable on any channel; each fits over stock or B-roll.
 
 **H16. Calm before the news** (#7 deadpan + #10 subtitle)
-- Frame 1: beautiful slow B-roll (sea, rice field), a big subtitle already on.
+- Frame 1: close-up on the presenter's overly serene face holding a cup of tea in front of a sea/rice-field backdrop (gentle chime at 0.2 s), big subtitle: "ภาพสวยๆ นี้มีไว้ให้คุณใจเย็นลง".
 - Line (subtitle, plus calm VO): "ภาพสวยๆ นี้ มีไว้ให้คุณใจเย็นลง" | 0.8 s | "ก่อนดูเรื่องต่อไป"
 - Timing: 0.0-2.0 | 2.0-2.8 | 2.8-3.8 | 4.0 hard cut, loud, into the story.
 - Voice: spa-music calm; the cut is the punch.
 - Muted: subtitle-only.
 
-**H17. Three seconds that change your life** (#3 มุขแป้ก on purpose + #1 cue)
+**H17. Three seconds that change your life** (#3 มุกแป้ก on purpose + #1 cue)
 - Frame 1: a countdown "3" in big type over a face looking serious.
 - Line: VO: "สามวินาทีนี้ จะเปลี่ยนชีวิตคุณ" | "สาม... สอง... หนึ่ง..." | "...ใช่ครับ ผ่านไปแล้วสามวินาที" | cricket sound.
 - Timing: 0.0-1.6 | count 1.6-3.4 | 3.6-5.0 punch | 5.0-5.8 cricket, then the real content.
@@ -151,7 +151,7 @@ Reusable on any channel; each fits over stock or B-roll.
 
 **H20. A clean spoonerism** (#4 คำผวน, decoded form checked clean)
 - Frame 1: someone in bed, wide awake, ceiling light off.
-- Line: "นอนไม่หลับ ทำยังไงดี" | friend (deadpan, off-screen): "ลองผวนดูสิ" | subtitle: นอนหลับ -> นับหลอน | they slowly look at the dark corner.
+- Line: "นอนไม่หลับ ทำยังไงดี" | friend (deadpan, off-screen): "ลองผวนดูสิ" | subtitle (two lines): "นอนหลับ / นับหลอน" | they slowly look at the dark corner.
 - Timing: 0.0-1.4 | 1.6-2.4 | subtitle 2.5 | 2.5-3.5 the decode pause | 3.6 the slow head turn + a soft spooky sting.
 - Voice: tired; friend completely flat.
 - Muted: the subtitle shows both forms; the head turn lands it.
