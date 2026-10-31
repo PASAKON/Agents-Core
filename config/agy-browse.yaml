@@ -34,3 +34,13 @@ ports:
     # price is refused here and again by the money rule.
     fire_label_regex: "(?i)unlimited"
     submit_selector: "button[type=submit]"
+  9286:
+    # winbox Browser Home xm-partners (SomPongAdmin, CEO OK Q-20261031-1803-583c):
+    # read-only partner reports. No fire_label_regex, so the submit button is
+    # never clicked; account changes are not made through this lane.
+    label: xm-partners
+    allowed_hosts: [mypartners.xm.com]
+    upload_dirs: []
+    max_calls_per_min: 20
+    fire_cooldown_s: 600
+    submit_selector: "button[type=submit]"
