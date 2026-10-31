@@ -31,6 +31,9 @@ UUID = "12345678-1234-1234-1234-123456789abc"
 
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch, tmp_path):
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, 'outgoing_check', lambda *_: 'a' * 40)
+    monkeypatch.setattr(nd, 'MAINTENANCE_AUDIT_DIR', tmp_path / 'audit')
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     db_mod.init()
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
@@ -62,6 +65,9 @@ def _dispatch_events() -> list[dict]:
     rows = [r for r in db_mod.recent_events(limit=200) if r["actor"] == nd.ACTOR]
     for r in rows:
         r["payload"] = json.loads(r["payload"])
+    local = nd.MAINTENANCE_AUDIT_DIR / 'maintenance.jsonl'
+    if local.exists():
+        rows += [{'kind': 'dispatch', 'payload': json.loads(line)} for line in local.read_text().splitlines()]
     return rows
 
 
@@ -732,7 +738,7 @@ def test_publish_branch_pushes_the_branch_from_the_worktree(rec, tmp_path):
     assert out["result"] == {"task_id": tid, "branch": f"agent/developer-{tid}",
                              "pushed": True}
     (_, argv, kw), = rec.calls
-    assert argv == ["git", "push", "origin", f"agent/developer-{tid}"]
+    assert argv == ["git", "push", "origin", f"{'a' * 40}:refs/heads/agent/developer-{tid}"]
     assert kw["cwd"] == str(wt.resolve())
     assert kw.get("shell") is not True
     assert not {"--force", "-f", "--force-with-lease", "--delete"} & set(argv)

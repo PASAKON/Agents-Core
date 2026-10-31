@@ -425,7 +425,7 @@ def push_tick(host, band, actions):
         record(row)
 
 
-def tick(host=None, dry_run=False, simulate_free=None):
+def tick(host=None, dry_run=False, simulate_free=None, remote_apply=False):
     host = policy.host_key(host)
     if not dry_run and host != policy.host_key():
         raise ValueError('A live tick may only maintain its local host')
@@ -492,6 +492,15 @@ def tick(host=None, dry_run=False, simulate_free=None):
         record(dict(name='letters', status='failed', rc=1, error=type(exc).__name__,
                     bytes_before=None, bytes_after=None), dry_run)
     if host == 'contabo':
+        from tools.remote_maintenance import hub_reap
+        try:
+            if not dry_run and os.environ.get('ORG_DB_URL'):
+                failed = bool(hub_reap(apply=remote_apply)) or failed
+        except Exception as exc:
+            record(dict(name='remote-reap', host=host, status='failed',
+                        rc=1, bytes_before=None, bytes_after=None,
+                        error=type(exc).__name__), dry_run)
+            failed = True
         failed = bool(m4_report(dry_run=dry_run, host=host)) or failed
     if not dry_run:
         STATE.mkdir(parents=True, exist_ok=True)
@@ -542,12 +551,19 @@ def main(argv=None):
     p = sub.add_parser('tick')
     p.add_argument('--dry-run', action='store_true')
     p.add_argument('--simulate-free', type=float)
+    p.add_argument('--remote-apply', action='store_true',
+                   help='apply bounded hub remote cleanup (default is remote dry run)')
     p.add_argument('--host', choices=list(policy.load(policy.POLICY_PATH)['hosts']))
     sub.add_parser('report')
+    p = sub.add_parser('remote-reap')
+    p.add_argument('--apply', action='store_true')
     p = sub.add_parser('m4-report')
     p.add_argument('--now', type=datetime.fromisoformat)
     p.add_argument('--dry-run', action='store_true')
     args = parser.parse_args(argv)
+    if args.verb == 'remote-reap':
+        from tools.remote_maintenance import hub_reap
+        return hub_reap(apply=args.apply)
     if args.verb == 'm4-report':
         if args.now is not None and args.now.tzinfo is None:
             parser.error('--now must include a timezone')
@@ -555,7 +571,7 @@ def main(argv=None):
     if args.verb == 'report':
         report()
         return 0
-    return tick(args.host, args.dry_run, args.simulate_free)
+    return tick(args.host, args.dry_run, args.simulate_free, args.remote_apply)
 
 
 if __name__ == '__main__':

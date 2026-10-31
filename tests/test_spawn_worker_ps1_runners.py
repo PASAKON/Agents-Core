@@ -38,6 +38,12 @@ from pathlib import Path
 
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def fake_review_publication(monkeypatch):
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, 'hub_publish', lambda task: {'ok': True})
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -214,8 +220,9 @@ def test_agy_launcher_has_the_hub_commit_push_not_the_agent():
     add_idx = body.index("git -C '$wt' add -A")
     reset_idx = body.index("git -C '$wt' reset -q --")
     commit_idx = body.index("git -C '$wt' commit")
-    push_idx = body.index("git -C '$wt' push")
-    assert add_idx < reset_idx < commit_idx < push_idx
+    ready_idx = body.index("org-publish-ready")
+    assert add_idx < reset_idx < commit_idx < ready_idx
+    assert "git -C '$wt' push" not in body
     assert 'commit -q -m "${Runner}: task $Task"' in body
 
 
@@ -285,9 +292,10 @@ def test_report_step_shared_by_codex_and_agy_launchers():
     assert "Remove-Item -LiteralPath '$codexFinalMsg'" in codex_branch  # no stale message
 
     assert "`$cliExit = `$LASTEXITCODE" in agy_branch
-    # claude's launcher is untouched by the report step
+    # Claude now uses the same launcher-owned commit path after exiting.
     claude_branch = text[text.index("if ($Runner -eq 'claude')"):codex_start]
-    assert "ReportStepBody" not in claude_branch
+    assert "New-ReportStepBody '' ''" in claude_branch
+    assert "Invoke-NativeExe -Exe `$claudeExe -Arguments `$argArray\n$reportStepBody" in claude_branch
     assert "docs/reports" not in claude_branch
 
 

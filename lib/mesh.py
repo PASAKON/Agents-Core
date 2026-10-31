@@ -69,11 +69,14 @@ LETTER_WRITE_MARGIN_S = 15
 # numbers sit just above the ones node_dispatch and delegate already use
 # (spawn script 120 s + prompt delay; git push 120 s; launcher 300 s).
 VERB_TIMEOUT_S = {
+    "steward_reap": 900,
+    "worker_completion": 150,
+    "publish_ph": 300,
     "kit": 30,              # read-only git facts on the far side, no fetch (OrgMesh P7)
     "spawn_worker": 300,
     "start_clevel": 180,
     "spawn_ph": 120,        # ssh dial + the scheduled task's wait to reach Running (90 s cap)
-    "publish_branch": 150,
+    "publish_branch": 300,
     "kill_worker": 60,
     # ssh dial, then the far side's wake (up to WAKE_WORST_CASE_S), then the write.
     "deliver_letter": CONNECT_TIMEOUT_S + round(WAKE_WORST_CASE_S) + LETTER_WRITE_MARGIN_S,
