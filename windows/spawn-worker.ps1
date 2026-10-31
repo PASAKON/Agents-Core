@@ -544,11 +544,16 @@ if (`$LASTEXITCODE -ne 0) {
         git -C '$wt' commit -q -m "${Runner}: task $Task"
     }
 }
-git -C '$wt' push -q origin $Branch
+if (`$LASTEXITCODE -ne 0) { throw 'launcher commit failed' }
+`$publishHead = git -C '$wt' rev-parse HEAD
+if (`$LASTEXITCODE -ne 0) { throw 'launcher HEAD failed' }
+`$publishGitDir = git -C '$wt' rev-parse --absolute-git-dir
+[System.IO.File]::WriteAllText((Join-Path `$publishGitDir 'org-publish-ready'), `$publishHead.Trim())
 "@
     }
 
     if ($Runner -eq 'claude') {
+        $reportStepBody = New-ReportStepBody '' ''
         # Prompt goes first (positional), --allowed-tools (inside
         # $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
         # stays LAST with nothing after it -- same rule runners/worker_init.py
@@ -618,6 +623,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 . '$nativeArgsPath'
 Invoke-NativeExe -Exe `$claudeExe -Arguments `$argArray
+$reportStepBody
 # Windows Terminal's default closeOnExit is "graceful": the tab stays open
 # when its process exits NON-zero, which is exactly what a hub-side
 # `taskkill /T /F` produces. Exit 0 here so the tab closes with the worker

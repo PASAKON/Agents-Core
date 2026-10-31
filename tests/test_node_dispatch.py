@@ -27,10 +27,14 @@ from tools import node_dispatch as nd
 
 ROOT = Path(nd.ROOT)
 UUID = "12345678-1234-1234-1234-123456789abc"
+from tools.remote_maintenance import outgoing_check as REAL_OUTGOING_CHECK  # the autouse fixture stubs the module's
 
 
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch, tmp_path):
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, 'outgoing_check', lambda *_, **__: 'a' * 40)
+    monkeypatch.setattr(nd, 'MAINTENANCE_AUDIT_DIR', tmp_path / 'audit')
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     db_mod.init()
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
@@ -62,6 +66,9 @@ def _dispatch_events() -> list[dict]:
     rows = [r for r in db_mod.recent_events(limit=200) if r["actor"] == nd.ACTOR]
     for r in rows:
         r["payload"] = json.loads(r["payload"])
+    local = nd.MAINTENANCE_AUDIT_DIR / 'maintenance.jsonl'
+    if local.exists():
+        rows += [{'kind': 'dispatch', 'payload': json.loads(line)} for line in local.read_text().splitlines()]
     return rows
 
 
@@ -70,7 +77,6 @@ class Recorder:
 
     def __init__(self) -> None:
         self.calls: list[tuple] = []
-        self.push_rc = 0
         self.script_rc = 0
         self.script_out = "spawned iTerm window id=abcd1234 (logs at x)"
         self.close_result: dict | None = None
@@ -80,8 +86,6 @@ class Recorder:
 
     def run(self, argv, **kw):
         self.calls.append(("run", list(argv), kw))
-        if argv[:2] == ["git", "push"]:
-            return subprocess.CompletedProcess(argv, self.push_rc, "", "remote: boom")
         if argv[0] == "bash":
             return subprocess.CompletedProcess(argv, self.script_rc, self.script_out, "err")
         return subprocess.CompletedProcess(argv, 0, "", "")
@@ -725,17 +729,19 @@ def _review_task(tmp_path, **over) -> tuple[str, Path]:
     return tid, wt
 
 
-def test_publish_branch_pushes_the_branch_from_the_worktree(rec, tmp_path):
+def test_publish_branch_checks_and_pushes_the_branch_in_one_step(rec, tmp_path, monkeypatch):
+    from tools import remote_maintenance
+    checked = []
+    monkeypatch.setattr(remote_maintenance, 'outgoing_check',
+                        lambda *a, **k: checked.append((a, k)) or 'a' * 40)
     tid, wt = _review_task(tmp_path)
     out, code = nd.run_command(f"publish_branch {tid}")
     assert code == 0, out
     assert out["result"] == {"task_id": tid, "branch": f"agent/developer-{tid}",
                              "pushed": True}
-    (_, argv, kw), = rec.calls
-    assert argv == ["git", "push", "origin", f"agent/developer-{tid}"]
-    assert kw["cwd"] == str(wt.resolve())
-    assert kw.get("shell") is not True
-    assert not {"--force", "-f", "--force-with-lease", "--delete"} & set(argv)
+    # The push is made by the checked repository itself: this verb starts no git of its own.
+    assert checked == [((wt.resolve(), f"agent/developer-{tid}"), {"push": True})]
+    assert rec.calls == []
 
 
 @pytest.mark.parametrize("over", [
@@ -776,11 +782,27 @@ def test_publish_branch_missing_worktree_is_refused(rec, tmp_path):
     assert code == 2 and rec.calls == []
 
 
-def test_publish_branch_push_failure_is_a_failure(rec, tmp_path):
-    rec.push_rc = 1
+def test_publish_branch_push_failure_is_a_failure(rec, tmp_path, monkeypatch):
+    from tools import remote_maintenance
+
+    def refused(*_, **__):
+        raise ValueError("git push failed: remote: boom")
+    monkeypatch.setattr(remote_maintenance, 'outgoing_check', refused)
     tid, _ = _review_task(tmp_path)
     out, code = nd.run_command(f"publish_branch {tid}")
     assert code == 1 and "remote: boom" in out["error"]
+
+
+@pytest.mark.parametrize("free", [None, 1024 ** 3])
+def test_publish_branch_on_winbox_needs_4_gib_free_before_any_git(rec, tmp_path, monkeypatch, free):
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, 'outgoing_check', REAL_OUTGOING_CHECK)
+    monkeypatch.setattr(remote_maintenance, '_native_windows', lambda: True)
+    monkeypatch.setattr(nd, '_win_avail_phys_bytes', lambda: free)
+    tid, _ = _review_task(tmp_path)
+    out, code = nd.run_command(f"publish_branch {tid}")
+    assert code == 1 and "winbox requires 4 GB free RAM" in out["error"]
+    assert rec.calls == []
 
 
 # ---------------------------------------------------------------------------
