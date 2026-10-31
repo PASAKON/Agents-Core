@@ -1,5 +1,5 @@
 # SafeRestart — STATUS
-Progress: 7/10 · next: P3e boot fix PR #612 (task-1f4497f0, review task-d1c677e0) → merge card + install the units → P3e retest reboot on CTO go · due: P3e retest Sun 1 Nov 07:00 TH (registry)
+Progress: 7/10 · next: P3e retest reboot on CTO go (fix #612 merged 7d496043, units installed RUN-20261031-0138-eab9) · due: P3e retest Sun 1 Nov 07:00 TH (registry)
 
 PH #47c4051c (CTO lane, Contabo; replaces #85f7b414, lost in the 19 Oct power-off, CEO Q-20261021-0312-9cba) · owner CTO Main #c34459eb · brief `state/ph-briefs/project_head-47c4051c.md`
 Goal: a Restart card that saves every session, restarts the box and resumes the work at the lowest token cost.
@@ -43,7 +43,7 @@ What is checked on each machine: sessions back = the save+reopen list from the d
 Stop rule: a failed step stops the test; record it here and fix it before the next machine.
 
 ## Blockers
-- P3e retest waits on PR #612 (fix task-1f4497f0: 10 tests pass; PH raised org-resume.service timeout to 30 min; review task-d1c677e0), its merge + install card, then CTO Main's go.
+- P3e retest waits on CTO Main's go. Fix PR #612 merged 7d496043 (review task-d1c677e0 approve); units installed + enabled by RUN-20261031-0138-eab9 (helper Result=success, postgres not restarted). Dry run 31 Oct 09:16 TH: `state/restart/contabo-plan-20261031T021639362953Z.json`, 11 sessions, extra ≈1.14M; holds now: worker task-1ec903fe (PH#8db); disk 75%.
 - Mac (P5): no ssh route from Contabo root to the Mac; sent to CTO Main 28 Oct 12:0x TH as a job-6 blocker. Fallback: 💻 CTO runs prep locally and the CEO restarts the Mac.
 - winbox (P4): the real run waits for PH#8db's EA backtest ("winbox free for reboot from" in expertadvisor-STATUS.md).
 - The 3-machine test waits on CTO Main's "go". P5 also waits on the Mac being back online.
