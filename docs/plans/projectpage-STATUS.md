@@ -41,3 +41,20 @@ PH: project_head-e3050822 · lane CTO · host Contabo · brief state/ph-briefs/p
 - W4 live: Console #52 merged 9294655, restart card RUN-20261030-1731-1753 done, service started 01:21:29 TH; /api/portfolio/messages answers 401 without the token.
 - W3: Agents-Core PR #607 (head eca2b9f1) ready; merge-ready list state/handoff/2026-10-30/ph-e3050822-merge-ready-list.md, NOT yet sent to CTO Main.
 - Left: find what runs tools/portfolio_push.py (tools/live_sessions.py loop; unit not found by name) and set PORTFOLIO_MONITOR_V=3 for the pusher only; then send the #607 list (kind blocker so it wakes); then M11 v3 layout.
+- 31 Oct 10:21 TH: Console #54 9ea0ae6 live (RUN-20261031-0320-9736): detail sheet `/project#p=<id>`, status light, รายงานผล/ทำต่อ/ทำแล้ว, receipts, message box. M3 done.
+- 31 Oct 10:37 TH: the CEO's first press on the sheet (Q-20261031-0322-80e7) left no record and the screen showed nothing (Q-20261031-0337-cef0). The cause is not proven. Likely: a tab opened before the 10:21 deploy was still running the old page, which has no sheet. A headless 390 px touch replay on live data posted the press. Console #55 410092b (review task-ba2b235c, agy flash APPROVE) logs every press with its code and puts the reason on the phone.
+- 31 Oct 17:05 TH: #55 live (RUN-20261031-0906-3867). Core #613 a964914b merged by CTO Main.
+- 31 Oct 17:10 TH: CEO test passed. Press pn-7ab024fe4bce (report) at 10:10:30Z gave 201 in 12 ms, and the letter was delivered to project_head-e3050822 with woke=true at 10:10:33.9Z (3.9 s). The CEO saw "รอส่ง/ส่งถึง" (Q-20261031-1005-f2d8). M4 and M5 done, 11/11, 100%.
+## Close 31 Oct (CEO order O-20261031-0957-be78)
+Outcome: /project is live with a per-project sheet, a status light and three buttons that reach the PH and wake it within seconds.
+Open gaps, handed to CTO Main:
+- `projects.host` at spawn (tools/spawn_ph.py).
+- The COO live row shows role "unknown".
+- `data/run-mail-cursor.json` threads hold only 2-3 Oct ids.
+- A Contabo pusher cannot wake a winbox PH (LuminaSkies letter).
+- The hub id vs `cto-active` mismatch (#613 trusts the pointer box).
+- ทำแล้ว no longer auto-unblocks (CTO decision, 31 Oct).
+- agy headless dies on tool auto-deny (#615).
+Skill learning:
+- A mocked collector test missed InsufficientPrivilege and misrouting. Run one live round against the real hub login before calling delivery done.
+- A press that "does nothing" leaves no trace without a server log line. Every CEO-facing write route logs its code from day one.
