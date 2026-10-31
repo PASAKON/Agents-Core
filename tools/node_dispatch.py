@@ -1184,7 +1184,7 @@ def verb_spawn_ph(lane: str, owner_sid: str, project: str) -> dict:
     the owner; the verb takes no text for the brief."""
     if _is_windows():
         launch, windows, via = _launch_ph_schtask, True, "schtask"
-    elif _os_name() in ("darwin", "linux"):
+    elif _os_name() == "darwin":
         launch, windows, via = _launch_ph_tmux, False, "tmux"
     else:
         raise Refusal("spawn_ph over the mesh runs on winbox and the Mac only; Linux spawns locally or by card")

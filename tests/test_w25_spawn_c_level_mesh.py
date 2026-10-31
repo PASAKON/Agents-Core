@@ -74,8 +74,8 @@ class FakeDispatch:
     def __init__(self, reply=None) -> None:
         self.reply = reply if reply is not None else {
             "ok": True, "verb": "start_clevel",
-            "result": {"role": "cto", "via": "tmux", "session_id": SID,
-                       "tmux_session": f"cto-{SID}", "resumed_from": None,
+            "result": {"role": "cmo", "via": "tmux", "session_id": SID,
+                       "tmux_session": f"cmo-{SID}", "resumed_from": None,
                        "prompt_dismissed": True}}
         self.calls: list[tuple] = []
 
@@ -134,16 +134,16 @@ def _rows() -> list[dict]:
 # ---------------------------------------------------------------------------
 
 def test_flag_on_remote_host_dispatches_start_clevel_with_exact_args(flag_on, fake_mesh, relay):
-    result = _spawn("cto", "winbox")
-    assert fake_mesh.calls == [("winbox", "start_clevel", "cto")]
+    result = _spawn("cmo", "winbox")
+    assert fake_mesh.calls == [("winbox", "start_clevel", "cmo")]
     assert result["status"] == "spawned"
-    assert result["host"] == "winbox" and result["role"] == "cto"
+    assert result["host"] == "winbox" and result["role"] == "cmo"
     assert result["transport"] == "mesh"
-    assert result["session_id"] == SID and result["tmux_session"] == f"cto-{SID}"
+    assert result["session_id"] == SID and result["tmux_session"] == f"cmo-{SID}"
     assert result["result"]["via"] == "tmux"
     assert _rows() == []
-    assert ("spawn_c_level", "cto", "spawned",
-            f"host=winbox transport=mesh session_id={SID} tmux=cto-{SID}") in relay
+    assert ("spawn_c_level", "cmo", "spawned",
+            f"host=winbox transport=mesh session_id={SID} tmux=cmo-{SID}") in relay
 
 
 def test_flag_on_accepts_every_host_in_the_hosts_config(flag_on, fake_mesh):
@@ -161,22 +161,22 @@ def test_flag_on_resume_passes_resume_and_the_sid(flag_on, fake_mesh):
 
 
 def test_flag_on_remote_really_dials_the_org_dispatch_ssh_command(flag_on, monkeypatch, tmp_path):
-    run = FakeRun(stdout=_ssh_reply(role="cto", session_id=SID, tmux_session=f"cto-{SID}"))
+    run = FakeRun(stdout=_ssh_reply(role="cmo", session_id=SID, tmux_session=f"cmo-{SID}"))
     monkeypatch.setattr(subprocess, "run", run)
     monkeypatch.setattr(nd, "dispatch", lambda *a: pytest.fail("a remote host is not in-process"))
 
-    result = _spawn("cto", "winbox")
+    result = _spawn("cmo", "winbox")
     assert result["status"] == "spawned" and result["session_id"] == SID
     assert len(run.calls) == 1
     argv = run.calls[0]
     assert argv[0] == "ssh" and argv[1:5] == ["-F", "none", "-i",
                                               str(tmp_path / ".ssh" / "org_dispatch")]
     dest = config.host("winbox")["mesh_ssh"]
-    assert argv[-2:] == [dest, "start_clevel cto"]
+    assert argv[-2:] == [dest, "start_clevel cmo"]
 
     run.calls.clear()
-    _spawn("cto", "winbox", resume_session_id=SID)
-    assert run.calls[0][-2:] == [dest, f"start_clevel cto --resume {SID}"]
+    _spawn("cmo", "winbox", resume_session_id=SID)
+    assert run.calls[0][-2:] == [dest, f"start_clevel cmo --resume {SID}"]
 
 
 def test_flag_on_self_host_runs_in_process_and_dials_nothing(flag_on, monkeypatch):
@@ -211,13 +211,13 @@ def test_flag_on_bad_role_is_refused_before_dispatch(flag_on, fake_mesh, role):
     " abcdef12", "", "12345678901234567890123456789012",
 ])
 def test_flag_on_bad_resume_sid_is_refused_before_dispatch(flag_on, fake_mesh, sid):
-    result = _spawn("cto", "winbox", resume_session_id=sid)
+    result = _spawn("cmo", "winbox", resume_session_id=sid)
     assert result["status"] == "rejected" and "resume_session_id" in result["reason"]
     assert fake_mesh.calls == [] and _rows() == []
 
 
 def test_flag_on_unknown_host_is_refused_before_dispatch(flag_on, fake_mesh):
-    result = _spawn("cto", "moon")
+    result = _spawn("cmo", "moon")
     assert result["status"] == "rejected"
     assert result["reason"] == f"unknown host 'moon'. Known: {', '.join(config.hosts())}"
     assert fake_mesh.calls == [] and _rows() == []
@@ -233,13 +233,13 @@ def test_resume_sid_pattern_is_the_one_node_dispatch_enforces():
 
 def test_flag_on_unreachable_says_so_and_queues_nothing(flag_on, fake_mesh, relay):
     fake_mesh.reply = mesh.MeshUnreachable("start_clevel on winbox: no reply in 180s")
-    result = _spawn("cto", "winbox")
+    result = _spawn("cmo", "winbox")
     assert result["status"] == "unreachable"
     assert result["reason"] == "host winbox unreachable"
     assert "no reply in 180s" in result["detail"]
     assert not rms.QUEUE_DB_PATH.exists()  # not even the table was created
     assert _rows() == []
-    assert relay[-1][:3] == ("spawn_c_level", "cto", "unreachable")
+    assert relay[-1][:3] == ("spawn_c_level", "cmo", "unreachable")
 
 
 def _mac_without_mesh_ssh(monkeypatch):
@@ -263,7 +263,7 @@ def test_flag_on_mac_from_a_remote_relay_is_unreachable_not_queued(flag_on, monk
 
 def test_flag_on_ssh_failure_is_unreachable_and_queues_nothing(flag_on, monkeypatch):
     monkeypatch.setattr(subprocess, "run", FakeRun(returncode=255, stderr="Connection refused"))
-    result = _spawn("cto", "winbox")
+    result = _spawn("cmo", "winbox")
     assert result["status"] == "unreachable" and "Connection refused" in result["detail"]
     assert _rows() == []
 
@@ -280,9 +280,37 @@ def test_flag_on_a_host_that_says_no_is_refused_not_unreachable(flag_on, fake_me
 def test_flag_on_cannot_tell_which_host_it_is_reports_an_error(flag_on, monkeypatch):
     monkeypatch.setattr(config, "_SELF_HOST_SOURCES", ())  # the real self_host() finds nothing
     config.self_host.cache_clear()
-    result = _spawn("cto", "winbox")
+    result = _spawn("cmo", "winbox")
     assert result["status"] == "error" and "cannot resolve self_host" in result["detail"]
     assert _rows() == []
+
+
+# ---------------------------------------------------------------------------
+# CTO runs on Contabo only (CEO 2026-10-30): the rule is about the role `cto`
+# alone. Every other role keeps the reasons asserted in the tests around these.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("host", ["winbox", "mac"])
+def test_cto_is_refused_off_contabo_before_any_dispatch(flag_on, fake_mesh, relay, host):
+    result = _spawn("cto", host)
+    assert result["status"] == "rejected"
+    assert f"CTO runs on Contabo only; this host is {host}" in result["reason"]
+    assert fake_mesh.calls == [] and _rows() == []
+    assert relay[-1] == ("spawn_c_level", "cto", "rejected", f"single C-level, host={host}")
+
+
+def test_cto_is_refused_off_contabo_with_the_mesh_flag_off_too(monkeypatch, relay):
+    _no_mesh(monkeypatch)
+    _no_subprocess(monkeypatch)
+    result = _spawn("cto", "mac")
+    assert result["status"] == "rejected" and "Contabo only" in result["reason"]
+    assert _rows() == [], "nothing is queued for the Mac"
+
+
+def test_cto_is_refused_off_contabo_even_in_an_emergency(flag_on, fake_mesh, monkeypatch):
+    monkeypatch.setenv("ORG_CLEVEL_EMERGENCY", "1")
+    assert _spawn("cto", "winbox")["status"] == "rejected"
+    assert fake_mesh.calls == []
 
 
 # ---------------------------------------------------------------------------
@@ -291,9 +319,9 @@ def test_flag_on_cannot_tell_which_host_it_is_reports_an_error(flag_on, monkeypa
 
 def test_flag_off_winbox_is_rejected_as_today(monkeypatch, relay):
     _no_mesh(monkeypatch)
-    assert _spawn("cto", "winbox") == {
+    assert _spawn("cmo", "winbox") == {
         "status": "rejected", "reason": "unknown host 'winbox'. Known: contabo, mac"}
-    assert relay == [("spawn_c_level", "cto", "rejected", "unknown host 'winbox'")]
+    assert relay == [("spawn_c_level", "cmo", "rejected", "unknown host 'winbox'")]
     assert _rows() == []
 
 
@@ -335,7 +363,7 @@ def test_flag_off_contabo_still_starts_tmux_here(monkeypatch, relay):
 def test_flag_off_resume_is_rejected_never_silently_dropped(monkeypatch, relay):
     """A fresh session answering a resume request is the `claude -r <short id>` trap."""
     _no_mesh(monkeypatch)
-    result = _spawn("cto", "mac", resume_session_id=SID)
+    result = _spawn("cmo", "mac", resume_session_id=SID)
     assert result["status"] == "rejected" and "ORG_MESH_DISPATCH" in result["reason"]
     assert _rows() == []
 
@@ -351,7 +379,7 @@ def test_flag_off_ignores_the_parallel_switch(monkeypatch, parallel_on):
 def test_flag_values_that_are_not_on_leave_the_relay_as_it_was(monkeypatch, value):
     monkeypatch.setenv(mesh.ENV_FLAG, value)
     _no_mesh(monkeypatch)
-    assert _spawn("cto", "winbox")["status"] == "rejected"
+    assert _spawn("cmo", "winbox")["status"] == "rejected"
     assert _spawn("cfo", "mac")["status"] == "queued"
 
 
@@ -403,33 +431,33 @@ def test_parallel_mac_queues_even_when_the_mesh_host_refuses(flag_on, parallel_o
 def test_parallel_switch_accepts_the_same_values_as_the_mesh_flag(flag_on, fake_mesh,
                                                                   monkeypatch, value):
     monkeypatch.setenv(rms.MESH_PARALLEL_ENV, value)
-    _spawn("cto", "mac")
+    _spawn("cmo", "mac")
     assert len(_rows()) == 1
 
 
 @pytest.mark.parametrize("value", ["0", "off", "false", "", "no"])
 def test_parallel_switch_off_values_queue_nothing(flag_on, fake_mesh, monkeypatch, value):
     monkeypatch.setenv(rms.MESH_PARALLEL_ENV, value)
-    assert _spawn("cto", "mac")["status"] == "spawned"
+    assert _spawn("cmo", "mac")["status"] == "spawned"
     assert _rows() == []
 
 
 def test_without_the_parallel_switch_mac_is_mesh_only(flag_on, fake_mesh):
-    result = _spawn("cto", "mac")
+    result = _spawn("cmo", "mac")
     assert result["status"] == "spawned" and "queue_id" not in result
     assert _rows() == []
 
 
 @pytest.mark.parametrize("host", ["winbox", "contabo"])
 def test_parallel_switch_is_for_the_mac_only(flag_on, parallel_on, fake_mesh, host):
-    assert _spawn("cto", host)["status"] == "spawned"
+    assert _spawn("cmo", host)["status"] == "spawned"
     assert _rows() == []
 
 
 def test_parallel_mac_resume_gets_no_queue_leg(flag_on, parallel_on, fake_mesh, relay):
     """mac_agent's spawn cannot resume: enqueueing would start a fresh session."""
-    result = _spawn("cto", "mac", resume_session_id=SID)
-    assert fake_mesh.calls == [("mac", "start_clevel", "cto", "--resume", SID)]
+    result = _spawn("cmo", "mac", resume_session_id=SID)
+    assert fake_mesh.calls == [("mac", "start_clevel", "cmo", "--resume", SID)]
     assert result["status"] == "spawned"
     assert result["queue_leg"] == "skipped: mac_agent cannot resume"
     assert _rows() == []
@@ -457,12 +485,12 @@ def test_mac_agent_is_still_there_with_its_retirement_note():
 
 def test_the_fourth_spawn_in_ten_minutes_is_rate_limited_and_dials_nothing(flag_on, fake_mesh, relay):
     for _ in range(3):
-        assert _spawn("cto", "winbox")["status"] == "spawned"
-    result = _spawn("cto", "winbox")
+        assert _spawn("cmo", "winbox")["status"] == "spawned"
+    result = _spawn("cmo", "winbox")
     assert result["status"] == "rate_limited"
     assert 0 < result["retry_after_s"] <= rms.SPAWN_RATE_WINDOW_S + 1
     assert len(fake_mesh.calls) == 3
-    assert relay[-1][:3] == ("spawn_c_level", "cto", "rate_limited")
+    assert relay[-1][:3] == ("spawn_c_level", "cmo", "rate_limited")
 
 
 def test_flag_off_the_limit_holds_for_the_queue_and_tmux_paths_too(monkeypatch, relay):
@@ -480,9 +508,9 @@ def test_flag_off_the_limit_holds_for_the_queue_and_tmux_paths_too(monkeypatch, 
 def test_a_call_rejected_before_any_spawn_takes_no_slot(flag_on, fake_mesh):
     for _ in range(5):
         assert _spawn("ceo", "winbox")["status"] == "rejected"
-        assert _spawn("cto", "moon")["status"] == "rejected"
-        assert _spawn("cto", "winbox", resume_session_id="XYZ")["status"] == "rejected"
-    assert [_spawn("cto", "winbox")["status"] for _ in range(4)] == \
+        assert _spawn("cmo", "moon")["status"] == "rejected"
+        assert _spawn("cmo", "winbox", resume_session_id="XYZ")["status"] == "rejected"
+    assert [_spawn("cmo", "winbox")["status"] for _ in range(4)] == \
         ["spawned", "spawned", "spawned", "rate_limited"]
 
 
@@ -490,11 +518,11 @@ def test_a_slot_frees_when_the_window_has_passed(flag_on, fake_mesh, monkeypatch
     clock = [1000.0]
     monkeypatch.setattr(rms.time, "monotonic", lambda: clock[0])
     for _ in range(3):
-        _spawn("cto", "winbox")
+        _spawn("cmo", "winbox")
     clock[0] += rms.SPAWN_RATE_WINDOW_S - 1
-    assert _spawn("cto", "winbox")["status"] == "rate_limited"
+    assert _spawn("cmo", "winbox")["status"] == "rate_limited"
     clock[0] += 1
-    assert _spawn("cto", "winbox")["status"] == "spawned"
+    assert _spawn("cmo", "winbox")["status"] == "spawned"
     assert len(fake_mesh.calls) == 4
 
 
@@ -504,7 +532,7 @@ def test_concurrent_calls_get_exactly_three_slots(flag_on, fake_mesh):
 
     def one():
         gate.wait()
-        results.append(_spawn("cto", "winbox")["status"])
+        results.append(_spawn("cmo", "winbox")["status"])
 
     threads = [threading.Thread(target=one) for _ in range(12)]
     for t in threads:

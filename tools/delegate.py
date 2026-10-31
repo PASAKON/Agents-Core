@@ -1446,7 +1446,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
             f"only winbox (Phase 1) and contabo (Phase 2, task-a5c0549d) are "
             f"wired; docs/design/multi-host-workers.md §4"
         )
-    if local and os_name not in ("linux", "darwin"):
+    if local and os_name != "linux":
         raise NotImplementedError(
             f"local launcher transport is linux-only (host {host_name!r} os={os_name})"
         )
@@ -2604,10 +2604,10 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
     # takes the same launcher path over a LOCAL transport (bash, no ssh).
     # `_spawn_local` starts Claude only; codex and agy need the launcher's own
     # runner blocks (tmux, launch.sh, commit + push of the branch). On the Mac
-    # non-Claude tasks use the same bash launcher; claude uses `_spawn_local`.
+    # a local agy task still goes to `_spawn_local`; claude always does.
     local_launcher = (resolved_host == this_host
                       and resolved_runner != "claude"
-                      and (sys.platform.startswith("linux") or sys.platform == "darwin"))
+                      and sys.platform.startswith("linux"))
     if dry_run and resolved_host == this_host and not local_launcher:
         # A dry run starts nothing on any path. This one (a same-host
         # `_spawn_local`) used to ignore the flag and spawn a real worker:

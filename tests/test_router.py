@@ -27,6 +27,9 @@ def isolated(monkeypatch, tmp_path):
         n: dict(max_workers=c, runners=["claude"], provides=["api"])
         for n, c in (("contabo", 3), ("winbox", 3), ("mac", 2))})
     monkeypatch.setattr(router.config, "project_path_for_host", lambda *args: "/fake")
+    monkeypatch.setattr(router.config, "projects",
+                        lambda: {"demo": {}, "mooniex-expertadvisor": {}})
+    monkeypatch.setattr(router.db, "list_hosts", lambda: [])    # hub table: nothing stored
     monkeypatch.setattr(host_fill, "probe", Mock(side_effect=AssertionError("unexpected probe")))
     monkeypatch.setattr(host_queue, "QUEUE_PATH", tmp_path / "queue.jsonl")
 
@@ -42,7 +45,7 @@ def test_contabo_first_and_boundary():
     assert choose(reading("contabo", 79.99), reading("winbox", 35)).host == "contabo"
     assert choose(reading("contabo", 80), reading("winbox", 35)).host == "winbox"
     pick = choose(reading("contabo", 80), reading("winbox", 80), reading("mac", 80))
-    assert pick.host is None and "queued for host" in pick.line
+    assert pick.host is None and pick.line.startswith("no_host:")
 
 
 def test_remote_fill_then_worker_tie():
@@ -59,6 +62,10 @@ def test_caps_unknown_partial_offline(name, cap):
     assert choose(row).host is None
     row["online"] = True
     del row["facts"]["disk_total_gb"]
+    # A missing sensor is not proof of an empty host: winbox and the Mac are not
+    # eligible. Contabo keeps the old rule while the readings it has are under 80%.
+    assert (choose(row).host == "contabo") is (name == "contabo")
+    row["facts"]["cpu_pct"] = 80
     assert choose(row).host is None
 
 
@@ -133,12 +140,17 @@ def test_switch_reloads_config(monkeypatch, tmp_path):
     assert not router.enabled()
 
 
-def test_probes_use_config_timeout(monkeypatch):
-    probe = Mock(side_effect=lambda name, **kw: reading(name))
+def test_probes_use_config_timeout_and_remotes_only_when_contabo_does_not_take_it(monkeypatch):
+    fills = {"contabo": 90, "mac": 50, "winbox": 40}
+    probe = Mock(side_effect=lambda name, **kw: reading(name, fills[name]))
     monkeypatch.setattr(host_fill, "probe", probe)
-    assert router.pick_host(TASK).host == "contabo"
-    assert probe.call_count == 3
+    assert router.pick_host(TASK).host == "winbox"
+    assert sorted(c.args[0] for c in probe.call_args_list) == ["contabo", "mac", "winbox"]
     assert all(c.kwargs == {"timeout": 10} for c in probe.call_args_list)
+    probe.reset_mock()
+    probe.side_effect = lambda name, **kw: reading(name)
+    assert router.pick_host(TASK).host == "contabo"
+    assert [c.args[0] for c in probe.call_args_list] == ["contabo"]    # no remote probe needed
 
 
 def test_queue_retries_pin_and_drops_cancelled(monkeypatch):

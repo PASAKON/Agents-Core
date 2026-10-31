@@ -117,13 +117,17 @@ _SHA_RE = re.compile(r"[0-9a-f]{40}")
 CARD_BRIEF_MAX = 300
 CARD_ARGS_MAX = 480     # the hub refuses script args over 500 characters
 # Hosts with a `spawn_ph` verb: winbox (a scheduled task reaches the desktop) and the Mac (a detached tmux session).
-MESH_HOSTS = ("contabo", "winbox", "mac")
+MESH_HOSTS = ("winbox", "mac")
+PH_HOSTS = ("contabo",) + MESH_HOSTS     # spawn --host: Contabo spawns locally, the others over the mesh
 
 
 def pick_ph_host(project: str, host: str | None = None):
+    """The host-fill picker (lib/router) for a Project Head; `host` pins it."""
     from lib import router
     return router.pick_host({"project": project, "role": "project_head",
                              "runner": "claude", "host": host})
+
+
 MCP_SCREEN_RE = re.compile(r"MCP server", re.IGNORECASE)
 
 
@@ -559,7 +563,10 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
             call = {"host": pick.host, "verb": "spawn_ph", "args": [lane, sid, project]}
             if dry_run:
                 return {**call, **schedule, "tier": tier, "dry_run": True}
-            reply = mesh.dispatch(pick.host, "spawn_ph", lane, sid, project)
+            try:
+                reply = mesh.dispatch(pick.host, "spawn_ph", lane, sid, project)
+            except mesh.MeshUnreachable as e:
+                raise Refused(f"{pick.host} did not answer over the mesh: {e}") from e
             if not reply.get("ok"):
                 raise Refused(f"PH spawn on {pick.host} was refused")
             plan = {**reply["result"], **schedule, "tier": tier, "lane": lane}
@@ -773,7 +780,7 @@ def _mesh_main(argv: list[str]) -> int:
     and the owner session are this C-level session's own identity: no flag
     names them."""
     ap = argparse.ArgumentParser(prog="python -m tools.spawn_ph mesh")
-    ap.add_argument("--host", choices=MESH_HOSTS)
+    ap.add_argument("--host", required=True, choices=MESH_HOSTS)
     ap.add_argument("--project", required=True)
     ap.add_argument("--dry-run", action="store_true",
                     help="print the dispatch that would be sent and send nothing")
@@ -785,21 +792,18 @@ def _mesh_main(argv: list[str]) -> int:
             why = f"owner session id {sid!r} is not 8 lowercase hex characters, which the mesh verb requires"
         if why:
             raise Refused(why)
-        pick = pick_ph_host(args.project, args.host)
-        if pick.host is None:
-            raise Refused(pick.line)
-        call = {"host": pick.host, "verb": "spawn_ph", "args": [lane, sid, args.project]}
+        from lib import router
+        if router.enabled():     # host-fill rules: the named host is kept, and checked
+            pick = pick_ph_host(args.project, args.host)
+            if pick.host is None:
+                raise Refused(pick.line)
+        call = {"host": args.host, "verb": "spawn_ph", "args": [lane, sid, args.project]}
         if args.dry_run:
             print(json.dumps({**call, "dry_run": True}, ensure_ascii=False))
             return 0
         from lib import mesh
         try:
-            from lib.config import self_host
-            if pick.host == self_host():
-                from tools.node_dispatch import verb_spawn_ph
-                reply = {"ok": True, "result": verb_spawn_ph(*call["args"])}
-            else:
-                reply = mesh.dispatch(pick.host, call["verb"], *call["args"])
+            reply = mesh.dispatch(args.host, call["verb"], *call["args"])
         except mesh.MeshUnreachable as e:
             raise Refused(f"{args.host} did not answer over the mesh: {e}") from e
     except Refused as e:
@@ -916,7 +920,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tier", choices=("critical", "normal", "low"),
                     help="set the project's tier (default: keep the registry's, normal for a new row)")
     ap.add_argument("--project")
-    ap.add_argument("--host", choices=MESH_HOSTS)
+    ap.add_argument("--host", choices=PH_HOSTS)
     ap.add_argument("--kind", choices=("finite", "loop"))
     ap.add_argument("--due")
     ap.add_argument("--cadence", type=int)

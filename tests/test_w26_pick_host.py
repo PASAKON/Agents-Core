@@ -9,6 +9,10 @@ the host-resolution block in tools/delegate.py, behind env ORG_HOST_ROUTER.
   * no match -> task stays pending, `no_host: <reason per host>`, no spawn
   * the chosen host reaches `_route_runner` and the spawn
 
+Host-fill rule (CEO 2026-10-30): Contabo first while it passes, a named host is
+checked and never moved, and the delegate flow runs without live probes (the
+`flow` fixture stubs `router._live_rows`; hub rows only, as before).
+
 Fakes only: `hosts_rows=` (or a patched db.list_hosts) for the unit tests with
 config.hosts/projects and router.role_runners patched; in the delegate flow a
 tmp_path tasks.db (root conftest clears ORG_DB_URL) and `_route_runner`,
@@ -253,18 +257,34 @@ def test_host_only_in_the_table_is_rejected(world):
 # pick_host: ranking
 # ---------------------------------------------------------------------------
 
-def test_lowest_load_wins(world):
+def test_contabo_is_first_while_it_passes(world):
+    """CEO 2026-10-30: Contabo takes the work below the fill limit, even when
+    another host is lighter."""
     rows = [row("contabo", load_per_core=0.40, ram_free_gb=9.0),
+            row("mac", load_per_core=0.05, ram_free_gb=0.5),
+            row("winbox", load_per_core=0.30, ram_free_gb=9.0)]
+    assert pick(rows).host == "contabo"
+
+
+def test_lowest_load_wins_among_the_rest(world):
+    rows = [row("contabo", status="offline"),
             row("mac", load_per_core=0.05, ram_free_gb=0.5),
             row("winbox", load_per_core=0.30, ram_free_gb=9.0)]
     assert pick(rows).host == "mac"
 
 
 def test_load_tie_breaks_on_more_free_ram(world):
-    rows = [row("contabo", load_per_core=0.2, ram_free_gb=2.0),
+    rows = [row("contabo", status="offline"),
             row("mac", load_per_core=0.2, ram_free_gb=6.5),
-            row("winbox", load_per_core=0.2, ram_free_gb=3.0)]
+            row("winbox", load_per_core=0.2, ram_free_gb=4.5)]
     assert pick(rows).host == "mac"
+
+
+def test_load_tie_breaks_on_fewer_running_workers_first(world):
+    rows = [row("contabo", status="offline"),
+            row("mac", load_per_core=0.2, ram_free_gb=6.5, running=1),
+            row("winbox", load_per_core=0.2, ram_free_gb=4.5, running=0)]
+    assert pick(rows).host == "winbox"
 
 
 def test_ram_tie_breaks_on_name(world):
@@ -274,16 +294,17 @@ def test_ram_tie_breaks_on_name(world):
 
 
 def test_unknown_ram_loses_the_tie(world):
-    rows = [row("contabo", load_per_core=0.2, ram_free_gb=None),
-            row("mac", load_per_core=0.2, ram_free_gb=0.1)]
+    rows = [row("contabo", status="offline"),
+            row("mac", load_per_core=0.2, ram_free_gb=None),
+            row("winbox", load_per_core=0.2, ram_free_gb=4.0)]
     p = pick(rows)
-    assert p.host == "mac"
+    assert p.host == "winbox"
 
 
 def test_unknown_load_ranks_last_but_is_still_eligible(world):
     """The Windows probe has no loadavg: winbox must stay pickable (win_gui)."""
     rows = [row("winbox", load_per_core=None, provides=["win_gui"], ram_free_gb=9.0),
-            row("mac", load_per_core=0.95), row("contabo", load_per_core=0.99)]
+            row("mac", load_per_core=0.95), row("contabo", status="offline")]
     assert pick(rows).host == "mac"
     only_winbox = pick(rows, task=task(description="needs: win_gui"))
     assert only_winbox.host == "winbox"
@@ -449,6 +470,10 @@ def flow(monkeypatch, tmp_path):
     monkeypatch.setattr(delegate, "_route_runner", route_runner)
     monkeypatch.setattr(delegate, "_spawn_remote", spawn_remote)
     monkeypatch.setattr(router, "role_runners", lambda t: ["claude"])
+    # Hub rows only: the live probe would read this machine (host-fill rule).
+    monkeypatch.setattr(router, "_live_rows", lambda names, timeout: {})
+    from tools import host_queue
+    monkeypatch.setattr(host_queue, "QUEUE_PATH", tmp_path / "host_queue.jsonl")
     return rec
 
 
@@ -489,23 +514,40 @@ def test_flag_off_is_todays_resolution_and_never_calls_pick_host(
     assert db_mod.get_task(tid)["delegate_log"] is None, "flag off writes no host line"
 
 
-@pytest.mark.parametrize("arg, task_host, want, source", [
-    ("winbox", None, "winbox", "host= argument"),
-    ("winbox", "contabo", "winbox", "host= argument"),
-    (None, "contabo", "contabo", "tasks.host"),
+@pytest.mark.parametrize("arg, task_host, want", [
+    ("winbox", None, "winbox"),
+    ("winbox", "contabo", "winbox"),
+    (None, "contabo", "contabo"),
 ])
-def test_flag_on_explicit_host_and_tasks_host_win_and_are_manual(
-        flow, monkeypatch, arg, task_host, want, source):
+def test_flag_on_explicit_host_and_tasks_host_are_kept_and_checked(
+        flow, monkeypatch, arg, task_host, want):
+    """CEO 2026-10-30: a task that names its host keeps it. The picker looks at
+    that host alone (the lighter Mac is ignored) and applies the same checks."""
     monkeypatch.setenv("ORG_HOST_ROUTER", "1")
-    monkeypatch.setattr(router, "pick_host",
-                        lambda *a, **k: pytest.fail("a named host must not be re-picked"))
     tid = new_task(host=task_host)
+    probe(want)
     probe("mac", load_per_core=0.0)      # lighter than anything named: still ignored
 
-    run(tid, host=arg)
+    row_ = run(tid, host=arg)
 
     assert flow.route_hosts == [want]
-    assert db_mod.get_task(tid)["delegate_log"] == f"manual: {want} · {source}"
+    assert row_["delegate_log"].startswith(f"host: {want} · load 0.50/core")
+    assert row_["delegate_log"].endswith("rejected: none")
+
+
+def test_flag_on_a_full_named_host_is_queued_not_swapped_for_a_free_one(flow, monkeypatch):
+    from tools import host_queue
+    monkeypatch.setenv("ORG_HOST_ROUTER", "1")
+    probe("winbox", running=3)
+    probe("mac")
+    tid = new_task(host="winbox")
+
+    row_ = run(tid)
+
+    assert row_["status"] == "pending"
+    assert row_["delegate_log"] == "no_host: winbox(full 3/3)"
+    assert flow.spawn_hosts == [] and flow.local_spawns == []
+    assert [e["host"] for e in host_queue.disk_queue._load(host_queue.QUEUE_PATH)] == ["winbox"]
 
 
 def test_flag_on_picks_the_lightest_host_and_it_reaches_route_and_spawn(flow, monkeypatch):
@@ -526,7 +568,7 @@ def test_flag_on_picks_the_lightest_host_and_it_reaches_route_and_spawn(flow, mo
 def test_flag_on_pick_of_this_box_takes_the_local_spawn(flow, monkeypatch):
     monkeypatch.setenv("ORG_HOST_ROUTER", "1")
     probe("mac", load_per_core=0.05)
-    probe("contabo", load_per_core=0.50)
+    probe("contabo", load_per_core=0.50, running=3)   # full: Contabo is first only while it passes
     tid = new_task()
 
     row_ = run(tid)

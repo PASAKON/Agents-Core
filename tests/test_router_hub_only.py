@@ -49,9 +49,14 @@ def test_ph_mac_cli_picker_dry_run(monkeypatch, capsys):
     monkeypatch.setattr(spawn_ph.roles, "ph_project_refusal", lambda project: None)
     pick = Mock(return_value=router.HostPick("mac", "host: mac"))
     monkeypatch.setattr(router, "pick_host", pick)
+    monkeypatch.setattr(router, "enabled", lambda: True)
     assert spawn_ph.main(["mesh", "--project", "demo", "--host", "mac", "--dry-run"]) == 0
     assert '"host": "mac"' in capsys.readouterr().out
     assert pick.call_args.args[0]["role"] == "project_head"
+    assert pick.call_args.args[0]["host"] == "mac"       # the named host is kept
+    pick.return_value = router.HostPick(None, "no_host: mac(full 2/2)")
+    assert spawn_ph.main(["mesh", "--project", "demo", "--host", "mac", "--dry-run"]) == 1
+    assert "no_host: mac(full 2/2)" in capsys.readouterr().err
 
 
 def test_darwin_remote_uses_mesh_without_admin_ssh(monkeypatch):
