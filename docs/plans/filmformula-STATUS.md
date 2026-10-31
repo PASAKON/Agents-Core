@@ -85,3 +85,8 @@ Goal: study popular one-episode short films, turn their structure into our own I
 - Pull is fixed (#595): `flow_shoot pull --download-resolution 720p` verified 3/3 at 0 cr.
 - Rules: direction shot fails twice -> aftermath plate; no Flow 20:00-21:30 TH.
 - After the cut: write formulas/F2-true-disaster.md v1 from what the pilot proves.
+
+## CLOSED 31 Oct at 100% (CMO ok on PR #616)
+- M4 done: PR #616 merged as 067da6f6. Registry closed with outcome + learning.
+- Kept for the next phase: /opt/MoonieXHQ/Work/filmformula-m4-looktest/out (look set) and /opt/MoonieXHQ/Work/filmformula-m4-shoot (4 shots + ledger). Deleted (Green): scratch in/ and tmp/ folders, winbox lituya scratch scripts and card folders.
+- Flow spend in total: 116 cr (look test 72 + card 1 44), balance 9534.
