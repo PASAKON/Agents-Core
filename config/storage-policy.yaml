@@ -138,6 +138,9 @@ tiers:
 # under one folder named by the task id, and the task cannot close while it
 # holds unfiled bytes. APPROVED by the CEO 2026-09-23 ("อนุมัติสร้าง ~/MoonieXHQ/Work/
 # และเขียนกฎอย่างเข้มงวด"); the law is ~/MoonieXHQ/Work/RULES.md, IRON §55.
+remote_reap:
+  grace_hours: 20                   # remote terminal tasks; leave time for hub retries within one day
+
 work_dir:
   root: "~/MoonieXHQ/Work"          # approved + created 2026-09-23 (HQ f7fe47a)
   rules: "~/MoonieXHQ/Work/RULES.md"

@@ -35,6 +35,7 @@ import random
 import re
 import shlex
 import sqlite3
+import shutil
 import subprocess
 import sys
 import threading
@@ -158,11 +159,34 @@ _GRAMMAR = {
     "deliver_letter": (r"[0-9]{1,12}",),
 }
 _TOKEN_OK = re.compile(r"[a-z0-9_-]{1,64}", re.ASCII)
+# The maintenance verbs (C4/C5) take one payload: lowercase hex of a JSON
+# object that names its target. Written out again here, not imported.
+_PAYLOAD_VERBS = ("steward_reap", "worker_completion", "publish_ph")
+
+
+def _payload_ok(verb: str, token: str, task: str | None = None) -> bool:
+    if not re.fullmatch(r"(?:[0-9a-f]{2}){1,3750}", token, re.ASCII):
+        return False
+    try:
+        row = json.loads(bytes.fromhex(token).decode("utf-8"))
+    except ValueError:
+        return False
+    if not isinstance(row, dict):
+        return False
+    if verb == "worker_completion":
+        return isinstance(row.get("id"), str) and re.fullmatch(rf"task-{_HEX8}", row["id"], re.ASCII) is not None
+    if verb == "publish_branch":
+        return row.get("id") == task
+    if verb == "publish_ph":
+        return isinstance(row.get("session_id"), str) and re.fullmatch(_HEX8, row["session_id"], re.ASCII) is not None
+    return isinstance(row.get("tasks"), list) and len(row["tasks"]) <= 3
 
 
 def _oracle(raw: str) -> list[str] | None:
     """The tokens of an allow-listed call, or None when it must be refused."""
-    if not raw.strip() or len(raw) > 256:
+    first = raw.split(" ", 1)[0]
+    payload_form = first in _PAYLOAD_VERBS or (first == "publish_branch" and raw.count(" ") == 2)
+    if not raw.strip() or len(raw) > (8192 if payload_form else 256):
         return None
     if any(ord(c) < 32 or ord(c) == 127 for c in raw):
         return None
@@ -183,6 +207,11 @@ def _oracle(raw: str) -> list[str] | None:
                 and re.fullmatch(_HEX8, args[2], re.ASCII)):
             return parts
         return None
+    if verb in _PAYLOAD_VERBS:
+        return parts if len(args) == 1 and _payload_ok(verb, args[0]) else None
+    if verb == "publish_branch" and len(args) == 2:
+        ok = re.fullmatch(rf"task-{_HEX8}", args[0], re.ASCII) and _payload_ok(verb, args[1], args[0])
+        return parts if ok else None
     spec = _GRAMMAR.get(verb)
     if spec is None or len(args) != len(spec):
         return None
@@ -338,7 +367,7 @@ def test_fuzz_real_handlers_refuse_unknown_rows_before_any_backend(wire):
     rng = random.Random(SEED + 7)
     ro = sqlite3.connect(db_mod.DB_PATH)
     ran = 0
-    for i in range(1500):
+    for i in range(2000):   # was 1500; three more verbs in the generator's pool dilute the hits
         raw = _hostile_command(rng, i)
         expect = _oracle(raw)
         if expect is None or expect[0] in ("probe", "kit", "start_clevel"):
@@ -559,6 +588,55 @@ def test_fuzz_mesh_build_argv_sends_only_validated_plain_tokens():
         assert _oracle(command) == [verb, *args]
     assert built + refused == FUZZ_CASES >= 5000
     assert built >= 1000 and refused >= 1000, (built, refused)
+
+
+def _hex(row) -> str:
+    return json.dumps(row, separators=(",", ":")).encode().hex()
+
+
+_GOOD_PAYLOADS = {
+    "worker_completion": {"id": "task-1234abcd", "host": "winbox", "pid": 7},
+    "publish_ph": {"session_id": "1234abcd", "host": "mac"},
+    "steward_reap": {"tasks": [{"id": "task-1234abcd"}], "apply": False},
+}
+
+
+def test_payload_verbs_take_exactly_one_hex_payload_that_names_a_target(monkeypatch, wire):
+    seen: list[tuple] = []
+    monkeypatch.setattr(nd, "HANDLERS", {v: (lambda *a, v=v: seen.append((v, a)) or {}) for v in nd.HANDLERS})
+    prefix = mesh.build_argv("contabo", "probe", ())[:-1]
+    for verb, row in _GOOD_PAYLOADS.items():
+        token = _hex(row)
+        out, code = nd.run_command(f"{verb} {token}")
+        assert (code, out["ok"]) == (0, True), (verb, out)
+        assert _oracle(f"{verb} {token}") == [verb, token]
+        argv = mesh.build_argv("contabo", verb, (token,))
+        assert argv[:-1] == prefix and argv[-1] == f"{verb} {token}"
+        assert re.fullmatch(r"[a-z_]+( [a-z0-9_-]+)*", argv[-1], re.ASCII)
+    token = _hex({"id": "task-1234abcd", "host": "winbox"})
+    assert nd.run_command(f"publish_branch task-1234abcd {token}")[1] == 0
+    assert _oracle(f"publish_branch task-1234abcd {token}") is not None
+    accepted = len(seen)
+    assert accepted == len(_GOOD_PAYLOADS) + 1
+
+    bad = ["-", "--", "=", "AAAA", "ABCD1234", "abc", "zz", "00", _hex({}), _hex([1]),
+           _hex({"id": "task-1234ABCD"}), _hex({"id": 7}), _hex({"id": "nope"}),
+           _hex({"tasks": "x"}), _hex({"tasks": [{}] * 4}), _hex({"session_id": "cto"}),
+           "ab" * 3751, _hex({"id": "task-1234abcd"}).upper()]
+    for verb in _PAYLOAD_VERBS:
+        assert nd.run_command(verb)[1] == 2                     # no argument at all
+        for token in bad:
+            raw = f"{verb} {token}"
+            out, code = nd.run_command(raw)
+            assert (code, out["ok"]) == (2, False), (verb, token[:40], out)
+            assert _oracle(raw) is None, (verb, token[:40])
+            with pytest.raises(nd.Refusal):
+                mesh.build_argv("contabo", verb, (token,))
+    assert nd.run_command("worker_completion -")[1] == 2        # a lone dash is not a payload
+    other = _hex({"id": "task-ffffffff"})
+    assert nd.run_command(f"publish_branch task-1234abcd {other}")[1] == 2
+    assert _oracle(f"publish_branch task-1234abcd {other}") is None
+    assert len(seen) == accepted and wire.calls == []           # no handler ran for any refusal
 
 
 # ---------------------------------------------------------------------------
@@ -890,6 +968,10 @@ def test_a_token_git_prints_never_reaches_the_reply_or_the_audit_row(monkeypatch
               "@github.com/PASAKON/Agents-Core.git/'")
     monkeypatch.setattr(subprocess, "run",
                         lambda argv, **kw: subprocess.CompletedProcess(argv, 128, "", stderr))
+    # The secret-scan gate needs gitleaks on PATH before git runs; CI has none.
+    monkeypatch.setattr(shutil, "which", lambda name, *a, **kw: "/usr/bin/" + name)
+    from tools import remote_maintenance
+    monkeypatch.setattr(remote_maintenance, "publish_url", lambda wt: "git@example.test:o/r.git")
     tid = _review_task(tmp_path)
 
     out, code = nd.run_command(f"publish_branch {tid}")

@@ -74,7 +74,8 @@ def _clean_session_env(monkeypatch):
     # the fail-closed default; a test that means the CEO asks for ceo_command.
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
                 "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL",
-                "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB", "ORG_AS_CEO"):
+                "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB", "ORG_AS_CEO",
+                "ORG_MESH_DISPATCH", "ORG_WATCHDOG_BRANCH_POLL"):
         monkeypatch.delenv(var, raising=False)
 
 

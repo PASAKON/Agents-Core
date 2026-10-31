@@ -748,7 +748,9 @@ if ! git diff --cached --quiet; then
   fi
 fi
 rm -f "$ALLOW_FILE" "$ALLOW_LARGE_FILE" "$MEDIA_KEPT_FILE"
-git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
+if [ "${ORG_HOST:-}" != mac ] && [ "${ORG_HOST:-}" != winbox ]; then
+  git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
+fi
 if [ -n "${AGENTS_ROOT:-}" ] && [ -f "$AGENTS_ROOT/tools/quota_handoff.py" ]; then
   if [ -x "$AGENTS_ROOT/scripts/hub/org-python.sh" ]; then
     bash "$AGENTS_ROOT/scripts/hub/org-python.sh" "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" ${DEAD_RUN:+--dead "$DEAD_RUN"} >/dev/null 2>&1 || true
