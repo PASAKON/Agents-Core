@@ -50,6 +50,10 @@ GENERATING_MAX_AGE_S = IDLE_S                # a task row untouched this long is
 LIVE_PH_S = 15 * 60                          # a live_sessions row seen this recently is a live session
 
 ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,62}")
+# A project's name is PascalCase like its folder (HQ filing rule): a capital first, then letters and
+# digits only, so no space and no hyphen. Checked when a Project Head opens a NEW row (open_project
+# pascal_name=True); rows that exist keep the name they have.
+PASCAL_RE = re.compile(r"[A-Z][A-Za-z0-9]*")
 LANE_RE = re.compile(r"[a-z]{2,12}")
 RESOURCE_RE = re.compile(r"[a-z0-9][a-z0-9_.:-]{0,100}")
 GO_SOURCE_RE = re.compile(r"(run:Q-|run:RUN-|chat:)\S.*")
@@ -118,6 +122,15 @@ def _actor(actor: str) -> str:
     return _text(actor, "actor", limit=120)
 
 
+def pascal_refusal(name) -> str | None:
+    """Why `name` is not a PascalCase project name (a capital first, then letters and digits: no
+    space, no hyphen, no underscore), or None when it is."""
+    if isinstance(name, str) and PASCAL_RE.fullmatch(name):
+        return None
+    return (f"project name {name!r} is not PascalCase (a capital first, then letters and digits "
+            "only: no spaces, no hyphens)")
+
+
 @contextlib.contextmanager
 def _tx(conn=None):
     """The caller's connection (it commits), else one hub connection that commits on exit."""
@@ -170,13 +183,20 @@ def open_project(project_id: str, name: str, lane: str, *, actor: str, stage: st
                  goal: str | None = None, done_criteria: str | None = None,
                  budget_usd: float | None = None, relay_accounts: list[str] | None = None,
                  hq_row: str | None = None, now: datetime | None = None, conn=None,
-                 kind="finite", due_at=None, due_set_by=None, cadence_h=None) -> dict:
-    """Register a project. The brief's `open(id, name, lane, ...)`."""
+                 kind="finite", due_at=None, due_set_by=None, cadence_h=None,
+                 pascal_name: bool = False) -> dict:
+    """Register a project. The brief's `open(id, name, lane, ...)`. `pascal_name`: refuse a name
+    that is not PascalCase (tools/spawn_ph passes it for a new Project Head's row; the CLI and the
+    older rows keep free-text names)."""
     now, actor = _utc(now), _actor(actor)
     _schedule(kind, due_at, due_set_by, cadence_h)
     if not ID_RE.fullmatch(project_id or ""):
         raise PortfolioError(f"bad project id {project_id!r} (lowercase letters, digits, '-')")
     name = _text(name, "name", limit=120)
+    if pascal_name:
+        why = pascal_refusal(name)
+        if why:
+            raise PortfolioError(why)
     if not LANE_RE.fullmatch(lane or ""):
         raise PortfolioError(f"bad lane {lane!r}")
     if stage not in STAGES or stage in TERMINAL:

@@ -166,6 +166,9 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
         if not re.fullmatch(r"[A-Za-z0-9_]{1,40}", project) or not re.fullmatch(r"c[a-z]o", lane):
             return None
         base = config.ph_session_name(sid, lane, project, host)
+        # Exact match on purpose, never casefolded: a topic that differs from the project only by
+        # case ("ThaiHumor" against a lock still holding "thaihumor") is kept, so the name shows it
+        # until the project is fixed, and a rename is never silently swallowed as "the same".
         if topic == project:
             topic = ""
     elif re.fullmatch(r"c[a-z]o", role) and role != "ceo":
