@@ -858,8 +858,8 @@ try {
     $dLog = '__AGY_LOG__'
     $dText = [System.IO.File]::ReadAllText($dLog)
     $dRxTool = 'a tool required the "([A-Za-z_]+)" permission'
-    $dRxRegion = '"denied_actions"\s*:\s*\[(.*?)\]\s*[,}]'
-    $dRxPair = '"([A-Za-z_]{1,30})"\s*:\s*"((?:[^"\\]|\\.){0,400})"'
+    $dRxRegion = '"denied_actions"\s*:\s*\[(.*?)\]\s*[,\x7d]'
+    $dRxPair = '"([A-Za-z_]{1,30})"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"'
     $dRxUrl = '[A-Za-z][A-Za-z0-9+.-]*://\S*'
     $dRxSecret = 'ya29\.[\w-]+|eyJ[\w-]+(?:\.[\w-]+){0,2}'
     $dRxAssign = '([A-Za-z0-9_]*(?:token|secret|password|passwd|key))=\S+'
