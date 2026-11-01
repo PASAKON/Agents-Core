@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1920, height=1080" />
+  <title>KhaoHom Survival 16:9 HUD Overlay</title>
+  <style>
+    /* Kanit font faces: supporting local fonts/ and project asset paths */
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url('fonts/kanit-600-b4b6e60e.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/ep01/assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/design-v3/mock/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+      unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+    }
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url('fonts/kanit-600-0c71a5b8.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/ep01/assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/design-v3/mock/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 800;
+      font-display: block;
+      src: url('fonts/kanit-800-aa86a0cb.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/ep01/assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/design-v3/mock/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+      unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+    }
+    @font-face {
+      font-family: 'Kanit';
+      font-style: normal;
+      font-weight: 800;
+      font-display: block;
+      src: url('fonts/kanit-800-1bf17218.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/ep01/assets/fonts/kanit-800-1bf17218.woff2') format('woff2'),
+           url('/opt/MoonieXHQ/Work/khaohom-survival/design-v3/mock/fonts/kanit-800-1bf17218.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    :root {
+      --night: #1B1F3B;
+      --cream: #FFFDF5;
+      --teal: #14B8A6;
+      --teal2: #0F766E;
+      --sun: #FFD23F;
+      --sun2: #F5B700;
+      --ink: #121428;
+      --white: #FFFFFF;
+      --red: #E5484D;
+      --red-warn: #FF6B5E;
+      --slate: #64748B;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Kanit', sans-serif;
+      font-weight: 600;
+      color: var(--cream);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    svg {
+      display: block;
+      overflow: visible;
+    }
+
+    /* ---- HUD Top Left ---- */
+    #hud-tl {
+      position: absolute;
+      left: 64px;
+      top: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    #hud-clock {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ci-round {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 3.5px solid var(--ink);
+      border-radius: 50%;
+      box-shadow: 0 4px 0 var(--ink);
+      flex-shrink: 0;
+    }
+
+    #ico-clock {
+      width: 58px;
+      height: 58px;
+      background: var(--sun);
+      border-width: 4px;
+    }
+
+    #clock-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    #day {
+      font-size: 24px;
+      line-height: 1.1;
+      color: var(--white);
+      text-shadow: 0 2px 0 var(--ink);
+      font-weight: 600;
+    }
+
+    #clock {
+      font-weight: 800;
+      font-size: 34px;
+      line-height: 1.1;
+      color: var(--white);
+      text-shadow: 0 3px 0 var(--ink);
+    }
+
+    #bars {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .bar-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 38px;
+    }
+
+    .bar-row .ico {
+      width: 38px;
+      height: 38px;
+    }
+
+    #row-hp .ico {
+      background: var(--red);
+    }
+
+    #row-hu .ico {
+      background: var(--sun);
+    }
+
+    .track {
+      position: relative;
+      width: 220px;
+      height: 20px;
+      background: rgba(18, 20, 40, 0.76);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      overflow: hidden;
+      flex: none;
+      box-shadow: 0 2px 0 var(--ink);
+    }
+
+    .fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    #fill-hp {
+      background: var(--red);
+      width: 100%;
+    }
+
+    #fill-hu {
+      background: var(--sun);
+      width: 100%;
+    }
+
+    #fill-hu-red {
+      background: var(--red);
+      width: 100%;
+      opacity: 0;
+    }
+
+    .num {
+      font-weight: 800;
+      font-size: 26px;
+      line-height: 38px;
+      color: var(--white);
+      text-shadow: 0 2px 0 var(--ink);
+      min-width: 56px;
+    }
+
+    #hu-warn {
+      display: none;
+      margin-left: 4px;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--red-warn);
+      text-shadow: 0 2px 0 var(--ink);
+      white-space: nowrap;
+    }
+
+    /* ---- Inventory Column Right ---- */
+    #inv {
+      position: absolute;
+      right: 64px;
+      top: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .slot {
+      position: relative;
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      background: rgba(18, 20, 40, 0.45);
+      border: 2px dashed rgba(255, 253, 245, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot.filled {
+      background: var(--cream);
+      border: 3.5px solid var(--ink);
+      box-shadow: 0 4px 0 var(--ink);
+    }
+
+    .slot .item-svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .slot .cnt {
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      height: 20px;
+      padding: 0 8px;
+      border-radius: 10px;
+      background: var(--ink);
+      color: var(--cream);
+      font-weight: 800;
+      font-size: 16px;
+      line-height: 20px;
+      white-space: nowrap;
+      border: 1.5px solid var(--cream);
+    }
+
+    .slot .held-dot {
+      position: absolute;
+      left: -6px;
+      top: -6px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: 2.5px solid var(--ink);
+    }
+
+    /* ---- Popups Centre-Right ---- */
+    #chips {
+      position: absolute;
+      right: 160px;
+      top: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: flex-end;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      height: 68px;
+      padding: 0 24px 0 10px;
+      border: 4px solid var(--ink);
+      border-radius: 28px;
+      box-shadow: 0 6px 0 var(--ink);
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .chip .cc {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--cream);
+      border: 3px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+
+    .chip .cc svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .chip.gain {
+      background: var(--teal);
+      color: var(--ink);
+    }
+
+    .chip.loss {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .chip.drain {
+      background: var(--sun);
+      color: var(--ink);
+    }
+
+    /* ---- Cards (Full Screen Dim + Centred Card) ---- */
+    #carddim {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      background: rgba(10, 14, 30, 0.65);
+      z-index: 30;
+    }
+
+    #card-container {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 35;
+    }
+
+    /* Inventory Summary Card */
+    .card-inv {
+      width: 1040px;
+      background: var(--cream);
+      border: 5px solid var(--ink);
+      border-radius: 32px;
+      box-shadow: 0 10px 0 var(--ink);
+      color: var(--ink);
+      padding: 36px 44px;
+    }
+
+    .card-inv .hd {
+      font-weight: 800;
+      font-size: 42px;
+      line-height: 1.1;
+      margin-bottom: 26px;
+      text-align: center;
+    }
+
+    .card-inv .ln {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 32px;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .card-inv .tag {
+      flex: none;
+      width: 110px;
+      text-align: center;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      padding: 6px 0 4px;
+      font-weight: 800;
+    }
+
+    .card-inv .g .tag {
+      background: var(--teal);
+    }
+
+    .card-inv .l .tag {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .card-inv .r .tag {
+      background: var(--sun);
+    }
+
+    /* Choice Card */
+    .card-choice {
+      width: 1080px;
+      background: var(--cream);
+      border: 5px solid var(--ink);
+      border-radius: 32px;
+      box-shadow: 0 10px 0 var(--ink);
+      color: var(--ink);
+      padding: 38px 48px;
+    }
+
+    .card-choice .title {
+      font-weight: 800;
+      font-size: 44px;
+      margin-bottom: 28px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .card-choice .options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-choice .opt {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(18, 20, 40, 0.08);
+      border: 3.5px solid var(--ink);
+      border-radius: 20px;
+      padding: 16px 24px;
+      font-weight: 800;
+      font-size: 30px;
+    }
+
+    .card-choice .opt .badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: 3px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--ink);
+    }
+
+    /* World Event Card */
+    .card-world {
+      width: 1000px;
+      background: var(--cream);
+      border: 5px solid var(--ink);
+      border-radius: 32px;
+      box-shadow: 0 10px 0 var(--ink);
+      color: var(--ink);
+      padding: 34px 44px;
+      text-align: center;
+    }
+
+    .card-world .badge {
+      display: inline-block;
+      background: var(--sun);
+      border: 3px solid var(--ink);
+      border-radius: 16px;
+      padding: 6px 24px;
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .card-world .text {
+      font-weight: 800;
+      font-size: 38px;
+      line-height: 1.3;
+    }
+
+    /* End Card (EP04 Look) */
+    .card-end {
+      width: 1080px;
+      background: #0D242C;
+      border: 6px solid var(--ink);
+      border-radius: 36px;
+      box-shadow: 0 12px 0 var(--ink);
+      padding: 44px 52px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .card-end .main-banner {
+      width: 100%;
+      background: var(--teal);
+      border: 4px solid var(--ink);
+      border-radius: 24px;
+      padding: 18px 24px;
+      box-shadow: 0 6px 0 var(--ink);
+    }
+
+    .card-end .main-banner text, .card-end .main-banner h1 {
+      font-weight: 800;
+      font-size: 48px;
+      color: var(--ink);
+    }
+
+    .card-end .sub-banner {
+      width: 100%;
+      background: var(--sun);
+      border: 4px solid var(--ink);
+      border-radius: 24px;
+      padding: 24px 30px;
+      box-shadow: 0 6px 0 var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-end .ep-title {
+      font-weight: 800;
+      font-size: 44px;
+      color: var(--ink);
+    }
+
+    .card-end .next-ep {
+      font-weight: 600;
+      font-size: 32px;
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <!-- Top-Left HUD -->
+    <div id="hud-tl">
+      <div id="hud-clock">
+        <span id="ico-clock" class="ci-round">
+          <svg width="44" height="44" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="22" fill="#FFD23F"/>
+            <line x1="24" y1="24" x2="24" y2="13" stroke="#121428" stroke-width="4" stroke-linecap="round" transform="rotate(180 24 24)"/>
+            <line x1="24" y1="24" x2="24" y2="8" stroke="#121428" stroke-width="3.2" stroke-linecap="round"/>
+            <circle cx="24" cy="24" r="3" fill="#121428"/>
+          </svg>
+        </span>
+        <div id="clock-text">
+          <span id="day">วันที่ 4</span>
+          <span id="clock">06:00 น.</span>
+        </div>
+      </div>
+
+      <div id="bars">
+        <div class="bar-row" id="row-hp">
+          <span class="ci-round ico" id="ico-hp">
+            <svg width="22" height="22" viewBox="0 0 48 48">
+              <path d="M24 41 C24 41 7 30 7 18.4 C7 12.8 11.2 9 16 9 C19.4 9 22.4 10.8 24 13.8 C25.6 10.8 28.6 9 32 9 C36.8 9 41 12.8 41 18.4 C41 30 24 41 24 41 Z" fill="#FFFDF5" stroke="#121428" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="track">
+            <div class="fill" id="fill-hp"></div>
+          </div>
+          <span class="num" id="num-hp">100</span>
+        </div>
+
+        <div class="bar-row" id="row-hu">
+          <span class="ci-round ico" id="ico-hu">
+            <svg width="24" height="24" viewBox="0 0 48 48">
+              <path d="M10 23 C10 17 16.4 13.6 24 13.6 C31.6 13.6 38 17 38 23 Z" fill="#FFFDF5" stroke="#121428" stroke-width="2.4"/>
+              <path d="M8 23 L40 23 C39 33 32.4 39 24 39 C15.6 39 9 33 8 23 Z" fill="#14B8A6" stroke="#121428" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="track">
+            <div class="fill" id="fill-hu"></div>
+            <div class="fill" id="fill-hu-red"></div>
+          </div>
+          <span class="num" id="num-hu">100</span>
+          <span id="hu-warn">หิวมาก!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory Right Column -->
+    <div id="inv"></div>
+
+    <!-- Popups Centre-Right -->
+    <div id="chips"></div>
+
+    <!-- Cards & Dim Overlay -->
+    <div id="carddim"></div>
+    <div id="card-container"></div>
+  </div>
+
+  <script>
+    const ST = 'stroke="#121428" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"';
+    const ICON = {
+      canfish: '<path d="M8 15 V37 Q8 42.5 24 42.5 Q40 42.5 40 37 V15 Z" fill="#CBD5E1" '+ST+'/><path d="M8 21 Q24 27.5 40 21 V35.5 Q24 42 8 35.5 Z" fill="#14B8A6" stroke="#121428" stroke-width="2"/><ellipse cx="24" cy="15" rx="16" ry="5.5" fill="#E2E8F0" '+ST+'/><path d="M14.5 29.5 Q20.5 23.5 27.5 29.5 Q20.5 35.5 14.5 29.5 Z" fill="#FFFDF5" stroke="#121428" stroke-width="1.8"/><path d="M27.5 29.5 L32.5 25.5 V33.5 Z" fill="#FFFDF5" stroke="#121428" stroke-width="1.8"/>',
+      torch: '<g transform="rotate(38 24 27)"><path d="M24 -1 V1.5 M15 1.5 L13 -0.5 M33 1.5 L35 -0.5" stroke="#F5B700" stroke-width="2.4" stroke-linecap="round"/><rect x="18" y="19" width="12" height="26" rx="3" fill="#334155" '+ST+'/><rect x="18" y="29" width="12" height="5" fill="#14B8A6" '+ST+'/><path d="M14.5 7 H33.5 L30 19 H18 Z" fill="#CBD5E1" '+ST+'/><ellipse cx="24" cy="7" rx="9.5" ry="3" fill="#FFF1D6" '+ST+'/></g>',
+      water: '<rect x="19.5" y="3" width="9" height="6.5" rx="1.5" fill="#14B8A6" '+ST+'/><path d="M20 9.5 H28 L28.6 13.5 Q33 16 33 21 V41 Q33 45 29 45 H19 Q15 45 15 41 V21 Q15 16 19.4 13.5 Z" fill="#8FD3FF" '+ST+'/><path d="M15.4 25 H32.6 V34 H15.4 Z" fill="#FFFDF5" stroke="#121428" stroke-width="2.2"/>',
+      stick: '<g transform="rotate(40 24 24)"><rect x="19.5" y="2" width="9" height="44" rx="4.5" fill="#C58B4B" '+ST+'/><rect x="19.5" y="31" width="9" height="8" fill="#FFD23F" '+ST+'/><path d="M22.5 8 V24" stroke="#E7B77B" stroke-width="2.2" stroke-linecap="round"/></g>',
+      stickBroken: '<g transform="rotate(40 24 24)"><path d="M19.5 2 H28.5 V20 L24 24 L28.5 28 V46 H19.5 V30 L24 26 L19.5 22 Z" fill="#C58B4B" '+ST+'/><line x1="16" y1="23" x2="32" y2="27" stroke="#E5484D" stroke-width="3" stroke-linecap="round"/></g>',
+      heart: '<path d="M24 41 C24 41 7 30 7 18.4 C7 12.8 11.2 9 16 9 C19.4 9 22.4 10.8 24 13.8 C25.6 10.8 28.6 9 32 9 C36.8 9 41 12.8 41 18.4 C41 30 24 41 24 41 Z" fill="#E5484D" '+ST+'/>',
+      bowl: '<path d="M10 23 C10 17 16.4 13.6 24 13.6 C31.6 13.6 38 17 38 23 Z" fill="#FFFDF5" stroke="#121428" stroke-width="2.4"/><path d="M8 23 L40 23 C39 33 32.4 39 24 39 C15.6 39 9 33 8 23 Z" fill="#14B8A6" '+ST+'/>',
+      alert: '<path d="M24 6 L44 40 H4 Z" fill="#FFD23F" '+ST+'/><line x1="24" y1="18" x2="24" y2="28" stroke="#121428" stroke-width="3.5" stroke-linecap="round"/><circle cx="24" cy="34" r="2.5" fill="#121428"/>',
+      default: '<circle cx="24" cy="24" r="16" fill="#14B8A6" '+ST+'/>'
+    };
+
+    function getIconSVG(id) {
+      const code = ICON[id] || ICON['default'];
+      return '<svg viewBox="0 0 48 48">' + code + '</svg>';
+    }
+
+    window.renderState = function(state) {
+      if (!state) state = {};
+
+      // 1. Clock & Day
+      const clockEl = document.getElementById('clock');
+      const dayEl = document.getElementById('day');
+      if (state.clock) {
+        if (state.clock.time) clockEl.textContent = state.clock.time;
+        if (state.clock.day) dayEl.textContent = state.clock.day;
+      }
+
+      // 2. Bars (HP & Hunger)
+      const hp = (state.bars && typeof state.bars.hp === 'number') ? state.bars.hp : 100;
+      const hunger = (state.bars && typeof state.bars.hunger === 'number') ? state.bars.hunger : 100;
+
+      document.getElementById('fill-hp').style.width = Math.max(0, Math.min(100, hp)) + '%';
+      document.getElementById('num-hp').textContent = Math.round(hp);
+
+      const fillHu = document.getElementById('fill-hu');
+      const fillHuRed = document.getElementById('fill-hu-red');
+      const huWarn = document.getElementById('hu-warn');
+
+      fillHu.style.width = Math.max(0, Math.min(100, hunger)) + '%';
+      fillHuRed.style.width = Math.max(0, Math.min(100, hunger)) + '%';
+      document.getElementById('num-hu').textContent = Math.round(hunger);
+
+      if (hunger <= 30) {
+        fillHu.style.opacity = '0';
+        fillHuRed.style.opacity = '1';
+        huWarn.style.display = 'inline-block';
+      } else {
+        fillHu.style.opacity = '1';
+        fillHuRed.style.opacity = '0';
+        huWarn.style.display = 'none';
+      }
+
+      // 3. Inventory slots
+      const invContainer = document.getElementById('inv');
+      invContainer.innerHTML = '';
+      const slots = (state.inv && Array.isArray(state.inv.slots)) ? state.inv.slots : [];
+      const slotCount = Math.max(5, slots.length);
+
+      for (let i = 0; i < slotCount; i++) {
+        const item = slots[i];
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'slot' + (item ? ' filled' : '');
+
+        if (item) {
+          const iconId = item.id || 'default';
+          let inner = '<div class="item-svg">' + getIconSVG(iconId) + '</div>';
+          if (item.count) {
+            inner += '<b class="cnt">' + item.count + '</b>';
+          }
+          if (item.held) {
+            inner += '<i class="held-dot"></i>';
+          }
+          slotDiv.innerHTML = inner;
+        }
+        invContainer.appendChild(slotDiv);
+      }
+
+      // 4. Popups (Chips)
+      const chipsContainer = document.getElementById('chips');
+      chipsContainer.innerHTML = '';
+      const popups = (state.popups && Array.isArray(state.popups)) ? state.popups : [];
+
+      popups.forEach(p => {
+        const chipDiv = document.createElement('div');
+        const kind = p.kind || 'gain';
+        chipDiv.className = 'chip ' + kind;
+
+        const iconKey = p.item || (kind === 'loss' ? 'stickBroken' : 'canfish');
+        chipDiv.innerHTML = '<span class="cc">' + getIconSVG(iconKey) + '</span><span>' + p.text + '</span>';
+        chipsContainer.appendChild(chipDiv);
+      });
+
+      // 5. Cards & Dim Backdrop
+      const cardDim = document.getElementById('carddim');
+      const cardContainer = document.getElementById('card-container');
+
+      if (state.card) {
+        cardDim.style.display = 'block';
+        cardContainer.style.display = 'block';
+        const c = state.card;
+        const kind = c.kind || 'world';
+
+        if (kind === 'end') {
+          cardContainer.innerHTML = `
+            <div class="card-end">
+              <div class="main-banner">
+                <h1>เอาชีวิตรอดกับข้าวหอม</h1>
+              </div>
+              <div class="sub-banner">
+                <div class="ep-title">${(c.lines && c.lines[0]) || 'ตอนที่ 4 ของหายหมด'}</div>
+                <div class="next-ep">${(c.lines && c.lines[1]) || 'ตอนหน้า แผลโดนน้ำท่วม'}</div>
+              </div>
+            </div>`;
+        } else if (kind === 'choice') {
+          const lines = c.lines || [];
+          let optsHTML = '';
+          lines.forEach((ln, idx) => {
+            optsHTML += `<div class="opt"><span class="badge">${idx + 1}</span><span>${ln}</span></div>`;
+          });
+          cardContainer.innerHTML = `
+            <div class="card-choice">
+              <div class="title">${c.title || 'ทางเลือก'}</div>
+              <div class="options">${optsHTML}</div>
+            </div>`;
+        } else if (kind === 'inventory' || kind === 'summary') {
+          const gained = (c.gained || []).join(' ') || '-';
+          const lost = (c.lost || []).join(' ') || '-';
+          const rem = (c.remaining || []).join(' ') || '-';
+          cardContainer.innerHTML = `
+            <div class="card-inv">
+              <div class="hd">${c.title || 'ข้าวหอมได้อะไรบ้าง'}</div>
+              <div class="ln g"><span class="tag">ได้</span><span>${gained}</span></div>
+              <div class="ln l"><span class="tag">เสีย</span><span>${lost}</span></div>
+              <div class="ln r"><span class="tag">เหลือ</span><span>${rem}</span></div>
+            </div>`;
+        } else {
+          // world event card
+          const text = (c.lines && c.lines.join('<br>')) || c.text || '';
+          cardContainer.innerHTML = `
+            <div class="card-world">
+              <div class="badge">สถานการณ์</div>
+              <div class="text">${text}</div>
+            </div>`;
+        }
+      } else {
+        cardDim.style.display = 'none';
+        cardContainer.style.display = 'none';
+        cardContainer.innerHTML = '';
+      }
+
+      document.documentElement.dataset.ready = '1';
+    };
+
+    // Auto-render default test preview when opened directly in browser
+    window.addEventListener('DOMContentLoaded', () => {
+      document.fonts.ready.then(() => {
+        if (!document.documentElement.dataset.ready) {
+          window.renderState({
+            clock: { day: 'วันที่ 4', time: '06:00 น.' },
+            bars: { hp: 85, hunger: 30 },
+            inv: {
+              slots: [
+                { id: 'canfish', count: '×2', held: false },
+                { id: 'torch', count: '90%', held: true },
+                { id: 'water', count: '×1', held: false },
+                { id: 'stick', count: '80%', held: true },
+                null
+              ]
+            },
+            popups: [
+              { kind: 'gain', item: 'canfish', text: '+2 ปลากระป๋อง' }
+            ],
+            card: null
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

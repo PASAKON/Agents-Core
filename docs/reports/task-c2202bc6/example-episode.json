@@ -1,0 +1,185 @@
+{
+  "stills": [
+    {
+      "id": "K1",
+      "path": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-stills/K1.png",
+      "s": 0.0,
+      "e": 12.0,
+      "move": "in"
+    },
+    {
+      "id": "K2",
+      "path": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-stills/K2.png",
+      "s": 12.0,
+      "e": 24.0,
+      "move": "left"
+    },
+    {
+      "id": "K3",
+      "path": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-stills/K3.png",
+      "s": 24.0,
+      "e": 36.0,
+      "move": "out"
+    },
+    {
+      "id": "K4",
+      "path": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-stills/K4.png",
+      "s": 36.0,
+      "e": 48.0,
+      "move": "right"
+    },
+    {
+      "id": "K5",
+      "path": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-stills/K5.png",
+      "s": 48.0,
+      "e": 60.0,
+      "move": "in"
+    }
+  ],
+  "subs": [
+    {
+      "s": 0.5,
+      "e": 4.2,
+      "text": "เช้าวันที่สี่ น้ำท่วมเริ่มสูงขึ้นเรื่อยๆ"
+    },
+    {
+      "s": 5.0,
+      "e": 10.5,
+      "text": "ข้าวหอมสำรวจของในบ้าน พบว่าเสบียงเหลืออยู่น้อยมาก"
+    },
+    {
+      "s": 12.2,
+      "e": 17.0,
+      "text": "ความหิวเริ่มรบกวนจนแทบไม่มีเรี่ยวแรงก้าวเดิน"
+    },
+    {
+      "s": 18.0,
+      "e": 23.5,
+      "text": "ต้องรีบหาอาหารเพิ่มก่อนที่แรงจะหมดไปมากกว่านี้"
+    },
+    {
+      "s": 24.5,
+      "e": 30.0,
+      "text": "ข้าวหอมตัดสินใจค้นตู้กับข้าวบนชั้นสองอย่างระมัดระวัง"
+    },
+    {
+      "s": 30.5,
+      "e": 35.5,
+      "text": "โชคดีที่ยังเจอปปลากระป๋องเหลืออยู่อีกสองกระป๋อง"
+    },
+    {
+      "s": 36.5,
+      "e": 42.0,
+      "text": "มีเสียงเรือกู้ภัยแล่นผ่านปากซอย แต่กระแสน้ำยังเชี่ยวกราก"
+    },
+    {
+      "s": 43.0,
+      "e": 47.5,
+      "text": "ข้าวหอมต้องตัดสินใจว่าจะรออยู่ตรงนี้หรือออกไปขอความช่วยเหลือ"
+    },
+    {
+      "s": 48.5,
+      "e": 54.0,
+      "text": "ความมืดเริ่มเข้ามาเยือน คืนนี้จะต้องปลอดภัย"
+    },
+    {
+      "s": 55.0,
+      "e": 59.5,
+      "text": "ติดตามการเอาชีวิตรอดของข้าวหอมในตอนต่อไป"
+    }
+  ],
+  "hud": {
+    "clock": [
+      { "t": 0.0, "day": "วันที่ 4", "clock": "06:00 น." },
+      { "t": 24.0, "day": "วันที่ 4", "clock": "12:30 น." },
+      { "t": 48.0, "day": "วันที่ 4", "clock": "18:00 น." }
+    ],
+    "bars": [
+      { "t": 0.0, "hp": 100, "hunger": 50 },
+      { "t": 12.0, "hp": 95, "hunger": 28 },
+      { "t": 31.0, "hp": 95, "hunger": 70 },
+      { "t": 48.0, "hp": 90, "hunger": 65 }
+    ],
+    "inv": [
+      {
+        "t": 0.0,
+        "slots": [
+          { "id": "canfish", "name_th": "ปลากระป๋อง", "count": "×1", "equipped": false },
+          { "id": "torch", "name_th": "ไฟฉาย", "count": "85%", "equipped": true },
+          { "id": "water", "name_th": "น้ำดื่ม", "count": "×1", "equipped": false },
+          { "id": "stick", "name_th": "ไม้คลำทาง", "count": "70%", "equipped": true },
+          null
+        ]
+      },
+      {
+        "t": 16.0,
+        "slots": [
+          { "id": "canfish", "name_th": "ปลากระป๋อง", "count": "×1", "equipped": false },
+          { "id": "torch", "name_th": "ไฟฉาย", "count": "75%", "equipped": true },
+          { "id": "water", "name_th": "น้ำดื่ม", "count": "×1", "equipped": false },
+          { "id": "stick", "name_th": "ไม้คลำทาง", "count": "70%", "equipped": true },
+          null
+        ]
+      },
+      {
+        "t": 31.0,
+        "slots": [
+          { "id": "canfish", "name_th": "ปลากระป๋อง", "count": "×2", "equipped": false },
+          { "id": "torch", "name_th": "ไฟฉาย", "count": "75%", "equipped": true },
+          { "id": "water", "name_th": "น้ำดื่ม", "count": "×1", "equipped": false },
+          { "id": "stick", "name_th": "ไม้คลำทาง", "count": "70%", "equipped": true },
+          null
+        ]
+      }
+    ],
+    "popups": [
+      {
+        "t": 12.2,
+        "kind": "drain",
+        "text": "หิวมาก!",
+        "item": "bowl"
+      },
+      {
+        "t": 16.0,
+        "kind": "drain",
+        "text": "ไฟฉาย เหลือ 75%",
+        "item": "torch"
+      },
+      {
+        "t": 30.8,
+        "kind": "gain",
+        "text": "+2 ปลากระป๋อง",
+        "item": "canfish"
+      }
+    ],
+    "world_events": [
+      {
+        "t": 36.5,
+        "text": "ได้ยินเสียงเรือกู้ภัยแล่นผ่านหน้าซอย"
+      }
+    ]
+  },
+  "voice": "/opt/MoonieXHQ/Work/khaohom-survival/ep04/s1-voice/vo.wav",
+  "music": "/opt/MoonieXHQ/Work/khaohom-survival/sfx/sfx1-slr.wav",
+  "cards": [
+    {
+      "s": 37.0,
+      "e": 42.0,
+      "kind": "choice",
+      "title": "ทางเลือกฉุกเฉิน",
+      "lines": [
+        "พายกะละมังออกไปขอความช่วยเหลือที่ปากซอย",
+        "ปักหลักรออยู่บนชั้นสองของบ้านต่อไป"
+      ]
+    },
+    {
+      "s": 55.0,
+      "e": 60.0,
+      "kind": "end",
+      "lines": [
+        "ตอนที่ 4 ของหายหมด",
+        "ตอนหน้า แผลโดนน้ำท่วม"
+      ]
+    }
+  ]
+}
