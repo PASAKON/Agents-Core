@@ -129,8 +129,9 @@ PH HostSpawn's (#a08).
   Only one such job runs at a time, across every lane; a worker, a render and a Flow card each count as one.
 - A task or a PH that names its host keeps it, except: ExpertAdvisor never runs on winbox; winbox keeps 4 GB of
   RAM free for the live EA (§winbox below); renders stay on Contabo until the winbox render test has passed.
-- Until the router is switched on, pick by hand. `tools/host_fill.py` (PH HostSpawn B1, 30 Oct) prints each
-  host's fill and whether it is online. Pass `host=` to `create_task` and `--host` to `spawn_ph`.
+- The router is switched on (`config/hosts.yaml` `router.enabled: true`, 2026-11-02): when `host=` is omitted,
+  `create_task` and `spawn_ph` pick the least-full online host that fits (`tools/host_fill.py`). Pass `host=` only
+  when a task or PH must be pinned to a specific host.
 - Code comes back only through git: branch, PR, merge. Media never goes in git: it goes to Drive, is checked by
   md5 and is then deleted on the host that made it. Nothing is copied between hosts by hand.
 
@@ -212,7 +213,9 @@ with no card, or no `blocker` letter, in the same turn. He taps an answer on ter
 `ask_run_wait Q-…` returns it. Only he can answer, and that hub record is his decision: cite the `Q-…` id
 when you act on it. **A question card never replaces a command card.** Anything that runs a command,
 spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill
-`ALL_Protocol_RunInbox` §Question cards. The Mac and winbox have no run-inbox token yet, so a session there sends
+`ALL_Protocol_RunInbox` §Question cards. The Mac has a Run Inbox token and peer executor (`RUN_PEER_EXECUTOR=1`,
+2026-11-02), so sessions on the Mac raise question and command cards directly with `tools/ask_run.py` and wait with
+`tools/ask_run.py wait <id>`. winbox has no run-inbox token yet, so a session there sends
 the question as one `blocker` letter to a Contabo C-level (its own, else CTO Main), which raises the card and
 sends back the answer with its `Q-…` id (CEO 2026-10-29). Never leave it waiting in that chat.
 

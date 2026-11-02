@@ -153,10 +153,13 @@ def _org_flags_off(tmp_path, monkeypatch):
 @pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
-    quota read is an ssh to Contabo plus the agy CLI. No test may reach
-    those (task-ae42c0a7); tests/test_delegate_router.py re-enables it
-    against a mocked pick_runner."""
+    quota read is an ssh to Contabo plus the agy CLI, and routes host
+    selection through lib.router (which probes live hosts over ssh when
+    config/hosts.yaml router.enabled is true). No test may reach those
+    (task-ae42c0a7); router tests re-enable or clear the env var against
+    mocked probes."""
     monkeypatch.setenv("ORG_ROUTER", "off")
+    monkeypatch.setenv("ORG_HOST_ROUTER", "off")
 
 
 @pytest.fixture(autouse=True)

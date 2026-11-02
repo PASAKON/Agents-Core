@@ -499,3 +499,35 @@ def test_hub_copy_only_with_the_hub_env_and_never_raises(tmp_path, monkeypatch):
     monkeypatch.setattr(lib.db, "get_conn", lambda **kw: (_ for _ in ()).throw(RuntimeError("hub down")))
     ab.append_log("read", 9280, "champa.io", ["h1"], 0)    # a dead hub never raises
     assert len(ab.log_path().read_text().splitlines()) == 3
+
+
+def test_main_reconfigures_stdout_to_utf8_on_cp1252_host(monkeypatch):
+    import io
+    buf = io.BytesIO()
+    stream = io.TextIOWrapper(buf, encoding="cp1252", errors="strict")
+    monkeypatch.setattr(sys, "stdout", stream)
+
+    class _FakePage:
+        url = "https://champa.io/login"
+
+        def title(self):
+            return "login | แพลตฟอร์มสำหรับแอฟฟิลิเอต"
+
+    class _FakeSession:
+        def __init__(self, _port):
+            pass
+
+        def pages(self):
+            return [_FakePage()]
+
+        def target_id(self, _pg):
+            return "TAB1"
+
+        def close(self):
+            pass
+
+    rc = ab.main(["--port", "9280", "tabs"], session_factory=_FakeSession)
+    stream.flush()
+    assert rc == ab.OK
+    assert "แพลตฟอร์มสำหรับแอฟฟิลิเอต" in buf.getvalue().decode("utf-8")
+
