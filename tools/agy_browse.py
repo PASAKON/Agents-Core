@@ -629,6 +629,11 @@ def parse(argv: list[str]) -> tuple[int | None, str | None, str, list[str]]:
 
 def main(argv: list[str] | None = None, *, session_factory=Session,
          policy_path: Path = POLICY_PATH) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     argv = list(sys.argv[1:] if argv is None else argv)
     verb, port_no, host, args = "?", None, "", []
     code = ERROR

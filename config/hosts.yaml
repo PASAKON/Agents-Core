@@ -25,7 +25,7 @@
 # Read by lib.config.terminal_window().
 
 router:
-  enabled: false
+  enabled: true
   fill_limit_pct: 80
   first_host: contabo
   probe_timeout_s: 10

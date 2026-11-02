@@ -141,7 +141,7 @@ def test_create_task_needs_param_is_appended_to_the_description(monkeypatch, tmp
 
 
 @pytest.mark.parametrize("value, want", [
-    (None, False), ("", False), ("0", False), ("off", False),
+    (None, True), ("", False), ("0", False), ("off", False),
     ("1", True), ("true", True), (" ON ", True),
 ])
 def test_flag_default_off(monkeypatch, value, want):
@@ -502,6 +502,7 @@ def run(tid, **kw):
 ])
 def test_flag_off_is_todays_resolution_and_never_calls_pick_host(
         flow, monkeypatch, arg, task_host, want):
+    monkeypatch.setenv("ORG_HOST_ROUTER", "0")
     def boom(*a, **k):
         raise AssertionError("pick_host must not run with ORG_HOST_ROUTER off")
     monkeypatch.setattr(router, "pick_host", boom)

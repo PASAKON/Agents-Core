@@ -7,6 +7,7 @@ description: "PROTOCOL — Put one shell command or one repo script on the CEO's
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 improved_by:
+  - {role: cto, date: "2026-11-02", what: "Mac Run Inbox P2 live (RUN_PEER_EXECUTOR=1 on Mac, RUN_PEER_DISPATCH=mac-3ecb3784 on Contabo, docs/reports/hostspawn-mac-p2/REPORT.md)"}
   - {role: cto, date: "2026-10-30", what: "question cards at once, even when the CEO is in the chat; a Stop hook enforces it (CEO ruling)"}
   - {role: developer, date: "2026-10-27", what: "waiting on a card is the background wait or the mailbox letter, never a timer (IRON-RULES §64, task-375ec9e9)"}
 audience: [cxo, worker]
@@ -29,19 +30,20 @@ A blocker that needs the CEO's tap → create the card **now**, then one chat li
 he taps) cost him a turn every time. The card is the question; Deny/cancel is his answer. Every new
 card also emails him as a reminder (Console `scripts/run-mail-sender.mjs`).
 
-## Hosts (state on 2026-09-25)
+## Hosts (state on 2026-11-02)
 
 | host | runs cards | how |
 |---|---|---|
 | `contabo` | **yes** (P1 live since 2026-09-25 17:05 UTC) | the hub's own executor |
 | `winbox` | no — hub answers `501 peer_exec_not_yet` at creation | P2: executor on the peer |
-| `mac` | no — same 501 | P2, after the Mac rebuild (its sshd is off) |
+| `mac` | **yes** (P2 live since 2026-11-02) | Contabo dispatches over the tailnet to `https://macbook-pro--gob.tail400676.ts.net/api/peer/run` (`RUN_PEER_EXECUTOR=1`, `RUN_PEER_DISPATCH=mac-3ecb3784`). Wait for the result with `tools/ask_run.py wait <id>` |
 
-A card for winbox or the Mac never reaches the phone — the hub refuses it before storing anything.
+A card for winbox never reaches the phone — the hub refuses it before storing anything.
 winbox's Claude CLI is already logged in (CEO 2026-09-28: "Window Login Claude นานแล้ว"), so no desk
 login is waiting on P2 there.
-There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2, a step on
-the Mac or winbox goes one of these ways, and never as a `!` line:
+The Mac has `~/.config/mooniex/run-inbox.token` and `RUN_PEER_EXECUTOR=1` (2026-11-02): sessions on the Mac raise question and command cards directly with `tools/ask_run.py` and wait with `tools/ask_run.py wait <id>`.
+There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2 lands on winbox, a step on
+winbox goes one of these ways, and never as a `!` line:
 
 - **A question only the CEO can answer, even while he is typing in your chat** (CEO 2026-10-30; 2026-10-29: "ทำไม Mac
   หรือ Winbox session … ไม่ใช้ Run Card ให้เป็นนิสัยเหมือนกับ Contabo"): send ONE `blocker` letter to a
@@ -351,3 +353,4 @@ the master. `wait` prints `picked: B (cover_b.png) · note: …`, or `picked: no
 - 2026-10-29 [COSTLY] §command cards to winbox — a card that runs PowerShell 5.1 over ssh with `$ErrorActionPreference='Stop'` dies on the first native stderr line (git progress, pip): PS 5.1 wraps it as a terminating RemoteException, and the card exits 1 after a step that succeeded. Use `Continue` around native calls and check `$LASTEXITCODE`, but keep cmdlets such as `Push-Location` at `-ErrorAction Stop` · evidence: RUN-20261029-0436-a509 failed, RUN-20261029-0537-c966 ok after #550 · status: pending
 - 2026-10-29 [COSTLY] §command cards on Contabo — a card that "starts each unit to prove it works" must skip units that send messages: a weekly sender exits 2 on a rerun ("already sent"), and the card stopped after 15 min. Also, a repo dir owned by uid 501 (a Mac rsync) makes root installers refuse to run; chown that dir only, inside the card · evidence: RUN-20261029-0435-3cf6 (tool-value-report rc 2), RUN-20261029-0430-4bb9 (uid 501) · status: pending
 - 2026-10-30 [MISSING] §What the CEO sees — a Console restart fails every open card, untapped ones too. RUN-20261030-0730-3507 was raised at 07:30Z and had not run when the Console restarted at 07:46Z; it came back `FAILED E_CONSOLE_RESTART — exit - in -`. The requester re-raises the card (a new id and expiry) and sends the CEO the new link. Whoever restarts the Console lists pending cards first (`tools/ask_run.py list --status pending`) · evidence: RUN-20261030-0730-3507, re-raised as RUN-20261030-0750-ff5b (exit 0), session cto-fresh · status: pending
+- 2026-11-02 [SUPERSEDED] §Hosts — Mac Run Inbox P2 is now live (`~/.config/mooniex/run-inbox.token` + `RUN_PEER_EXECUTOR=1` on the Mac, `RUN_PEER_DISPATCH=mac-3ecb3784` on Contabo Console), so Mac sessions raise question and command cards directly with `tools/ask_run.py` and wait with `tools/ask_run.py wait <id>` · evidence: HostSpawn M1/M2/M4, docs/reports/hostspawn-mac-p2/REPORT.md, session cto-f69c4825 · status: promoted
