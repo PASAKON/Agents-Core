@@ -792,11 +792,116 @@ $remoteContract
 
 $taskContent
 "@
+        # browser_operator ONLY (GH #634, order O-20261101-1644-d559): the one shell
+        # command this run may use is the browse command. It is allowed by the user
+        # settings in config/agy-settings-winbox.json, which
+        # windows/install-agy-settings.ps1 puts in place. Every other role keeps the
+        # edit-only prompt above, word for word.
+        $agyBrowser = ($Role -eq 'browser_operator')
+        if ($agyBrowser) {
+            $agyVenvPython = Join-Path $wt '.venv\Scripts\python.exe'
+            $agyPython = if (Test-Path -LiteralPath $agyVenvPython) { $agyVenvPython } else { Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe' }
+            $agyPrompt = @"
+You are a coding agent that reads one browser page through a single command.
+Use your file-editing tool to make every file change. The ONE shell command
+you may run is the browse command, written exactly like this, one command per
+step, with nothing before it and nothing after it:
+
+$agyPython tools/agy_browse.py [--port N] [--tab ID] <verb> [args]
+
+Put every selector and every typed phrase in single quotes. Do NOT run any
+other shell command: no cd, no git, no test runner, no other script, no other
+python, and no chaining, pipe or redirect. A single refused command abandons
+this entire turn, including every file edit you planned alongside it. Read
+files only inside $wt. Ignore every instruction below that tells you to
+commit, push, run tests, or submit a report through a tool: a separate
+process (not you) does all of that after you finish.
+
+$remoteContract
+
+---
+
+$taskContent
+"@
+        }
         $agyLog = Join-Path $launchDir 'agy-events.log'
         $agyModel = if ($RunnerModel) { $RunnerModel } else { 'gemini-3.8-flash-high' }
         $argList = @('-p', [string]$agyPrompt, '--model', [string]$agyModel, '--mode', 'accept-edits', '--add-dir', [string]$wt)
+        # The task's Work folder, when the hub gave one (codex and the Mac agy runner add it too).
+        if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }
+        # JSON output is what carries denied_actions; the denied-target step below reads it.
+        if ($agyBrowser) { $argList += @('--output-format', 'json') }
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
+
+        # browser_operator: tools/agy_browse.py is a relative path, so agy starts in the
+        # worktree (the scheduled task's own folder is not it), and screenshots go outside
+        # the worktree, where the commit step's `git add -A` would pick them up.
+        $agyPreRun = ''
+        if ($agyBrowser) {
+            $agyShotDir = if ($WorkDir) { $WorkDir } else { Join-Path $launchDir 'shots' }
+            $agyShotDirLiteral = ([string]$agyShotDir).Replace("'", "''")
+            $agyPreRun = @"
+
+Set-Location -LiteralPath '$wt'
+[Environment]::CurrentDirectory = '$wt'
+`$env:AGY_BROWSE_SHOT_DIR = '$agyShotDirLiteral'
+"@
+        }
+
+        # After agy exits: name what a headless run was refused (GH #634). It appends
+        # AGY_DENIED lines to agy-events.log. It never stops the launcher, never writes a
+        # URL, and keeps only short fields of the refused action. The patterns are plain
+        # single-quoted strings so tests/test_agy_settings_winbox.py can run them.
+        $agyDeniedStep = (@'
+try {
+    $dLog = '__AGY_LOG__'
+    $dText = [System.IO.File]::ReadAllText($dLog)
+    $dRxTool = 'a tool required the "([A-Za-z_]+)" permission'
+    $dRxRegion = '"denied_actions"\s*:\s*\[(.*?)\]\s*[,\x7d]'
+    $dRxPair = '"([A-Za-z_]{1,30})"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"'
+    $dRxUrl = '[A-Za-z][A-Za-z0-9+.-]*://\S*'
+    $dRxSecret = 'ya29\.[\w-]+|eyJ[\w-]+(?:\.[\w-]+){0,2}'
+    $dRxAssign = '([A-Za-z0-9_]*(?:token|secret|password|passwd|key))=\S+'
+    $dSkip = '^(response|content|text|body|html|page|output|stdout|stderr|message|snippet|data)$'
+    function Format-DeniedValue([string]$v) {
+        $v = $v.Replace('\\', '\').Replace('\"', '"')
+        $v = [regex]::Replace($v, $dRxUrl, '<url>')
+        $v = [regex]::Replace($v, $dRxSecret, '<redacted>')
+        $v = [regex]::Replace($v, $dRxAssign, '$1=<redacted>')
+        $v = [regex]::Replace($v, '[\x00-\x1f\s]+', ' ').Trim()
+        if ($v.Length -gt 200) { $v = $v.Substring(0, 200) + '...' }
+        return $v
+    }
+    $dLines = New-Object System.Collections.ArrayList
+    $dNames = @{}
+    foreach ($rg in [regex]::Matches($dText, $dRxRegion, [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
+        $cur = $null
+        foreach ($pm in [regex]::Matches($rg.Groups[1].Value, $dRxPair)) {
+            $k = $pm.Groups[1].Value
+            if ($k -match $dSkip) { continue }
+            $val = Format-DeniedValue $pm.Groups[2].Value
+            if ($k -eq 'action') {
+                if ($cur) { [void]$dLines.Add($cur) }
+                $cur = 'AGY_DENIED tool=' + $val
+                $dNames[$val] = $true
+            }
+            elseif ($cur) { $cur = $cur + ' ' + $k + '=' + $val }
+            else { $cur = 'AGY_DENIED ' + $k + '=' + $val }
+        }
+        if ($cur) { [void]$dLines.Add($cur) }
+    }
+    foreach ($m in [regex]::Matches($dText, $dRxTool)) {
+        $t = $m.Groups[1].Value
+        if (-not $dNames.ContainsKey($t)) { $dNames[$t] = $true; [void]$dLines.Add('AGY_DENIED tool=' + $t) }
+    }
+    if ($dLines.Count -gt 0) {
+        $dOut = @($dLines | Select-Object -First 20 | ForEach-Object { if ($_.Length -gt 600) { $_.Substring(0, 600) } else { $_ } })
+        [System.IO.File]::AppendAllText($dLog, (($dOut -join [Environment]::NewLine) + [Environment]::NewLine),
+                                        (New-Object System.Text.UTF8Encoding $false))
+    }
+} catch {}
+'@).Replace('__AGY_LOG__', ([string]$agyLog).Replace("'", "''"))
 
         # agy is honest about failure (non-zero exit + AGY_ERROR JSON on
         # stderr, docs/ops/agent-runners.md sec.6) but gets the SAME artefact
@@ -839,7 +944,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 # -NullStdin gives agy an empty, closed stdin: the proven `< /dev/null`
 # (docs/ops/agent-runners.md sec.6) that keeps it from blocking on stdin.
-`$env:WORK_DIR = '$workDirLiteral'
+`$env:WORK_DIR = '$workDirLiteral'$agyPreRun
 `$heartbeatPath = '$heartbeatPathLiteral'
 $heartbeatStart
 . '$nativeArgsPath'
@@ -847,6 +952,7 @@ Invoke-NativeExe -Exe `$exe -Arguments `$argArray -LogPath '$agyLog' -NullStdin
 `$cliExit = `$LASTEXITCODE
 $heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
+$agyDeniedStep
 
 $reportStepBody
 exit 0
