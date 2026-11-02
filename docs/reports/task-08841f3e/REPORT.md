@@ -1,10 +1,10 @@
 # REPORT task-08841f3e
 
 ## Command
-`C:\Users\passg\AppData\Local\Programs\Python\Python311\python.exe tools/agy_browse.py --port 9224 tabs`
+`.venv\Scripts\python.exe tools/agy_browse.py --port 9224 tabs`
 
 ## Exit status
 0
 
 ## Tab titles
-(none)
+- `{"tabs": [{"id": "C34DAFFF0D0428614FFF9BE209CC08EB", "title": "ธุรกรรมของเทรดเดอร์ | แพลตฟอร์มสำหรับแอฟฟิลิเอต"}], "other_hosts": 1}`
