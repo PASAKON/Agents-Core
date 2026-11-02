@@ -748,7 +748,7 @@ if ! git diff --cached --quiet; then
   fi
 fi
 rm -f "$ALLOW_FILE" "$ALLOW_LARGE_FILE" "$MEDIA_KEPT_FILE"
-if [ "${ORG_HOST:-}" != mac ] && [ "${ORG_HOST:-}" != winbox ]; then
+if [ "${ORG_MESH_DISPATCH:-0}" != 1 ] || { [ "${ORG_HOST:-}" != mac ] && [ "${ORG_HOST:-}" != winbox ]; }; then
   git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
 fi
 if [ -n "${AGENTS_ROOT:-}" ] && [ -f "$AGENTS_ROOT/tools/quota_handoff.py" ]; then

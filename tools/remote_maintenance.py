@@ -27,8 +27,14 @@ MAX_BYTES = 2 * 1024**3
 TERMINAL = {'done', 'merged', 'cancelled', 'failed'}
 MEDIA = set('png jpg jpeg gif webp heic mp4 mov webm mkv avi mp3 wav m4a aac flac ogg'.split())
 # The launcher's own scratch files: never part of a recovery commit.
-SCRATCH = ['.worker.pid', '.worker.json', 'TASK.md', '.org-task.json', '.org-worker.mcp.json',
+SCRATCH = ['.worker.pid', '.worker.json', 'TASK.md', 'WORKER.md', '.org-task.json', '.org-worker.mcp.json',
            'CTO-FEEDBACK.md', 'REPORT.md', 'BLOCKER.md', 'HEARTBEAT', 'MAILBOX.md', ':(glob)*.log']
+BRIEF_FILES = frozenset({
+    'TASK.md', 'WORKER.md', '.org-task.json', '.org-worker.mcp.json', 'CTO-FEEDBACK.md',
+    '.worker.pid', '.worker.json', 'HEARTBEAT', 'MAILBOX.md',
+})
+BRANCH_RE = re.compile(r'agent/[a-z_]+-(task-[0-9a-f]{8})')
+PH_BRANCH_RE = re.compile(r'ph/[0-9a-f]{8}-[a-z0-9][a-z0-9-]{0,63}')
 # A worker that exited without its launcher's commit step is recovered by the
 # hub only after its git state has been still this long (the launcher, a
 # separate process from the recorded worker pid, may still be mid-step).
@@ -388,6 +394,10 @@ def outgoing_check(wt, branch, *, push=False):
     same repository then pushes to that URL, so what is pushed is what was
     checked."""
     require_free_ram()
+    if not isinstance(branch, str) or branch.startswith(('+', '-')) or ':' in branch:
+        raise ValueError('force or refspec push refused')
+    if not (BRANCH_RE.fullmatch(branch) or PH_BRANCH_RE.fullmatch(branch)):
+        raise ValueError('non-agent branch refused')
     exe = shutil.which('gitleaks')
     if not exe:
         raise ValueError(f'no gitleaks on {config.self_host()}: not publishing')
@@ -401,7 +411,10 @@ def outgoing_check(wt, branch, *, push=False):
             # name alone is not sufficient to enforce the extension policy.
             paths = git(repo, 'diff-tree', '--root', '-m', '--no-commit-id',
                         '--name-only', '-r', '-z', '--diff-filter=AMT', commit)
-            if any(Path(name).suffix.lower().lstrip('.') in MEDIA for name in paths.split('\0')):
+            names = [n for n in paths.split('\0') if n]
+            if any(n in BRIEF_FILES for n in names):
+                raise ValueError('outgoing brief file')
+            if any(Path(name).suffix.lower().lstrip('.') in MEDIA for name in names):
                 raise ValueError('outgoing media path')
         entries = [line.partition(' ') for line in
                    git(repo, 'rev-list', '--objects', head, '--not', '--remotes=public').splitlines() if line]
@@ -449,6 +462,27 @@ def publish(payload, *, ph=False):
     if row.get('status') != 'review':
         raise ValueError('publication requires review')
     branch = row['branch']
+    if git(wt, 'symbolic-ref', '--short', 'HEAD') != branch:
+        raise ValueError('checked out branch mismatch')
+    head = outgoing_check(wt, branch, push=True)
+    return {'branch': branch, 'head': head, 'pushed': True}
+
+
+def local_publish(worktree, branch, task_id=None):
+    """Launcher-side publication when ORG_MESH_DISPATCH is off: runs the same
+    outgoing_check(..., push=True) gate on the worker host itself."""
+    require_free_ram()
+    if not isinstance(branch, str) or branch.startswith(('+', '-')) or ':' in branch:
+        raise ValueError('force or refspec push refused')
+    m = BRANCH_RE.fullmatch(branch)
+    if not m:
+        raise ValueError('non-agent branch refused')
+    tid = task_id or m.group(1)
+    if not re.fullmatch(r'task-[0-9a-f]{8}', tid) or m.group(1) != tid:
+        raise ValueError('branch not bound to task')
+    wt = Path(worktree)
+    if not wt.name.endswith('__' + tid):
+        raise ValueError('worktree not bound to task')
     if git(wt, 'symbolic-ref', '--short', 'HEAD') != branch:
         raise ValueError('checked out branch mismatch')
     head = outgoing_check(wt, branch, push=True)
@@ -694,6 +728,21 @@ def hub_reap(*, apply=False):
 
 if __name__ == '__main__':
     import argparse
+    import sys
+    if len(sys.argv) >= 2 and sys.argv[1] == 'local-publish':
+        parser = argparse.ArgumentParser(description='Local worker branch publication')
+        parser.add_argument('verb', choices=['local-publish'])
+        parser.add_argument('worktree')
+        parser.add_argument('branch')
+        parser.add_argument('task_id', nargs='?')
+        args = parser.parse_args()
+        try:
+            result = local_publish(args.worktree, args.branch, args.task_id)
+            print(json.dumps({'ok': True, 'result': result}))
+        except Exception as exc:
+            print(json.dumps({'ok': False, 'error': _redact(str(exc))[:300]}), file=sys.stderr)
+            raise SystemExit(1)
+        raise SystemExit(0)
     parser = argparse.ArgumentParser(description='Hub PH review publication')
     parser.add_argument('host', choices=['mac', 'winbox'])
     parser.add_argument('session_id')

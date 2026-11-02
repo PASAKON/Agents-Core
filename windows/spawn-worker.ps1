@@ -65,12 +65,14 @@ param(
     # copies the script and roles\ side by side. tools/node_dispatch.py's
     # spawn_worker runs THIS file out of the repo checkout, where the script sits
     # in windows\ and roles\ is one level up, so it passes the checkout root.
-    [string]$AgentsRoot = ''
+    [string]$AgentsRoot = '',
+    [ValidateSet('', '0', '1')][string]$MeshDispatch = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $env:GIT_TERMINAL_PROMPT = '0'
 $agentsRootDir = if ($AgentsRoot) { $AgentsRoot } else { $PSScriptRoot }
+$meshDispatchOn = if ($MeshDispatch -ne '') { $MeshDispatch -eq '1' } else { [bool]$AgentsRoot }
 
 # --- GitHub reachability: port 22 may be blocked from this box (measured
 # 2026-09-07 -- `ssh -T git@github.com` hung with no ConnectTimeout). Probe
@@ -241,7 +243,7 @@ try {
     $excludeLines = @()
     if (Test-Path $excludePath) { $excludeLines = @(Get-Content -Path $excludePath -Encoding ASCII) }
     # W0.6: plus every name a codex/agy run must never commit (note below).
-    $toAdd = @('HEARTBEAT', 'MAILBOX.md', '.worker.pid', '.worker.json', '/TASK.md',
+    $toAdd = @('HEARTBEAT', 'MAILBOX.md', '.worker.pid', '.worker.json', '/TASK.md', '/WORKER.md',
                '/.org-task.json', '/.org-worker.mcp.json', '/CTO-FEEDBACK.md', '/*.log') |
         Where-Object { $excludeLines -notcontains $_ }
     if ($toAdd.Count -gt 0) {
@@ -361,6 +363,31 @@ try {
     # -Encoding UTF8 emits one on PS5.1 and branch_poller would then read
     # '<BOM># REPORT task-...' as a header mismatch.
     function New-ReportStepBody([string]$finalMsg, [string]$logTail) {
+        $localPublishStep = ''
+        if (-not $meshDispatchOn) {
+            $gitSshCmd = if ($githubRoute -eq 'ssh.github.com:443') {
+                'ssh -o HostName=ssh.github.com -p 443 -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new'
+            } else {
+                'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new'
+            }
+            $agentsRootLit = ([string]$agentsRootDir).Replace("'", "''")
+            $orgCheckoutLit = (Join-Path $agentsRootDir 'org').Replace("'", "''")
+            $localPublishStep = @"
+
+`$env:GIT_SSH_COMMAND = '$gitSshCmd'
+`$pubRoot = if (Test-Path -LiteralPath (Join-Path '$agentsRootLit' 'tools\remote_maintenance.py')) { '$agentsRootLit' } else { '$orgCheckoutLit' }
+`$pubPy = Join-Path `$pubRoot '.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath `$pubPy)) { `$pubPy = Join-Path `$env:LOCALAPPDATA 'Programs\Python\Python311\python.exe' }
+if (-not (Test-Path -LiteralPath `$pubPy)) { `$pubPy = 'python' }
+Push-Location -LiteralPath `$pubRoot
+try {
+    & `$pubPy -m tools.remote_maintenance local-publish '$wt' '$Branch' '$Task'
+    if (`$LASTEXITCODE -ne 0) { throw "local-publish failed (exit `$LASTEXITCODE)" }
+} finally {
+    Pop-Location
+}
+"@
+        }
         return @"
 `$noBom = New-Object System.Text.UTF8Encoding `$false
 `$hdr = '# REPORT $Task'
@@ -410,7 +437,7 @@ if (-not (Test-NonEmpty `$reportPath)) {
 }
 
 git -C '$wt' add -A
-git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
+git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md WORKER.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
 
 `$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
 `$stagedFiles = @(git -C '$wt' diff --cached --name-only)
@@ -548,7 +575,7 @@ if (`$LASTEXITCODE -ne 0) { throw 'launcher commit failed' }
 `$publishHead = git -C '$wt' rev-parse HEAD
 if (`$LASTEXITCODE -ne 0) { throw 'launcher HEAD failed' }
 `$publishGitDir = git -C '$wt' rev-parse --absolute-git-dir
-[System.IO.File]::WriteAllText((Join-Path `$publishGitDir 'org-publish-ready'), `$publishHead.Trim())
+[System.IO.File]::WriteAllText((Join-Path `$publishGitDir 'org-publish-ready'), `$publishHead.Trim())$localPublishStep
 "@
     }
 
