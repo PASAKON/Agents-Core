@@ -345,7 +345,7 @@ def scratch_repo(wt, url, head):
         objects = repo / 'objects' / 'info'
         objects.mkdir(parents=True, exist_ok=True)
         common = git(wt, 'rev-parse', '--path-format=absolute', '--git-common-dir')
-        (objects / 'alternates').write_text(common + '/objects\n', encoding='utf-8')
+        (objects / 'alternates').write_text(common + '/objects\n', encoding='utf-8', newline='\n')
         git(repo, 'fetch', '-q', '--no-tags', url, '+refs/heads/*:refs/remotes/public/*')
         git(repo, 'rev-parse', '--verify', head + '^{commit}')
         yield repo
