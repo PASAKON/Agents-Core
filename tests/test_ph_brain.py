@@ -123,3 +123,25 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
     assert len(saved["fallback_events"]) == 1
     assert saved["fallback_events"][0]["from_model"] == "claude-opus-5-5-high"
     assert saved["fallback_events"][0]["to_model"] == "gemini-4-argon-high"
+
+
+def test_ensure_browser_agy_brief_passes_route_class_for():
+    from tools import quota, route
+    cfg = quota.load_plans()
+    raw = "Check Higgsfield generation queue and take a screenshot."
+    formatted = ph_brain.ensure_browser_agy_brief(raw)
+    assert "http://127.0.0.1:9281" in formatted
+    assert "tools/agy_browse.py" in formatted
+    assert route.class_for("browser_operator", formatted, cfg) == "browser_agy"
+
+    res = ph_brain.delegate_from_ph(
+        ph_id="7cf12345",
+        project="VideoPipeline",
+        role="browser_operator",
+        title="Poll Higgsfield queue",
+        brief=raw,
+        dry_run=True,
+    )
+    assert res["runner"] == "agy"
+    assert res["runner_model"] == "gemini-3.8-flash-high"
+

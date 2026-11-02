@@ -224,10 +224,31 @@ def build_initial_prompt(
         f"You are the Project Head (PH) for project '{project}' in the '{lane}' lane, running on AGY.\n"
         f"Core rules:\n"
         f"1. Plan milestones, keep full continuity across all turns/shots, and delegate hands-on execution to workers.\n"
-        f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high`, `claude-sonnet-5-5-high`, `gemini-3.8-flash-high`) or Codex.\n"
-        f"3. Keep responses concise, structured, and actionable.\n\n"
+        f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high` for code/visual QC, `gemini-3.8-flash-high` for fast browser loops, `claude-sonnet-5-5-high`) or Codex.\n"
+        f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-3.8-flash-high`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
+        f"4. Keep responses concise, structured, and actionable.\n\n"
         f"--- Task / Message ---\n{message}"
     )
+
+
+def ensure_browser_agy_brief(brief: str, *, port: int = 9280) -> str:
+    """Ensure a browser_operator brief targeting AGY carries the exact tokens tools/route.py requires."""
+    text = (brief or "").strip()
+    has_tool = bool(re.search(r"(?<![\w/])tools/agy_browse\.py\b", text))
+    has_cdp = bool(re.search(r"\bhttp://127\.0\.0\.1:\d{4,5}\b", text))
+    if has_tool and has_cdp:
+        return text
+    inferred_port = port
+    low = text.lower()
+    if "higgsfield" in low or "9281" in low:
+        inferred_port = 9281
+    elif "xm" in low or "mypartners" in low or "9224" in low:
+        inferred_port = 9224
+    suffix = (
+        f"\n\nBrowser Home: http://127.0.0.1:{inferred_port}. "
+        f"Use only `tools/agy_browse.py --port {inferred_port} <verb>`."
+    )
+    return text + suffix
 
 
 def _parse_agy_json(stdout: str) -> dict[str, Any] | None:
@@ -442,6 +463,10 @@ def delegate_from_ph(
 ) -> dict[str, Any]:
     """Create and dispatch a worker task from an AGY PH without using Claude Code."""
     state = load_brain_state(ph_id)
+    if role == "browser_operator" and runner == "agy":
+        brief = ensure_browser_agy_brief(brief)
+        if runner_model == FALLBACK_MODEL:
+            runner_model = "gemini-3.8-flash-high"
     touches_json = json.dumps(touches or [])
     if dry_run:
         return {
