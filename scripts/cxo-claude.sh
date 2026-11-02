@@ -251,8 +251,17 @@ ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "
 # which is what makes those tools resolve under --strict-mcp-config.
 CHROME_ARGS=()
 if [ "$IS_PH" = "1" ]; then
-  ALLOWED="$ALLOWED $(cd "$ROOT" && "$PH_PY" -c 'from lib.roles import CHROME_TOOLS; print(" ".join(CHROME_TOOLS))')"
-  CHROME_ARGS=(--chrome)
+  if org_flag ORG_PH_AGY_BRAIN; then
+    MODEL="haiku"
+    EFFORT="low"
+    ROLE_PROMPT="$(cat "$ROOT/roles/ph_shell.md")"
+    printf '{"mcpServers":{}}\n' > "$MCP_CONFIG"
+    ALLOWED="Bash"
+    CHROME_ARGS=()
+  else
+    ALLOWED="$ALLOWED $(cd "$ROOT" && "$PH_PY" -c 'from lib.roles import CHROME_TOOLS; print(" ".join(CHROME_TOOLS))')"
+    CHROME_ARGS=(--chrome)
+  fi
 fi
 
 # --- SomPong (coo): what differs from every other C-level ----------------------
@@ -944,6 +953,15 @@ if org_flag ORG_SESSION_SCOPE && [ "$(id -u)" = "0" ] && command -v systemd-run 
 fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
+if [ "$IS_PH" = "1" ] && org_flag ORG_PH_AGY_BRAIN && org_flag ORG_PH_HEADLESS_AGY; then
+  "$PH_PY" "$ROOT/tools/ph_brain.py" turn \
+    --ph "$CXO_SESSION_ID" \
+    --project "$PH_PROJECT" \
+    --lane "$PH_LANE" \
+    --owner "${ORG_PH_OWNER:-}" \
+    --message "${INITIAL_PROMPT:-Read brief and start}"
+  exit $?
+fi
 claude \
   -n "$SESSION_NAME" \
   "${MODEL_ARGS[@]}" \

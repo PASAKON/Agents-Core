@@ -114,7 +114,17 @@ def _git(root, *args):
     return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
 
 
-def handoff(task_id, *, pct_done=None, limit_text=None, dry_run=False, delegate=True, root=ROOT):
+def handoff(
+    task_id,
+    *,
+    pct_done=None,
+    limit_text=None,
+    dry_run=False,
+    delegate=True,
+    root=ROOT,
+    target_runner: str = "claude",
+    target_model: str | None = None,
+):
     task = db.get_task(task_id)
     if task is None:
         raise ValueError("task not found")
@@ -122,7 +132,7 @@ def handoff(task_id, *, pct_done=None, limit_text=None, dry_run=False, delegate=
     from tools import usage_budget
     rows = usage_budget.load_gate_rows() or {}
     tier = portfolio.tier_for(task)
-    if rows.get("claude", {}).get("state") == "over" and tier != "critical":
+    if target_runner == "claude" and rows.get("claude", {}).get("state") == "over" and tier != "critical":
         raise ValueError("tier_no_claude: Claude is over today's target; only critical work hands off to it")
     runner = task.get("runner")
     if runner not in ("codex", "agy", "jules"):
@@ -171,7 +181,7 @@ def handoff(task_id, *, pct_done=None, limit_text=None, dry_run=False, delegate=
     with db.get_conn() as conn:
         runner_fit.record(conn, task_id, "quota_handoff", payload)
     db.update_status(task_id, "failed", review=f"quota-handoff → {new_id}: {matched}")
-    db.set_fields(new_id, runner="claude", runner_model=None)
+    db.set_fields(new_id, runner=target_runner, runner_model=target_model)
     if delegate:
         from tools import delegate as delegate_module
         asyncio.run(delegate_module.delegate_task(new_id))

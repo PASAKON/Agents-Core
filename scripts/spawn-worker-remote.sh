@@ -808,12 +808,20 @@ elif [ "$RUNNER" = "agy" ]; then
     # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
     # Contabo runs the same binary as before); it used to be resolved and then
     # ignored in favour of the literal path.
-    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'; fi
+    # A log left by an earlier launch of this same task must not poison DEAD_RUN
+    # or be read back as this run's final message.
+    printf 'rm -f %s\n' "$(sh_quote "$AGY_LOG")"
+    AGY_ADD_DIRS="--add-dir $(sh_quote "$WT")"
+    if [ -n "$WORK_DIR" ]; then
+      printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"
+      printf 'mkdir -p "$WORK_DIR/tmp"\nexport TMPDIR="$WORK_DIR/tmp"\n'
+      AGY_ADD_DIRS="$AGY_ADD_DIRS --add-dir $(sh_quote "$WORK_DIR")"
+    fi
     emit_heartbeat_start
-    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1 &\n' \
+    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits %s < /dev/null >> %s 2>&1 &\n' \
       "$(sh_quote "$AGY_BIN")" \
       "$(sh_quote "$AGY_MODEL")" \
-      "$(sh_quote "$WT")" \
+      "$AGY_ADD_DIRS" \
       "$(sh_quote "$AGY_LOG")"
     printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\ncleanup_heartbeat\n'
     emit_report_commit_push agy "" "$AGY_LOG" "-c user.name=agy-worker -c user.email=agy-worker@localhost" "agy: task $TASK"
