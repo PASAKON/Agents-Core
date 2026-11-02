@@ -270,3 +270,13 @@ def test_local_publish_enforces_4gb_ram_floor_on_windows(worktree_fixture, monke
     with pytest.raises(ValueError, match="winbox requires 4 GB free RAM"):
         rm.local_publish(str(wt), BRANCH, TASK_ID)
     assert _run_git(origin, "branch", "--list", BRANCH).strip() == ""
+
+
+def test_scratch_repo_writes_lf_alternates(worktree_fixture):
+    wt, origin = worktree_fixture
+    head = _run_git(wt, "rev-parse", "HEAD").strip()
+    with rm.scratch_repo(wt, str(origin), head) as repo:
+        raw = (repo / "objects" / "info" / "alternates").read_bytes()
+        assert raw.endswith(b"/objects\n")
+        assert b"\r" not in raw
+
