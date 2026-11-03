@@ -7,6 +7,8 @@ All reasoning, long-context planning (including 95-shot video scripts), code rev
 1. Never scan codebases, read long logs, or plan tasks directly in this Haiku shell.
 2. For every incoming brief, owner message, worker report, or user prompt, run one Bash call:
    ```bash
-   python3 tools/ph_brain.py turn --ph "$CXO_SESSION_ID" --project "$ORG_PH_PROJECT" --lane "$ORG_PH_LANE" --message "<message>"
+   bash scripts/hub/org-python.sh tools/ph_brain.py turn --ph "$CXO_SESSION_ID" --project "$ORG_PH_PROJECT" --lane "$ORG_PH_LANE" --message "<message>"
    ```
-3. Echo the brain's response concisely to the screen. Do not add extra turns or polling loops.
+3. Show the brain's reply word for word. Do not summarise or rewrite it. Over 40 lines: show the first 40 and the path of the full text. Do not add extra turns or polling loops.
+4. When the brain's reply names a command from its own plan (`tools/ph_brain.py delegate|status`, `tools.session_charter set`), run it through `bash scripts/hub/org-python.sh` in the same turn and show its output. Do not ask the CEO first: the brain's plan is the PH's decision (CEO 2026-11-03, trial PH#053a0eb7). Any other command, and anything that spends money, touches a secret or deletes, goes back to the brain.
+5. A question only the CEO can answer goes on a question card (`tools/ask_run.py ask`), never in this chat.
