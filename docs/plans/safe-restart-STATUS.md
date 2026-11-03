@@ -50,3 +50,16 @@ Stop rule: a failed step stops the test; record it here and fix it before the ne
 
 ## Decided for CEO
 - LINE webhook redelivery is **off**; CEO accepts losing 1–3 min of LINE messages per reboot (Q-20261016-2344-a725). The OA-side handling (safe window, tell users to resend) belongs to LineAutomation: PASAKON/MoonieX-LineAutomation#4.
+
+## P3e retest 3 Nov (CEO go 23:01 TH, cases CEO 23:05 TH) — state before the reboot
+Card RUN-20261103-1603-1f7b (Green: docker build cache only; loop until 23:57 TH). Dry run 23:02 TH: `state/restart/dryrun-contabo-2026-11-03T160216.json`, 11 sessions, no cannot_resume, est 0.32M, no workers, disk 90% before the clean.
+
+| Case | Session | State at the reboot | Check after boot |
+|---|---|---|---|
+| A PH Claude idle | 8dbe4ccc ExpertAdvisor, 3511068d CnDrama, b2ff34d1 KhaoHom | idle, resume_lazy | back, same name, no duplicate |
+| B PH Claude in turn | 3bea1120 SomPongAdmin | card types "sleep 300" 20 s after prep | back and finishes the turn |
+| C Haiku+AGY idle | 053a0eb7 CookieRun | idle, resume_full | same conversation id in state/ph-brains/053a0eb7.json |
+| D Haiku+AGY in turn | 58eb5246 run-watch | card types a short think 20 s after prep | finishes; same conversation id |
+| E C-level | f69c4825 CTO Main, c95c521b SomPong, e785343f CMO | idle | back once each |
+| F worker / parked | no Contabo worker in the plan; 12+ parked PHs (state/locks/*.parked) | — | none opened |
+| G letter held | a08e3352 HostSpawn | fyi letter 20261103T160303361269Z in its box | reads it after boot |
