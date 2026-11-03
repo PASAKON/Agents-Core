@@ -449,6 +449,12 @@ def run_turn(
     )
 
 
+_PROJECT_ALIASES: dict[str, str] = {
+    "cookie-run": "cookierun-bot",
+    "cookierun": "cookierun-bot",
+}
+
+
 def delegate_from_ph(
     *,
     ph_id: str,
@@ -457,12 +463,15 @@ def delegate_from_ph(
     title: str,
     brief: str,
     touches: list[str] | None = None,
+    host: str | None = None,
     runner: str = "agy",
     runner_model: str = FALLBACK_MODEL,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Create and dispatch a worker task from an AGY PH without using Claude Code."""
     state = load_brain_state(ph_id)
+    resolved_project = _PROJECT_ALIASES.get((project or "").strip().lower(), project)
+    resolved_host = (host or "").strip() or ("winbox" if resolved_project == "cookierun-bot" else None)
     if role == "browser_operator" and runner == "agy":
         brief = ensure_browser_agy_brief(brief)
         if runner_model == FALLBACK_MODEL:
@@ -473,7 +482,8 @@ def delegate_from_ph(
             "ok": True,
             "dry_run": True,
             "ph_id": ph_id,
-            "project": project,
+            "project": resolved_project,
+            "host": resolved_host,
             "role": role,
             "title": title,
             "runner": runner,
@@ -485,32 +495,40 @@ def delegate_from_ph(
     from lib import db, org_tools_registry
     from tools import delegate as delegate_module
 
+    # A PH owns its tasks as project_head-<id> (its launcher unsets CTO_SESSION_ID too).
+    os.environ.pop("CTO_SESSION_ID", None)
     os.environ["CXO_ROLE"] = "project_head"
     os.environ["CXO_SESSION_ID"] = ph_id
-    os.environ["ORG_PH_PROJECT"] = project
+    os.environ["ORG_PH_PROJECT"] = resolved_project
     os.environ["ORG_PH_LANE"] = state.get("lane") or "cto"
 
     task_id = org_tools_registry.dispatch_sync(
         "create_task",
-        project=project,
+        project=resolved_project,
         role=role,
         title=title,
         description=brief,
         depends_on="",
         touches=touches_json,
+        host=resolved_host or "",
     ).strip()
     if not re.fullmatch(r"task-[0-9a-f]{8}", task_id):
         raise ValueError(f"create_task refused: {task_id}")
-    db.set_fields(task_id, runner=runner, runner_model=runner_model)
-    asyncio.run(delegate_module.delegate_task(task_id))
+    db.set_fields(task_id, runner=runner, runner_model=runner_model, host=resolved_host)
+    row = asyncio.run(delegate_module.delegate_task(task_id, host=resolved_host))
     return {
         "ok": True,
         "task_id": task_id,
         "ph_id": ph_id,
-        "project": project,
+        "project": resolved_project,
+        "host": (row or {}).get("host") or resolved_host,
+        "status": (row or {}).get("status"),
+        "pid": (row or {}).get("pid"),
+        "branch": (row or {}).get("branch"),
+        "delegate_log": (row or {}).get("delegate_log"),
         "role": role,
-        "runner": runner,
-        "runner_model": runner_model,
+        "runner": (row or {}).get("runner") or runner,
+        "runner_model": (row or {}).get("runner_model") or runner_model,
         "claude_code_tokens_used": 0,
     }
 
@@ -566,6 +584,7 @@ def main(argv: list[str] | None = None) -> int:
     p_del.add_argument("--title", required=True)
     p_del.add_argument("--brief", required=True)
     p_del.add_argument("--touches", default="[]", help="JSON array of touched paths")
+    p_del.add_argument("--host", default=None, help="Target host (e.g. winbox)")
     p_del.add_argument("--runner", default="agy")
     p_del.add_argument("--runner-model", default=FALLBACK_MODEL)
     p_del.add_argument("--dry-run", action="store_true")
@@ -621,6 +640,7 @@ def main(argv: list[str] | None = None) -> int:
                 title=args.title,
                 brief=args.brief,
                 touches=touches,
+                host=args.host,
                 runner=args.runner,
                 runner_model=args.runner_model,
                 dry_run=args.dry_run,
