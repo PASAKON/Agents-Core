@@ -132,5 +132,5 @@ Use `#/reports/traders-trades` (`ธุรกรรมของเทรดเ�
 
 ## Field notes
 
-- 2026-11-02 [COSTLY] §1 — Clicking top-nav links (`รีเบตสำหรับนักเทรด`) via `agy_browse.py click` was refused by `MONEY_RE` (`click refused: the control reads like money ('$6')`) because the header balance bar (`$6.72`) shares an ancestor container; navigating via `agy_browse.py --port 9224 goto "https://mypartners.xm.com/#/..."` bypasses the header DOM and lands cleanly · evidence: task-62e1066c on winbox:9224 · status: promoted
+- 2026-11-02 [COSTLY] §1 — Clicking top-nav links (`รีเบตสำหรับนักเทรด`) via `agy_browse.py click` was refused by `MONEY_RE` (`click refused: the control reads like money ('$N')`) because the header balance bar (an amount) shares an ancestor container; navigating via `agy_browse.py --port 9224 goto "https://mypartners.xm.com/#/..."` bypasses the header DOM and lands cleanly · evidence: task-62e1066c on winbox:9224 · status: promoted
 - 2026-11-02 [MISSING] §3 — `#/reports/trader-list/real` defaults `select.period-picker-filter__display` to `1` (`เดือนนี้`), which returns 0 rows for any MT4/MT5 ID registered in a prior month even when `#mt4IdSelect` is filled; always switch `select.period-picker-filter__display` to `5` (`ปีนี้และปีที่ผ่านมา`) before querying an account ID · evidence: task-62e1066c on winbox:9224 · status: promoted
