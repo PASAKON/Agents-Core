@@ -689,3 +689,16 @@ def test_cli_ph_cannot_edit_or_replan_another_projects_row(cli_as, store):
     other = pf.get_project("q")
     assert (other["kind"], other["cadence_h"]) == ("finite", None) and replan_events(store) == 0
     assert cli_as("edit", "p", "--kind", "loop", "--cadence", "24")[0] == 0
+
+
+def test_a_new_ph_on_a_parked_project_makes_it_active(store):
+    project()
+    pf.set_stage("p", "parked", actor=ACTOR, now=T)
+    plan = {"project": "p", "lane": "cto", "owner": ACTOR, "session_id": "12345678",
+            **spawn_ph.ready_schedule("loop", cadence=24)}
+    spawn_ph._register_project(plan)
+    assert pf.get_project("p")["stage"] == "active"
+    # a resume (no schedule in the plan) leaves the stage alone
+    pf.set_stage("p", "parked", actor=ACTOR, now=T)
+    spawn_ph._register_project({k: plan[k] for k in ("project", "lane", "owner", "session_id")})
+    assert pf.get_project("p")["stage"] == "parked"
