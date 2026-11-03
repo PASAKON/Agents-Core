@@ -145,3 +145,40 @@ def test_ensure_browser_agy_brief_passes_route_class_for():
     assert res["runner"] == "agy"
     assert res["runner_model"] == "gemini-3.8-flash-high"
 
+
+
+def test_invoke_agy_runs_in_plan_mode_and_returns_on_timeout(monkeypatch):
+    seen = {}
+
+    def fake_run(cmd, **kw):
+        seen["cmd"] = cmd
+        raise ph_brain.subprocess.TimeoutExpired(cmd, kw.get("timeout"))
+
+    monkeypatch.setattr(ph_brain.subprocess, "run", fake_run)
+    res = ph_brain.invoke_agy("plan it", model="gemini-4-argon-high", add_dirs=[], agy_bin="agy")
+    cmd = seen["cmd"]
+    assert cmd[cmd.index("--mode") + 1] == "plan"
+    assert res["ok"] is False and res["timed_out"] is True
+    assert "timed out after 240s" in res["response"]
+
+
+def test_first_prompt_carries_the_planner_rule():
+    p = ph_brain.build_initial_prompt(ph_id="58eb5246", project="run-watch", lane="cto", owner=None, message="hi")
+    assert ph_brain.PLANNER_RULE in p
+
+
+def test_run_turn_stops_the_chain_on_timeout(monkeypatch, tmp_path):
+    snap = _write_snapshot(tmp_path, agy_claude_weekly=0.94, agy_gemini_weekly=0.96)
+    calls = []
+
+    def fake_invoke(prompt, *, model, **kw):
+        calls.append(model)
+        return {"ok": False, "returncode": None, "model": model, "conversation_id": None,
+                "response": "brain timed out after 240s; retry once with a shorter message",
+                "limit_hit": None, "timed_out": True, "raw_stdout": "", "raw_stderr": ""}
+
+    monkeypatch.setattr(ph_brain, "invoke_agy", fake_invoke)
+    r = ph_brain.run_turn(ph_id="58eb5246", project="run-watch", lane="cto", message="go",
+                          brains_dir=tmp_path / "b", snapshot_path=snap)
+    assert r["ok"] is False and "timed out" in r["response"]
+    assert len(calls) == 1

@@ -57,6 +57,12 @@ LIMIT_PATTERNS: tuple[str, ...] = (
     "model capacity exhausted",
 )
 
+# 3 Nov 2026: a brain run with edit rights tried edit_file itself, was refused and sat
+# for the full 600 s. The brain plans; workers edit.
+TURN_TIMEOUT_S = 240
+PLANNER_RULE = ("You are a planner. Never edit or create files yourself; "
+                "put every change in a delegate brief for a worker.")
+
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
@@ -226,7 +232,8 @@ def build_initial_prompt(
         f"1. Plan milestones, keep full continuity across all turns/shots, and delegate hands-on execution to workers.\n"
         f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high` for code/visual QC, `gemini-3.8-flash-high` for fast browser loops, `claude-sonnet-5-5-high`) or Codex.\n"
         f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-3.8-flash-high`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
-        f"4. Keep responses concise, structured, and actionable.\n\n"
+        f"4. Keep responses concise, structured, and actionable.\n"
+        f"5. {PLANNER_RULE}\n\n"
         f"--- Task / Message ---\n{message}"
     )
 
@@ -280,8 +287,8 @@ def invoke_agy(
     model: str,
     conversation_id: str | None = None,
     add_dirs: list[Path] | None = None,
-    mode: str = "accept-edits",
-    timeout_s: int = 600,
+    mode: str = "plan",
+    timeout_s: int = TURN_TIMEOUT_S,
     agy_bin: str | None = None,
 ) -> dict[str, Any]:
     """Execute one `agy` CLI call and return structured result."""
@@ -304,14 +311,28 @@ def invoke_agy(
         if d and Path(d).exists():
             cmd.extend(["--add-dir", str(d)])
 
-    proc = subprocess.run(
-        cmd,
-        stdin=subprocess.DEVNULL,
-        capture_output=True,
-        text=True,
-        timeout=timeout_s,
-        cwd=str(ROOT),
-    )
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            cwd=str(ROOT),
+        )
+    except subprocess.TimeoutExpired:
+        # A hung brain must not hang the PH shell's turn: give it a reply to show.
+        return {
+            "ok": False,
+            "returncode": None,
+            "model": model,
+            "conversation_id": conversation_id,
+            "response": f"brain timed out after {timeout_s}s; retry once with a shorter message",
+            "limit_hit": None,
+            "timed_out": True,
+            "raw_stdout": "",
+            "raw_stderr": "",
+        }
     parsed = _parse_agy_json(proc.stdout)
     combined_text = "\n".join(
         part for part in (
@@ -356,7 +377,7 @@ def run_turn(
     add_dirs: list[Path] | None = None,
     brains_dir: Path | None = None,
     snapshot_path: Path | None = None,
-    timeout_s: int = 600,
+    timeout_s: int = TURN_TIMEOUT_S,
     agy_bin: str | None = None,
 ) -> dict[str, Any]:
     """Run a single turn on the PH's persistent AGY brain with automatic fallback."""
@@ -411,6 +432,20 @@ def run_turn(
             "returncode": res["returncode"],
         })
         last_res = res
+        if res.get("timed_out"):
+            # A timeout is not a quota limit: the next model would hang as long again.
+            save_brain_state(state, brains_dir=brains_dir)
+            return {
+                "ok": False,
+                "ph_id": state["ph_id"],
+                "project": state["project"],
+                "lane": state.get("lane"),
+                "conversation_id": conv_id,
+                "model_used": model,
+                "attempts": attempted,
+                "response": res["response"],
+                "claude_code_tokens_used": 0,
+            }
         if res["ok"]:
             previous_model = state.get("active_model")
             fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
