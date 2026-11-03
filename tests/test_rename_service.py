@@ -1189,6 +1189,133 @@ def test_the_coo_record_without_a_tmux_field_is_found_by_its_pane(box, stranger)
     assert ("sompong", f"/rename {CONTABO} COO (\U0001F468\U0001F3FD\u200d\U0001F4BC: SomPong) — x") in box.sent
 
 
+def _setup_task_db(tmp_path, monkeypatch):
+    from lib import db
+    db_file = tmp_path / "tasks.db"
+    monkeypatch.setattr(db, "DB_PATH", db_file)
+    monkeypatch.setattr(db, "pg_url", lambda: None)
+    monkeypatch.setenv("ORG_HOST", "contabo")
+    config.self_host.cache_clear()
+    db.init()
+    return db
+
+
+def test_ph_worker_hook_calls_rename_path_on_start_and_end(box, tmp_path, monkeypatch):
+    db = _setup_task_db(tmp_path, monkeypatch)
+    sent_requests = []
+
+    def fake_send_request(role, sid, topic="", prefix="", path=None, *, worker_hosts=None, refresh_workers=False):
+        sent_requests.append({
+            "role": role, "sid": sid, "topic": topic, "prefix": prefix,
+            "worker_hosts": worker_hosts, "refresh_workers": refresh_workers,
+        })
+        a, b = socket.socketpair()
+        with a, b:
+            payload = {"role": role, "sid": sid, "topic": topic, "prefix": prefix,
+                       "worker_hosts": worker_hosts, "refresh_workers": refresh_workers}
+            a.sendall(json.dumps(payload).encode())
+            a.shutdown(socket.SHUT_WR)
+            return rs.handle(b, "contabo", box.pending, (os.getpid(), os.getuid()))
+
+    monkeypatch.setattr(rs, "send_request", fake_send_request)
+
+    with db.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO tasks (id,project,role,status,title,description,owner_cto,owner_role,host,created_at,updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            ("task-11111111", "mooniex-agents", "developer", "pending", "t1", "d1",
+             "36c49776", "project_head", "winbox", "2026-11-03T00:00:00Z", "2026-11-03T00:00:00Z"),
+        )
+        conn.execute(
+            "INSERT INTO tasks (id,project,role,status,title,description,owner_cto,owner_role,host,created_at,updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            ("task-22222222", "mooniex-agents", "developer", "pending", "t2", "d2",
+             "36c49776", "project_head", "mac", "2026-11-03T00:00:00Z", "2026-11-03T00:00:00Z"),
+        )
+
+    # 1. Start first worker on winbox -> " · 🖥️ winbox"
+    db.update_status("task-11111111", "in_progress", host="winbox", actor="cto")
+    assert len(sent_requests) == 1
+    assert sent_requests[-1]["worker_hosts"] == ["winbox"]
+    assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c (CMO) - MimiPage · \U0001F5A5️ winbox"
+
+    # 2. Start second worker on mac -> " · 🖥️1 💻1"
+    db.update_status("task-22222222", "in_progress", host="mac", actor="cto")
+    assert len(sent_requests) == 2
+    assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c (CMO) - MimiPage · \U0001F5A5️1 {MAC}1"
+
+    # 3. First worker moves to review -> " · 💻 mac"
+    db.update_status("task-11111111", "review", actor="branch_poller")
+    assert len(sent_requests) == 3
+    assert sent_requests[-1]["worker_hosts"] == ["mac"]
+    assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c (CMO) - MimiPage · {MAC} mac"
+
+    # 4. Second worker finishes (done/merged/failed/cancelled) -> no suffix
+    for end_status in ("failed", "cancelled", "merged", "done"):
+        db.update_status("task-22222222", "in_progress", host="mac", actor="cto")
+        db.update_status("task-22222222", end_status, actor="cto")
+        assert sent_requests[-1]["worker_hosts"] == []
+        assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c (CMO) - MimiPage"
+
+
+def test_non_ph_task_changes_nothing(box, tmp_path, monkeypatch):
+    db = _setup_task_db(tmp_path, monkeypatch)
+    calls = []
+    monkeypatch.setattr(rs, "send_request", lambda *a, **k: calls.append((a, k)))
+
+    with db.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO tasks (id,project,role,status,title,description,owner_cto,owner_role,host,created_at,updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            ("task-33333333", "mooniex-agents", "developer", "pending", "t3", "d3",
+             "c34459eb", "cto", "winbox", "2026-11-03T00:00:00Z", "2026-11-03T00:00:00Z"),
+        )
+        conn.execute(
+            "INSERT INTO tasks (id,project,role,status,title,description,owner_cto,owner_role,host,created_at,updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            ("task-44444444", "mooniex-agents", "developer", "pending", "t4", "d4",
+             None, None, "winbox", "2026-11-03T00:00:00Z", "2026-11-03T00:00:00Z"),
+        )
+
+    for tid in ("task-33333333", "task-44444444"):
+        for st in ("in_progress", "review", "done", "failed", "cancelled", "merged"):
+            db.update_status(tid, st, host="winbox", actor="cto")
+    assert calls == []
+    assert box.pending == {}
+
+
+def test_portfolio_host_sessions_exposes_ph_worker_suffix_and_counts(tmp_path, monkeypatch):
+    from lib import portfolio
+    db = _setup_task_db(tmp_path, monkeypatch)
+    with db.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO tasks (id,project,role,status,title,description,owner_cto,owner_role,host,created_at,updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            ("task-55555555", "mooniex-agents", "developer", "in_progress", "t5", "d5",
+             "36c49776", "project_head", "winbox", "2026-11-03T00:00:00Z", "2026-11-03T00:00:00Z"),
+        )
+        wmap = portfolio.ph_worker_hosts(conn)
+        assert wmap["36c49776"] == {
+            "worker_hosts": {"winbox": 1},
+            "worker_suffix": " · \U0001F5A5️ winbox",
+        }
+        rows = portfolio._host_session_rows(
+            "contabo",
+            [
+                {"host": "contabo", "sid": "36c49776", "role": "project_head",
+                 "name": f"{CONTABO} PH#36c (CMO) - MimiPage · \U0001F5A5️ winbox",
+                 "status": "idle", "stale": False},
+                {"host": "contabo", "sid": "c34459eb", "role": "cto",
+                 "name": f"{CONTABO} CTO (Kavin)", "status": "running", "stale": False},
+            ],
+            wmap,
+        )
+        assert rows[0]["worker_hosts"] == {"winbox": 1}
+        assert rows[0]["worker_suffix"] == " · \U0001F5A5️ winbox"
+        assert "worker_hosts" not in rows[1]
+        assert portfolio._ph_name_lane(rows[0]["name"]) == ("MimiPage", "cmo")
+
+
 def test_a_missing_tmux_field_is_allowed_only_for_a_fixed_tmux_role(box):
     for f in box.sessions.iterdir():
         d = json.loads(f.read_text())

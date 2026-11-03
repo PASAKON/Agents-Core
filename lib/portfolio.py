@@ -1335,7 +1335,64 @@ def _v4_parked(live):
     return rows[:20]
 
 
-def _v4_hosts(c):
+def ph_worker_hosts(c) -> dict[str, dict]:
+    """Per-PH running worker host counts and suffix from `tasks` (`status = 'in_progress'`)."""
+    from lib import session_names
+    by_sid: dict[str, list[str]] = {}
+    for r in c.execute(
+        "SELECT owner_cto, host FROM tasks WHERE status = 'in_progress' "
+        "AND owner_cto IS NOT NULL AND host IS NOT NULL"
+    ).fetchall():
+        sid = _bare_session(r["owner_cto"])
+        h = _wire_host(r["host"])
+        if sid and h:
+            by_sid.setdefault(sid.lower(), []).append(h)
+    out: dict[str, dict] = {}
+    for sid, hosts in by_sid.items():
+        counts = session_names.ph_worker_counts(hosts)
+        out[sid] = {
+            "worker_hosts": counts,
+            "worker_suffix": session_names.ph_worker_suffix(counts),
+        }
+    return out
+
+
+def _host_session_rows(host_name: str, live: list[dict], worker_map: dict[str, dict]) -> list[dict]:
+    from lib import session_names
+    out: list[dict] = []
+    for r in live:
+        if r.get("host") != host_name or r.get("stale"):
+            continue
+        sid = str(r.get("sid") or "").lower()
+        entry: dict = {
+            "sid": sid,
+            "role": r.get("role"),
+            "name": _v4_text(r.get("name"), 120),
+            "status": r.get("status"),
+        }
+        if r.get("role") == "project_head":
+            info = worker_map.get(sid)
+            if info is None and len(sid) == 3:
+                info = next((v for k, v in worker_map.items() if k.startswith(sid)), None)
+            counts = dict(info["worker_hosts"]) if info else {}
+            suffix = info["worker_suffix"] if info else session_names.ph_worker_suffix(())
+            entry["worker_hosts"] = counts
+            entry["worker_suffix"] = suffix
+        out.append(entry)
+    return out
+
+
+def collect_host_sessions(*, conn=None) -> list[dict]:
+    """Collect `hosts[]` with per-session `sessions` list (including `worker_hosts` and
+    `worker_suffix` on every PH session)."""
+    with _tx(conn) as c:
+        return _v4_hosts(c, detailed_sessions=True)
+
+
+host_sessions = collect_host_sessions
+
+
+def _v4_hosts(c, *, detailed_sessions: bool = False):
     try:
         from lib import config
         from tools import host_fill, live_sessions
@@ -1367,7 +1424,9 @@ def _v4_hosts(c):
                      "ram_free_gb": number(reading.get("ram_free_gb")),
                      "disk_free_gb": number(reading.get("disk_free_gb")),
                      "waiting_host": waiting.get(name, 0),
-                     "sessions": sum(r["host"] == name and not r["stale"] for r in live)})
+                      "sessions": (_host_session_rows(name, live, ph_worker_hosts(c))
+                                   if detailed_sessions
+                                   else sum(r["host"] == name and not r["stale"] for r in live))})
     return rows[:5]
 
 

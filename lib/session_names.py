@@ -51,6 +51,16 @@ HEAD_SHORT = {"OrgRestructure": "Org", "SpendGuard": "Spend", "BlackLiquidity": 
               "MimiPage": "Mimi"}
 LIGHTS = ("\U0001F7E2", "\U0001F7E1", "\U0001F534", "⚪")   # Watch: 🟢 running, 🟡 quiet, 🔴 failed or dead, ⚪ idle
 HOST_EMOJI = {"mac": "\U0001F4BB", "contabo": "\U0001F310", "winbox": "\U0001F5A5️"}
+PH_WORKER_HOST_ORDER = ("contabo", "winbox", "mac")
+WORKER_HOST_ORDER = PH_WORKER_HOST_ORDER
+TOPIC_MAX = 40
+NAME_MAX = 120
+_WORKER_SUFFIX_PAT = (
+    r"(?: · (?P<workers>(?:\U0001F310|\U0001F5A5️?|\U0001F4BB)"
+    r"(?: (?:contabo|winbox|mac)|\d+)"
+    r"(?: (?:\U0001F310|\U0001F5A5️?|\U0001F4BB)\d+)*))?"
+)
+_WORKER_SUFFIX_RE = re.compile(_WORKER_SUFFIX_PAT + r"$")
 # one leading host emoji, with or without U+FE0F, and the spaces after it; a state
 # glyph in front ("⏸ 🌐 CTO …", session-rename.sh's prefix) is kept
 _HOST_EMOJI_RE = re.compile(r"^([^\w\U0001F4BB\U0001F310\U0001F5A5]*?)"
@@ -70,7 +80,7 @@ def windows_safe(text: str, limit: int | None = None) -> str:
 # PH: "PH#7cf (CTO) - OrgRestructure[ — topic]" (group "lane"), or compact "PH#7cf OrgRestructure".
 PH_NAME_RE = re.compile(
     r"^[\W_]*PH#(?P<id3>[0-9a-f]{3}) "
-    r"(?:\((?P<lane>[A-Z]{3})\)(?: - (?P<proj>.*?))?(?: — (?P<otopic>.*))?|(?P<text>(?!\()\S.*))$")
+    r"(?:\((?P<lane>[A-Z]{3})\)(?: - (?P<proj>.*?))?(?: — (?P<otopic>.*?))?|(?P<text>(?!\()\S.*?))" + _WORKER_SUFFIX_PAT + r"$")
 # worker: compact "Dev·S#49b Org: job" / "Dev.S#49b …" on Windows / "Dev#49b Org: job" when the model is
 # not Opus, Sonnet or Haiku; old "Dev#49b - Org: job" (no model letter, the rest starts "- ").
 WORKER_NAME_RE = re.compile(
@@ -170,13 +180,127 @@ def upgrade_clevel(name: str, host: str) -> str:
     return lead + with_host(host, body)
 
 
-def ph_session_name(sid: str, lane: str, projects, host: str | None = None) -> str:
-    """"<emoji> PH#<id3> (<LANE>) - <Project> + <Project>"; one project is the usual
-    case, and no `host` (or an unknown one) gives no emoji."""
+def ph_worker_counts(hosts=()) -> dict[str, int]:
+    """Counts of running workers per known host in fixed order (contabo, winbox, mac)."""
+    if not hosts:
+        return {}
+    if isinstance(hosts, dict):
+        counts: dict[str, int] = {}
+        for h in PH_WORKER_HOST_ORDER:
+            try:
+                n = int(hosts.get(h) or 0)
+            except (TypeError, ValueError):
+                n = 0
+            if n > 0:
+                counts[h] = n
+        return counts
+    if isinstance(hosts, str):
+        s = hosts.strip().lower()
+        return {s: 1} if s in HOST_EMOJI else {}
+    raw_counts = {h: 0 for h in PH_WORKER_HOST_ORDER}
+    for item in hosts:
+        h = str(item or "").strip().lower()
+        if h in raw_counts:
+            raw_counts[h] += 1
+    return {h: n for h, n in raw_counts.items() if n > 0}
+
+
+def ph_worker_suffix(hosts=()) -> str:
+    """Worker-host suffix for a PH session name (Order O-20261103-2233-6e3a):
+    - no running worker: ""
+    - workers on one host: " · <emoji> <host>", e.g. " · 🖥️ winbox"
+    - workers on several hosts: " · <emoji><count> <emoji><count>" in fixed
+      host order contabo, winbox, mac, e.g. " · 🖥️1 💻1"."""
+    if isinstance(hosts, str) and hosts.startswith(" · "):
+        return hosts
+    counts = ph_worker_counts(hosts)
+    if not counts:
+        return ""
+    if len(counts) == 1:
+        h = next(iter(counts))
+        return f" · {HOST_EMOJI[h]} {h}"
+    return " · " + " ".join(f"{HOST_EMOJI[h]}{n}" for h, n in counts.items())
+
+
+worker_hosts_suffix = ph_worker_suffix
+worker_suffix = ph_worker_suffix
+
+
+def strip_worker_suffix(name: str) -> str:
+    """`name` without its trailing PH worker-host suffix, if any."""
+    return _WORKER_SUFFIX_RE.sub("", name or "")
+
+
+def _trim_text(text: str, limit: int) -> str:
+    text = (text or "").strip()
+    if limit <= 0:
+        return ""
+    if len(text) <= limit:
+        return text
+    if limit == 1:
+        return "…"
+    return text[:limit - 1].rstrip() + "…"
+
+
+def ph_session_name(
+    sid: str,
+    lane: str,
+    projects,
+    host: str | None = None,
+    worker_hosts=(),
+    *,
+    topic: str = "",
+    prefix: str = "",
+    max_len: int | None = None,
+) -> str:
+    """"<emoji> PH#<id3> (<LANE>) - <Project> + <Project>[ — <topic>][ · <workers>]";
+    one project is the usual case, and no `host` (or an unknown one) gives no emoji.
+    Keeps the whole name short enough for the mobile app (`TOPIC_MAX` for topic+suffix,
+    `NAME_MAX` or `max_len` for the full name), trimming the topic first."""
+    topic = (topic or "").strip()
     if isinstance(projects, str):
+        if " — " in projects and not topic:
+            projects, _, topic = projects.partition(" — ")
+            topic = topic.strip()
         projects = [projects]
+    else:
+        projects = list(projects or [])
+        if projects and isinstance(projects[-1], str) and " — " in projects[-1] and not topic:
+            last_proj, _, topic = projects[-1].partition(" — ")
+            projects[-1] = last_proj
+            topic = topic.strip()
     names = " + ".join(p for p in (str(x).strip() for x in projects) if p)
-    return host_prefix(host) + f"PH#{short_id(sid)} ({lane.upper()}){' - ' + names if names else ''}"
+    sfx = ph_worker_suffix(worker_hosts)
+    lead = f"{prefix} " if prefix else ""
+    head = lead + host_prefix(host) + f"PH#{short_id(sid)} ({lane.upper()})"
+    if topic:
+        topic_budget = TOPIC_MAX - len(sfx) if sfx else TOPIC_MAX
+        if topic_budget <= 1:
+            topic = ""
+        elif len(topic) > topic_budget:
+            topic = _trim_text(topic, topic_budget)
+    limit = NAME_MAX if max_len is None else max_len
+    proj_part = f" - {names}" if names else ""
+    topic_part = f" — {topic}" if topic else ""
+    full = head + proj_part + topic_part + sfx
+    if len(full) > limit:
+        if topic:
+            avail_topic = limit - len(head) - len(proj_part) - len(" — ") - len(sfx)
+            if avail_topic >= 2:
+                topic = _trim_text(topic, avail_topic)
+                topic_part = f" — {topic}"
+            else:
+                topic = ""
+                topic_part = ""
+            full = head + proj_part + topic_part + sfx
+        if len(full) > limit and names:
+            avail_proj = limit - len(head) - len(" - ") - len(sfx)
+            if avail_proj >= 1:
+                proj_part = " - " + _trim_text(names, avail_proj)
+            else:
+                proj_part = ""
+            full = head + proj_part + sfx
+    return full
 
 
 def worker_name(short: str, task_id: str, head: str, job: str, model: str = "",

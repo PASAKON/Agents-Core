@@ -530,6 +530,7 @@ def _hub_remote_step(task: dict) -> bool:
             if reply.get('ok') and result.get('ready'):
                 db.update_status(task['id'], 'review', report=result['report'], actor='branch_poller')
                 moved = True
+                _sync_ph_worker_rename(task, 'review')
                 _hub_publish_review({**task, 'status': 'review'})
     except Exception as exc:
         _log().warning('task %s: remote publication pending: %s', task['id'], type(exc).__name__)
@@ -620,6 +621,7 @@ def check_task(task: dict) -> None:
                 gate = _artefact_gate_for_external_runner(task, repo_path, branch)
                 if not gate:
                     reason = "; ".join(gate.reasons)
+                    _sync_ph_worker_rename(task, "failed")
                     _log().warning(
                         "task %s: artefact gate REFUSED runner=%s on %s: %s",
                         task_id, runner, branch, reason,
@@ -635,6 +637,7 @@ def check_task(task: dict) -> None:
 
             db.update_status(task_id, "review", report=report, actor="branch_poller")
             _log().info("task %s -> review (REPORT.md on %s)", task_id, branch)
+            _sync_ph_worker_rename(task, "review")
             if local_run:
                 _maybe_close_finished_local_launcher(task_id, repo_path, branch)
             else:
@@ -695,6 +698,17 @@ def check_task(task: dict) -> None:
         )
         _log().warning("task %s -> failed (pid %s gone on %s, no branch pushed)",
                        task_id, pid, host_name)
+        _sync_ph_worker_rename(task, "failed")
+
+
+def _sync_ph_worker_rename(task_or_id, status: str) -> None:
+    if getattr(db.update_status, "_syncs_ph_name", False):
+        return
+    try:
+        from tools import rename_service
+        rename_service.sync_ph_worker_rename(task_or_id, status=status)
+    except Exception:
+        pass
 
 
 _REMOTE_CURSOR: dict[tuple[str, str], str] = {}

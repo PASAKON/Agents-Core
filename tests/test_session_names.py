@@ -400,4 +400,61 @@ def test_N2_the_old_long_form_is_not_on_the_rule_and_the_sweep_never_rebuilds_it
     long_form = CONTABO + " MAC CTO #671f688f (PH LastBell + Scriptable)"
     assert sn.rule_problem(long_form, "cto", "671f688f", "mac", persona="Kavin") == "wrong host emoji"
     assert sn.rule_problem(MAC + " MAC CTO #671f688f (PH LastBell + Scriptable)", "cto", "671f688f", "mac",
+    assert sn.rule_problem(MAC + " MAC CTO #671f688f (PH LastBell + Scriptable)", "cto", "671f688f", "mac",
                            persona="Kavin") == 'not "CTO (Kavin)"'
+
+
+# --- Order O-20261103-2233-6e3a: PH worker-host suffix & topic-first trimming ----------------
+
+def test_ph_worker_suffix_for_zero_one_and_several_hosts():
+    assert sn.ph_worker_suffix() == ""
+    assert sn.ph_worker_suffix([]) == ""
+    assert sn.ph_worker_suffix(None) == ""
+    assert sn.ph_worker_suffix({}) == ""
+    assert sn.ph_worker_suffix(["winbox"]) == f" · {WINBOX} winbox"
+    assert sn.ph_worker_suffix(["winbox", "winbox"]) == f" · {WINBOX} winbox"
+    assert sn.ph_worker_suffix(["contabo"]) == f" · {CONTABO} contabo"
+    assert sn.ph_worker_suffix(["mac"]) == f" · {MAC} mac"
+    # Fixed host order: contabo, winbox, mac regardless of input order
+    assert sn.ph_worker_suffix(["mac", "winbox"]) == f" · {WINBOX}1 {MAC}1"
+    assert sn.ph_worker_suffix(["mac", "winbox", "contabo", "winbox"]) == f" · {CONTABO}1 {WINBOX}2 {MAC}1"
+    assert sn.ph_worker_suffix({"mac": 2, "contabo": 1}) == f" · {CONTABO}1 {MAC}2"
+
+    n0 = sn.ph_session_name("053a1b2c", "cto", "CookieRun", "contabo")
+    assert n0 == f"{CONTABO} PH#053 (CTO) - CookieRun"
+    n1 = sn.ph_session_name("053a1b2c", "cto", "CookieRun", "contabo", ["winbox"])
+    assert n1 == f"{CONTABO} PH#053 (CTO) - CookieRun · {WINBOX} winbox"
+    n2 = sn.ph_session_name("053a1b2c", "cto", "CookieRun", "contabo", ["mac", "winbox"])
+    assert n2 == f"{CONTABO} PH#053 (CTO) - CookieRun · {WINBOX}1 {MAC}1"
+
+    for name in (n0, n1, n2):
+        assert sn.parse_short(name) == ("project_head", "053")
+        assert sn.rule_problem(name, "project_head", "053a1b2c", "contabo") is None
+        m = sn.PH_NAME_RE.match(sn.split_name(name)[2])
+        assert m is not None and m.group("proj") == "CookieRun"
+    assert sn.strip_worker_suffix(n1) == n0
+    assert sn.strip_worker_suffix(n2) == n0
+
+
+def test_ph_session_name_trims_topic_first_to_fit_worker_suffix():
+    long_topic = "t" * 35
+    sfx = f" · {WINBOX} winbox"
+    name = sn.ph_session_name("053a1b2c", "cto", "CookieRun", "contabo", ["winbox"], topic=long_topic)
+    assert name.startswith(f"{CONTABO} PH#053 (CTO) - CookieRun — ")
+    assert name.endswith(sfx)
+    after_dash = name.split(" — ", 1)[1]
+    assert len(after_dash) <= sn.TOPIC_MAX
+    assert "… · " in after_dash
+
+    # Same when topic is passed inline in the project string ("CookieRun — <topic>")
+    inline = sn.ph_session_name("053a1b2c", "cto", f"CookieRun — {long_topic}", "contabo", ["winbox"])
+    assert inline == name
+
+    # Whole-name max_len trims topic first, keeping project and suffix intact
+    tight = sn.ph_session_name(
+        "053a1b2c", "cto", "CookieRun", "contabo", ["winbox"], topic="fixing obstacle detector", max_len=52
+    )
+    assert len(tight) <= 52
+    assert " - CookieRun — " in tight and tight.endswith(sfx)
+    assert "… · " in tight
+    assert len(sn.ph_session_name("053a1b2c", "cto", "P" * 100, "contabo", ["mac", "winbox"], topic="t" * 40)) <= sn.NAME_MAX

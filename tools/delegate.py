@@ -1392,6 +1392,7 @@ def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
         return db.get_task(task_id)
     if reply.get("ok"):
         success(f"mesh spawn task={task_id} host={host_name}: {reply.get('result')}")
+        _sync_ph_worker_rename(db.get_task(task_id) or {"id": task_id, "host": host_name, "status": "in_progress"}, "in_progress", force=True)
         return db.get_task(task_id)
     detail = str(reply.get("error") or reply)[:1000]
     warn(f"mesh spawn refused task={task_id} host={host_name}: {detail}")
@@ -1652,6 +1653,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
             assigned_agent=role_name, runner=runner, actor="cto",
         )
         success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} pid={pid}")
+        _sync_ph_worker_rename({**task, "host": host_name, "status": "in_progress"}, "in_progress")
         return db.get_task(task_id)
 
     # os_name == "linux" (contabo, Phase 2, task-a5c0549d). Bash + tmux
@@ -1767,7 +1769,18 @@ async def _spawn_remote(task: dict, host_name: str, *,
     )
     success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} "
            f"pid={pid} tmux={tmux_session_id}")
+    _sync_ph_worker_rename({**task, "host": host_name, "status": "in_progress"}, "in_progress")
     return db.get_task(task_id)
+
+
+def _sync_ph_worker_rename(task_or_id, status: str = "in_progress", *, force: bool = False) -> None:
+    if not force and getattr(db.update_status, "_syncs_ph_name", False):
+        return
+    try:
+        from tools import rename_service
+        rename_service.sync_ph_worker_rename(task_or_id, status=status)
+    except Exception:
+        pass
 
 
 def _task_meta(task: dict, host_name: str) -> dict:

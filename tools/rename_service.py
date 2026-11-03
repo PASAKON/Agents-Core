@@ -103,6 +103,9 @@ TYPED_POLL_S = 0.1
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
 _FIXED_TMUX = {"coo": "sompong"}
 _TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
+PH_WORKER_START_STATUSES = ("in_progress",)
+PH_WORKER_END_STATUSES = ("done", "review", "failed", "cancelled", "merged")
+PH_WORKER_TRIGGER_STATUSES = PH_WORKER_START_STATUSES + PH_WORKER_END_STATUSES
 
 
 # --- the name ----------------------------------------------------------------------
@@ -146,7 +149,52 @@ def effective_role(role: str, sid: str) -> str:
     return role
 
 
-def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
+def _bare_ph_sid(raw: str | None) -> str | None:
+    s = str(raw or "").strip().lower()
+    if s.startswith("project_head-"):
+        s = s[len("project_head-"):]
+    elif re.fullmatch(r"c[a-z]o-[0-9a-f]{8}", s):
+        s = s.split("-", 1)[1]
+    return s if re.fullmatch(r"[0-9a-f]{8}", s) else None
+
+
+def running_worker_hosts(
+    ph_sid: str,
+    *,
+    include_task: dict | None = None,
+    exclude_task_id: str | None = None,
+) -> list[str]:
+    """List of hosts where `ph_sid` currently has `in_progress` worker tasks in the hub."""
+    sid = _bare_ph_sid(ph_sid)
+    if not sid:
+        return []
+    rows: list[dict] = []
+    try:
+        from lib import db
+        # Avoid reading an unpatched checkout's tasks.db during unrelated unit tests.
+        if (not os.environ.get("PYTEST_CURRENT_TEST")
+                or db.DB_PATH != db.ROOT / "state" / "tasks.db"
+                or getattr(db.list_tasks, "__module__", "") != "lib.db"
+                or getattr(db.get_conn, "__module__", "") != "lib.db"
+                or bool(db.pg_url())):
+            rows = list(db.list_tasks(status="in_progress", limit=500))
+    except Exception:
+        rows = []
+    if exclude_task_id:
+        rows = [r for r in rows if r.get("id") != exclude_task_id]
+    if include_task and include_task.get("id") and all(r.get("id") != include_task.get("id") for r in rows):
+        rows.append(include_task)
+    out: list[str] = []
+    for r in rows:
+        if _bare_ph_sid(r.get("owner_cto")) != sid:
+            continue
+        h = str(r.get("host") or "").strip().lower()
+        if h in session_names.HOST_EMOJI:
+            out.append(h)
+    return out
+
+
+def build_name(role: str, sid: str, topic, prefix, host: str, worker_hosts=None) -> str | None:
     """The rule name for a C-level or PH plus the cleaned topic, or None (no rule
     for this role, a PH with no project record, a prefix not in PREFIXES). A C-level box
     with a PH marker (effective_role) is named as the PH it is."""
@@ -165,12 +213,16 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
         lane = spawned[1] if len(spawned) == 3 else ("" if spawned_by else box_role)
         if not re.fullmatch(r"[A-Za-z0-9_]{1,40}", project) or not re.fullmatch(r"c[a-z]o", lane):
             return None
-        base = config.ph_session_name(sid, lane, project, host)
         # Exact match on purpose, never casefolded: a topic that differs from the project only by
         # case ("ThaiHumor" against a lock still holding "thaihumor") is kept, so the name shows it
         # until the project is fixed, and a rename is never silently swallowed as "the same".
         if topic == project:
             topic = ""
+        hosts = running_worker_hosts(sid) if worker_hosts is None else worker_hosts
+        name = config.ph_session_name(
+            sid, lane, project, host, worker_hosts=hosts, topic=topic, prefix=prefix
+        )
+        return name if _typable(name) else None
     elif re.fullmatch(r"c[a-z]o", role) and role != "ceo":
         persona = config.persona_for(role)
         if persona and not re.fullmatch(r"[A-Za-z]{2,32}", persona):
@@ -194,7 +246,159 @@ def _typable(name: str) -> bool:
         if emoji:
             name = name.replace("(" + emoji + ": ", "(: ", 1)
     return (original_length <= NAME_MAX and not name.startswith("/")
-            and not any(unicodedata.category(c)[0] == "C" or c in "\n\r  " for c in name))
+            and not any(unicodedata.category(c)[0] == "C" or c in "\n\r\u2028\u2029" for c in name))
+
+
+def _current_ph_topic_prefix(name: str) -> tuple[str, str]:
+    """Extract (topic, prefix) from a live PH session's current display name."""
+    lead, _emoji, body = session_names.split_name(name or "")
+    prefix = lead.strip() if lead.strip() in PREFIXES else ""
+    m = session_names.PH_NAME_RE.match(body)
+    topic = (m.group("otopic") or "").strip() if m else ""
+    return topic, prefix
+
+
+def _resolve_task_ph(task: dict) -> tuple[str, str, str, str] | None:
+    """If `task` belongs to a Project Head, return (box_role, ph_sid, lane, project_name);
+    return None for non-PH tasks (e.g. C-level tasks or ownerless tasks)."""
+    if not isinstance(task, dict):
+        return None
+    owner_cto = str(task.get("owner_cto") or "").strip()
+    owner_role = str(task.get("owner_role") or "").strip().lower()
+    prefix_role = ""
+    if owner_cto.lower().startswith("project_head-"):
+        prefix_role = "project_head"
+        sid = owner_cto[len("project_head-"):].strip().lower()
+    elif re.fullmatch(r"c[a-z]o-[0-9a-f]{8}", owner_cto.lower()):
+        prefix_role, _, sid = owner_cto.lower().partition("-")
+    else:
+        sid = owner_cto.lower()
+    if not re.fullmatch(r"[0-9a-f]{8}", sid):
+        return None
+
+    lock_project = _read(f"project_head-{sid}.project")
+    spawned_by = _read(f"project_head-{sid}.spawned_by")
+    spawned = spawned_by.split(":")
+    lock_lane = spawned[1] if len(spawned) == 3 and re.fullmatch(r"c[a-z]o", spawned[1]) else ""
+
+    db_proj = None
+    try:
+        from lib import db
+        if (not os.environ.get("PYTEST_CURRENT_TEST")
+                or db.DB_PATH != db.ROOT / "state" / "tasks.db"
+                or getattr(db.get_conn, "__module__", "") != "lib.db"
+                or bool(db.pg_url())):
+            with db.get_conn() as conn:
+                row = conn.execute(
+                    "SELECT id, name, lane, ph_session FROM projects WHERE ph_session IN (?, ?) LIMIT 1",
+                    (sid, f"project_head-{sid}"),
+                ).fetchone()
+                if row:
+                    db_proj = dict(row)
+    except Exception:
+        db_proj = None
+
+    is_ph = (
+        owner_role == "project_head"
+        or prefix_role == "project_head"
+        or bool(lock_project)
+        or db_proj is not None
+    )
+    if not is_ph:
+        return None
+
+    if prefix_role and re.fullmatch(r"c[a-z]o", prefix_role):
+        box_role = prefix_role
+    elif re.fullmatch(r"c[a-z]o", owner_role) and lock_project:
+        box_role = owner_role
+    else:
+        box_role = "project_head"
+
+    lane = (
+        lock_lane
+        or (box_role if re.fullmatch(r"c[a-z]o", box_role) else "")
+        or (str(db_proj.get("lane") or "").lower() if db_proj else "")
+        or "cto"
+    )
+    if not re.fullmatch(r"c[a-z]o", lane):
+        lane = "cto"
+
+    project_name = (
+        lock_project
+        or (str(db_proj.get("name") or "").strip() if db_proj else "")
+        or str(task.get("project") or "Project").strip()
+    )
+    return box_role, sid, lane, project_name
+
+
+def sync_ph_worker_rename(
+    task_or_id,
+    *,
+    status: str | None = None,
+    host: str | None = None,
+    sock_path: Path | None = None,
+) -> str | None:
+    """Zero-model PH session rename hook (Order O-20261103-2233-6e3a).
+
+    When a worker task of a PH enters `in_progress` or leaves it
+    (`done`/`review`/`failed`/`cancelled`/`merged`), recompute that PH's running-worker
+    hosts from the hub's `tasks` table and send the updated name through the existing
+    rename service socket (`send_request`), without waking the PH. Returns the rendered
+    PH session name, or None when the task is not a PH task or not in a trigger status."""
+    task: dict | None = None
+    if isinstance(task_or_id, dict):
+        task = task_or_id
+    elif isinstance(task_or_id, str) and task_or_id:
+        try:
+            from lib import db
+            task = db.get_task(task_or_id)
+        except Exception:
+            task = None
+    if not task:
+        return None
+
+    eff_status = str(status or task.get("status") or "").strip().lower()
+    if eff_status not in PH_WORKER_TRIGGER_STATUSES:
+        return None
+
+    resolved = _resolve_task_ph(task)
+    if resolved is None:
+        return None
+    box_role, sid, lane, project_name = resolved
+
+    include_task = task if eff_status in PH_WORKER_START_STATUSES else None
+    exclude_id = task.get("id") if eff_status in PH_WORKER_END_STATUSES else None
+    hosts = running_worker_hosts(sid, include_task=include_task, exclude_task_id=exclude_id)
+
+    ph_host = host
+    if not ph_host:
+        try:
+            ph_host = config.self_host()
+        except Exception:
+            ph_host = "contabo"
+
+    topic = _read(f"project_head-{sid}.topic")
+    prefix = ""
+    name = build_name(box_role, sid, topic, prefix, ph_host, worker_hosts=hosts)
+    if name is None:
+        clean_t = clean_topic(topic)
+        if clean_t == project_name:
+            clean_t = ""
+        name = config.ph_session_name(
+            sid, lane, project_name, ph_host, worker_hosts=hosts, topic=clean_t, prefix=prefix
+        )
+
+    with contextlib.suppress(OSError):
+        send_request(
+            box_role,
+            sid,
+            topic,
+            prefix,
+            path=sock_path,
+            worker_hosts=hosts,
+            refresh_workers=True,
+        )
+    return name
 
 
 # --- the panes ---------------------------------------------------------------------
@@ -390,14 +594,38 @@ def handle(conn: socket.socket, host: str, pending: dict, peer_ids: tuple[int, i
     if not _BOX_RE.fullmatch(box):
         return "refused: not an org session"
     role, sid = box.split("-", 1)
+    refresh_workers = bool(req.get("refresh_workers"))
     # Who is asking first: no lock file is read for a caller that is not that session.
     sess = session_of(box, host)
+    if sess is None and refresh_workers and role == "project_head":
+        for alt_role in ("cto", "cmo", "coo", "cfo", "cgo"):
+            alt_box = f"{alt_role}-{sid}"
+            alt_sess = session_of(alt_box, host)
+            if alt_sess is not None:
+                box, role, sess = alt_box, alt_role, alt_sess
+                break
     if sess is None:
         return f"refused: no single live session for {box} in its tmux"
-    why = owner_refusal(peer_pid, peer_uid, sess)
-    if why:
-        return f"refused: {why}"
-    name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
+    if refresh_workers:
+        if peer_uid not in (0, _uid(sess["pid"])):
+            return "refused: the caller runs as another user than that session"
+        if effective_role(role, sid) != "project_head":
+            return f"refused: no rule name for {box}"
+        cur_topic, cur_prefix = _current_ph_topic_prefix(sess.get("name") or "")
+        if owner_refusal(peer_pid, peer_uid, sess) is None:
+            topic = req.get("topic") or cur_topic
+            prefix = req.get("prefix") or cur_prefix
+        else:
+            topic, prefix = cur_topic, cur_prefix
+        worker_hosts = req.get("worker_hosts")
+        if not isinstance(worker_hosts, list):
+            worker_hosts = None
+        name = build_name(role, sid, topic, prefix, host, worker_hosts=worker_hosts)
+    else:
+        why = owner_refusal(peer_pid, peer_uid, sess)
+        if why:
+            return f"refused: {why}"
+        name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
     if name is None:
         return f"refused: no rule name for {box}"
     if box not in pending and len(pending) >= PENDING_MAX:
@@ -644,14 +872,27 @@ def serve(host: str, path: Path = SOCK) -> None:
                 pass
 
 
-def send_request(role: str, sid: str, topic: str, prefix: str, path: Path | None = None) -> str:
-    """The client side, used by scripts/session-rename.sh."""
+def send_request(
+    role: str,
+    sid: str,
+    topic: str = "",
+    prefix: str = "",
+    path: Path | None = None,
+    *,
+    worker_hosts: list[str] | None = None,
+    refresh_workers: bool = False,
+) -> str:
+    """The client side, used by scripts/session-rename.sh and PH worker-status hooks."""
+    payload: dict = {"role": role, "sid": sid, "topic": topic, "prefix": prefix}
+    if worker_hosts is not None:
+        payload["worker_hosts"] = list(worker_hosts)
+    if refresh_workers:
+        payload["refresh_workers"] = True
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.settimeout(5)
     with s:
         s.connect(str(path or SOCK))
-        s.sendall(json.dumps({"role": role, "sid": sid, "topic": topic, "prefix": prefix},
-                             ensure_ascii=False).encode("utf-8"))
+        s.sendall(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
         s.shutdown(socket.SHUT_WR)
         return s.recv(4096).decode("utf-8", "replace").strip()
 

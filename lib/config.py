@@ -97,7 +97,7 @@ _HOST_MACHINE_LABEL = {"mac": "MAC", "winbox": "WINDOWS", "contabo": "CONTABO"}
 # Session names (CEO 2026-10-14): the shapes live in lib/session_names.py (stdlib
 # only, read by tools/live_sessions.py too); these are re-exported for callers.
 from lib.session_names import (  # noqa: E402
-    HOST_EMOJI, WORKER_JOB_MAX, WORKER_SHORT, clevel_name, host_prefix, ph_session_name, short_id,
+    HOST_EMOJI, PH_WORKER_HOST_ORDER, WORKER_HOST_ORDER, WORKER_JOB_MAX, WORKER_SHORT, clevel_name, host_prefix, ph_session_name, ph_worker_counts, ph_worker_suffix, short_id, strip_worker_suffix, worker_hosts_suffix, worker_suffix,
     strip_host, watch_name, with_host, worker_name,
 )
 from lib import session_names as _session_names  # noqa: E402

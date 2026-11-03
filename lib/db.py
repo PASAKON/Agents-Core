@@ -1162,6 +1162,8 @@ def claim_task(task_id: str, agent: str) -> bool:
         )
         if cur.rowcount:
             log_event(conn, task_id, agent, "claimed", {})
+            conn.commit()
+            _sync_ph_rename(task_id, "in_progress")
             return True
     return False
 
@@ -1239,6 +1241,8 @@ def update_status(task_id: str, status: str, *, actor: str = "system",
                       file=sys.stderr)
                 return False
         log_event(conn, task_id, actor, f"status_{status}", fields)
+        conn.commit()
+    _sync_ph_rename(task_id, status)
     if status in RELEASING_STATUSES:
         try:
             t = get_task(task_id)
@@ -1247,6 +1251,20 @@ def update_status(task_id: str, status: str, *, actor: str = "system",
         except Exception:
             pass
     return True
+
+
+def _sync_ph_rename(task_id: str, status: str) -> None:
+    if status not in ("in_progress", "done", "review", "failed", "cancelled", "merged"):
+        return
+    try:
+        from tools import rename_service
+        rename_service.sync_ph_worker_rename(task_id, status=status)
+    except Exception:
+        pass
+
+
+claim_task._syncs_ph_name = True
+update_status._syncs_ph_name = True
 
 
 def set_fields(task_id: str, *, actor: str = "system", **fields) -> None:
