@@ -518,6 +518,11 @@ def _register_project(plan: dict) -> str:
                 conn.execute("UPDATE projects SET ph_session = ?, kind = ?, due_at = ?, cadence_h = ?,"
                              " due_set_by = COALESCE(due_set_by, 'clevel') WHERE id = ?",
                              (plan["session_id"], plan["kind"], plan.get("due_at"), plan.get("cadence_h"), row["id"]))
+            if "kind" in plan and row.get("stage") == "parked":
+                # A new PH means the project is worked again (3 Nov: cookie-run stayed parked
+                # while its PH ran). A closed row is final and stays as it is.
+                row = pf.set_stage(row["id"], "active", actor=plan["owner"],
+                                   reason="PH spawn", conn=conn)
             if tier is not None and tier != row.get("tier"):
                 pf.set_tier(row["id"], tier, actor=plan["owner"], why="PH spawn", conn=conn)
             tier = tier or row.get("tier") or "normal"
