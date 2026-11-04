@@ -19,8 +19,8 @@
            (ASCII form on winbox through windows_safe).
 
 The state of a run comes from lib/run_liveness.py (one reader for every tool).
-Thresholds: RUN_WATCH_QUIET_S (900), RUN_WATCH_CLOSE_AFTER_S (600),
-RUN_WATCH_BATCH_S (120), RUN_WATCH_ENDED_S (1800), RUN_WATCH_SPAWN_GRACE_S (90),
+Thresholds: RUN_WATCH_QUIET_S (900), RUN_WATCH_BATCH_S (120),
+RUN_WATCH_ENDED_S (1800), RUN_WATCH_SPAWN_GRACE_S (90),
 RUN_WATCH_REPORT_GRACE_S (180), RUN_WATCH_POLL_S (10).
 
 If the hub cannot be read the whole output is the single line
@@ -48,7 +48,6 @@ from lib import db_pg, run_liveness, session_names  # noqa: E402
 
 HUB_CONNECT_TIMEOUT_S = 3
 POLL_S_DEFAULT = 10
-CLOSE_AFTER_S_DEFAULT = 600
 TITLE_MAX = 40
 TAIL_BYTES = 256 * 1024
 TAIL_LINE_MAX = 200
@@ -72,10 +71,6 @@ STATE_ROOT = ROOT / "state" / "run-watch"
 EXIT_NO_TASK = 1
 EXIT_HUB = 3
 EXIT_HOST = 4
-
-
-def close_after_s() -> int:
-    return run_liveness._env_int("RUN_WATCH_CLOSE_AFTER_S", CLOSE_AFTER_S_DEFAULT)
 
 
 class HubUnreachable(RuntimeError):
@@ -515,17 +510,15 @@ def format_watch_name(
     n_active: int,
     light: str,
     *,
-    sid: str | None = None,
     host: str | None = None,
 ) -> str:
     """Format the Watch session name via session_names.watch_name.
     Uses ASCII form through session_names.windows_safe on winbox.
     """
-    sid_val = sid or os.environ.get("RUN_WATCH_SID") or "000"
     if _is_windows_host(host):
         word = session_names.windows_safe(LIGHT_ASCII.get(light, str(light)))
-        return session_names.watch_name(sid_val, n_active, f" {word}", host=None)
-    return session_names.watch_name(sid_val, n_active, light, host=host)
+        return session_names.watch_name(n_active, f" {word}", host=None)
+    return session_names.watch_name(n_active, light, host=host)
 
 
 watch_light_name = format_watch_name
@@ -548,7 +541,6 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("follow", help="one line per state change")
     lt = sub.add_parser("light", help="Watch session name with run count and light")
     lt.add_argument("--json", action="store_true")
-    lt.add_argument("--sid", default=None, help="session id for Watch#<id3>")
     lt.add_argument("--host", default=None, help="override host name")
     lt.add_argument("--state-dir", default=None, help="override state/run-watch/<host> dir")
     return p
@@ -580,7 +572,7 @@ def main(argv=None) -> int:
         n_active, light = compute_light(
             runs, host=host, state_dir=args.state_dir, tasks=tasks,
         )
-        name = format_watch_name(n_active, light, sid=args.sid, host=host)
+        name = format_watch_name(n_active, light, host=host)
         if args.json:
             print(json.dumps({
                 "host": host,

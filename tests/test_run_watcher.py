@@ -59,7 +59,8 @@ def _clean_env(monkeypatch, tmp_path):
     monkeypatch.setattr(watcher, "STEWARD_ROOT", tmp_path / "steward")
     for name in (
         "RUN_WATCH_QUIET_S",
-        "RUN_WATCH_CLOSE_AFTER_S",
+        "RUN_WATCH_STABLE_S",
+        "RUN_WATCH_RETRY_S",
         "RUN_WATCH_BATCH_S",
         "RUN_WATCH_ENDED_S",
         "RUN_WATCH_SPAWN_GRACE_S",
@@ -67,7 +68,6 @@ def _clean_env(monkeypatch, tmp_path):
         "RUN_WATCH_POLL_S",
         "RUN_WATCH_STATE_DIR",
         "RUN_WATCH_STEWARD_DIR",
-        "RUN_WATCH_SID",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -230,26 +230,18 @@ def test_sticky_red_clears_when_task_is_redelegated(tmp_path: Path):
 
 def test_winbox_ascii_watch_name_and_cli_light(tmp_path: Path, monkeypatch, capsys):
     # Direct formatter on winbox across all four light states:
-    assert rw.format_watch_name(2, rw.LIGHT_OK, sid="a1b2c3", host="winbox") == (
-        "Watch#a1b Runs: 2 ok"
-    )
-    assert rw.format_watch_name(2, rw.LIGHT_QUIET, sid="a1b2c3", host="winbox") == (
-        "Watch#a1b Runs: 2 quiet"
-    )
-    assert rw.format_watch_name(1, rw.LIGHT_BAD, sid="a1b2c3", host="winbox") == (
-        "Watch#a1b Runs: 1 FAIL"
-    )
-    assert rw.format_watch_name(0, rw.LIGHT_IDLE, sid="a1b2c3", host="winbox") == (
-        "Watch#a1b Runs: 0 idle"
-    )
+    assert rw.format_watch_name(2, rw.LIGHT_OK, host="winbox") == "Watch Runs: 2 ok"
+    assert rw.format_watch_name(2, rw.LIGHT_QUIET, host="winbox") == "Watch Runs: 2 quiet"
+    assert rw.format_watch_name(1, rw.LIGHT_BAD, host="winbox") == "Watch Runs: 1 FAIL"
+    assert rw.format_watch_name(0, rw.LIGHT_IDLE, host="winbox") == "Watch Runs: 0 idle"
     for light in sn.LIGHTS:
-        win_name = rw.format_watch_name(2, light, sid="a1b", host="winbox")
-        assert win_name.isascii()
+        assert rw.format_watch_name(2, light, host="winbox").isascii()
 
     # Non-windows host uses emoji prefix and emoji light from session_names.watch_name:
-    hub_name = rw.format_watch_name(2, rw.LIGHT_OK, sid="a1b2c3", host="contabo")
-    assert hub_name == sn.watch_name("a1b2c3", 2, rw.LIGHT_OK, host="contabo")
-    assert "Watch#a1b Runs: 2\U0001F7E2" in hub_name
+    hub_name = rw.format_watch_name(2, rw.LIGHT_OK, host="contabo")
+    assert hub_name == sn.watch_name(2, rw.LIGHT_OK, host="contabo")
+    assert hub_name == "\U0001F310 Watch Runs: 2\U0001F7E2"       # "🌐 Watch Runs: 2🟢", no id
+    assert rw.format_watch_name(0, rw.LIGHT_BAD, host="contabo") == "\U0001F310 Watch Runs: 0\U0001F534"
 
     # CLI `run_watch.py light` and `run_watch.py light --json`:
     tasks = [row("task-run00001"), row("task-run00002")]
@@ -263,24 +255,11 @@ def test_winbox_ascii_watch_name_and_cli_light(tmp_path: Path, monkeypatch, caps
         rw, "collect_runs", lambda ts, **kw: real_collect(ts, now=NOW, **{**probes, **kw})
     )
 
-    rc = rw.main(
-        ["light", "--host", "winbox", "--sid", "f9e", "--state-dir", str(tmp_path)]
-    )
+    rc = rw.main(["light", "--host", "winbox", "--state-dir", str(tmp_path)])
     assert rc == 0
-    assert capsys.readouterr().out.strip() == "Watch#f9e Runs: 2 ok"
+    assert capsys.readouterr().out.strip() == "Watch Runs: 2 ok"
 
-    rc = rw.main(
-        [
-            "light",
-            "--json",
-            "--host",
-            "contabo",
-            "--sid",
-            "f9e",
-            "--state-dir",
-            str(tmp_path),
-        ]
-    )
+    rc = rw.main(["light", "--json", "--host", "contabo", "--state-dir", str(tmp_path)])
     assert rc == 0
     doc = json.loads(capsys.readouterr().out)
     assert doc == {
@@ -288,7 +267,7 @@ def test_winbox_ascii_watch_name_and_cli_light(tmp_path: Path, monkeypatch, caps
         "n_active": 2,
         "light": "\U0001F7E2",
         "state": "ok",
-        "name": sn.watch_name("f9e", 2, "\U0001F7E2", host="contabo"),
+        "name": sn.watch_name(2, "\U0001F7E2", host="contabo"),
     }
 
 
@@ -296,86 +275,95 @@ def test_winbox_ascii_watch_name_and_cli_light(tmp_path: Path, monkeypatch, caps
 # 4. Lifecycle decisions (start, stop, restart once, give_up -> open.md, none)
 # --------------------------------------------------------------------------
 
-def test_lifecycle_start_and_close_after_stop(tmp_path: Path):
-    # No runs, no watcher -> none
-    assert watcher.decide_lifecycle(0, False, 0, None, NOW, state_root=tmp_path) == "none"
+def test_lifecycle_session_is_always_up_and_never_stopped(tmp_path: Path):
+    # No session: started with or without runs (the CEO pins it, so it is always there).
+    assert watcher.decide_lifecycle(0, False, 0, NOW, state_root=tmp_path) == "start"
+    assert watcher.decide_lifecycle(1, False, 0, NOW, state_root=tmp_path) == "start"
 
-    # First run goes active, no watcher alive -> start
-    assert watcher.decide_lifecycle(1, False, 0, None, NOW, state_root=tmp_path) == "start"
-
-    # Run active and watcher alive -> none
-    assert watcher.decide_lifecycle(1, True, 1, None, NOW, state_root=tmp_path) == "none"
-
-    # Last run ended < 10 min (600s) ago while watcher alive -> none
-    assert watcher.decide_lifecycle(0, True, 1, 0, NOW, state_root=tmp_path) == "none"
-    assert watcher.decide_lifecycle(0, True, 1, 599, NOW, state_root=tmp_path) == "none"
-
-    # Last run ended >= 10 min (600s) ago while watcher alive -> stop
-    assert watcher.decide_lifecycle(0, True, 1, 600, NOW, state_root=tmp_path) == "stop"
-    assert watcher.decide_lifecycle(0, True, 1, 750, NOW, state_root=tmp_path) == "stop"
-    # Passing last-ended as an epoch timestamp also works with `now`:
-    assert (
-        watcher.decide_lifecycle(0, True, 1, NOW - 600, NOW, state_root=tmp_path) == "stop"
-    )
+    # A live session is left alone: runs or none, a minute or a month after the last one.
+    assert watcher.decide_lifecycle(1, True, 1, NOW, state_root=tmp_path) == "none"
+    assert watcher.decide_lifecycle(0, True, 1, NOW, state_root=tmp_path) == "none"
+    assert watcher.decide_lifecycle(0, True, 0, NOW + 30 * 86400, state_root=tmp_path) == "none"
+    assert "stop" not in {
+        watcher.decide_lifecycle(n, alive, count, NOW, state_root=tmp_path, record=False)
+        for n in (0, 1) for alive in (False, True) for count in range(5)
+    }
 
 
-def test_lifecycle_restart_once_then_give_up_writes_open_md_and_resets_next_cycle(
-    tmp_path: Path,
-):
+def test_lifecycle_restart_once_then_give_up_writes_open_md(tmp_path: Path):
     cycle = watcher.WatcherCycle(host="contabo", state_root=tmp_path)
     open_md = tmp_path / "state" / "steward" / "contabo" / "open.md"
 
-    # 1. Idle -> none
-    assert cycle.step(0, False, None, NOW) == "none"
-
-    # 2. First run goes active -> start (start_count becomes 1)
-    assert cycle.step(2, False, None, NOW) == "start"
+    # 1. An idle host with no session starts one (start_count becomes 1)
+    assert cycle.step(0, False, NOW) == "start"
     assert cycle.start_count == 1
-    assert cycle.step(2, True, None, NOW + 10) == "none"
+    assert cycle.step(2, True, NOW + 10) == "none"
 
-    # 3. Watcher dies while runs are active -> restart ONCE (start_count becomes 2)
-    assert cycle.step(2, False, None, NOW + 20) == "restart"
+    # 2. The session dies -> restart ONCE (start_count becomes 2)
+    assert cycle.step(2, False, NOW + 20) == "restart"
     assert cycle.start_count == 2
     assert not open_md.exists()
 
-    # 4. Watcher dies a second time while runs are active -> give_up + 1 line in open.md
-    assert cycle.step(2, False, None, NOW + 30) == "give_up"
+    # 3. It dies a second time -> give_up + 1 line in open.md
+    assert cycle.step(2, False, NOW + 30) == "give_up"
     assert cycle.start_count == 3
     assert open_md.exists()
     lines = open_md.read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1
     assert "runwatch-contabo" in lines[0]
 
-    # 5. Never resumed during the same active run cycle: stays "none", no extra open.md line
-    assert cycle.step(2, False, None, NOW + 40) == "none"
-    assert cycle.step(1, False, None, NOW + 50) == "none"
+    # 4. Given up: stays "none", with or without runs, and writes no extra line
+    assert cycle.step(2, False, NOW + 40) == "none"
+    assert cycle.step(0, False, NOW + 50) == "none"
     assert len(open_md.read_text(encoding="utf-8").splitlines()) == 1
 
-    # 6. Active runs finish -> cycle resets; next run starts a fresh watcher
-    assert cycle.step(0, False, 10, NOW + 60) == "none"
-    assert cycle.start_count == 0
-    assert cycle.step(1, False, None, NOW + 70) == "start"
-    assert cycle.start_count == 1
+    # 5. The driver's own low-memory kill is not a death: it resets the count
+    assert watcher.next_start_count(1, "stop") == 0
+
+
+def test_forget_deaths_after_a_stable_stretch_and_after_the_retry_wait(monkeypatch):
+    forget = watcher.forget_deaths
+    # up for 600 s: healthy, earlier deaths are forgotten
+    assert forget(1, alive=True, started_at=1000.0, gave_up_at=None, now=1599.0) == 1
+    assert forget(1, alive=True, started_at=1000.0, gave_up_at=None, now=1600.0) == 0
+    # a session that is not up never earns it
+    assert forget(1, alive=False, started_at=1000.0, gave_up_at=None, now=99999.0) == 1
+    # given up: tried again 3600 s later, not before
+    assert forget(3, alive=False, started_at=1000.0, gave_up_at=2000.0, now=5599.0) == 3
+    assert forget(3, alive=False, started_at=1000.0, gave_up_at=2000.0, now=5600.0) == 0
+    assert forget(2, alive=False, started_at=None, gave_up_at=None, now=1e9) == 2
+    monkeypatch.setenv("RUN_WATCH_STABLE_S", "60")
+    monkeypatch.setenv("RUN_WATCH_RETRY_S", "120")
+    assert forget(1, alive=True, started_at=1000.0, gave_up_at=None, now=1060.0) == 0
+    assert forget(3, alive=False, started_at=None, gave_up_at=2000.0, now=2120.0) == 0
 
 
 # --------------------------------------------------------------------------
 # 5. Launch argv builder
 # --------------------------------------------------------------------------
 
+UUID = "0f6c1e2a-5b7d-4c3e-9a81-2d4f6b8c0e13"
+
+
 def test_launch_argv_builder_output():
-    configured = watcher.build_launch_argv("contabo", cwd="/repo", env={"RUN_WATCH_SID": "abc"})
-    assert configured[5:9] == ["-c", "/repo", "-e", "RUN_WATCH_SID=abc"]
+    configured = watcher.build_launch_argv(
+        "contabo", session_id=UUID, cwd="/repo", env={"RUN_WATCH_BATCH_S": "9"})
+    assert configured[5:9] == ["-c", "/repo", "-e", "RUN_WATCH_BATCH_S=9"]
+    name = sn.watch_name(2, rw.LIGHT_OK, host="contabo")
+    assert name == "\U0001F310 Watch Runs: 2\U0001F7E2"
     argv = watcher.build_launch_argv(
-        "contabo", sid="abc12345", n_active=2, light=rw.LIGHT_OK
+        "contabo", session_id=UUID, n_active=2, light=rw.LIGHT_OK
     )
     assert isinstance(argv, list)
     assert argv[:5] == ["tmux", "new-session", "-d", "-s", "runwatch-contabo"]
     claude_part = argv[5:]
+    # The first start creates the conversation under a fixed id ...
     assert claude_part == [
         "claude",
         "--model",
         "haiku",
         "--remote-control",
+        name,
         "--strict-mcp-config",
         "--mcp-config",
         '{"mcpServers":{}}',
@@ -390,33 +378,41 @@ def test_launch_argv_builder_output():
         "--system-prompt-file",
         "roles/run_watch.md",
         "-n",
-        sn.watch_name("abc12345", 2, rw.LIGHT_OK, host="contabo"),
+        name,
+        "--session-id",
+        UUID,
     ]
+
+    # ... every later start resumes it: the same argv, `-r <uuid>` in place of `--session-id <uuid>`.
+    resumed = watcher.build_launch_argv(
+        "contabo", session_id=UUID, resume=True, n_active=2, light=rw.LIGHT_OK
+    )[5:]
+    assert resumed == claude_part[:-2] + ["-r", UUID]
+    assert "--session-id" not in resumed
 
     # Winbox argv uses ASCII Watch name via windows_safe
     assert "--append-system-prompt-file" not in claude_part
     win_argv = watcher.build_launch_argv(
-        "winbox", sid="abc12345", n_active=1, light=rw.LIGHT_BAD
+        "winbox", session_id=UUID, n_active=1, light=rw.LIGHT_BAD
     )
     assert win_argv[:5] == ["tmux", "new-session", "-d", "-s", "runwatch-winbox"]
-    assert win_argv[-2:] == ["-n", "Watch#abc Runs: 1 FAIL"]
+    assert win_argv[-4:] == ["-n", "Watch Runs: 1 FAIL", "--session-id", UUID]
+    assert win_argv[win_argv.index("--remote-control") + 1] == "Watch Runs: 1 FAIL"
 
 
 # --------------------------------------------------------------------------
-# 6. Threshold env overrides (RUN_WATCH_QUIET_S, RUN_WATCH_CLOSE_AFTER_S, RUN_WATCH_BATCH_S)
+# 6. Threshold env overrides (RUN_WATCH_QUIET_S, RUN_WATCH_BATCH_S)
 # --------------------------------------------------------------------------
 
 def test_threshold_env_overrides(monkeypatch, tmp_path: Path):
     assert watcher.quiet_s() == 900
-    assert watcher.close_after_s() == 600
     assert watcher.batch_s() == 120
+    assert (watcher.stable_s(), watcher.retry_s()) == (600, 3600)
 
     monkeypatch.setenv("RUN_WATCH_QUIET_S", "300")
-    monkeypatch.setenv("RUN_WATCH_CLOSE_AFTER_S", "180")
     monkeypatch.setenv("RUN_WATCH_BATCH_S", "45")
 
     assert watcher.quiet_s() == 300
-    assert watcher.close_after_s() == 180
     assert watcher.batch_s() == 45
 
     # Quiet threshold at 300s makes a 350s-idle run "quiet" -> 🟡
@@ -424,10 +420,6 @@ def test_threshold_env_overrides(monkeypatch, tmp_path: Path):
     probes = stubs(alive={"task-q1"}, logs={"task-q1": NOW - 350})
     runs = rw.collect_runs(tasks, now=NOW, **probes)
     assert rw.compute_light(runs, host="contabo", state_dir=tmp_path) == (1, "\U0001F7E1")
-
-    # Close-after threshold at 180s stops at 180s, not 179s
-    assert watcher.decide_lifecycle(0, True, 1, 179, NOW, state_root=tmp_path) == "none"
-    assert watcher.decide_lifecycle(0, True, 1, 180, NOW, state_root=tmp_path) == "stop"
 
     # Follow batch window uses RUN_WATCH_BATCH_S=45
     follower = rw.Follower()
@@ -466,7 +458,7 @@ def test_role_and_skill_files_exist_and_match_contract():
 
 
 def test_launch_argv_takes_an_absolute_claude_path():
-    argv = watcher.build_launch_argv("contabo", claude_bin="/root/.local/bin/claude")
+    argv = watcher.build_launch_argv("contabo", session_id=UUID, claude_bin="/root/.local/bin/claude")
     assert "/root/.local/bin/claude" in argv and "claude" not in argv
 
 

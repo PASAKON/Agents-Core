@@ -5,7 +5,7 @@ hook under the system python3) can use it; lib.config re-exports the writers.
   C-level  "<ROLE> (<person emoji>: <Name>)[ — <topic>]", bare "CFO" without a persona
   PH       "PH#<id3> (<LANE>) - <Project>[ + <Project>…][ — <topic>]"   "PH#7cf (CTO) - OrgRestructure"
   worker   "<Short>·<M>#<id3> <Head>: <job>"            "Dev·S#49b Org: sparse worktrees"   (M = O/S/H)
-  Watch    "Watch#<id3> Runs: <N><light>"               "Watch#a1b Runs: 2🟢"
+  Watch    "Watch Runs: <N><light>"                      "Watch Runs: 2🟢"   (one per host, no id: it is resumed)
 
 A C-level gains its configured person emoji, preserving its topic (CEO 2026-10-26).
 For C-levels this supersedes the 15 Oct keep-every-part / host-only sweep rule.
@@ -85,7 +85,8 @@ _C_LEVEL_BODY_RE = re.compile(
 _MACHINE_LONG_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+(?P<role>[A-Za-z][A-Za-z ]*?)"
     r"(?:\s+\((?:(?P<person_emoji>[^\w\s():]+): )?[A-Za-z]{2,32}\))?\s+#(?P<id>[0-9a-f]{6,12})\b(?:\s*\((?P<topic>.*)\))?")
-_WATCH_RE = re.compile(r"^Watch#(?P<id3>[0-9a-f]{3}) \S")
+# "Watch Runs: 2🟢" (one pinned session per host, 4 Nov); the old "Watch#a1b Runs: 2🟢" is still read
+_WATCH_RE = re.compile(r"^Watch(?:#(?P<id3>[0-9a-f]{3}) \S| Runs: \S)")
 _NO_ID_ROLES = ("COO",)    # SomPong has no org sid
 _DOT = "·"           # the "·" between a worker's short word and its model letter
 
@@ -192,9 +193,10 @@ def worker_name(short: str, task_id: str, head: str, job: str, model: str = "",
     return fit(f"{base} {tail}" if tail else base, ascii_only=windows)
 
 
-def watch_name(sid: str, n: int, light: str, host: str | None = None) -> str:
-    """"<emoji> Watch#<id3> Runs: <N><light>"; `light` is one of LIGHTS."""
-    return host_prefix(host) + fit(f"Watch#{short_id(sid)} Runs: {n}{light}")
+def watch_name(n: int, light: str, host: str | None = None) -> str:
+    """"<emoji> Watch Runs: <N><light>"; `light` is one of LIGHTS. No id: the host has one
+    Watch session, resumed rather than re-created (CEO 3 Nov), so the name stays the same."""
+    return host_prefix(host) + fit(f"Watch Runs: {n}{light}")
 
 
 # --- the readers ----------------------------------------------------------------------
@@ -228,7 +230,7 @@ def parse_short(name: str) -> tuple[str, str] | None:
         return SHORT_TO_ROLE[m.group("short")], m.group("id3")
     m = _WATCH_RE.match(body)
     if m:
-        return "watch", m.group("id3")
+        return "watch", m.group("id3") or ""
     m = _MACHINE_LONG_RE.match(body)
     if m and m.group("role").strip().upper() != "CEO":
         return m.group("role").strip().lower().replace(" ", "_"), m.group("id")[:3]
