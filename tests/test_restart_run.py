@@ -1657,7 +1657,7 @@ def test_winbox_sh_unregister_passes_remove(tmp_path):
 
 def test_winbox_sh_register_ps1_line_is_exactly_what_the_card_shows(tmp_path):
     result, _, _ = _winbox_sh(tmp_path, '--register-logon-task', '--dry-run', '--sha', SHA)
-    reg = r'powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\passg\mooniex\repo\MoonieX-Agents\windows\register-org-resume.ps1'
+    reg = r'powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\passg\mooniex\org\windows\register-org-resume.ps1'
     assert reg + '\n' in result.stdout
     result, _, _ = _winbox_sh(tmp_path / 'u', '--unregister-logon-task', '--dry-run', '--sha', SHA)
     assert reg + ' -Remove\n' in result.stdout
