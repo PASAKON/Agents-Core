@@ -17,8 +17,8 @@ from tools import node_dispatch
 HOSTS = ("contabo", "winbox", "mac")
 
 
-def fill(facts: dict, *, rounded: bool = True) -> tuple[float | None, str | None, list[str]]:
-    """Return the maximum known sensor, explicitly naming missing readings."""
+def sensors(facts: dict) -> dict[str, float]:
+    """Used % per known sensor (ram, cpu, disk); a missing or bad reading is left out."""
     values = {}
     for name, free_key, total_key in (
         ("ram", "ram_free_gb", "ram_total_gb"),
@@ -39,6 +39,12 @@ def fill(facts: dict, *, rounded: bool = True) -> tuple[float | None, str | None
             values["cpu"] = cpu
     except (KeyError, TypeError, ValueError):
         pass
+    return values
+
+
+def fill(facts: dict, *, rounded: bool = True) -> tuple[float | None, str | None, list[str]]:
+    """Return the maximum known sensor, explicitly naming missing readings."""
+    values = sensors(facts)
     missing = [key for key in ("ram", "cpu", "disk") if key not in values]
     if not values:
         return None, None, missing

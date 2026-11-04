@@ -17,8 +17,8 @@ REAL_PROBE = host_fill.probe
 
 def reading(name, fill=50, running=0, **facts):
     return dict(name=name, online=True, running=running,
-                facts=dict(ram_free_gb=8, ram_total_gb=10,
-                           free_gb=70, disk_total_gb=100, cpu_pct=fill, **facts))
+                facts={**dict(ram_free_gb=8, ram_total_gb=10,
+                              free_gb=70, disk_total_gb=100, cpu_pct=fill), **facts})
 
 
 @pytest.fixture(autouse=True)
@@ -92,7 +92,7 @@ def test_winbox_ram_and_ph_hold():
 
 
 @pytest.mark.parametrize("ram,disk,free,allowed", [
-    (70, 30, 2, True), (80, 30, 2, False), (70, 80, 2, False),
+    (70, 30, 2, True), (80, 30, 2, False), (70, 90, 2, False), (70, 85, 2, True),
     (70, 30, 1.59, False), (70, 30, 1.6, True)])
 def test_cpu_exception(monkeypatch, ram, disk, free, allowed):
     slot = Mock(return_value=True)
@@ -278,3 +278,14 @@ def test_local_winbox_probe_reports_lease(monkeypatch):
     row = REAL_PROBE("winbox")
     assert row["online"] and row["facts"]["ceo_hold"] is False
     assert row["facts"]["runners"] == ["claude"]
+
+
+def test_disk_has_its_own_90_limit():
+    """CEO 2026-11-04: disk may reach 90%; RAM and CPU stay at 80%."""
+    def disk(name, used):
+        return reading(name, 50, free_gb=100 - used)
+    assert choose(disk("contabo", 85), reading("winbox", 35)).host == "contabo"
+    pick = choose(disk("contabo", 90), disk("winbox", 95))
+    assert pick.host is None
+    assert pick.rejected["contabo"] == "fill 90.0% (disk) at or above 90%"
+    assert choose(reading("contabo", 80, free_gb=50), reading("winbox", 35)).host == "winbox"

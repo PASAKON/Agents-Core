@@ -346,14 +346,19 @@ def _cap_reason(name: str, row: dict, task: dict, policy: dict,
         return None, False        # hub-only row: no fill sensors, the old checks decide
     pct, highest, missing = host_fill.fill(facts, rounded=False)
     limit = policy.get("fill_limit_pct", 80)
-    if pct is not None and pct >= limit:
+    # CEO 2026-11-04: disk has its own, higher limit (90%); RAM and CPU stay at fill_limit_pct.
+    limits = {"ram": limit, "cpu": limit, "disk": policy.get("disk_limit_pct", limit)}
+    over = {k: v for k, v in host_fill.sensors(facts).items() if v >= limits[k]}
+    if over:
+        worst = max(over, key=lambda k: over[k] - limits[k])
         ram = _used_pct(facts, "ram_free_gb", "ram_total_gb")
         disk = _used_pct(facts, "free_gb", "disk_total_gb")
         exception = (
-            pin == name == "contabo" and highest == "cpu" and bool(task.get("id"))
-            and ram is not None and ram < limit and disk is not None and disk < limit
+            pin == name == "contabo" and set(over) == {"cpu"} and bool(task.get("id"))
+            and ram is not None and ram < limits["ram"] and disk is not None and disk < limits["disk"]
             and facts["ram_free_gb"] >= (policy.get("cpu_exception") or {}).get("min_free_ram_gb", 1.6))
-        return (None, True) if exception else (f"fill {pct:.1f}% ({highest}) at or above {limit}%", False)
+        return (None, True) if exception else (
+            f"fill {over[worst]:.1f}% ({worst}) at or above {limits[worst]}%", False)
     if missing and (pct is None or name != policy.get("first_host", "contabo")):
         return f"fill incomplete (no {', '.join(missing)} reading)", False
     return None, False
