@@ -26,8 +26,7 @@
 
 router:
   enabled: true
-  fill_limit_pct: 80
-  disk_limit_pct: 90    # CEO 2026-11-04: disk alone may reach 90%; at 90%+ the lane C-levels clear space
+  fill_limit_pct: 90    # CEO 2026-11-04: RAM, CPU and disk all stop new work at 90% (was 80)
   first_host: contabo
   probe_timeout_s: 10
   min_free_ram_gb:

@@ -44,9 +44,9 @@ def choose(*rows, **task):
 
 
 def test_contabo_first_and_boundary():
-    assert choose(reading("contabo", 79.99), reading("winbox", 35)).host == "contabo"
-    assert choose(reading("contabo", 80), reading("winbox", 35)).host == "winbox"
-    pick = choose(reading("contabo", 80), reading("winbox", 80), reading("mac", 80))
+    assert choose(reading("contabo", 89.99), reading("winbox", 35)).host == "contabo"
+    assert choose(reading("contabo", 90), reading("winbox", 35)).host == "winbox"
+    pick = choose(reading("contabo", 90), reading("winbox", 90), reading("mac", 90))
     assert pick.host is None and pick.line.startswith("no_host:")
 
 
@@ -65,9 +65,9 @@ def test_caps_unknown_partial_offline(name, cap):
     row["online"] = True
     del row["facts"]["disk_total_gb"]
     # A missing sensor is not proof of an empty host: winbox and the Mac are not
-    # eligible. Contabo keeps the old rule while the readings it has are under 80%.
+    # eligible. Contabo keeps the old rule while the readings it has are under 90%.
     assert (choose(row).host == "contabo") is (name == "contabo")
-    row["facts"]["cpu_pct"] = 80
+    row["facts"]["cpu_pct"] = 90
     assert choose(row).host is None
 
 
@@ -92,7 +92,7 @@ def test_winbox_ram_and_ph_hold():
 
 
 @pytest.mark.parametrize("ram,disk,free,allowed", [
-    (70, 30, 2, True), (80, 30, 2, False), (70, 90, 2, False), (70, 85, 2, True),
+    (70, 30, 2, True), (90, 30, 2, False), (70, 90, 2, False), (70, 85, 2, True),
     (70, 30, 1.59, False), (70, 30, 1.6, True)])
 def test_cpu_exception(monkeypatch, ram, disk, free, allowed):
     slot = Mock(return_value=True)
@@ -280,12 +280,12 @@ def test_local_winbox_probe_reports_lease(monkeypatch):
     assert row["facts"]["runners"] == ["claude"]
 
 
-def test_disk_has_its_own_90_limit():
-    """CEO 2026-11-04: disk may reach 90%; RAM and CPU stay at 80%."""
+def test_disk_limit_90():
+    """CEO 2026-11-04: RAM, CPU and disk all stop new work at 90%."""
     def disk(name, used):
         return reading(name, 50, free_gb=100 - used)
     assert choose(disk("contabo", 85), reading("winbox", 35)).host == "contabo"
     pick = choose(disk("contabo", 90), disk("winbox", 95))
     assert pick.host is None
     assert pick.rejected["contabo"] == "fill 90.0% (disk) at or above 90%"
-    assert choose(reading("contabo", 80, free_gb=50), reading("winbox", 35)).host == "winbox"
+    assert choose(reading("contabo", 85, free_gb=50), reading("winbox", 35)).host == "contabo"

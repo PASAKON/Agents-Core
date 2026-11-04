@@ -32,9 +32,9 @@ Read this page for the law, then the one file for the box you are on.
 | winbox (Windows, 512 GB) | `references/winbox.md` | the CEO's game PC; a bot fills it 2-4 GB/day; steward tier only |
 | Contabo VPS (72 GB) | `references/contabo.md` | production; 7.8 GB free on 2026-09-28; the Green list runs without asking, any other delete needs the CEO's go |
 
-**A disk at 90% is every lane's job (CEO 2026-11-04).** The router lets disk reach 90% (RAM/CPU stay at 80%). At 90% or more, each lane C-level (CTO, CMO, COO, CFO) clears what its own lane and projects hold on that host, by this skill, in the same turn it sees it: "เมื่อ Disk 90% ++ หน้าที่ C-Elvel CTO CMO COO CFO เจ้าของ โปรเจค ต้อง เครียรที่ให้คนอื่นด้วย ตามกฏ นะ". At 90% the spawn gate (§Standing rules) refuses new workers too.
+**A disk at 90% is every lane's job (CEO 2026-11-04).** The router stops new work at 90% (RAM, CPU and disk alike, every host). At 90% or more, each lane C-level (CTO, CMO, COO, CFO) clears what its own lane and projects hold on that host, by this skill, in the same turn it sees it: "เมื่อ Disk 90% ++ หน้าที่ C-Elvel CTO CMO COO CFO เจ้าของ โปรเจค ต้อง เครียรที่ให้คนอื่นด้วย ตามกฏ นะ". At 90% the spawn gate (§Standing rules) refuses new workers too.
 
-**winbox and the Mac take overflow work (CEO 2026-10-30).** When Contabo is full (RAM/CPU 80%, disk 90%), new work goes to whichever
+**winbox and the Mac take overflow work (CEO 2026-10-30).** When Contabo is 90% full, new work goes to whichever
 of them is less full (Core `CLAUDE.md` §Which host runs the work), so their disks fill with worktrees and `Work/`
 folders too. Each host's own steward runs the Green list. The steps that need the hub's database (reap,
 review-idle, orphans, close-orphans) run from Contabo over the mesh once PH HostSpawn's C5 lands. A task's

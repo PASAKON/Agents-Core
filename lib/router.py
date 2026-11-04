@@ -346,7 +346,7 @@ def _cap_reason(name: str, row: dict, task: dict, policy: dict,
         return None, False        # hub-only row: no fill sensors, the old checks decide
     pct, highest, missing = host_fill.fill(facts, rounded=False)
     limit = policy.get("fill_limit_pct", 80)
-    # CEO 2026-11-04: disk has its own, higher limit (90%); RAM and CPU stay at fill_limit_pct.
+    # One limit for every sensor (CEO 2026-11-04: 90%); `disk_limit_pct` may set disk apart.
     limits = {"ram": limit, "cpu": limit, "disk": policy.get("disk_limit_pct", limit)}
     over = {k: v for k, v in host_fill.sensors(facts).items() if v >= limits[k]}
     if over:
