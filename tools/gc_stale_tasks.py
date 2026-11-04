@@ -683,10 +683,40 @@ def _archive_runner_files(t: dict, wt: Path, files) -> dict:
         raise
 
 
+def _cwd_holders_lsof(wt: Path) -> list[str] | None:
+    """macOS has no /proc: the same answer from `lsof -d cwd`, or None when lsof
+    cannot run. lsof as a normal user lists that user's processes; a worktree
+    belongs to that user, so a process of another uid sitting inside it is not
+    a case this guards against on the Mac."""
+    try:
+        real = os.path.realpath(wt)
+        out = subprocess.run(["lsof", "-a", "-d", "cwd", "-F", "pcn"],
+                             capture_output=True, text=True, timeout=60)
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+    if out.returncode not in (0, 1) or not out.stdout:
+        return None                     # 1 = some processes unreadable; output still valid
+    prefix = real.rstrip(os.sep) + os.sep
+    holders: list[str] = []
+    pid = comm = ""
+    for line in out.stdout.splitlines():
+        tag, val = line[:1], line[1:]
+        if tag == "p":
+            pid, comm = val, "?"
+        elif tag == "c":
+            comm = val
+        elif tag == "n" and pid and (val == real or val.startswith(prefix)):
+            holders.append(f"pid {pid} ({comm})")
+    return holders
+
+
 def _cwd_holders(wt: Path, proc_dir: str = "/proc") -> list[str] | None:
     """'pid N (comm)' for every process whose cwd is `wt` or inside it, or
     None when that cannot be established (no /proc, or a cwd link this process
-    may not read while CWD_UNREADABLE_BLOCKS is set)."""
+    may not read while CWD_UNREADABLE_BLOCKS is set). On macOS, where /proc
+    does not exist, lsof answers instead."""
+    if proc_dir == "/proc" and sys.platform == "darwin" and not os.path.isdir(proc_dir):
+        return _cwd_holders_lsof(wt)
     try:
         names = [n for n in os.listdir(proc_dir) if n.isdigit()]
         real = os.path.realpath(wt)
