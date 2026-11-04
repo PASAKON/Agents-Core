@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--dry-run]
+# mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--dry-run] [--sessions-only]
 #
 # Safe restart of the Mac, driven from Contabo by a Run card (docs/ops/safe-restart-mac.md):
 #   1. the Mac checkout's HEAD must equal --sha (the Mac has the code this card was written for)
@@ -13,6 +13,7 @@
 #                 Pass user@host to use another account.
 #   --repo        the Mac checkout, default /Users/gob/MoonieXHQ/Agents/Core
 #   --detach      run locally on the Mac through a one-shot launchd job
+#   --sessions-only  prep, then resume + report on the Mac; no shutdown, no sudo (the P3d-style test)
 #   --cards-checked  pass the operator's card review acknowledgement to prep
 #
 # Exit  0 done (or dry run ok) · 2 usage · 4 Mac HEAD differs from --sha · 5 cannot read the Mac's
@@ -28,9 +29,10 @@ alias_="macbook-pro--gob"
 repo="/Users/gob/MoonieXHQ/Agents/Core"
 dry=0
 detach=0
+sessions_only=0
 cards=0
 
-usage() { echo "usage: mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--detach] [--cards-checked] [--dry-run]" >&2; exit 2; }
+usage() { echo "usage: mac-restart.sh --sha <40-hex> [--host-alias <ssh target>] [--repo <path on the Mac>] [--detach] [--cards-checked] [--sessions-only] [--dry-run]" >&2; exit 2; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -44,6 +46,7 @@ while [ $# -gt 0 ]; do
       shift 2 ;;
     --dry-run) dry=1; shift ;;
     --detach) detach=1; shift ;;
+    --sessions-only) sessions_only=1; shift ;;
     --cards-checked) cards=1; shift ;;
     *) echo "unknown option: $1" >&2; usage ;;
   esac
@@ -54,6 +57,9 @@ done
 [[ "$alias_" =~ ^[A-Za-z0-9][A-Za-z0-9._@-]*$ ]] || { echo "--host-alias: letters, digits, . _ - @ only" >&2; usage; }
 [[ "$repo" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "--repo must be an absolute path of letters, digits, . _ - /" >&2; usage; }
 
+if [ "$detach" -eq 1 ] && [ "$sessions_only" -eq 1 ]; then
+  echo '--sessions-only is not supported with --detach' >&2; usage
+fi
 if [ "$detach" -eq 1 ]; then
   args=(--sha "$sha" --repo "$repo")
   [ "$dry" -eq 0 ] || args+=(--dry-run)
@@ -102,7 +108,23 @@ if [ "$status" -ne 0 ]; then
 fi
 
 if [ "$dry" -eq 1 ]; then
-  echo "dry run: would now run 'sudo -n shutdown -r +1' on $target; nothing was closed or shut down"
+  if [ "$sessions_only" -eq 1 ]; then
+    echo "dry run: would now resume and report on $target; no shutdown; nothing was closed"
+  else
+    echo "dry run: would now run 'sudo -n shutdown -r +1' on $target; nothing was closed or shut down"
+  fi
+  exit 0
+fi
+
+# Sessions-only: the sessions are saved and closed, so bring them back here, no reboot, no sudo.
+if [ "$sessions_only" -eq 1 ]; then
+  status=0
+  mac_ssh "$in_repo && bash scripts/hub/org-python.sh tools/restart_run.py --host mac resume && bash scripts/hub/org-python.sh tools/restart_run.py --host mac report --notify" || status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "Sessions-only test: resume or report exited $status on the Mac. Read the output above; resume again with: $resume_cmd" >&2
+    exit "$status"
+  fi
+  echo "Sessions-only test done: the Mac sessions were saved, resumed, and reported. No reboot."
   exit 0
 fi
 
