@@ -63,7 +63,7 @@ and a ` — <topic>` tail are allowed.
 | COO | `COO (SomPong)` | `🌐 COO (SomPong)` |
 | Project Head | `PH#<id3> (<LANE>) - <Project>[ + <Project>…][ — <topic>]` | `🌐 PH#7cf (CTO) - OrgRestructure` |
 | Claude worker (new) | `<Short>·<M>#<id3> <Head>: <job>` (M = O, S or H), at most 32 characters | `🌐 Dev·S#49b Org: sparse worktrees` |
-| Watch (new) | `Watch#<id3> Runs: <N><light>` (🟢🟡🔴⚪), at most 32 characters | `🌐 Watch#a1b Runs: 2🟢` |
+| Watch (new) | `Watch Runs: <N><light>` (🟢🟡🔴⚪), at most 32 characters; no id, one per host (the old `Watch#<id3> Runs: …` is still read) | `🌐 Watch Runs: 2🟢` |
 | winbox worker | ASCII only, no emoji, `.` for `·`, `...` for `…` | `Dev.S#49b Org: sparse worktrees` |
 
 CEO 2026-10-15: a session that has a name keeps every part of it, the persona and the PH's lane included (he

@@ -1,11 +1,36 @@
 # Run Watch driver
 
 The timer reads the hub once per minute and manages only `runwatch-<host>`.
-The first active run starts the watcher; one unexpected exit permits one restart.
-A second exit records a notice in `state/steward/<host>/open.md` until the next
-run cycle. Once all runs end, the watcher closes after 600 seconds by default.
+
+**One pinned Watch session per host (CEO 3 Nov).** The CEO pins the Watch session in
+the Claude app, so it is never re-created and never closed for being idle:
+- The name is `<host emoji> Watch Runs: <N><light>` (`🌐 Watch Runs: 0🔴`; winbox
+  `Watch Runs: 0 idle`), with no id. A changed count or light is a typed `/rename`.
+- The conversation is one uuid per host, kept in `driver.json` (`uuid`). The first
+  start launches `claude --session-id <uuid>`; every later start launches
+  `claude -r <uuid>` with the same `--remote-control <name>`. If claude has no stored
+  transcript for the uuid (a first launch that died before its first message), the
+  start uses `--session-id` again, because `-r` would fail.
+- A host with no session starts one, with or without runs, and a live one is never
+  stopped when idle (an idle session costs no tokens). The one kill is low memory:
+  below `RUN_WATCH_KILL_AVAIL_MB` (350) the driver kills the tmux session, and the next
+  tick resumes the same uuid once `RUN_WATCH_MIN_AVAIL_MB` (700) is free again. The
+  gap between 350 and 700 keeps the kill and the start from flapping. A kill the driver
+  chose is not counted as a death.
+- Context stays small: when the transcript has grown by `RUN_WATCH_COMPACT_TOKENS`
+  (60000) since the last compaction, estimated as bytes / 4, the driver types
+  `/compact` instead of the next event line, only at a ready prompt; the event line
+  follows on a later tick. `compact_base` in `driver.json` is the size at that moment.
+
+A session started before this change has no `uuid`: the driver adopts it (renames it,
+keeps it up, cannot compact it), and the first start after it exits creates the pinned
+conversation. To switch at once an operator kills `runwatch-<host>`; the next tick starts it.
+
+One unexpected exit permits one restart. A second exit in a row records a notice in
+`state/steward/<host>/open.md` and stops starting for `RUN_WATCH_RETRY_S` (3600 s), then
+tries again. A session that stays up `RUN_WATCH_STABLE_S` (600 s) clears earlier exits.
 An unreachable hub changes nothing. Launch requires an existing tmux server and
-700 MB MemAvailable (`RUN_WATCH_MIN_AVAIL_MB` overrides this). tmux `-N` also
+700 MB MemAvailable. tmux `-N` also
 prevents creating a server if the existing server exits during the tick.
 
 Name updates take priority over batched Thai event summaries. Each tick types at
@@ -13,7 +38,7 @@ most one line, checks the empty, idle prompt twice, and retains undelivered even
 Summaries are at most 100 characters, with `+N more` for omitted events.
 Every `RUN_WATCH_*` environment setting is forwarded to the launched watcher.
 The watcher uses only Bash, user settings (no project hooks), and a standalone role system prompt with strict status-only dispatch.
-When no runs remain, batches release immediately; stopping defers for up to three flush ticks (`reason=flush`), preserving rename priority and one typed action per tick.
+When no runs remain, batches release immediately, preserving rename priority and one typed action per tick. Events wait in `pending_out` for as long as the prompt is not ready.
 External runners (`codex`/`agy`) whose pid and tmux session are gone skip `RUN_WATCH_REPORT_GRACE_S` and read as `dead` immediately (after `RUN_WATCH_SPAWN_GRACE_S`) when `<worktree>/docs/reports/<task-id>/REPORT.md` is absent.
 Any follower batch containing a `dead` or `failed` event releases into `pending_out` immediately without waiting for `RUN_WATCH_BATCH_S`, keeping rename priority and one typed action per tick.
 
@@ -32,7 +57,7 @@ For faster testing, create `/etc/systemd/system/run-watch-driver.service.d/test.
 
 ```ini
 [Service]
-Environment=RUN_WATCH_QUIET_S=60 RUN_WATCH_CLOSE_AFTER_S=60
+Environment=RUN_WATCH_QUIET_S=60 RUN_WATCH_BATCH_S=30
 ```
 
 Run `systemctl daemon-reload`. New watcher launches inherit these values; an
