@@ -20,6 +20,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import lib.claude_quota as claude_quota  # noqa: E402
 import lib.db as db_mod  # noqa: E402
 import lib.mailbox as mailbox  # noqa: E402
 import tools.agent_transport as agent_transport  # noqa: E402
@@ -35,6 +36,9 @@ def inbox(tmp_path, monkeypatch) -> Path:
     root.mkdir()
     monkeypatch.setattr(mailbox, "INBOX_ROOT", root)
     monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    # These tests use real PH ids and the pane wake is what they check: on a host whose Claude is
+    # spent the live quota history would send them down the AGY-brain path (tests/test_claude_out_fallback.py).
+    monkeypatch.setattr(claude_quota, "HISTORY", tmp_path / "no-quota-history.jsonl")
     return root
 
 
