@@ -31,7 +31,7 @@
 # nothing here touches the desktop. A restart is not part of either mode.
 #
 # Env: WINBOX_HOST (ssh alias, default winbox), WINBOX_REPO (the clone, default
-# C:\Users\passg\mooniex\repo\MoonieX-Agents).
+# C:\Users\passg\mooniex\org).
 # WINBOX_POLL_SEC (default 5) paces the wait for the console-session task; tests lower it.
 # Exit: 0 done (rebooting; or the logon task is now in the state asked for) | 1 prep/rollback failed | 2 usage or the clone is wrong |
 #       3 refused (CEO hold, running card, safety gate) | 4 the logon task is missing |
@@ -39,7 +39,10 @@
 set -euo pipefail
 
 HOST="${WINBOX_HOST:-winbox}"
-REPO_DEFAULT='C:\Users\passg\mooniex\repo\MoonieX-Agents'
+# The org clone (agents_root): every winbox session writes its locks under it (spawn_ph schtask,
+# cxo-claude.ps1), so prep and the logon resume must read the same tree. Was repo\MoonieX-Agents
+# until 4 Nov, which saw no lock and refused every PH (cannot_resume).
+REPO_DEFAULT='C:\Users\passg\mooniex\org'
 REPO_WIN="${WINBOX_REPO:-$REPO_DEFAULT}"
 WORK_WIN='C:\mooniex\restart'      # the one-shot task's scratch: script, output, exit code
 TASK='mooniex-restart-run'

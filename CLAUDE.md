@@ -124,6 +124,14 @@ PH HostSpawn's (#a08).
 - Contabo takes new work while its fill is under 80%. From 80%, the work goes to whichever of winbox and the Mac
   is online and less full; a tie goes to the one running fewer workers. No host takes new work at 80% or more:
   the last 20% is kept for emergencies. When no host can take a task, the task waits in the queue.
+- **The limit is 90% since 4 Nov** (CEO: "Disk RAM CPU เงื่อนไขเดียวกันนะ ปรับ 90% จะไม่สามารถ สร้างตัวอื่นเพิ่มได้อีก
+  กฏใช้รวมกันกับ MAC WINBOX และ CONTABO ได้เลย"; `config/hosts.yaml` `fill_limit_pct: 90`). Read every 80% in
+  this section as 90%: RAM, CPU and disk alike, on Contabo, winbox and the Mac.
+- A host at 90% or more is every lane C-level's job (CTO, CMO, COO, CFO), CEO 4 Nov: "เมื่อ Disk 90% ++ หน้าที่
+  C-Elvel CTO CMO COO CFO เจ้าของ โปรเจค ต้อง เครียรที่ให้คนอื่นด้วย ตามกฏ นะ" · "ถ้า CTO CMO COO CFO เห็น จะต้อง
+  ช่วยกันดูแลงานตัวเองในเรื่องนี้ด้วย". Whoever sees it frees what its own lane and projects hold on that host
+  (disk by `ALL_Rules_DiskHygiene`; RAM/CPU by saving or closing idle sessions of its lane), in the same turn,
+  without waiting for the host's owner or the CEO.
 - One exception (CEO 30 Oct, Q-20261030-0315-9f03): work that can run only on Contabo may start while Contabo is at
   80% or more from CPU alone, if its RAM used is under 80% (`ram_free_gb` ≥ 1.6 in `tools/host_fill.py --json`).
   Only one such job runs at a time, across every lane; a worker, a render and a Flow card each count as one.

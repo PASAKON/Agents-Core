@@ -613,7 +613,8 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
             except mesh.MeshUnreachable as e:
                 raise Refused(f"{pick.host} did not answer over the mesh: {e}") from e
             if not reply.get("ok"):
-                raise Refused(f"PH spawn on {pick.host} was refused")
+                raise Refused(f"PH spawn on {pick.host} was refused: "
+                              f"{reply.get('error') or reply.get('reason') or reply}")
             plan = {**reply["result"], **schedule, "tier": tier, "lane": lane}
             _register_project(plan)
             return {**plan, "host": pick.host, "brief_to_send": brief,

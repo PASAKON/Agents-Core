@@ -17,8 +17,8 @@ REAL_PROBE = host_fill.probe
 
 def reading(name, fill=50, running=0, **facts):
     return dict(name=name, online=True, running=running,
-                facts=dict(ram_free_gb=8, ram_total_gb=10,
-                           free_gb=70, disk_total_gb=100, cpu_pct=fill, **facts))
+                facts={**dict(ram_free_gb=8, ram_total_gb=10,
+                              free_gb=70, disk_total_gb=100, cpu_pct=fill), **facts})
 
 
 @pytest.fixture(autouse=True)
@@ -44,9 +44,9 @@ def choose(*rows, **task):
 
 
 def test_contabo_first_and_boundary():
-    assert choose(reading("contabo", 79.99), reading("winbox", 35)).host == "contabo"
-    assert choose(reading("contabo", 80), reading("winbox", 35)).host == "winbox"
-    pick = choose(reading("contabo", 80), reading("winbox", 80), reading("mac", 80))
+    assert choose(reading("contabo", 89.99), reading("winbox", 35)).host == "contabo"
+    assert choose(reading("contabo", 90), reading("winbox", 35)).host == "winbox"
+    pick = choose(reading("contabo", 90), reading("winbox", 90), reading("mac", 90))
     assert pick.host is None and pick.line.startswith("no_host:")
 
 
@@ -65,9 +65,9 @@ def test_caps_unknown_partial_offline(name, cap):
     row["online"] = True
     del row["facts"]["disk_total_gb"]
     # A missing sensor is not proof of an empty host: winbox and the Mac are not
-    # eligible. Contabo keeps the old rule while the readings it has are under 80%.
+    # eligible. Contabo keeps the old rule while the readings it has are under 90%.
     assert (choose(row).host == "contabo") is (name == "contabo")
-    row["facts"]["cpu_pct"] = 80
+    row["facts"]["cpu_pct"] = 90
     assert choose(row).host is None
 
 
@@ -92,7 +92,7 @@ def test_winbox_ram_and_ph_hold():
 
 
 @pytest.mark.parametrize("ram,disk,free,allowed", [
-    (70, 30, 2, True), (80, 30, 2, False), (70, 80, 2, False),
+    (70, 30, 2, True), (90, 30, 2, False), (70, 90, 2, False), (70, 85, 2, True),
     (70, 30, 1.59, False), (70, 30, 1.6, True)])
 def test_cpu_exception(monkeypatch, ram, disk, free, allowed):
     slot = Mock(return_value=True)
@@ -278,3 +278,23 @@ def test_local_winbox_probe_reports_lease(monkeypatch):
     row = REAL_PROBE("winbox")
     assert row["online"] and row["facts"]["ceo_hold"] is False
     assert row["facts"]["runners"] == ["claude"]
+
+
+def test_disk_limit_90():
+    """CEO 2026-11-04: RAM, CPU and disk all stop new work at 90%."""
+    def disk(name, used):
+        return reading(name, 50, free_gb=100 - used)
+    assert choose(disk("contabo", 85), reading("winbox", 35)).host == "contabo"
+    pick = choose(disk("contabo", 90), disk("winbox", 95))
+    assert pick.host is None
+    assert pick.rejected["contabo"] == "fill 90.0% (disk) at or above 90%"
+    assert choose(reading("contabo", 85, free_gb=50), reading("winbox", 35)).host == "contabo"
+
+
+def test_project_head_needs_no_project_config_row():
+    """A PH runs in the org checkout: a new portfolio project (no projects.yaml row) still routes."""
+    row = reading("winbox", 35)
+    row["facts"]["ceo_hold"] = False
+    assert choose(reading("contabo", 95), row, project="LituyaTrailer", role="project_head").host == "winbox"
+    pick = choose(reading("contabo", 50), project="LituyaTrailer", role="developer")
+    assert pick.host is None and pick.rejected["contabo"] == "unknown project LituyaTrailer"
