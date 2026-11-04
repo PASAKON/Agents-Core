@@ -74,6 +74,10 @@ _NEEDS_RE = re.compile(r"^[ \t]*needs:[ \t]*(.*)$", re.IGNORECASE | re.MULTILINE
 MAX_HEADER_LINES = 5
 
 
+
+# The repo a Project Head session lives in on every host (its PH dir is the org checkout).
+PH_ORG_PROJECT = "mooniex-agents"
+
 def header(description: str | None) -> str:
     """The header block of `description` as text; "" for None or an empty one.
 
@@ -411,7 +415,9 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
         policy, registry = settings(), config.hosts()
         rows = db.list_hosts() if hosts_rows is None else list(hosts_rows)
         configured = set(registry)
-        known_project = task.get("project") in config.projects()
+        # A Project Head runs in the org checkout (verb_spawn_ph), not in its project's repo:
+        # a new portfolio project needs no config/projects.yaml row (CEO 4 Nov, CMO LituyaTrailer).
+        known_project = task.get("role") == "project_head" or task.get("project") in config.projects()
         scope = [pin] if pin else sorted(configured | {r.get("host") or r.get("name") for r in rows})
     except Exception as e:  # noqa: BLE001 -- see docstring
         return HostPick(None, f"no_host: router error: {type(e).__name__}: {e}")
@@ -440,6 +446,7 @@ def _decide(rows: list[dict], names: list[str], *, task: dict, policy: dict, reg
             known_project: bool, now: datetime, pin: str | None, reserve: bool) -> HostPick:
     from tools import host_fill
     needs, project = parse_needs(task.get("description")), task.get("project")
+    path_project = PH_ORG_PROJECT if task.get("role") == "project_head" else project
     by_name = {r["host"]: r for r in rows if "host" in r}
     configured = set(registry)
     rejected: dict[str, str] = {}
@@ -449,7 +456,7 @@ def _decide(rows: list[dict], names: list[str], *, task: dict, policy: dict, reg
     for name in names:
         row = by_name.get(name)
         why = ("not in config/hosts.yaml" if name not in configured
-               else _reject_reason(name, row, needs, project, known_project, now))
+               else _reject_reason(name, row, needs, path_project, known_project, now))
         if not why and name in configured:
             why, used = _cap_reason(name, row, task, policy, pin)
             if used:

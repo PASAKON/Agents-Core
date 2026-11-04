@@ -289,3 +289,12 @@ def test_disk_limit_90():
     assert pick.host is None
     assert pick.rejected["contabo"] == "fill 90.0% (disk) at or above 90%"
     assert choose(reading("contabo", 85, free_gb=50), reading("winbox", 35)).host == "contabo"
+
+
+def test_project_head_needs_no_project_config_row():
+    """A PH runs in the org checkout: a new portfolio project (no projects.yaml row) still routes."""
+    row = reading("winbox", 35)
+    row["facts"]["ceo_hold"] = False
+    assert choose(reading("contabo", 95), row, project="LituyaTrailer", role="project_head").host == "winbox"
+    pick = choose(reading("contabo", 50), project="LituyaTrailer", role="developer")
+    assert pick.host is None and pick.rejected["contabo"] == "unknown project LituyaTrailer"
