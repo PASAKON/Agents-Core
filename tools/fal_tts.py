@@ -1,6 +1,6 @@
-"""Text to speech on fal (ElevenLabs v4, Gemini 3.1 and 3.8 Flash TTS) that stops at its own spend cap:
+"""Text to speech on fal (ElevenLabs v4, Gemini 3.1/3.8 Flash TTS, Seed Audio 1.0) that stops at its own spend cap:
 a declared spend tool for Run Inbox script cards (Console docs/run.md §Spend label, config/spend-tools.txt).
-CMO Ging, 2026-10-26; Gemini 3.1 and 3.8 added 2026-10-27.
+CMO Ging, 2026-10-26; Gemini 3.1 and 3.8 added 2026-10-27; Seed Audio 1.0 added 2026-11-05.
 
 A job file lists the calls. Before each call the tool prices it from its text (characters times the
 model's price in PRICES) and stops if the running total would pass --max-usd. The total starts from the
@@ -10,8 +10,9 @@ audio file already exists is skipped and costs nothing.
 
 The fal key comes from FAL_MEDIA_API_KEY_RW in the environment, or, on a Run card, from Infisical
 (Agents-Core prod /cmo-media) as this host's machine identity. It is never printed, and it goes only to
-queue.fal.run, never to the file host the audio comes from, and never through a redirect: the queue's redirects
-are refused, and the file host's are followed to https only, their bodies unread. A key holding anything but
+queue.fal.run (and rest.alpha.fal.ai to initiate a reference-audio upload), never to the file host the audio
+comes from or goes to, and never through a redirect: the queue's and storage upload's redirects are refused,
+and the file host's downloads are followed to https only, their bodies unread. A key holding anything but
 printable ASCII is refused unseen. fal's answers are read up to MAX_ANSWER bytes and the audio up to MAX_AUDIO,
 and an audio file shorter than its Content-Length is refused. Standard library only: a script card runs this
 file with the system python3.
@@ -32,6 +33,12 @@ style_instructions, and no language_code, temperature or output format: it reads
   {"model": "fal-ai/gemini-3.8-flash-tts", "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
    "calls": [{"name": "v1_Charon", "text_file": "/opt/MoonieXHQ/Work/<job>/narration.txt", "voice": "Charon",
               "style_instructions": "A Thai storyteller in his fifties ..."}]}
+Seed Audio 1.0 (bytedance/seed-audio-1.0) clones a local reference_audio (.mp3 or .wav, uploaded to fal storage
+only) and is priced before each call at $0.1875/min ($0.003125/s) at a 10 chars/s speaking-rate floor
+($0.3125 per 1,000 characters), plus any overrun if fal's returned audio duration exceeds that estimate:
+  {"model": "bytedance/seed-audio-1.0", "reference_audio": "/opt/MoonieXHQ/Work/<job>/ref.mp3",
+   "out_dir": "/opt/MoonieXHQ/Work/<job>/takes",
+   "calls": [{"name": "c1", "text_file": "/opt/MoonieXHQ/Work/<job>/c1.txt", "multilingual": true}]}
 Each call writes <out_dir>/<name>.mp3 (or the .wav, .ogg or .flac that fal's content type names) and
 <name>.json (fal's whole answer, timestamps included).
 The ledger is <job file name without .json>.ledger.jsonl, next to the job file.
@@ -62,10 +69,18 @@ WORK = Path("/opt/MoonieXHQ/Work")
 ELEVEN, GEMINI = "elevenlabs/tts/eleven-v4", "fal-ai/gemini-3.1-flash-tts"
 # fal lists 3.8 as google/gemini-3.8-flash-tts; its OpenAPI schema serves the queue at this path (read 2026-10-27).
 GEMINI38 = "fal-ai/gemini-3.8-flash-tts"
+SEED = "bytedance/seed-audio-1.0"
+SEED_USD_PER_SEC = 0.1875 / 60  # "Your request will cost $0.1875 per minute.", read 2026-11-05
+SEED_CHARS_PER_SEC = 10.0       # conservative floor below measured 11.4-15 chars/s takes
 PRICES = {ELEVEN: 0.08 / 1000,     # "$0.08 per 1000 character", read 2026-10-26
           GEMINI: 0.05 / 1000,     # "Your request will cost $0.05 per 1000 character.", read 2026-10-27
-          GEMINI38: 0.045 / 1000}  # "Your request will cost $0.045 per 1000 character.", read 2026-10-27
+          GEMINI38: 0.045 / 1000,  # "Your request will cost $0.045 per 1000 character.", read 2026-10-27
+          SEED: SEED_USD_PER_SEC / SEED_CHARS_PER_SEC}  # $0.3125 per 1,000 chars ($0.003125/s at 10 chars/s)
 QUEUE = "https://queue.fal.run/"
+UPLOAD_URL = "https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3"
+STORAGE_HOSTS = ("https://v3.fal.media/", "https://v3b.fal.media/", "https://fal.media/")
+REF_TYPES = {".mp3": "audio/mpeg", ".wav": "audio/wav"}
+MAX_REF_AUDIO = 10 << 20
 KEY_NAME = "FAL_MEDIA_API_KEY_RW"
 KEY_PROJECT, KEY_ENV, KEY_PATH = "Agents-Core", "prod", "/cmo-media"
 # Printable ASCII only: http.client puts a header value holding CR or LF in its error text, which redact misses.
@@ -77,7 +92,8 @@ POLL_S, POLL_N = 2, 150
 CALL_KEYS = {ELEVEN: {"name", "text_file", "voice", "stability", "similarity_boost", "language_code", "seed",
                       "timestamps"},
              GEMINI: {"name", "text_file", "voice", "style_instructions", "language_code", "temperature"},
-             GEMINI38: {"name", "text_file", "voice", "style_instructions"}}
+             GEMINI38: {"name", "text_file", "voice", "style_instructions"},
+             SEED: {"name", "text_file", "reference_audio", "multilingual"}}
 # The voice enum of fal-ai/gemini-3.1-flash-tts, the same for 3.8 (queue OpenAPI schemas, read 2026-10-27).
 GEMINI_VOICES = frozenset("""Achernar Achird Algenib Algieba Alnilam Aoede Autonoe Callirrhoe Charon Despina Enceladus
     Erinome Fenrir Gacrux Iapetus Kore Laomedeia Leda Orus Pulcherrima Puck Rasalgethi Sadachbia Sadaltager Schedar
@@ -144,16 +160,33 @@ def _unit(c: dict, k: str, i: int) -> float:
     return float(v)
 
 
+def _ref_audio(p: object, what: str) -> Path:
+    real = under_work(p, what)
+    if real.suffix.lower() not in REF_TYPES:
+        raise JobError(f"{what} must be an .mp3 or .wav file")
+    try:
+        st = real.stat()
+    except OSError as e:
+        raise JobError(f"cannot read {what} ({e.__class__.__name__})") from None
+    if not os.path.isfile(real) or not 1 <= st.st_size <= MAX_REF_AUDIO:
+        raise JobError(f"{what} must be a regular file of 1 to {MAX_REF_AUDIO} bytes")
+    return real
+
+
 def load_job(job_path: Path) -> dict:
     try:
         job = json.loads(job_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise JobError(f"cannot read the job file ({e.__class__.__name__})") from None
-    if not isinstance(job, dict) or set(job) - {"model", "out_dir", "calls"}:
+    if not isinstance(job, dict):
         raise JobError("the job file holds one object with model, out_dir and calls")
     model = job.get("model")
     if not isinstance(model, str) or model not in PRICES:
         raise JobError(f"model must be one of {sorted(PRICES)}")
+    top_keys = {"model", "out_dir", "calls"} | ({"reference_audio"} if model == SEED else set())
+    if set(job) - top_keys:
+        raise JobError("the job file holds one object with model, out_dir and calls")
+    default_ref = _ref_audio(job["reference_audio"], "reference_audio") if "reference_audio" in job else None
     out_dir = under_work(job.get("out_dir"), "out_dir")
     calls = job.get("calls")
     if not isinstance(calls, list) or not 1 <= len(calls) <= MAX_CALLS:
@@ -175,6 +208,9 @@ def load_job(job_path: Path) -> dict:
             raise JobError(f"call {i}: cannot read text_file ({e.__class__.__name__})") from None
         if not 1 <= len(text) <= MAX_CHARS:
             raise JobError(f"call {i}: the text must be 1 to {MAX_CHARS} characters")
+        if model == SEED:
+            out.append(_seed_call(c, i, name, text, default_ref))
+            continue
         voice = c.get("voice")
         if not isinstance(voice, str) or not VOICE_RE.fullmatch(voice):
             raise JobError(f"call {i}: voice must match {VOICE_RE.pattern}")
@@ -201,6 +237,17 @@ def load_job(job_path: Path) -> dict:
             body["timestamps"] = True
         out.append({"name": name, "body": body, "chars": len(text)})
     return {"model": model, "price": PRICES[model], "out_dir": out_dir, "calls": out}
+
+
+def _seed_call(c: dict, i: int, name: str, text: str, default_ref: Path | None) -> dict:
+    ref = _ref_audio(c["reference_audio"], f"call {i} reference_audio") if "reference_audio" in c else default_ref
+    if ref is None:
+        raise JobError(f"call {i}: reference_audio is required for {SEED}")
+    ml = c.get("multilingual", True)
+    if not isinstance(ml, bool):
+        raise JobError(f"call {i}: multilingual must be true or false")
+    body: dict = {"prompt": text, "multilingual": ml, "output_format": "mp3"}
+    return {"name": name, "body": body, "chars": len(text), "ref": ref}
 
 
 def _gemini_call(model: str, c: dict, i: int, name: str, text: str, voice: str) -> dict:
@@ -244,6 +291,11 @@ def ledger_spent(lf) -> float:
                 if not usd >= 0:
                     raise ValueError
                 total += usd
+            elif row["what"] == "result" and "extra_usd" in row:
+                extra = float(row["extra_usd"])
+                if not extra >= 0:
+                    raise ValueError
+                total += extra
         except (ValueError, KeyError, TypeError):
             raise JobError(f"ledger row {n} is unreadable; fix the ledger by hand before spending") from None
     return total
@@ -281,7 +333,7 @@ def fetch_key() -> str | None:
 
 
 def http_json(url: object, key: str, body: dict | None = None) -> dict:
-    if not isinstance(url, str) or not url.startswith(QUEUE):
+    if not isinstance(url, str) or not (url.startswith(QUEUE) or url == UPLOAD_URL):
         raise FalError(0, "refusing to send the key off queue.fal.run")
     req = urllib.request.Request(url, data=None if body is None else json.dumps(body).encode(),
                                  headers={"Content-Type": "application/json"},
@@ -300,6 +352,29 @@ def http_json(url: object, key: str, body: dict | None = None) -> dict:
     if not isinstance(res, dict):
         raise FalError(0, "the answer is not a JSON object")
     return res
+
+
+def upload(path: Path, key: str) -> str:
+    """Upload a local reference audio file to fal storage only; the PUT carries no key and follows no redirect."""
+    ct = REF_TYPES.get(path.suffix.lower())
+    if not ct:
+        raise FalError(0, f"unsupported reference file type {path.suffix}")
+    data = path.read_bytes()
+    if not 1 <= len(data) <= MAX_REF_AUDIO:
+        raise FalError(0, f"reference audio must be 1 to {MAX_REF_AUDIO} bytes")
+    ini = http_json(UPLOAD_URL, key, {"content_type": ct, "file_name": path.name})
+    up, file_url = ini.get("upload_url"), ini.get("file_url")
+    if (not isinstance(up, str) or not up.startswith(STORAGE_HOSTS)
+            or not isinstance(file_url, str) or not file_url.startswith(STORAGE_HOSTS)):
+        raise FalError(0, "refusing to upload off fal storage")
+    req = urllib.request.Request(up, data=data, headers={"Content-Type": ct}, method="PUT")
+    try:
+        with _queue_open(req, timeout=120) as f:
+            f.read(MAX_ANSWER)
+    except urllib.error.HTTPError as e:
+        text = e.read(MAX_ANSWER).decode(errors="replace").replace(key, "<redacted>")
+        raise FalError(e.code, text[:300]) from None
+    return file_url
 
 
 def download(url: object, dest: Path) -> None:
@@ -347,11 +422,14 @@ def cap_number(s: str) -> float:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], allow_abbrev=False)
     ap.add_argument("--job", required=True, help="the job file, an absolute path under /opt/MoonieXHQ/Work/")
     ap.add_argument("--max-usd", required=True, type=cap_number, help="never spend more than this, in USD")
     ap.add_argument("--dry-run", action="store_true", help="price the job; call nothing, write nothing")
-    a = ap.parse_args(argv)
+    a = ap.parse_args(raw_argv)
+    if sum(v == "--max-usd" or v.startswith("--max-usd=") for v in raw_argv) != 1:
+        ap.error("--max-usd must occur exactly once")
     try:
         job_path = under_work(a.job, "--job")
         job = load_job(job_path)
@@ -386,6 +464,7 @@ def main(argv: list[str] | None = None) -> int:
             return EXIT_KEY
     redact = (lambda s: s.replace(key, "<redacted>")) if key else (lambda s: s)
     saved = skipped = fails = server_errors = 0
+    uploaded: dict[Path, str] = {}
     try:
         for c in job["calls"]:
             name = c["name"]
@@ -404,11 +483,18 @@ def main(argv: list[str] | None = None) -> int:
                 if a.dry_run:
                     print(f"dry run: {name} {c['chars']} chars ${cost:.4f}, total ${spent:.4f}", flush=True)
                     break
+                voice_label = body.get("voice") or c["ref"].name
                 write_row(lf, {"what": "attempt", "name": name, "model": model, "chars": c["chars"],
-                               "usd": round(cost, 6), "voice": body["voice"],
+                               "usd": round(cost, 6), "voice": voice_label,
                                "timestamps": bool(body.get("timestamps"))})
                 try:
-                    rid, res = one_call(model, key, body)
+                    call_body = body
+                    if "ref" in c:
+                        ref_path = c["ref"]
+                        if ref_path not in uploaded:
+                            uploaded[ref_path] = upload(ref_path, key)
+                        call_body = {**body, "audio_urls": [uploaded[ref_path]]}
+                    rid, res = one_call(model, key, call_body)
                     out_dir.mkdir(parents=True, exist_ok=True)
                     (out_dir / f"{name}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1),
                                                           encoding="utf-8")
@@ -437,10 +523,21 @@ def main(argv: list[str] | None = None) -> int:
                     fails += 1
                     server_errors = 0
                     break
-                write_row(lf, {"what": "result", "name": name, "ok": True, "request_id": rid})
+                dur = (res.get("audio") if isinstance(res, dict) else None)
+                dur_s = dur.get("duration") if isinstance(dur, dict) else None
+                extra = 0.0
+                if model == SEED and not isinstance(dur_s, bool) and isinstance(dur_s, (int, float)) and dur_s > 0:
+                    actual = float(dur_s) * SEED_USD_PER_SEC
+                    if actual > cost:
+                        extra = actual - cost
+                        spent += extra
+                res_row: dict = {"what": "result", "name": name, "ok": True, "request_id": rid}
+                if extra > 0:
+                    res_row["extra_usd"] = round(extra, 6)
+                write_row(lf, res_row)
                 saved += 1
                 server_errors = 0
-                print(f"saved {audio.name}: {c['chars']} chars ${cost:.4f}, request {rid}", flush=True)
+                print(f"saved {audio.name}: {c['chars']} chars ${cost + extra:.4f}, request {rid}", flush=True)
                 break
     finally:
         print(f"done: {saved} saved, {skipped} skipped, {fails} failed; job ${spent:.4f} of cap "
