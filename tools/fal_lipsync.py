@@ -53,7 +53,10 @@ ENDPOINT = "fal-ai/sync-lipsync"
 V1, V2 = "lipsync-1.9.0-beta", "lipsync-2"
 # USD per second of input audio, read off fal-ai/sync-lipsync model page ($0.70/min = $0.0117/s; $3.00/min = $0.05/s).
 PRICES = {V1: 0.0117, V2: 0.05}
-SYNC_MODES = frozenset({"cut_off", "loop", "bounce", "silence", "remap"})
+# cut_off only: it ends the output at the shorter of video and audio, so the audio seconds priced above are an
+# upper bound. loop/bounce/silence/remap can run the output to the video's length, which this tool does not price
+# (CTO review of PR #664, 5 Nov 2026).
+SYNC_MODES = frozenset({"cut_off"})
 CALL_KEYS = {"name", "audio_file", "sync_mode"}
 QUEUE = "https://queue.fal.run/"
 UPLOAD_URL = "https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3"

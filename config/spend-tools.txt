@@ -22,7 +22,8 @@
 # admitted call if fal generates up to its 120 s output limit is $0.375.
 tools/fal_tts.py --max-usd
 
-# fal-ai/sync-lipsync (lipsync-1.9.0-beta $0.0117/s, lipsync-2 $0.05/s): prices each call from the
+# fal-ai/sync-lipsync (lipsync-1.9.0-beta $0.0117/s, lipsync-2 $0.05/s; sync_mode cut_off only, CTO review
+# PR #664 5 Nov 2026): prices each call from the
 # duration in seconds of its local input audio (.mp3/.wav under /opt/MoonieXHQ/Work/) before sending,
 # uploads reference video and input audio to fal storage only, and stops when the job total, ledger
 # included, would pass --max-usd (or after 2 HTTP 5xx server errors in a row).

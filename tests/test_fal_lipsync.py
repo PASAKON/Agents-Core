@@ -226,7 +226,7 @@ def test_a_bad_job_spends_nothing(work, fal, change):
 
 
 @pytest.mark.parametrize("call_change", [
-    {"sync_mode": "invalid"}, {"sync_mode": 1}, {"name": "../x"}, {"name": "p1\n"}, {"extra": 1},
+    {"sync_mode": "invalid"}, {"sync_mode": 1}, {"sync_mode": "loop"}, {"sync_mode": "remap"}, {"name": "../x"}, {"name": "p1\n"}, {"extra": 1},
 ])
 def test_a_bad_call_spends_nothing(work, fal, call_change):
     job = make_job(work, n=1)
