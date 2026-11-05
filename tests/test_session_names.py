@@ -3,7 +3,7 @@ state/handoff/2026-10-15/plan-names-watch-macoff.md): lib/session_names.py write
 re-exports the writers.
 
 C-level "<ROLE> (<Name>) — <topic>" and PH "PH#<id3> (<LANE>) - <Project>" keep every part they have and are
-never cut; workers "<Short>·<M>#<id3> <Head>: <job>" and Watch "Watch#<id3> Runs: <N><light>" are new names,
+never cut; workers "<Short>·<M>#<id3> <Head>: <job>" and Watch "Watch Runs: <N><light>" are new names,
 cut to 32 characters. Every reader takes the old, the compact and the ruling shapes."""
 from __future__ import annotations
 
@@ -101,9 +101,12 @@ def test_every_worker_role_has_a_unique_short_word():
     ("Dev#afe Org: x", ("developer", "afe")),
     ("CTO#c34 Main", ("cto", "c34")), ("COO SomPong", ("coo", "")),
     ("PH#7cf OrgRestructure", ("project_head", "7cf")), ("Watch#a1b Runs: 2🟢", ("watch", "a1b")),
+    ("Watch Runs: 0🔴", ("watch", "")), ("\U0001F310 Watch Runs: 2🟢", ("watch", "")),
+    ("\U0001F5A5️ Watch Runs: 1 FAIL", ("watch", "")),
     ("CTO (\U0001F468\u200d\U0001F4BB: Kavin) — CTO Main", ("cto", "")), ("CFO", ("cfo", "")),
     ("MAC CTO #671f688f (PH LastBell + Scriptable)", ("cto", "671")),
     ("CTO Main", None), ("CEO", None), ("CEO#c34 Main", None), ("Watch#a1b", None),
+    ("Watch Runs:", None), ("Watch the dog", None), ("Watching Runs: 2", None),
 ])
 def test_parse_short(name, expect):
     assert sn.parse_short(name) == expect
@@ -292,8 +295,9 @@ def body(name: str) -> str:
     (lambda: sn.worker_name("Dev", "afe57b21", "MimiPage", "x", "claude-sonnet-5-5", windows=True), "Dev.S#afe Mimi: x"),
     (lambda: sn.worker_name("Dev", "task-49b1d2e3", "OrgRestructure", "sparse worktrees", "S", windows=True),
      "Dev.S#49b Org: sparse worktrees"),
-    (lambda: sn.watch_name("a1b00000", 2, "\U0001F7E2", "contabo"), f"{CONTABO} Watch#a1b Runs: 2\U0001F7E2"),
-    (lambda: sn.watch_name("a1b00000", 0, "⚪"), "Watch#a1b Runs: 0⚪"),
+    (lambda: sn.watch_name(2, "\U0001F7E2", "contabo"), f"{CONTABO} Watch Runs: 2\U0001F7E2"),
+    (lambda: sn.watch_name(0, "\U0001F534", "contabo"), f"{CONTABO} Watch Runs: 0\U0001F534"),
+    (lambda: sn.watch_name(0, "⚪"), "Watch Runs: 0⚪"),
 ])
 def test_N1_the_writers_make_exactly_these_strings(made, expect):
     assert made() == expect
@@ -310,7 +314,7 @@ def test_N1_a_new_worker_name_is_at_most_32_characters_and_a_cut_marks_itself(to
 
 @pytest.mark.parametrize("n,cut", [(5, False), (12345678901234567890, True)])
 def test_N1_a_watch_name_is_cut_the_same_way(n, cut):
-    name = sn.watch_name("a1b00000", n, "\U0001F7E2", "contabo")
+    name = sn.watch_name(n, "\U0001F7E2", "contabo")
     assert len(body(name)) <= sn.NAME_BODY_MAX and body(name).endswith("…") == cut
 
 

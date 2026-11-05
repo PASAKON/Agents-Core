@@ -2,13 +2,17 @@
 
 Nothing in this module starts a process, opens a tmux session, or contacts the
 hub. It provides:
-  - Threshold helpers: `quiet_s()`, `close_after_s()`, `batch_s()`
+  - Threshold helpers: `quiet_s()`, `batch_s()`, `stable_s()`, `retry_s()`
   - Pure lifecycle decision function: `decide_lifecycle(...)` -> one of
-    `("start", "stop", "restart", "give_up", "none")`, appending one line to
-    `state/steward/<host>/open.md` on `give_up`
+    `("start", "restart", "give_up", "none")`, appending one line to
+    `state/steward/<host>/open.md` on `give_up`. The Watch session is always up
+    (CEO 3 Nov): a missing one is started even with no runs, and nothing here ever
+    stops one. The driver alone kills it, for low memory, and resumes it next tick.
   - Pure launch argv builders: `build_launch_argv(...)` / `build_claude_argv(...)`
     for tmux session `runwatch-<host>` with session name built via
-    `lib.session_names.watch_name` (and `windows_safe` on `winbox`).
+    `lib.session_names.watch_name` (and `windows_safe` on `winbox`). One Claude
+    conversation per host: the first start gives it `--session-id <uuid>`, every
+    later start resumes it with `-r <uuid>`.
 """
 from __future__ import annotations
 
@@ -24,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 from lib import run_liveness  # noqa: E402
 from tools import run_watch  # noqa: E402
 
+# "stop" is never decided here: only the driver applies it, to kill the session for low memory.
 ACTIONS = ("start", "stop", "restart", "give_up", "none")
 
 DEFAULT_MODEL = "haiku"
@@ -34,9 +39,19 @@ PROMPT_FILE = "roles/run_watch.md"
 
 STEWARD_ROOT = ROOT / "state" / "steward"
 
+STABLE_S_DEFAULT = 600     # up this long = healthy: earlier deaths are forgotten
+RETRY_S_DEFAULT = 3600     # after give_up, try again this much later
+
 quiet_s = run_liveness.quiet_s
 batch_s = run_liveness.batch_s
-close_after_s = run_watch.close_after_s
+
+
+def stable_s() -> int:
+    return run_liveness._env_int("RUN_WATCH_STABLE_S", STABLE_S_DEFAULT)
+
+
+def retry_s() -> int:
+    return run_liveness._env_int("RUN_WATCH_RETRY_S", RETRY_S_DEFAULT)
 
 
 def _resolve_host(host: str | None = None) -> str:
@@ -62,34 +77,6 @@ def _active_count(active_runs: int | Sequence[dict] | None) -> int:
     if all(isinstance(x, dict) and "state" in x for x in items):
         return sum(1 for x in items if x.get("state") in run_watch.ACTIVE_STATES)
     return len(items)
-
-
-def _elapsed_since_end(
-    since_last_end: float | int | str | None,
-    now: float | None,
-) -> float | None:
-    """Normalize `since_last_end` to elapsed seconds.
-
-    Accepts either an elapsed duration in seconds (e.g. `600`) or an epoch/ISO
-    timestamp of when the last run ended (when `now` is also supplied).
-    """
-    if since_last_end is None:
-        return None
-    if isinstance(since_last_end, str):
-        ended_ts = run_liveness.parse_ts(since_last_end)
-        if ended_ts is None:
-            return None
-        ref = time.time() if now is None else float(now)
-        return max(0.0, ref - ended_ts)
-    val = float(since_last_end)
-    if (
-        now is not None
-        and float(now) >= 1_000_000_000.0
-        and val >= 1_000_000_000.0
-        and val <= float(now)
-    ):
-        return float(now) - val
-    return val
 
 
 def steward_open_file(
@@ -130,8 +117,8 @@ def record_give_up(
     n = _active_count(active_runs)
     ts = run_liveness.iso(time.time() if now is None else float(now))
     line = (
-        f"- [{ts}] runwatch-{h}: watcher died twice while {n} run(s) active; "
-        f"giving up until next run cycle.\n"
+        f"- [{ts}] runwatch-{h}: watcher died twice in a row ({n} run(s) active); "
+        f"giving up, trying again in {retry_s() // 60} min.\n"
     )
     path = steward_open_file(h, open_md=open_md, state_root=state_root)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -144,7 +131,6 @@ def decide_lifecycle(
     active_runs: int | Sequence[dict] | None,
     watcher_alive: bool,
     start_count: int = 0,
-    since_last_end: float | int | str | None = None,
     now: float | None = None,
     *,
     host: str | None = None,
@@ -154,71 +140,59 @@ def decide_lifecycle(
 ) -> str:
     """Pure decision function for the Run Watch session lifecycle.
 
-    Given `(active_runs, watcher_alive, start_count, since_last_end, now)`,
-    returns one of `("start", "stop", "restart", "give_up", "none")`:
-      - `start`: first run goes active (`n_active > 0`), no watcher alive,
-        and `start_count == 0`
-      - `stop`: no active runs (`n_active == 0`), watcher is alive, and time
-        since last run ended >= `close_after_s()` (default 600 s)
-      - `restart`: watcher died while runs are active (`start_count == 1`)
-      - `give_up`: watcher died a second time while runs are active
-        (`start_count == 2`); appends one line to `state/steward/<host>/open.md`
-      - `none`: no action (including after `give_up` when `start_count > 2`,
-        since a given-up watcher is never resumed in the same cycle)
+    The session is always up, so only a missing one is acted on, with or without
+    runs. Given `(active_runs, watcher_alive, start_count, now)`, returns one of
+    `("start", "restart", "give_up", "none")`:
+      - `none`: the watcher is alive (never stopped when idle), or it is missing
+        after `give_up` (`start_count > 2`), until `forget_deaths` resets the count
+      - `start`: no watcher alive and `start_count == 0`
+      - `restart`: the watcher died (`start_count == 1`)
+      - `give_up`: it died a second time (`start_count == 2`); appends one line
+        to `state/steward/<host>/open.md`
     """
-    n_active = _active_count(active_runs)
-    if n_active > 0:
-        if watcher_alive:
-            return "none"
-        if start_count <= 0:
-            return "start"
-        if start_count == 1:
-            return "restart"
-        if start_count == 2 and not record:
-            return "give_up"
-        if start_count == 2:
-            record_give_up(
-                host,
-                now=now,
-                active_runs=n_active,
-                open_md=open_md,
-                state_root=state_root,
-            )
-            return "give_up"
+    if watcher_alive or start_count > 2:
         return "none"
-
-    if not watcher_alive:
-        return "none"
-    elapsed = _elapsed_since_end(since_last_end, now)
-    if elapsed is not None and elapsed >= close_after_s():
-        return "stop"
-    return "none"
+    if start_count <= 0:
+        return "start"
+    if start_count == 1:
+        return "restart"
+    if record:
+        record_give_up(
+            host,
+            now=now,
+            active_runs=active_runs,
+            open_md=open_md,
+            state_root=state_root,
+        )
+    return "give_up"
 
 
 decide = decide_lifecycle
 
 
-def next_start_count(
-    active_runs: int | Sequence[dict] | None,
-    watcher_alive: bool,
-    start_count: int,
-    decision: str,
-) -> int:
-    """Compute the next cycle's `start_count` after `decision`.
+def next_start_count(start_count: int, decision: str) -> int:
+    """Compute the next tick's `start_count` after `decision` was applied.
 
-    Once all active runs end and the watcher is not alive (or stops), the cycle
-    resets to 0 so the next active run starts a fresh watcher.
+    `stop` (the driver's low-memory kill) resets it: a kill the driver chose is
+    not a death and must not use up the one restart.
     """
-    n_active = _active_count(active_runs)
-    if decision == "start":
-        return 1
-    if decision == "restart":
-        return 2
-    if decision == "give_up":
-        return 3
-    if decision == "stop":
+    return {"start": 1, "restart": 2, "give_up": 3, "stop": 0}.get(decision, start_count)
+
+
+def forget_deaths(
+    start_count: int,
+    *,
+    alive: bool,
+    started_at: float | None,
+    gave_up_at: float | None,
+    now: float,
+) -> int:
+    """`start_count` after forgetting old deaths: a session up for `stable_s()` is
+    healthy, and a host that gave up tries again `retry_s()` later. Without this
+    an always-up watcher would give up for good after two deaths a week apart."""
+    if alive and started_at is not None and now - started_at >= stable_s():
         return 0
-    if n_active == 0 and not watcher_alive:
+    if start_count > 2 and gave_up_at is not None and now - gave_up_at >= retry_s():
         return 0
     return start_count
 
@@ -242,24 +216,18 @@ class WatcherCycle:
         self,
         active_runs: int | Sequence[dict] | None,
         watcher_alive: bool,
-        since_last_end: float | int | str | None = None,
         now: float | None = None,
     ) -> str:
-        if _active_count(active_runs) == 0 and not watcher_alive:
-            self.start_count = 0
         decision = decide_lifecycle(
             active_runs,
             watcher_alive,
             self.start_count,
-            since_last_end,
             now,
             host=self.host,
             open_md=self.open_md,
             state_root=self.state_root,
         )
-        self.start_count = next_start_count(
-            active_runs, watcher_alive, self.start_count, decision,
-        )
+        self.start_count = next_start_count(self.start_count, decision)
         return decision
 
 
@@ -275,7 +243,8 @@ def tmux_session_name(host: str | None = None) -> str:
 def build_claude_argv(
     host: str | None = None,
     *,
-    sid: str = "000",
+    session_id: str,
+    resume: bool = False,
     n_active: int = 0,
     light: str = run_watch.LIGHT_IDLE,
     model: str = DEFAULT_MODEL,
@@ -283,14 +252,19 @@ def build_claude_argv(
     prompt_file: str = PROMPT_FILE,
     claude_bin: str = "claude",
 ) -> list[str]:
-    """Pure builder for the `claude` command argv inside the watcher session."""
+    """Pure builder for the `claude` command argv inside the watcher session.
+
+    `session_id` is the host's one conversation: `--session-id` creates it on the
+    first start, `-r` (resume=True) reopens it on every later one, under the same
+    `--remote-control` name, so the claude.ai session and the CEO's pin stay."""
     h = _resolve_host(host)
-    name = run_watch.format_watch_name(n_active, light, sid=sid, host=h)
+    name = run_watch.format_watch_name(n_active, light, host=h)
     return [
         claude_bin,
         "--model",
         model,
         "--remote-control",
+        name,
         "--strict-mcp-config",
         "--mcp-config",
         mcp_config,
@@ -306,6 +280,7 @@ def build_claude_argv(
         prompt_file,
         "-n",
         name,
+        *(["-r", session_id] if resume else ["--session-id", session_id]),
     ]
 
 
@@ -315,7 +290,8 @@ claude_argv = build_claude_argv
 def build_launch_argv(
     host: str | None = None,
     *,
-    sid: str = "000",
+    session_id: str,
+    resume: bool = False,
     n_active: int = 0,
     light: str = run_watch.LIGHT_IDLE,
     model: str = DEFAULT_MODEL,
@@ -337,7 +313,8 @@ def build_launch_argv(
         *(arg for key, value in sorted((env or {}).items()) for arg in ("-e", f"{key}={value}")),
         *build_claude_argv(
             h,
-            sid=sid,
+            session_id=session_id,
+            resume=resume,
             n_active=n_active,
             light=light,
             model=model,

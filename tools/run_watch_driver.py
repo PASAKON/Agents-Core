@@ -1,16 +1,23 @@
-"""One timer tick for the host's Run Watch session. Never creates a tmux server."""
+"""One timer tick for the host's Run Watch session. Never creates a tmux server.
+
+The host has ONE Watch session, always up and never killed when idle (CEO 3 Nov: he
+pins it in the Claude app). Its Claude conversation is one uuid kept in driver.json:
+the first start gives it `--session-id`, every later start resumes it with `-r`. The
+driver kills it only for low MemAvailable; the next tick resumes the same uuid.
+"""
 from __future__ import annotations
 
 import argparse
 import json
 import os
 from pathlib import Path
-import secrets
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -20,6 +27,12 @@ from lib.run_liveness import _env_int  # noqa: E402
 WORDS = dict(start="เริ่ม", done="เสร็จ", failed="พัง", dead="ตาย",
              quiet="เงียบ", resumed="กลับมา")
 FOLLOW_FIELDS = ("prev", "seeded", "pending", "window_start")
+PROJECTS = Path.home() / ".claude" / "projects"      # where claude keeps conversations
+COMPACT_TOKENS_DEFAULT = 60000
+# A transcript line is JSON around the text, so bytes/4 over-counts tokens:
+# the compaction comes early rather than late.
+BYTES_PER_TOKEN = 4
+KILL_AVAIL_MB_DEFAULT = 350   # below the 700 MB a start needs: killing must not flap with starting
 
 
 def tmux(*args: str) -> bool:
@@ -35,7 +48,7 @@ def available_mb() -> float:
     for line in Path("/proc/meminfo").read_text().splitlines():
         if line.startswith("MemAvailable:"):
             return int(line.split()[1]) / 1024
-    return 0
+    raise ValueError("no MemAvailable")
 
 
 def save(path: Path, state: dict) -> None:
@@ -75,6 +88,22 @@ def claude_bin() -> str:
             or "claude")
 
 
+def transcript_path(session_id: str) -> Path | None:
+    """The stored conversation `claude -r <id>` opens from ROOT, else None. It is not
+    written until the first message, so a first launch that died early has none."""
+    slug = re.sub(r"[^A-Za-z0-9]", "-", str(ROOT))     # as tools/memory_sync.py names it
+    path = PROJECTS / slug / f"{session_id}.jsonl"
+    return path if path.is_file() else None
+
+
+def transcript_bytes(session_id: str | None) -> int:
+    path = transcript_path(session_id) if session_id else None
+    try:
+        return path.stat().st_size if path else 0
+    except OSError:
+        return 0
+
+
 def ready(pane: str) -> bool:
     return rename_service._blocked(pane) is None and rename_service._blocked(pane) is None
 
@@ -91,19 +120,14 @@ def tick(*, dry_run: bool = False) -> int:
     path = watch.state_file(host).with_name("driver.json")
     state = json.loads(path.read_text()) if path.exists() else {}
     n, light = watch.compute_light(runs, host=host, tasks=tasks, persist=not dry_run)
-    count = state.get("start_count", 0)
-    if n:
-        state["last_end_at"] = None
-        state["flush_ticks"] = 0
-    elif state.get("prev_n_active", 0) > 0:
-        state["last_end_at"] = now
-    ended = state.get("last_end_at")
     session = watcher.tmux_session_name(host)
-    # An untouched idle host needs no tmux calls.
-    alive = tmux("has-session", "-t", "=" + session) if n or count or state.get("sid") else False
-    decision = watcher.decide_lifecycle(n, alive, count,
-        None if ended is None else max(0, now - ended), now=now,
-        host=host, record=not dry_run)
+    alive = tmux("has-session", "-t", "=" + session)
+    if alive:
+        state.setdefault("started_at", now)     # a session from before the pin: adopt it
+    count = watcher.forget_deaths(
+        state.get("start_count", 0), alive=alive, started_at=state.get("started_at"),
+        gave_up_at=state.get("gave_up_at"), now=now)
+    decision = watcher.decide_lifecycle(n, alive, count, now, host=host, record=not dry_run)
     typed, result, reason = "", "", ""
     follower = watch.Follower()
     for field in FOLLOW_FIELDS:
@@ -127,13 +151,16 @@ def tick(*, dry_run: bool = False) -> int:
             except (OSError, ValueError):
                 reason = "MemAvailable unreadable"
         if not reason:
-            sid = secrets.token_hex(4)
+            session_id = state.get("uuid") or str(uuid.uuid4())
             env = {k: v for k, v in os.environ.items() if k.startswith("RUN_WATCH_")}
-            env["RUN_WATCH_SID"] = sid
-            argv = watcher.build_launch_argv(host, sid=sid, n_active=n, light=light,
-                                             cwd=ROOT, env=env, claude_bin=claude_bin())
+            argv = watcher.build_launch_argv(
+                host, session_id=session_id, resume=transcript_path(session_id) is not None,
+                n_active=n, light=light, cwd=ROOT, env=env, claude_bin=claude_bin())
             if dry_run or tmux(*argv[1:]):
-                state.update(sid=sid, last_name=watch.format_watch_name(n, light, sid=sid, host=host))
+                if session_id != state.get("uuid"):
+                    state["compact_base"] = 0       # a new conversation: nothing compacted yet
+                state.update(uuid=session_id, started_at=now,
+                             last_name=watch.format_watch_name(n, light, host=host))
                 follower = watch.Follower()
                 follower.step(runs, now)
                 alive = True
@@ -141,29 +168,41 @@ def tick(*, dry_run: bool = False) -> int:
                 reason = "launch failed"
         if reason:
             applied = "none"
-    elif decision == "stop":
-        if (pending or follower.pending) and state.get("flush_ticks", 0) < 3:
-            state["flush_ticks"] = state.get("flush_ticks", 0) + 1
-            applied, reason = "none", "flush"
-        elif dry_run or tmux("kill-session", "-t", "=" + session):
-            alive = False
-            state["flush_ticks"] = 0
-        else:
-            applied, reason = "none", "stop failed"
+    elif decision == "give_up":
+        state["gave_up_at"] = now
+    elif alive:
+        # Never stopped for being idle, only for memory. Killed below what a start needs,
+        # so the next tick's resume cannot be killed again at once.
+        try:
+            low = available_mb() < _env_int("RUN_WATCH_KILL_AVAIL_MB", KILL_AVAIL_MB_DEFAULT)
+        except (OSError, ValueError):
+            low = False
+        if low:
+            if dry_run or tmux("kill-session", "-t", "=" + session):
+                alive, applied, reason = False, "stop", "low MemAvailable: killed"
+            else:
+                reason = "kill failed"
     if alive:
-        name = watch.format_watch_name(n, light, sid=state.get("sid", "000"), host=host)
+        name = watch.format_watch_name(n, light, host=host)
         if name != state.get("last_name") and ready(session):
             typed = f"/rename {name}"
             result = "would type" if dry_run else rename_service.type_rename(session, typed)
             if result == "renamed":
                 state["last_name"] = name
         if pending and not typed and ready(session):
-            typed = event_line(pending)
+            session_id = state.get("uuid")
+            grown = max(0, transcript_bytes(session_id) - state.get("compact_base", 0))
+            compact = grown // BYTES_PER_TOKEN >= _env_int(
+                "RUN_WATCH_COMPACT_TOKENS", COMPACT_TOKENS_DEFAULT)
+            typed = "/compact" if compact else event_line(pending)
             result = "would type" if dry_run else rename_service.type_rename(session, typed)
             if result == "renamed":
-                pending.clear()
-    state.update(start_count=watcher.next_start_count(n, alive, count, applied),
-                 prev_n_active=n, follower={key: getattr(follower, key) for key in FOLLOW_FIELDS})
+                if compact:     # the event line goes in on a later tick, once it is done
+                    state["compact_base"] = transcript_bytes(session_id)
+                else:
+                    pending.clear()
+    state.update(start_count=watcher.next_start_count(count, applied),
+                 follower={key: getattr(follower, key) for key in FOLLOW_FIELDS})
     if not dry_run:
         save(path, state)
     print(f"{'dry-run ' if dry_run else ''}{decision} n_active={n} light={light} "

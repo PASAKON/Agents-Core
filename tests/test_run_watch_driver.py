@@ -1,5 +1,6 @@
 """Driver integration with fake hub, tmux, clock, memory and pane."""
 import json
+import re
 
 import pytest
 
@@ -13,7 +14,6 @@ def rig(monkeypatch, tmp_path):
             monkeypatch.delenv(key)
     monkeypatch.setenv("RUN_WATCH_STATE_DIR", str(tmp_path))
     monkeypatch.setenv("RUN_WATCH_STEWARD_DIR", str(tmp_path / "steward"))
-    monkeypatch.setenv("RUN_WATCH_CLOSE_AFTER_S", "60")
     monkeypatch.setenv("RUN_WATCH_BATCH_S", "60")
     r = dict(now=1000, runs=[], alive=False, server=True, mb=1000,
              busy=False, calls=[], typed=[], result="renamed")
@@ -22,6 +22,7 @@ def rig(monkeypatch, tmp_path):
     monkeypatch.setattr(d.watch, "collect_runs", lambda *a, **k: r["runs"])
     monkeypatch.setattr(d.time, "time", lambda: r["now"])
     monkeypatch.setattr(d, "available_mb", lambda: r["mb"])
+    monkeypatch.setattr(d, "PROJECTS", tmp_path / "projects")
     monkeypatch.setattr(d.rename_service, "_blocked", lambda p: "busy" if r["busy"] else None)
     def type_line(p, line):
         assert p == "runwatch-contabo"
@@ -46,6 +47,13 @@ def rig(monkeypatch, tmp_path):
     monkeypatch.setattr(d, "tmux", tmux)
     r["path"] = tmp_path / "contabo" / "driver.json"
     r["state"] = lambda: json.loads(r["path"].read_text())
+
+    def write_transcript(size):
+        """The conversation claude keeps for the driver's uuid, `size` bytes long."""
+        file = d.PROJECTS / re.sub(r"[^A-Za-z0-9]", "-", str(d.ROOT)) / (r["state"]()["uuid"] + ".jsonl")
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_bytes(b"x" * size)
+    r["write_transcript"] = write_transcript
     return r
 
 
@@ -54,29 +62,62 @@ def run(state="running", tid="task-12345678"):
                 title="fixture", idle_s=999, started="", status="in_progress")
 
 
-def test_idle_start_and_stop(rig):
+def launches(r):
+    """The claude flags of every `tmux new-session` so far, from --model on."""
+    return [list(c[c.index("--model"):]) for c in r["calls"] if c[0] == "new-session"]
+
+
+def remote_control_name(flags):
+    return flags[flags.index("--remote-control") + 1]
+
+
+def test_idle_host_starts_one_session_and_never_stops_it(rig):
     r = rig
-    d.tick()
-    assert not r["calls"]
-    r["runs"] = [run()]
-    d.tick()
+    d.tick()                                    # no runs and no session: started anyway
     launch = next(c for c in r["calls"] if c[0] == "new-session")
     assert launch[launch.index("-c") + 1] == str(d.ROOT)
     env = [launch[i+1] for i, x in enumerate(launch) if x == "-e"]
-    assert "RUN_WATCH_CLOSE_AFTER_S=60" in env
+    assert "RUN_WATCH_BATCH_S=60" in env
     assert "RUN_WATCH_STATE_DIR=" + str(r["path"].parent.parent) in env
-    assert "RUN_WATCH_SID=" + r["state"]()["sid"] in env
-    assert len(r["state"]()["sid"]) == 8
+    assert not any(e.startswith("RUN_WATCH_SID=") for e in env)
+    assert len(r["state"]()["uuid"]) == 36
+    assert remote_control_name(launches(r)[0]) == "\U0001F310 Watch Runs: 0⚪"
+    r["runs"] = [run()]
+    d.tick()
     r["runs"] = [run("done")]
     d.tick()
-    assert r["state"]()["last_end_at"] == 1000
-    r["now"] += 59
-    d.tick()
+    for _ in range(4):                          # hours with no run: still no kill
+        r["now"] += 3600
+        d.tick()
     assert r["alive"]
-    r["now"] += 1
+    assert not any(c[0] == "kill-session" for c in r["calls"])
+    assert len(launches(r)) == 1
+    assert r["state"]()["start_count"] == 0     # up for hours: earlier starts are forgotten
+
+
+def test_first_start_creates_the_conversation_and_every_later_start_resumes_it(rig):
+    r = rig
     d.tick()
-    assert not r["alive"]
-    assert r["state"]()["start_count"] == 0
+    uuid = r["state"]()["uuid"]
+    first = launches(r)[0]
+    assert first[-2:] == ["--session-id", uuid] and "-r" not in first
+    r["write_transcript"](10)                   # claude wrote the conversation
+    r["alive"] = False                          # and the session died
+    d.tick()
+    second = launches(r)[1]
+    assert second[-2:] == ["-r", uuid] and "--session-id" not in second
+    assert r["state"]()["uuid"] == uuid
+    assert remote_control_name(second) == remote_control_name(first)
+    assert second[second.index("-n") + 1] == remote_control_name(second)
+
+
+def test_a_start_with_no_stored_conversation_creates_it_again(rig):
+    r = rig
+    d.tick()
+    uuid = r["state"]()["uuid"]
+    r["alive"] = False                          # died before claude wrote anything: -r would fail
+    d.tick()
+    assert [f[-2:] for f in launches(r)] == [["--session-id", uuid]] * 2
 
 
 @pytest.mark.parametrize("field,value", [("server", False), ("mb", 699)])
@@ -94,20 +135,28 @@ def test_refusal_retries(rig, field, value):
 def test_restart_give_up(rig):
     rig["runs"] = [run()]
     d.tick()
-    sid = rig["state"]()["sid"]
+    uuid = rig["state"]()["uuid"]
     rig["alive"] = False
     d.tick()
-    assert rig["state"]()["sid"] != sid
+    assert rig["state"]()["uuid"] == uuid       # a restart keeps the conversation
     rig["alive"] = False
     d.tick()
     d.tick()
     assert sum(c[0] == "new-session" for c in rig["calls"]) == 2
     notice = rig["path"].parent.parent / "steward/contabo/open.md"
     assert len(notice.read_text().splitlines()) == 1
+    rig["now"] += 3599                          # gave up: no start before RUN_WATCH_RETRY_S
+    d.tick()
+    assert sum(c[0] == "new-session" for c in rig["calls"]) == 2
+    rig["now"] += 1
+    d.tick()
+    assert sum(c[0] == "new-session" for c in rig["calls"]) == 3
+    assert rig["state"]()["start_count"] == 1
 
 
 def test_hub_failure_untouched(rig, monkeypatch, capsys):
     d.tick()
+    rig["calls"].clear()
     before = rig["path"].read_bytes()
     def fail():
         raise d.watch.HubUnreachable("secret DSN")
@@ -154,7 +203,7 @@ def test_summary_limit_and_words():
     assert len(line) <= 100 and line.endswith(" more")
 
 
-def test_final_events_flush_before_stop(rig, monkeypatch, capsys):
+def test_final_events_are_typed_and_the_session_stays_up(rig, monkeypatch):
     r = rig
     monkeypatch.setenv("RUN_WATCH_BATCH_S", "120")
     r.update(now=3 * 3600 + 31 * 60,
@@ -173,38 +222,35 @@ def test_final_events_flush_before_stop(rig, monkeypatch, capsys):
     assert len(r["state"]()["pending_out"]) == 2
     assert not r["state"]()["follower"]["pending"]
     assert r["state"]()["follower"]["window_start"] is None
-    r["now"] += 60  # 03:35: close deadline, but final events still need typing.
+    r["now"] += 60  # no run is left, so the final events are typed at once
     d.tick()
-    assert r["alive"]
     assert r["typed"][-1] == "runs: 11111111 เสร็จ; 22222222 ตาย"
     assert not r["state"]()["pending_out"]
-    assert "reason=flush" in capsys.readouterr().out
-    r["now"] += 60
+    r["now"] += 3600
     d.tick()
-    assert not r["alive"]
-    assert r["state"]()["flush_ticks"] == 0
+    assert r["alive"]
+    assert not any(c[0] == "kill-session" for c in r["calls"])
 
 
 @pytest.mark.parametrize("blocked", ["busy", "held"])
-def test_stop_flush_capped_at_three_ticks(rig, blocked):
+def test_events_wait_for_a_ready_prompt_however_long(rig, blocked):
     r = rig
     r["runs"] = [run()]
     d.tick()
     r.update(runs=[run("done")], busy=blocked == "busy",
              result="held" if blocked == "held" else "renamed")
     d.tick()
-    # End-of-cycle release bypasses even an unexpired batch window.
     assert r["state"]()["pending_out"]
-    assert not r["state"]()["follower"]["pending"]
-    for count in range(1, 4):
+    for _ in range(6):                          # no flush cap: the session is not closing
         r["now"] += 60
         d.tick()
         assert r["alive"]
-        assert r["state"]()["flush_ticks"] == count
-    r["now"] += 60
+    assert r["state"]()["pending_out"]
+    r.update(busy=False, result="renamed")
+    d.tick()                                    # the rename first
     d.tick()
-    assert not r["alive"]
-    assert r["state"]()["flush_ticks"] == 0
+    assert r["typed"][-1] == "runs: 12345678 เสร็จ"
+    assert not r["state"]()["pending_out"]
 
 
 def test_multiple_events_accumulate_between_ticks(rig):
@@ -254,7 +300,7 @@ def test_second_read_blocks_typing(rig, monkeypatch):
     assert not rig["typed"]
 
 
-def test_dry_run_rename_and_stop(rig, capsys):
+def test_dry_run_rename_and_no_stop(rig, capsys):
     rig["runs"] = [run()]
     d.tick()
     before = rig["path"].read_bytes()
@@ -330,3 +376,100 @@ def test_dead_and_failed_release_without_waiting_for_batch_window(rig, monkeypat
     d.tick()
     assert r["typed"][-1] == "runs: 33333333 พัง"
     assert not r["state"]()["pending_out"]
+
+
+def test_low_memory_kills_the_session_and_the_next_tick_resumes_the_same_conversation(rig):
+    r = rig
+    d.tick()
+    uuid = r["state"]()["uuid"]
+    r["write_transcript"](10)
+    r["mb"] = 349                               # below RUN_WATCH_KILL_AVAIL_MB (350)
+    d.tick()
+    assert not r["alive"]
+    assert [c for c in r["calls"] if c[0] == "kill-session"]
+    assert r["state"]()["uuid"] == uuid
+    assert r["state"]()["start_count"] == 0     # our own kill is not a death
+    d.tick()                                    # still too little memory for a start (700)
+    assert len(launches(r)) == 1
+    r["mb"] = 1000
+    d.tick()
+    resumed = launches(r)[1]
+    assert resumed[-2:] == ["-r", uuid]
+    assert remote_control_name(resumed) == remote_control_name(launches(r)[0])
+    assert r["state"]()["uuid"] == uuid and r["state"]()["start_count"] == 1
+
+
+def test_memory_between_the_kill_and_the_start_limits_changes_nothing(rig):
+    r = rig
+    d.tick()
+    r["mb"] = 500                               # under the 700 a start needs, over the 350 a kill needs
+    d.tick()
+    assert r["alive"] and not any(c[0] == "kill-session" for c in r["calls"])
+    r["alive"] = False
+    d.tick()
+    assert len(launches(r)) == 1                # and it does not start either
+
+
+def test_dry_run_never_kills(rig):
+    r = rig
+    d.tick()
+    before = r["path"].read_bytes()
+    r["mb"] = 100
+    d.tick(dry_run=True)
+    assert r["alive"] and not any(c[0] == "kill-session" for c in r["calls"])
+    assert r["path"].read_bytes() == before
+
+
+def test_compact_is_typed_only_past_the_threshold_and_before_the_next_event_line(rig, monkeypatch):
+    r = rig
+    monkeypatch.setenv("RUN_WATCH_COMPACT_TOKENS", "100")      # 400 bytes of transcript
+    r["runs"] = [run()]
+    d.tick()
+    dead = [run("dead", f"task-{c * 8}") for c in "abcdef"]    # each new dead run is typed at once
+    r["runs"] = [dead[0]]
+    d.tick()
+    assert r["typed"][-1].startswith("/rename ")               # the count changed: the rename goes first
+
+    r["write_transcript"](399)                                 # 99 tokens: under
+    r["runs"] = dead[:2]
+    d.tick()
+    assert r["typed"][-1] == "runs: aaaaaaaa ตาย; bbbbbbbb ตาย"
+    assert "/compact" not in r["typed"]
+
+    r["write_transcript"](400)                                 # 100 tokens: over, and nothing to say yet
+    d.tick()
+    assert "/compact" not in r["typed"]
+    r["runs"] = dead[:3]
+    d.tick()
+    assert r["typed"][-1] == "/compact"                        # before the event line
+    assert r["state"]()["compact_base"] == 400
+    assert r["state"]()["pending_out"]
+    d.tick()
+    assert r["typed"][-1] == "runs: cccccccc ตาย"              # then the event, with no second compact
+    assert r["typed"].count("/compact") == 1
+
+    r["write_transcript"](400 + 399)                           # grown 399 bytes since the compaction
+    r["runs"] = dead[:4]
+    d.tick()
+    assert r["typed"][-1] == "runs: dddddddd ตาย"
+    r["write_transcript"](400 + 399 + 1)
+    r["runs"] = dead[:5]
+    d.tick()
+    assert r["typed"][-1] == "/compact" and r["state"]()["compact_base"] == 800
+
+
+def test_compact_waits_for_a_ready_prompt(rig, monkeypatch):
+    r = rig
+    monkeypatch.setenv("RUN_WATCH_COMPACT_TOKENS", "100")
+    r["runs"] = [run()]
+    d.tick()
+    r["runs"] = [run("dead")]
+    d.tick()                                                   # the rename
+    r["write_transcript"](4000)
+    r["busy"] = True
+    typed = len(r["typed"])
+    d.tick()
+    assert len(r["typed"]) == typed
+    r["busy"] = False
+    d.tick()
+    assert r["typed"][-1] == "/compact"
