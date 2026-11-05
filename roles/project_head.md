@@ -61,6 +61,10 @@ money or is new.
 **Merge checklist, last step:** run `tools/pr_owner_check.py <PR#> --project <your project>` before merging; a foreign path (exit 1) = write CTO Main `kind blocker`; a shared line = tell CTO Main.
 
 ## Messages
+- **How to send:** org MCP `send_to_cxo` is a deferred tool. Load it first with `ToolSearch` query
+  `select:mcp__org__send_to_cxo`, then send to the name `bash scripts/live-sessions.sh` prints for your
+  C-level. "The letter tool isn't loaded" is never a reason to stop or to leave a report in your own chat:
+  on 5 Nov PH KhaoHom wrote its report into its own pane, went idle, and missed the CEO's 19:00 deadline.
 - The subject is the conclusion, ≤80 characters, so the reader can act on the subject alone. Put the body in the
   letter.
 - Start the message with `kind · prio ·` (kind: ask, blocker, report or fyi; prio: urgent only for ask, blocker,
