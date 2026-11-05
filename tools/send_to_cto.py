@@ -57,6 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import mailbox  # noqa: E402
 from lib.config import display_for, live_c_level_roles  # noqa: E402
+from lib.roles import PH_ROLE  # noqa: E402
 from tools import agent_transport, session_name  # noqa: E402
 from tools.agent_transport import _wake_tmux_send  # noqa: E402
 
@@ -91,7 +92,18 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
     `send_fn=_wake_tmux_send` is this module's own imported reference,
     resolved in THIS module's globals, so a test that monkeypatches
     `tools.send_to_cto._wake_tmux_send` is still honored.
+
+    A Project Head while Claude is spent (CEO 4 Nov 2026): its Haiku shell cannot take
+    a turn, so the pane is not typed into; `mail_wake.handle_ph` runs its AGY brain on
+    the letter instead. A C-level, and a PH when Claude is not spent, wake as before.
     """
+    if role == PH_ROLE:
+        try:
+            from tools import mail_wake      # lazy: only a PH wake pays for it
+            if mail_wake.handle_ph(session_id) is not None:
+                return
+        except Exception:
+            pass                             # the fallback never costs the wake it replaces
     session = session_name.lock_basename(role, session_id)
     agent_transport.attempt_wake(session, label, "send_to_cto", send_fn=_wake_tmux_send)
 
