@@ -305,8 +305,15 @@ def _cpu_facts() -> tuple[int | None, float | None]:
         return cpus, None
 
 
+# launchd and systemd give a short PATH (no ~/.local/bin, no /opt/homebrew/bin), so the Mac
+# publisher reported runners [] and every Mac spawn was refused "no usable runner" (5 Nov).
+_RUNNER_DIRS = ("~/.local/bin", "/opt/homebrew/bin", "/usr/local/bin", "~/.npm-global/bin", "~/bin")
+
+
 def _installed_runners() -> list[str]:
-    return sorted(n for n in ("claude", "codex", "agy") if shutil.which(n))
+    extra = os.pathsep.join(os.path.expanduser(d) for d in _RUNNER_DIRS)
+    path = os.environ.get("PATH", "") + os.pathsep + extra
+    return sorted(n for n in ("claude", "codex", "agy") if shutil.which(n, path=path))
 
 
 # W4.4 (task-49f70bc6): `provides` measured on the node, never read from
