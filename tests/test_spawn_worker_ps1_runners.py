@@ -95,7 +95,9 @@ def test_claude_launch_path_is_unchanged_regression():
         "if (-not (Test-Path $claude)) { $claude = 'claude' }",
         "$claudeArgsSplit = @($ClaudeArgs -split '\\s+' | Where-Object { $_ -ne '' })",
         "$argList = @([string]$taskContent, '-n', [string]$SessionName, "
-        "'--append-system-prompt', [string]$systemPrompt) + $claudeArgsSplit",
+        "'--append-system-prompt-file', [string]$systemPromptPath) + $claudeArgsSplit",
+        # The prompt itself is written to a file (Windows 32,767-char command line).
+        "$systemPromptPath = Join-Path $launchDir 'system-prompt.md'",
     ]
     for snippet in must_contain:
         assert snippet in code, f"claude launch regression: missing {snippet!r}"
