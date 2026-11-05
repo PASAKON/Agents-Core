@@ -25,6 +25,7 @@ class FakeFal:
         self.submits = []
         self.keyed_urls = []
         self.downloads = []
+        self.uploads = []
 
     def http_json(self, url, key, body=None):
         assert key == KEY
@@ -39,6 +40,11 @@ class FakeFal:
         if url.endswith("/status"):
             return {"status": "COMPLETED"}
         return {"audio": {"url": "https://v3.fal.media/files/a.mp3"}, "timestamps": []}
+
+    def upload(self, path, key):
+        assert key == KEY
+        self.uploads.append(path)
+        return f"https://v3.fal.media/files/{path.name}"
 
     def download(self, url, dest):
         self.downloads.append(url)
@@ -56,6 +62,7 @@ def work(tmp_path, monkeypatch):
 def fal(monkeypatch):
     fake = FakeFal()
     monkeypatch.setattr(fal_tts, "http_json", fake.http_json)
+    monkeypatch.setattr(fal_tts, "upload", fake.upload)
     monkeypatch.setattr(fal_tts, "download", fake.download)
     return fake
 
@@ -157,7 +164,7 @@ def test_dry_run_calls_nothing_and_writes_nothing(work, fal, monkeypatch):
 
 @pytest.mark.parametrize("args", [["--max", "1"], ["--max-u", "1"], ["--max-usd", "1e3"],
                                   ["--max-usd", "nan"], ["--max-usd", "-1"], ["--max-usd", "1 "],
-                                  ["--max-usd", "1\n"]])
+                                  ["--max-usd", "1\n"], ["--max-usd", "1", "--max-usd", "2"]])
 def test_only_the_exact_cap_flag_with_a_plain_number(work, fal, args):
     job = make_job(work, n=1)
     with pytest.raises(SystemExit) as e:
@@ -541,3 +548,122 @@ def test_an_http_client_or_parser_error_is_a_failed_call(work, fal, monkeypatch,
     assert f"FAIL h1: {exc.__class__.__name__}" in capsys.readouterr().out
     rows = [json.loads(line) for line in (work / "job.ledger.jsonl").read_text().splitlines()]
     assert [r["what"] for r in rows] == ["attempt", "result"] and rows[1]["ok"] is False
+
+
+SEED_PRICE = fal_tts.PRICES[fal_tts.SEED]
+
+
+def make_seed_job(work, n=2, chars=100, top_ref=True, **call):
+    ref = work / "ref.mp3"
+    if not ref.exists():
+        ref.write_bytes(b"ID3-ref")
+    calls = []
+    for i in range(1, n + 1):
+        t = work / f"s{i}.txt"
+        t.write_text(str(i) + "ก" * (chars - 1), encoding="utf-8")
+        c = {"name": f"s{i}", "text_file": str(t), **call}
+        if not top_ref and "reference_audio" not in c:
+            c["reference_audio"] = str(ref)
+        calls.append(c)
+    job = {"model": fal_tts.SEED, "out_dir": str(work / "takes"), "calls": calls}
+    if top_ref:
+        job["reference_audio"] = str(ref)
+    p = work / "job.json"
+    p.write_text(json.dumps(job), encoding="utf-8")
+    return p
+
+
+def test_seed_uploads_reference_once_and_sends_prompt_and_audio_urls(work, fal):
+    job = make_seed_job(work, n=2, chars=100)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == 0
+    assert fal.uploads == [work / "ref.mp3"]
+    assert fal.submits == [
+        {"prompt": "1" + "ก" * 99, "audio_urls": ["https://v3.fal.media/files/ref.mp3"],
+         "multilingual": True, "output_format": "mp3"},
+        {"prompt": "2" + "ก" * 99, "audio_urls": ["https://v3.fal.media/files/ref.mp3"],
+         "multilingual": True, "output_format": "mp3"},
+    ]
+    assert fal.keyed_urls[0] == fal_tts.QUEUE + "bytedance/seed-audio-1.0"
+    assert attempts(work)[0]["usd"] == round(100 * SEED_PRICE, 6)
+    assert attempts(work)[0]["voice"] == "ref.mp3"
+    assert sorted(p.name for p in (work / "takes").glob("*.mp3")) == ["s1.mp3", "s2.mp3"]
+
+
+def test_seed_stops_before_cap_and_uploads_nothing_when_first_call_exceeds_cap(work, fal):
+    job = make_seed_job(work, n=2, chars=100)  # $0.03125 each
+    assert fal_tts.main(["--job", str(job), "--max-usd", "0.02"]) == fal_tts.EXIT_CAP
+    assert not fal.uploads and not fal.submits and not attempts(work)
+
+
+def test_seed_dry_run_uploads_nothing_and_fetches_no_key(work, fal, monkeypatch):
+    monkeypatch.setattr(fal_tts, "fetch_key", lambda: pytest.fail("a dry run must not fetch the key"))
+    job = make_seed_job(work, n=2, chars=100)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "0.07", "--dry-run"]) == 0
+    assert not fal.uploads and not fal.submits and not (work / "job.ledger.jsonl").exists()
+
+
+def test_seed_duration_overrun_counts_toward_cap_and_reruns(work, fal, monkeypatch):
+    real = fal.http_json
+
+    def slow_audio(url, key, body=None):
+        res = real(url, key, body)
+        if body is None and not url.endswith("/status"):
+            res["audio"]["duration"] = 20.0  # $0.0625 actual vs $0.03125 estimate for 100 chars
+        return res
+
+    monkeypatch.setattr(fal_tts, "http_json", slow_audio)
+    job = make_seed_job(work, n=2, chars=100)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "0.07"]) == fal_tts.EXIT_CAP
+    assert len(fal.submits) == 1
+    assert fal_tts.main(["--job", str(job), "--max-usd", "0.09"]) == fal_tts.EXIT_CAP
+    assert len(fal.submits) == 1  # $0.0625 spent + $0.03125 next call = $0.09375 > $0.09
+
+
+@pytest.mark.parametrize("call_change", [
+    {"voice": "Brian"}, {"stability": 0.5}, {"multilingual": "yes"}, {"reference_audio": "relative.mp3"},
+])
+def test_a_bad_seed_call_spends_nothing(work, fal, call_change):
+    job = make_seed_job(work, n=1, **call_change)
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
+    assert not fal.uploads and not fal.submits
+
+
+def test_seed_requires_valid_reference_audio_under_work(work, fal, tmp_path_factory):
+    outside = tmp_path_factory.mktemp("outside")
+    (outside / "ref.mp3").write_bytes(b"ID3")
+    job = make_seed_job(work, n=1, top_ref=False)
+    data = json.loads(job.read_text())
+    del data["calls"][0]["reference_audio"]
+    job.write_text(json.dumps(data))
+    assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
+    for bad in (str(outside / "ref.mp3"), str(work / "missing.mp3"), str(work / "s1.txt")):
+        data["reference_audio"] = bad
+        job.write_text(json.dumps(data))
+        assert fal_tts.main(["--job", str(job), "--max-usd", "1"]) == fal_tts.EXIT_BAD
+    assert not fal.uploads and not fal.submits
+
+
+def test_upload_puts_to_fal_storage_without_key_and_refuses_foreign_urls(tmp_path, monkeypatch):
+    ref = tmp_path / "ref.mp3"
+    ref.write_bytes(b"ID3-bytes")
+    seen = []
+
+    def fake_open(req, timeout):
+        seen.append(req)
+        if req.full_url == fal_tts.UPLOAD_URL:
+            return FakeAnswer(json.dumps({"upload_url": "https://v3b.fal.media/upload/ref.mp3",
+                                          "file_url": "https://v3b.fal.media/files/ref.mp3"}).encode())
+        return FakeAnswer(b"")
+
+    monkeypatch.setattr(fal_tts, "_queue_open", fake_open)
+    url = fal_tts.upload(ref, KEY)
+    assert url == "https://v3b.fal.media/files/ref.mp3" and len(seen) == 2
+    assert seen[0].get_header("Authorization") == f"Key {KEY}"
+    assert not seen[1].has_header("Authorization") and seen[1].get_method() == "PUT"
+    assert seen[1].data == b"ID3-bytes"
+
+    monkeypatch.setattr(fal_tts, "_queue_open", lambda req, timeout: FakeAnswer(
+        json.dumps({"upload_url": "https://evil.example/up", "file_url": "https://v3.fal.media/f"}).encode()))
+    with pytest.raises(fal_tts.FalError) as e:
+        fal_tts.upload(ref, KEY)
+    assert "fal storage" in str(e.value)
