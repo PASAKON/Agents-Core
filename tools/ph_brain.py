@@ -640,6 +640,11 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.json:
                 print(json.dumps(res, ensure_ascii=False))
+            elif not res.get("ok"):
+                # A timed-out turn has no bucket/turn_count; say so instead of a KeyError.
+                print(f"[PH#{res['ph_id']} | brain turn FAILED: model={res.get('model_used')} timed out | "
+                      f"conv={res.get('conversation_id')}]\n{res.get('response') or ''}")
+                return 1
             else:
                 fb = " [FALLBACK -> Argon High]" if res["fallback_triggered"] else ""
                 print(
