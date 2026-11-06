@@ -32,6 +32,8 @@ from tools import run_watch  # noqa: E402
 ACTIONS = ("start", "stop", "restart", "give_up", "none")
 
 DEFAULT_MODEL = "haiku"
+# PH rows live in a separate local terminal pane created by run_watch_driver.
+# They never enter this model's prompt or change PH session names.
 EMPTY_MCP_CONFIG = '{"mcpServers":{}}'
 PERMISSION_MODE = "dontAsk"
 ALLOWED_TOOL = "Bash(bash scripts/hub/org-python.sh tools/run_watch.py *)"
