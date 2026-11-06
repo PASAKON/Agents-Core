@@ -84,6 +84,16 @@ def calculate(history, now):
         before = [r for r in records if timestamp(r["ts"]) <= start]
         today = [r for r in records if timestamp(r["ts"]) > start]
         records = before[-1:] + today
+        # A weekly reset starts a new budget, including when it occurs midday.
+        last_reset = 0
+        for index, (previous, current) in enumerate(zip(records, records[1:]), 1):
+            try:
+                reset_moved = timestamp(current.get("weekly_resets_at")) > timestamp(previous.get("weekly_resets_at"))
+            except (ValueError, TypeError, AttributeError):
+                reset_moved = False
+            if weekly(current) > weekly(previous) + .02 or reset_moved:
+                last_reset = index
+        records = records[last_reset:]
         latest = records[-1] if records else {}
         initial = weekly(records[0]) if records else None
         reset = latest.get("weekly_resets_at")

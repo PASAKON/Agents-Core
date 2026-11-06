@@ -41,9 +41,54 @@ def test_midday_reset_positive_drops_only():
     rows = [row("2026-10-21T23:59:00+07:00", .2), row("2026-10-22T09:00:00+07:00", .1),
             row("2026-10-22T10:00:00+07:00", 1), row(NOW.isoformat(), .8)]
     result = calc(rows)
-    assert result["used"] == pytest.approx(.3)
+    assert result["start_remaining"] == 1
+    assert result["used"] == pytest.approx(.2)
+    assert result["target"] == pytest.approx(1 / 3)
+    assert result["headroom"] == pytest.approx(1 / 3 - .2)
+
+
+@pytest.mark.parametrize("provider, label", [("codex", "chatgpt"), ("agy-claude", "agy-claude")])
+def test_zero_midnight_midday_reset(provider, label):
+    rows = [row("2026-10-22T00:00:00+07:00", 0, provider=provider),
+            row("2026-10-22T11:30:00+07:00", .93, provider=provider),
+            row(NOW.isoformat(), .93, provider=provider)]
+    result = budget.calculate(rows, NOW)["rows"][label]
+    assert result["start_remaining"] == .93
+    assert result["used"] == 0
+    assert result["target"] > 0
+    assert result["state"] == "under"
+
+
+def test_zero_start_without_reset_still_over():
+    rows = [row("2026-10-22T00:00:00+07:00", 0),
+            row("2026-10-22T10:00:00+07:00", .02), row(NOW.isoformat(), .01)]
+    result = calc(rows)
+    assert result["start_remaining"] == 0
+    assert result["target"] == 0
+    assert result["used"] == pytest.approx(.01)
     assert result["state"] == "over"
-    assert result["headroom"] < 0
+
+
+def test_last_reset_in_window_and_latest_reset_date():
+    later_reset = "2026-10-29T12:00:00+07:00"
+    rows = [row("2026-10-22T00:00:00+07:00", .1),
+            row("2026-10-22T09:00:00+07:00", .9),
+            row("2026-10-22T10:00:00+07:00", .8),
+            row("2026-10-22T11:00:00+07:00", .7, weekly_resets_at=later_reset),
+            row(NOW.isoformat(), .6, weekly_resets_at=later_reset)]
+    result = calc(rows)
+    assert result["start_remaining"] == .7
+    assert result["used"] == pytest.approx(.1)
+    assert result["days_left"] == 8
+    assert result["target"] == pytest.approx(.7 / 8)
+
+
+@pytest.mark.parametrize("reset", [None, "invalid"])
+def test_value_reset_with_unusable_previous_reset_date(reset):
+    result = calc([row("2026-10-22T00:00:00+07:00", 0, weekly_resets_at=reset),
+                   row(NOW.isoformat(), .93)])
+    assert result["start_remaining"] == .93
+    assert result["state"] == "under"
 
 
 def test_raw_bonus_and_old_history(tmp_path):
