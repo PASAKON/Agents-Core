@@ -10,6 +10,16 @@ import pytest
 from tools import ph_brain
 
 
+@pytest.fixture(autouse=True)
+def isolated_ph_hub(monkeypatch, tmp_path):
+    from lib import db
+    monkeypatch.delenv('ORG_DB_URL', raising=False)
+    monkeypatch.setattr(db, 'DB_PATH', tmp_path / 'tasks.db')
+    monkeypatch.setattr(ph_brain.ph_state, 'host_name', lambda: 'contabo')
+    monkeypatch.setattr(ph_brain.ph_state, 'require_hub', lambda: None)
+    ph_brain.ph_state.init()
+
+
 def _write_snapshot(tmp_path: Path, agy_claude_weekly: float, agy_gemini_weekly: float = 0.96) -> Path:
     snap = tmp_path / "quota-snapshot.json"
     snap.write_text(
@@ -148,6 +158,7 @@ def test_ensure_browser_agy_brief_passes_route_class_for():
 
 
 def test_invoke_agy_runs_in_plan_mode_and_returns_on_timeout(monkeypatch):
+    monkeypatch.setattr(ph_brain, '_IN_TURN', type('Guard', (), {'get': lambda self: True})())
     seen = {}
 
     def fake_run(cmd, **kw):

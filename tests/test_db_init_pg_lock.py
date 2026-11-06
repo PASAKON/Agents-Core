@@ -58,7 +58,7 @@ class _Catalog:
 def _complete_catalog():
     relations = set()
     for script in (db_pg.PG_SCHEMA, db_mod.JOIN_TOKENS_SCHEMA,
-                   db_mod.NODE_SECRETS_SCHEMA):
+                   db_mod.NODE_SECRETS_SCHEMA, db_mod.PH_STATE_SCHEMA):
         relations |= {n.lower() for n in re.findall(r"(?i)IF NOT EXISTS\s+(\w+)", script)}
     columns = {("tasks", c) for c, _ in db_mod._MIGRATION_COLUMNS}
     columns |= {("c_level_sessions", c) for c, _ in db_mod._C_LEVEL_SESSION_MIGRATION}
