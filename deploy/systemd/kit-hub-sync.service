@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish Contabo local main through a scanned PR
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_ROOT=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_HOST=contabo
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/hub_sync.py --go
+
