@@ -84,6 +84,21 @@ def calculate(history, now):
         before = [r for r in records if timestamp(r["ts"]) <= start]
         today = [r for r in records if timestamp(r["ts"]) > start]
         records = before[-1:] + today
+        last_reset = 0
+        for index in range(1, len(records)):
+            previous, current = records[index - 1], records[index]
+            reset_moved = False
+            previous_reset = previous.get("weekly_resets_at")
+            current_reset = current.get("weekly_resets_at")
+            if previous_reset is not None and current_reset is not None:
+                try:
+                    # Estimated reset times jitter on reads; only substantial moves count.
+                    reset_moved = timestamp(current_reset) - timestamp(previous_reset) >= timedelta(hours=1)
+                except (ValueError, TypeError, AttributeError):
+                    pass
+            if weekly(current) - weekly(previous) > 0.02 or reset_moved:
+                last_reset = index
+        records = records[last_reset:]
         latest = records[-1] if records else {}
         initial = weekly(records[0]) if records else None
         reset = latest.get("weekly_resets_at")
