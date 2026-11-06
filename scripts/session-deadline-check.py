@@ -30,6 +30,9 @@ Design
 import os
 import sys
 import json
+import subprocess
+import time
+from pathlib import Path
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -72,7 +75,43 @@ def load_env(path):
     return env
 
 
+def kit_line(budget):
+    root = Path(__file__).resolve().parents[1]
+    deadline = time.monotonic() + budget
+    try:
+        for command in ('pull', 'check'):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                print('kit check skipped: no time left')
+                return
+            child_budget = min(3.0, remaining) if command == 'pull' else remaining
+            result = subprocess.run(
+                [sys.executable, str(root / 'tools/kit_sync.py'), command,
+                 '--budget', str(child_budget)],
+                cwd=root, capture_output=True, text=True,
+                timeout=child_budget + 1.0,
+            )
+            if result.returncode:
+                raise RuntimeError('kit command failed')
+        lines = result.stdout.strip().splitlines()
+        if len(lines) != 1:
+            raise ValueError('invalid kit check output')
+        print(lines[0])
+    except Exception as exc:
+        print(f'kit check skipped: {type(exc).__name__}')
+
+
 def main():
+    deadline = time.monotonic() + 7.0
+    try:
+        print_deadlines()
+    finally:
+        sys.stdout.flush()
+        kit_line(deadline - time.monotonic() - 0.5)
+    return deadline
+
+
+def print_deadlines():
     env = load_env(ENV_PATH)
     url = env.get("SUPABASE_URL")
     key = env.get("SUPABASE_SECRET_KEY")
@@ -150,7 +189,7 @@ def main():
     print("\n".join(out))
 
 
-def box_disk_warning():
+def box_disk_warning(budget=0):
     """Surface the Cookie Run data steward's disk warning from the Windows box.
 
     tools/disksense.py on winbox writes ledger/DISK-WARNING.txt when C: runs low or
@@ -159,11 +198,13 @@ def box_disk_warning():
     no file → prints nothing.
     """
     import subprocess
+    if budget <= 0:
+        return
     try:
         r = subprocess.run(
             ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "winbox",
              "cmd /c type C:\\Users\\UsEr\\Documents\\CookieRunScript\\ledger\\DISK-WARNING.txt"],
-            capture_output=True, text=True, timeout=12)
+            capture_output=True, text=True, timeout=budget)
     except Exception:
         return
     body = (r.stdout or "").strip()
@@ -174,12 +215,13 @@ def box_disk_warning():
 
 
 if __name__ == "__main__":
+    deadline = time.monotonic()
     try:
-        main()
+        deadline = main()
     except Exception:
         pass  # never block session start
     try:
-        box_disk_warning()
+        box_disk_warning(max(0, deadline - time.monotonic()))
     except Exception:
         pass
     sys.exit(0)
