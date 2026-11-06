@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+  <title>Scene 1 - Terminal Start (Illustrative Simulation)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: radial-gradient(circle at 35% 25%, #111c33 0%, #080d18 65%, #050811 100%);
+      font-family: "JetBrains Mono", "Fira Code", "Noto Sans Thai", "Sarabun", monospace, sans-serif;
+      color: #e2e8f0;
+      position: relative;
+    }
+    /* Subtle background grid */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    /* TikTok 9:16 Safe Zone: top >= 150px, bottom >= 320px, right >= 140px, left >= 48px */
+    .safe-zone {
+      position: absolute;
+      top: 165px;
+      bottom: 335px;
+      left: 56px;
+      right: 154px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 28px;
+    }
+    .top-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sim-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      align-self: flex-start;
+      background: rgba(14, 165, 233, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #7dd3fc;
+      white-space: nowrap;
+    }
+    .sim-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 12px #38bdf8;
+    }
+    .scene-title {
+      font-size: 42px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
+    .scene-subtitle {
+      font-size: 24px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .terminal-card {
+      flex: 1;
+      background: rgba(10, 15, 28, 0.94);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .terminal-header {
+      height: 64px;
+      background: #131c31;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.45);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      justify-content: space-between;
+    }
+    .window-dots {
+      display: flex;
+      gap: 12px;
+    }
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+    .dot.red { background: #ef4444; }
+    .dot.amber { background: #f59e0b; }
+    .dot.green { background: #10b981; }
+    .terminal-title {
+      font-size: 20px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .terminal-mode {
+      font-size: 18px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .terminal-body {
+      flex: 1;
+      padding: 34px 30px;
+      font-size: 23px;
+      line-height: 1.65;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .cmd-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .prompt-user {
+      color: #34d399;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .cmd-text {
+      color: #f8fafc;
+      word-break: break-all;
+    }
+    .cursor {
+      display: inline-block;
+      width: 13px;
+      height: 26px;
+      background: #38bdf8;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+    .log-container {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-top: 1px dashed rgba(71, 85, 105, 0.45);
+      padding-top: 24px;
+    }
+    .log-line {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      font-size: 21px;
+      color: #cbd5e1;
+    }
+    .log-line.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .log-ts {
+      color: #64748b;
+      margin-right: 10px;
+    }
+    .log-tag-info {
+      color: #38bdf8;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .log-tag-ok {
+      color: #34d399;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .status-footer {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 20px;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status-label {
+      font-size: 24px;
+      font-weight: 700;
+      color: #34d399;
+      white-space: nowrap;
+    }
+    .status-clock {
+      font-size: 22px;
+      color: #e2e8f0;
+      background: rgba(52, 211, 153, 0.15);
+      padding: 6px 14px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .disclaimer-note {
+      font-size: 18px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <main class="safe-zone">
+    <header class="top-banner">
+      <div class="sim-pill">
+        <span class="sim-dot"></span>
+        <span>ภาพจำลองการทำงาน (Illustrative Backtest Demo)</span>
+      </div>
+      <h1 class="scene-title">ขั้นตอนที่ 1: สั่งรันชุดทดสอบย้อนหลัง</h1>
+      <p class="scene-subtitle">จำลองการเปิดคำสั่งทดสอบ EA ก่อนปล่อยประมวลผลข้ามคืน</p>
+    </header>
+
+    <section class="terminal-card">
+      <div class="terminal-header">
+        <div class="window-dots">
+          <span class="dot red"></span>
+          <span class="dot amber"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="terminal-title">sim-lab@backtest-node:~/ea-sandbox</div>
+        <div class="terminal-mode">SIMULATION ONLY</div>
+      </div>
+
+      <div class="terminal-body">
+        <div class="cmd-row">
+          <span class="prompt-user">trader@sim-lab:~$</span>
+          <span class="cmd-text"><span id="typed-cmd"></span><span id="cursor" class="cursor"></span></span>
+        </div>
+
+        <div class="log-container" id="log-container">
+          <div class="log-line" id="log-0">
+            <span class="log-ts">[23:00:01]</span>
+            <span class="log-tag-info">[INIT]</span>
+            <span>Booting illustrative sandbox runner v2.4 (dry-run simulation)</span>
+          </div>
+          <div class="log-line" id="log-1">
+            <span class="log-ts">[23:00:02]</span>
+            <span class="log-tag-info">[DATA]</span>
+            <span>Loaded synthetic historical dataset: XAUUSD_M15 (120,000 bars)</span>
+          </div>
+          <div class="log-line" id="log-2">
+            <span class="log-ts">[23:00:03]</span>
+            <span class="log-tag-info">[CFG]</span>
+            <span>Parameters: Step=250 pts | MaxLots=0.05 | Mode=Illustrative</span>
+          </div>
+          <div class="log-line" id="log-3">
+            <span class="log-ts">[23:00:04]</span>
+            <span class="log-tag-info">[QUEUE]</span>
+            <span>Scheduled 24 parameter passes for overnight batch evaluation</span>
+          </div>
+          <div class="log-line" id="log-4">
+            <span class="log-ts">[23:00:05]</span>
+            <span class="log-tag-ok">[START]</span>
+            <span>Overnight backtest worker active (PID 4821) - logging to file</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="status-footer">
+      <div class="status-row">
+        <span class="status-label" id="status-text">สถานะจำลอง: กำลังพิมพ์คำสั่งเริ่มต้น...</span>
+        <span class="status-clock" id="sim-clock">TIME 23:00:00</span>
+      </div>
+      <div class="disclaimer-note">* ภาพจำลองเพื่อประกอบการอธิบายขั้นตอนทางเทคนิคเท่านั้น ไม่ใช่ผลลัพธ์จริง</div>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      const fullCommand = './run_backtest.sh --ea "GridMomentum_Sim" --symbol XAUUSD --bars 120000 --illustrative';
+      const typedEl = document.getElementById('typed-cmd');
+      const cursorEl = document.getElementById('cursor');
+      const statusTextEl = document.getElementById('status-text');
+      const simClockEl = document.getElementById('sim-clock');
+      const logEls = [
+        document.getElementById('log-0'),
+        document.getElementById('log-1'),
+        document.getElementById('log-2'),
+        document.getElementById('log-3'),
+        document.getElementById('log-4')
+      ];
+
+      const logScheduleMs = [1900, 2450, 3000, 3550, 4100];
+
+      function renderAt(ms) {
+        const clampedMs = Math.max(0, ms);
+        const typingDuration = 1700;
+        const charProgress = Math.min(1, clampedMs / typingDuration);
+        const charCount = Math.floor(charProgress * fullCommand.length);
+        typedEl.textContent = fullCommand.slice(0, charCount);
+
+        const blinkVisible = Math.floor(clampedMs / 350) % 2 === 0 || clampedMs < typingDuration;
+        cursorEl.style.opacity = blinkVisible ? '1' : '0.15';
+
+        for (let i = 0; i < logEls.length; i++) {
+          if (clampedMs >= logScheduleMs[i]) {
+            logEls[i].classList.add('visible');
+          } else {
+            logEls[i].classList.remove('visible');
+          }
+        }
+
+        if (clampedMs < typingDuration) {
+          statusTextEl.textContent = 'สถานะจำลอง: กำลังพิมพ์คำสั่งเริ่มต้น...';
+          simClockEl.textContent = 'TIME 23:00:00';
+        } else if (clampedMs < 4100) {
+          statusTextEl.textContent = 'สถานะจำลอง: กำลังโหลดข้อมูลจำลองเข้าสู่ระบบ...';
+          const sec = Math.min(4, Math.floor((clampedMs - 1400) / 600));
+          simClockEl.textContent = 'TIME 23:00:0' + sec;
+        } else {
+          statusTextEl.textContent = 'สถานะจำลอง: เริ่มรันชุดทดสอบข้ามคืนเรียบร้อย';
+          simClockEl.textContent = 'TIME 23:00:05';
+        }
+      }
+
+      let manualTimeMs = null;
+      window.__setTime = function (ms) {
+        manualTimeMs = ms;
+        renderAt(ms);
+      };
+
+      const startWall = performance.now();
+      function loop(now) {
+        if (manualTimeMs === null) {
+          renderAt(now - startWall);
+          requestAnimationFrame(loop);
+        }
+      }
+      renderAt(0);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

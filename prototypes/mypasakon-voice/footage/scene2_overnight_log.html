@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+  <title>Scene 2 - Overnight Log (Illustrative Simulation)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: radial-gradient(circle at 65% 20%, #0f1f38 0%, #070c17 65%, #04070e 100%);
+      font-family: "JetBrains Mono", "Fira Code", "Noto Sans Thai", "Sarabun", monospace, sans-serif;
+      color: #e2e8f0;
+      position: relative;
+    }
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(52, 211, 153, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(52, 211, 153, 0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    /* TikTok Safe Zone: top >= 150px, bottom >= 320px, right >= 140px */
+    .safe-zone {
+      position: absolute;
+      top: 165px;
+      bottom: 335px;
+      left: 56px;
+      right: 154px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .top-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sim-badge {
+      background: rgba(52, 211, 153, 0.14);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      color: #6ee7b7;
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-size: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .clock-pill {
+      background: #111c30;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      padding: 8px 20px;
+      border-radius: 12px;
+      font-size: 22px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .scene-title {
+      font-size: 40px;
+      font-weight: 800;
+      color: #f8fafc;
+      white-space: nowrap;
+    }
+    .progress-panel {
+      background: rgba(13, 21, 38, 0.94);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 22px;
+      padding: 26px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    }
+    .progress-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .progress-label {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .progress-pct {
+      font-size: 36px;
+      font-weight: 800;
+      color: #34d399;
+      white-space: nowrap;
+    }
+    .progress-track {
+      width: 100%;
+      height: 28px;
+      background: #090f1d;
+      border-radius: 14px;
+      border: 1px solid rgba(71, 85, 105, 0.5);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 8%;
+      background: linear-gradient(90deg, #0ea5e9 0%, #10b981 100%);
+      border-radius: 14px;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.55);
+    }
+    .metrics-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .mini-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mini-title {
+      font-size: 17px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .mini-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f8fafc;
+      white-space: nowrap;
+    }
+    .log-stream-card {
+      flex: 1;
+      background: rgba(9, 14, 26, 0.95);
+      border: 1px solid rgba(71, 85, 105, 0.5);
+      border-radius: 22px;
+      padding: 24px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+    .stream-header {
+      font-size: 20px;
+      color: #94a3b8;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      white-space: nowrap;
+    }
+    .log-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 19px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(19, 29, 51, 0.55);
+      border-left: 4px solid #38bdf8;
+      opacity: 0.15;
+      transform: translateX(-8px);
+      white-space: nowrap;
+    }
+    .log-item.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .log-item.done {
+      border-left-color: #34d399;
+    }
+    .ts-chip {
+      color: #7dd3fc;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pass-chip {
+      color: #fcd34d;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .msg-chip {
+      color: #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .footer-disclaimer {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 16px;
+      padding: 16px 22px;
+      font-size: 18px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <main class="safe-zone">
+    <header class="top-header">
+      <div class="header-top-row">
+        <span class="sim-badge">จำลองล็อกประมวลผลข้ามคืน (Illustrative Log)</span>
+        <span class="clock-pill" id="clock-pill">SIM CLOCK 23:15:00</span>
+      </div>
+      <h1 class="scene-title">ขั้นตอนที่ 2: ประมวลผลข้อมูลย้อนหลังช่วงกลางคืน</h1>
+    </header>
+
+    <section class="progress-panel">
+      <div class="progress-stats-row">
+        <span class="progress-label">ความคืบหน้าการรันชุดจำลอง (Batch Progress)</span>
+        <span class="progress-pct" id="pct-text">08%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="metrics-mini-grid">
+        <div class="mini-box">
+          <span class="mini-title">แท่งเทียนจำลอง (Sim Bars)</span>
+          <span class="mini-val" id="bars-val">9,600 / 120,000</span>
+        </div>
+        <div class="mini-box">
+          <span class="mini-title">รอบทดสอบ (Sim Pass)</span>
+          <span class="mini-val" id="pass-val">02 / 24</span>
+        </div>
+        <div class="mini-box">
+          <span class="mini-title">เวลาจำลองที่ผ่านไป</span>
+          <span class="mini-val" id="elapsed-val">00h 30m</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="log-stream-card">
+      <div class="stream-header">
+        <span>overnight_backtest_sim.log (Illustrative Numbers Only)</span>
+        <span>MODE: SYNTHETIC</span>
+      </div>
+      <div class="log-rows">
+        <div class="log-item active" id="row-0">
+          <span class="ts-chip">[23:15:04]</span>
+          <span class="pass-chip">PASS #02</span>
+          <span class="msg-chip">10,000 bars scanned | Spread filter nominal (sim)</span>
+        </div>
+        <div class="log-item" id="row-1">
+          <span class="ts-chip">[00:20:19]</span>
+          <span class="pass-chip">PASS #06</span>
+          <span class="msg-chip">30,000 bars scanned | Drawdown guard check OK (sim)</span>
+        </div>
+        <div class="log-item" id="row-2">
+          <span class="ts-chip">[01:35:42]</span>
+          <span class="pass-chip">PASS #10</span>
+          <span class="msg-chip">50,000 bars scanned | Session volatility gate tested</span>
+        </div>
+        <div class="log-item" id="row-3">
+          <span class="ts-chip">[02:50:11]</span>
+          <span class="pass-chip">PASS #14</span>
+          <span class="msg-chip">70,000 bars scanned | Re-entry spacing verified (sim)</span>
+        </div>
+        <div class="log-item" id="row-4">
+          <span class="ts-chip">[04:10:33]</span>
+          <span class="pass-chip">PASS #19</span>
+          <span class="msg-chip">95,000 bars scanned | Margin buffer within sim threshold</span>
+        </div>
+        <div class="log-item" id="row-5">
+          <span class="ts-chip">[05:30:08]</span>
+          <span class="pass-chip">PASS #22</span>
+          <span class="msg-chip">110,000 bars scanned | Overnight stress slice complete</span>
+        </div>
+        <div class="log-item done" id="row-6">
+          <span class="ts-chip">[05:59:58]</span>
+          <span class="pass-chip">PASS #24</span>
+          <span class="msg-chip">120,000 bars scanned | All illustrative passes finished</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer-disclaimer">
+      * ตัวเลขและเวลาในหน้าจอนี้เป็นการจำลองเพื่อสาธิตการทำงานเท่านั้น ไม่ใช่ผลประกอบการจริง
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      const pctText = document.getElementById('pct-text');
+      const progressFill = document.getElementById('progress-fill');
+      const barsVal = document.getElementById('bars-val');
+      const passVal = document.getElementById('pass-val');
+      const elapsedVal = document.getElementById('elapsed-val');
+      const clockPill = document.getElementById('clock-pill');
+      const rows = [
+        document.getElementById('row-0'),
+        document.getElementById('row-1'),
+        document.getElementById('row-2'),
+        document.getElementById('row-3'),
+        document.getElementById('row-4'),
+        document.getElementById('row-5'),
+        document.getElementById('row-6')
+      ];
+
+      const clockSnapshots = [
+        'SIM CLOCK 23:15:04',
+        'SIM CLOCK 00:20:19',
+        'SIM CLOCK 01:35:42',
+        'SIM CLOCK 02:50:11',
+        'SIM CLOCK 04:10:33',
+        'SIM CLOCK 05:30:08',
+        'SIM CLOCK 05:59:58'
+      ];
+
+      function formatNumber(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      function renderAt(ms) {
+        const duration = 4500;
+        const p = Math.max(0, Math.min(1, ms / duration));
+        const pct = Math.round(8 + p * 92);
+        pctText.textContent = (pct < 10 ? '0' + pct : pct) + '%';
+        progressFill.style.width = pct + '%';
+
+        const bars = Math.round((pct / 100) * 120000);
+        barsVal.textContent = formatNumber(bars) + ' / 120,000';
+
+        const passNum = Math.max(2, Math.min(24, Math.round((pct / 100) * 24)));
+        passVal.textContent = (passNum < 10 ? '0' + passNum : passNum) + ' / 24';
+
+        const totalSimMinutes = Math.round(30 + p * 390);
+        const h = Math.floor(totalSimMinutes / 60);
+        const m = totalSimMinutes % 60;
+        elapsedVal.textContent =
+          (h < 10 ? '0' + h : h) + 'h ' + (m < 10 ? '0' + m : m) + 'm';
+
+        const activeCount = Math.min(rows.length, 1 + Math.floor(p * rows.length));
+        for (let i = 0; i < rows.length; i++) {
+          if (i < activeCount) {
+            rows[i].classList.add('active');
+          } else {
+            rows[i].classList.remove('active');
+          }
+        }
+        const clockIdx = Math.min(clockSnapshots.length - 1, activeCount - 1);
+        clockPill.textContent = clockSnapshots[clockIdx];
+      }
+
+      let manualTimeMs = null;
+      window.__setTime = function (ms) {
+        manualTimeMs = ms;
+        renderAt(ms);
+      };
+
+      const startWall = performance.now();
+      function loop(now) {
+        if (manualTimeMs === null) {
+          renderAt(now - startWall);
+          requestAnimationFrame(loop);
+        }
+      }
+      renderAt(0);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
