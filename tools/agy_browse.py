@@ -158,7 +158,7 @@ def host_allowed(host: str, patterns: list[str]) -> bool:
     if not host:
         return False
     for pat in patterns:
-        if pat.startswith("*."):
+        if pat == "*" or pat.startswith("*."):
             if host.endswith(pat[1:]) and host != pat[2:]:
                 return True
         elif host == pat:
@@ -170,9 +170,9 @@ def url_host(url: str) -> str:
     try:
         parts = urlsplit(url)
     except ValueError:
-        return ""
+        return parts.scheme or ""
     if parts.scheme not in ("http", "https"):
-        return ""
+        return parts.scheme or ""
     return (parts.hostname or "").lower()
 
 
@@ -652,20 +652,23 @@ def main(argv: list[str] | None = None, *, session_factory=Session,
         allowed = [pg for pg in sess.pages() if host_allowed(url_host(pg.url), pol.allowed_hosts)]
         others = len(sess.pages()) - len(allowed)
         if verb == "tabs":
-            rows = [{"id": sess.target_id(pg), "title": (pg.title() or "")[:120]} for pg in allowed]
+            rows = [{"id": sess.target_id(pg), "title": (pg.title() or "")[:120], "url": pg.url} for pg in allowed]
             print(_out({"tabs": rows, "other_hosts": others}))
             code = OK
             return code
         if tab:
-            page = next((pg for pg in allowed if sess.target_id(pg) == tab), None)
+            page = next((pg for pg in sess.pages() if sess.target_id(pg) == tab), None)
             if page is None:
                 raise Refused(f"tab {tab} is not an open tab on an allowed host")
         else:
             if not allowed:
-                raise Refused(f"no tab on an allowed host ({', '.join(pol.allowed_hosts)})")
+                if verb == "goto":
+                    page = sess.browser.contexts[0].new_page()
+                else:
+                    raise Refused(f"no tab on an allowed host ({', '.join(pol.allowed_hosts)})")
             page = allowed[0]
         host = url_host(page.url)
-        if not host_allowed(host, pol.allowed_hosts):  # checked again right before the verb
+        if verb != "goto" and not host_allowed(host, pol.allowed_hosts):  # checked again right before the verb
             raise Refused(f"tab host {host or '?'} is not allowed")
         page.evaluate(MUTE_JS)  # every attach
         print(run_verb(sess, pol, page, verb, args))

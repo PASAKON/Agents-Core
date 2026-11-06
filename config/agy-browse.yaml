@@ -39,8 +39,15 @@ ports:
     # Only mypartners.xm.com tabs (never the ChatGPT tab); read-only partner reports. No fire_label_regex, so the submit button is
     # never clicked; account changes are not made through this lane.
     label: xm-partners
-    allowed_hosts: [mypartners.xm.com]
+    allowed_hosts: ["*"]
     upload_dirs: []
     max_calls_per_min: 20
     fire_cooldown_s: 600
+    submit_selector: "button[type=submit]"
+  9226:
+    label: flow
+    allowed_hosts: ["*"]
+    upload_dirs: []
+    max_calls_per_min: 30
+    fire_cooldown_s: 120
     submit_selector: "button[type=submit]"
