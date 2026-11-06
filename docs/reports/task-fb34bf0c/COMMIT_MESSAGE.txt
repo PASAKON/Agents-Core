@@ -1,0 +1,4 @@
+security: pin agy browse guard outside worker worktrees
+
+Gate agy/codex commits against launch-time touches, reject wildcard hosts,
+and add the read-only Flow browser port with regression coverage.

@@ -984,6 +984,9 @@ REMOTE_LAUNCH_TIMEOUT_S = 300
 # roles/<role>.md is appended per-spawn in _ensure_remote_deploy — it's the
 # one file that depends on which task is being spawned.
 _REMOTE_DEPLOY_FILES = (
+    ("tools/agy_browse.py", "agy-browse/tools/agy_browse.py"),
+    ("config/agy-browse.yaml", "agy-browse/config/agy-browse.yaml"),
+    ("tools/guard_commit.py", "agy-browse/tools/guard_commit.py"),
     ("windows/spawn-worker.ps1", "spawn-worker.ps1"),
     ("windows/native-args.ps1", "native-args.ps1"),   # M12: every launcher starts its runner through it
     ("roles/_worker_shared.md", "roles/_worker_shared.md"),
@@ -1165,6 +1168,7 @@ def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
 _LINUX_LAUNCHER_REL = ".launch/spawn-worker-remote.sh"
 _REMOTE_DEPLOY_FILES_LINUX = (
     ("scripts/spawn-worker-remote.sh", _LINUX_LAUNCHER_REL),
+    ("tools/guard_commit.py", ".launch/guard_commit.py"),
 )
 
 

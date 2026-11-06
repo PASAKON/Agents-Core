@@ -1,8 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "command(regex:^C:\\\\Users\\\\passg\\\\mooniex\\\\worktrees\\\\[A-Za-z0-9_-]+__browser_operator__task-[0-9a-f]{8}\\\\\\.venv\\\\Scripts\\\\python\\.exe tools[/\\\\]agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( ([A-Za-z0-9_./:#=@+\\[\\]-]+|'[A-Za-z0-9 _./:#=@+,()\\[\\]-]*'|\\\"[A-Za-z0-9 _./:#=@+,()\\[\\]-]*\\\"))*$)",
-      "command(regex:^C:\\\\Users\\\\passg\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python\\.exe tools[/\\\\]agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( ([A-Za-z0-9_./:#=@+\\[\\]-]+|'[A-Za-z0-9 _./:#=@+,()\\[\\]-]*'|\\\"[A-Za-z0-9 _./:#=@+,()\\[\\]-]*\\\"))*$)",
+      "command(regex:^C:\\\\Users\\\\passg\\\\mooniex\\\\agy-browse\\\\\\.venv\\\\Scripts\\\\python\\.exe C:\\\\Users\\\\passg\\\\mooniex\\\\agy-browse\\\\tools\\\\agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( ([A-Za-z0-9_./:#=@+\\[\\]-]+|'[A-Za-z0-9 _./:#=@+,()\\[\\]-]*'|\\\"[A-Za-z0-9 _./:#=@+,()\\[\\]-]*\\\"))*$)",
+      "command(regex:^C:\\\\Users\\\\passg\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python\\.exe C:\\\\Users\\\\passg\\\\mooniex\\\\agy-browse\\\\tools\\\\agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( ([A-Za-z0-9_./:#=@+\\[\\]-]+|'[A-Za-z0-9 _./:#=@+,()\\[\\]-]*'|\\\"[A-Za-z0-9 _./:#=@+,()\\[\\]-]*\\\"))*$)",
       "read_file(C:\\Users\\passg\\mooniex\\worktrees)",
       "read_file(C:/Users/passg/mooniex/worktrees)"
     ],

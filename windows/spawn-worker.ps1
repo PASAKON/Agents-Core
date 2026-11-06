@@ -437,6 +437,8 @@ if (-not (Test-NonEmpty `$reportPath)) {
 }
 
 git -C '$wt' add -A
+& 'C:\Users\passg\AppData\Local\Programs\Python\Python311\python.exe' 'C:\Users\passg\mooniex\agy-browse\tools\guard_commit.py' '$wt' `$reportPath '$TaskMetaB64'
+if (`$LASTEXITCODE -ne 0) { throw 'guard commit gate failed' }
 git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md WORKER.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
 
 `$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
@@ -836,15 +838,17 @@ $taskContent
         # edit-only prompt above, word for word.
         $agyBrowser = ($Role -eq 'browser_operator')
         if ($agyBrowser) {
-            $agyVenvPython = Join-Path $wt '.venv\Scripts\python.exe'
+            $agyGuardRoot = 'C:\Users\passg\mooniex\agy-browse'
+            $agyVenvPython = Join-Path $agyGuardRoot '.venv\Scripts\python.exe'
             $agyPython = if (Test-Path -LiteralPath $agyVenvPython) { $agyVenvPython } else { Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe' }
+            $agyGuard = Join-Path $agyGuardRoot 'tools\agy_browse.py'
             $agyPrompt = @"
 You are a coding agent that reads one browser page through a single command.
 Use your file-editing tool to make every file change. The ONE shell command
 you may run is the browse command, written exactly like this, one command per
 step, with nothing before it and nothing after it:
 
-$agyPython tools/agy_browse.py [--port N] [--tab ID] <verb> [args]
+$agyPython $agyGuard [--port N] [--tab ID] <verb> [args]
 
 Put every selector and every typed phrase in single quotes. Do NOT run any
 other shell command: no cd, no git, no test runner, no other script, no other
@@ -871,8 +875,8 @@ $taskContent
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 
-        # browser_operator: tools/agy_browse.py is a relative path, so agy starts in the
-        # worktree (the scheduled task's own folder is not it), and screenshots go outside
+        # browser_operator starts in its writable worktree; the guard is an absolute
+        # pinned path outside it. Screenshots go outside
         # the worktree, where the commit step's `git add -A` would pick them up.
         $agyPreRun = ''
         if ($agyBrowser) {

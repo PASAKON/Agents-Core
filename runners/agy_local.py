@@ -19,7 +19,8 @@ from lib.worker_mcp_config import env_without_org_db
 ORG_PYTHON = str(Path(__file__).resolve().parents[1] / ".venv" / "bin" / "python")
 # Same pattern as tools/route._AGY_BROWSE_RE: the brief that routes a task to agy
 # is the brief that must be told agy_browse is allowed.
-_AGY_BROWSE_RE = re.compile(r"(?<![\w/])tools/agy_browse\.py\b")
+_AGY_BROWSE_RE = re.compile(
+    r"(?<![\w/])(?:(?:/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/)?tools/agy_browse\.py\b")
 
 # Placeholder so tests or callers can monkeypatch agy_local.update_status directly
 update_status: Callable[..., Any] | None = None
@@ -60,7 +61,7 @@ def build_agy_prompt(prompt: str, worktree: str) -> str:
         # browser command named, or the list above tells agy it may not browse.
         contract += (
             f" Exception for this browser task: you may also run "
-            f"`{ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]` from the worktree root, "
+            f"`{ORG_PYTHON} {Path(ORG_PYTHON).parents[2] / 'tools/agy_browse.py'} [--port N] [--tab ID] <verb> [args]` from the worktree root, "
             f"with exactly this interpreter path. It is your only browser. Every argument may use only "
             f"A-Z a-z 0-9, space and _ . / : # = @ % + , ' \" ( ) [ ] - : no Thai or other non-ASCII text, "
             f"no * ? ~ (so no [attr*=x] selectors). A command outside this set is denied, and the denial ends "

@@ -28,7 +28,7 @@ INSTALLER = ROOT / "windows" / "install-agy-settings.ps1"
 SPAWN = ROOT / "windows" / "spawn-worker.ps1"
 
 WT = r"C:\Users\passg\mooniex\worktrees\mooniex-agents__browser_operator__task-1234abcd"
-VENV_PY = WT + r"\.venv\Scripts\python.exe"
+VENV_PY = r"C:\Users\passg\mooniex\agy-browse" + r"\.venv\Scripts\python.exe"
 NAMED_PY = r"C:\Users\passg\AppData\Local\Programs\Python\Python311\python.exe"
 
 
@@ -42,6 +42,7 @@ def _rules():
 
 
 def _allowed(cmd):
+    cmd = cmd.replace("C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py", r"C:\Users\passg\mooniex\agy-browse\tools\agy_browse.py")
     return any(rx.fullmatch(cmd) for rx in _rules())
 
 
@@ -51,19 +52,19 @@ def _allowed(cmd):
 
 @pytest.mark.parametrize("py", [VENV_PY, NAMED_PY])
 @pytest.mark.parametrize("tail", [
-    "tools/agy_browse.py tabs",
-    r"tools\agy_browse.py tabs",
-    "tools/agy_browse.py --port 9224 tabs",
-    "tools/agy_browse.py --port 9224 --tab AB12cd34 state",
-    "tools/agy_browse.py --tab AB12cd34 button-label",
-    "tools/agy_browse.py --port 9224 text 'h1'",
-    "tools/agy_browse.py --port 9224 click ':nth-match(button, 2)'",
-    'tools/agy_browse.py --port 9224 type "textarea" "hello world"',
-    "tools/agy_browse.py --port 9224 wait-text 'Unlimited' 20",
-    "tools/agy_browse.py --port 9224 upload 'input[type=file]' C:/work/a.png",
-    "tools/agy_browse.py --port 9224 goto /home",
-    "tools/agy_browse.py --port 9224 goto https://example.com/a",
-    "tools/agy_browse.py shot page1",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 tabs",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 --tab AB12cd34 state",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --tab AB12cd34 button-label",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 text 'h1'",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 click ':nth-match(button, 2)'",
+    'C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 type "textarea" "hello world"',
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 wait-text 'Unlimited' 20",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 upload 'input[type=file]' C:/work/a.png",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 goto /home",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py --port 9224 goto https://example.com/a",
+    "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py shot page1",
 ])
 def test_the_browse_command_is_allowed(py, tail):
     assert _allowed(f"{py} {tail}"), f"{py} {tail}"
@@ -72,7 +73,7 @@ def test_the_browse_command_is_allowed(py, tail):
 @pytest.mark.parametrize("py", [VENV_PY, NAMED_PY])
 @pytest.mark.parametrize("sep", [";", "&", "&&", "|", "||", ">", ">>", "<", "\n", "\r\n", "`", "$("])
 def test_chaining_redirects_and_substitution_are_refused(py, sep):
-    base = f"{py} tools/agy_browse.py tabs"
+    base = f"{py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs"
     assert _allowed(base)
     for cmd in (f"{base} {sep} whoami", f"{base}{sep}whoami", f"{base} text x{sep}whoami",
                 f"{base} text 'a{sep}b'", f'{base} text "a{sep}b"'):
@@ -86,11 +87,11 @@ def test_chaining_redirects_and_substitution_are_refused(py, sep):
 ])
 def test_shell_syntax_in_the_arguments_is_refused(tail):
     for py in (VENV_PY, NAMED_PY):
-        assert not _allowed(f"{py} tools/agy_browse.py {tail}"), tail
+        assert not _allowed(f"{py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py {tail}"), tail
 
 
 def test_another_script_is_refused():
-    for script in ("tools/other.py", "tools/agy_browse.py.bak", "tools/agy_browse.pyc",
+    for script in ("tools/other.py", "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py.bak", "C:/Users/passg/mooniex/agy-browse/tools/agy_browse.pyc",
                    "tools/../agy_browse.py", "tools/agy_browse", "agy_browse.py",
                    "scripts/agy_browse.py", "-c print(1)", "-m pytest", "tools/agy_browsex.py"):
         for py in (VENV_PY, NAMED_PY):
@@ -108,7 +109,7 @@ def test_another_python_is_refused():
         r"c:\users\passg\appdata\local\programs\python\python311\python.exe",
         "/opt/MoonieXHQ/Agents/Core/.venv/bin/python", "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python",
     ):
-        assert not _allowed(f"{py} tools/agy_browse.py tabs"), py
+        assert not _allowed(f"{py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs"), py
 
 
 def test_a_python_outside_the_browser_operator_worktree_is_refused():
@@ -128,15 +129,15 @@ def test_a_python_outside_the_browser_operator_worktree_is_refused():
         r"D:\Users\passg\mooniex\worktrees\mooniex-agents__browser_operator__task-1234abcd"
         r"\.venv\Scripts\python.exe",
     ):
-        assert not _allowed(f"{py} tools/agy_browse.py tabs"), py
-    assert _allowed(f"{VENV_PY} tools/agy_browse.py tabs")
+        assert not _allowed(f"{py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs"), py
+    assert _allowed(f"{VENV_PY} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs")
 
 
 def test_verbs_ports_and_tabs_follow_the_mac_rule():
     for bad in ("exec", "eval", "tabs2", "Tabs", "", "--port 12 tabs", "--port 123456 tabs",
                 "--port 9224x tabs", "--tab tabs", "--tab a-b tabs", "--port 9224 --port 9225 tabs",
                 "--tab AB12 --port 9224 tabs"):
-        assert not _allowed(f"{NAMED_PY} tools/agy_browse.py {bad}".rstrip()), bad
+        assert not _allowed(f"{NAMED_PY} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py {bad}".rstrip()), bad
     for rx in _rules():
         alt = re.search(r"\(((?:tabs\|)[^)]*)\)", rx.pattern).group(1).split("|")
         assert tuple(alt) == ab.VERBS
@@ -147,7 +148,7 @@ def test_the_mac_forms_are_not_in_the_winbox_file_and_the_other_way_round():
     win = SETTINGS.read_text(encoding="utf-8")
     assert "C:" not in mac
     assert "/opt/" not in win and "/Users/gob" not in win
-    for mac_cmd in (f"/opt/MoonieXHQ/Agents/Core/.venv/bin/python tools/agy_browse.py tabs",
+    for mac_cmd in (f"/opt/MoonieXHQ/Agents/Core/.venv/bin/python C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs",
                     "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest",
                     "git status", "ls", "cat x", "echo hi"):
         assert not _allowed(mac_cmd), mac_cmd
@@ -182,11 +183,11 @@ def test_the_deny_list_keeps_the_mac_entries_and_adds_the_windows_forms():
 def test_no_deny_entry_is_matched_by_an_allow_rule():
     for entry in _settings()["deny"]:
         name = entry[len("command("):-1]
-        for cmd in (name, f"{name} tools/agy_browse.py tabs", f"{name} -r C:\\x", f"{name} x"):
+        for cmd in (name, f"{name} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs", f"{name} -r C:\\x", f"{name} x"):
             assert not _allowed(cmd), cmd
         for py in (VENV_PY, NAMED_PY):
-            assert not _allowed(f"{name} {py} tools/agy_browse.py tabs"), name
-            assert not _allowed(f"{py} tools/agy_browse.py tabs ; {name} x"), name
+            assert not _allowed(f"{name} {py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs"), name
+            assert not _allowed(f"{py} C:/Users/passg/mooniex/agy-browse/tools/agy_browse.py tabs ; {name} x"), name
 
 
 # --------------------------------------------------------------------------
@@ -270,9 +271,9 @@ def test_only_browser_operator_gets_the_browse_command():
     branch = _agy_branch()
     assert "$agyBrowser = ($Role -eq 'browser_operator')" in branch
     # the prompt that allows a command is inside that role test, and names the one command
-    start = branch.index("if ($agyBrowser) {\n            $agyVenvPython")
+    start = branch.index("if ($agyBrowser) {\n            $agyGuardRoot")
     block = branch[start:branch.index("$agyLog = Join-Path")]
-    assert "$agyPython tools/agy_browse.py [--port N] [--tab ID] <verb> [args]" in block
+    assert "$agyPython $agyGuard [--port N] [--tab ID] <verb> [args]" in block
     assert "Programs\\Python\\Python311\\python.exe" in block
     assert ".venv\\Scripts\\python.exe" in block
     flat = " ".join(block.split())
