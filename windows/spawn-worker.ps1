@@ -563,12 +563,15 @@ if (`$mediaKept.Count -gt 0) {
 }
 
 git -C '$wt' diff --cached --quiet
+# winbox's git has no user.name/user.email, so a bare commit failed with
+# "Committer identity unknown" and every codex/agy task ended "died before
+# pushing" (task-2aa5d541, task-0909d12e). Same identity as spawn-worker-remote.sh.
 if (`$LASTEXITCODE -ne 0) {
     if (`$mediaKept.Count -gt 0) {
         `$keptBody = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
-        git -C '$wt' commit -q -m "${Runner}: task $Task" -m `$keptBody
+        git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task" -m `$keptBody
     } else {
-        git -C '$wt' commit -q -m "${Runner}: task $Task"
+        git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task"
     }
 }
 if (`$LASTEXITCODE -ne 0) { throw 'launcher commit failed' }
