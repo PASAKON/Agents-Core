@@ -41,9 +41,64 @@ def test_midday_reset_positive_drops_only():
     rows = [row("2026-10-21T23:59:00+07:00", .2), row("2026-10-22T09:00:00+07:00", .1),
             row("2026-10-22T10:00:00+07:00", 1), row(NOW.isoformat(), .8)]
     result = calc(rows)
-    assert result["used"] == pytest.approx(.3)
+    assert result["start_remaining"] == 1
+    assert result["used"] == pytest.approx(.2)
+
+
+def test_midday_reset_after_empty_midnight():
+    result = calc([row("2026-10-22T00:00:00+07:00", 0),
+                   row("2026-10-22T11:00:00+07:00", .93), row(NOW.isoformat(), .93)])
+    assert result["start_remaining"] == .93
+    assert result["target"] > 0
+    assert result["state"] == "under"
+
+
+def test_empty_midnight_without_reset_stays_over():
+    result = calc([row("2026-10-22T00:00:00+07:00", 0),
+                   row("2026-10-22T11:00:00+07:00", .01), row(NOW.isoformat(), 0)])
+    assert result["start_remaining"] == 0
+    assert result["used"] == pytest.approx(.01)
     assert result["state"] == "over"
-    assert result["headroom"] < 0
+
+
+def test_claude_reset_timestamp_jitter_preserves_drops():
+    rows = [row(at, value, provider="claude", weekly_resets_at=reset) for at, value, reset in [
+        ("2026-10-22T00:00:00+07:00", .9, "2026-10-24T12:00:00.500000+07:00"),
+        ("2026-10-22T09:00:00+07:00", .7, "2026-10-24T12:00:00.520000+07:00"),
+        ("2026-10-22T10:00:00+07:00", .5, "2026-10-24T12:00:00.480000+07:00"),
+        (NOW.isoformat(), .4, "2026-10-24T12:00:00.510000+07:00"),
+    ]]
+    result = budget.calculate(rows, NOW)["rows"]["claude"]
+    assert result["start_remaining"] == .9
+    assert result["used"] == pytest.approx(.2 + .2 + .1)
+    assert result["used"] > result["target"]
+    assert result["state"] == "over"
+
+
+@pytest.mark.parametrize("previous_reset,current_reset,expected_start,expected_used", [
+    ("2026-10-24T12:00:00+07:00", "2026-10-24T12:59:59+07:00", .9, .5),
+    ("2026-10-24T12:00:00+07:00", "2026-10-24T13:00:00+07:00", .5, .1),
+    (None, "2026-10-24T12:00:00+07:00", .9, .5),
+    ("2026-10-24T12:00:00+07:00", None, .9, .5),
+])
+def test_reset_timestamp_threshold_and_missing(previous_reset, current_reset, expected_start, expected_used):
+    result = calc([row("2026-10-22T00:00:00+07:00", .9, weekly_resets_at=previous_reset),
+                   row("2026-10-22T11:00:00+07:00", .5, weekly_resets_at=current_reset),
+                   row(NOW.isoformat(), .4, weekly_resets_at=current_reset)])
+    assert result["start_remaining"] == expected_start
+    assert result["used"] == pytest.approx(expected_used)
+
+
+def test_last_reset_sets_baseline_and_latest_reset_sets_days():
+    result = calc([row("2026-10-22T00:00:00+07:00", .2),
+                   row("2026-10-22T09:00:00+07:00", 1),
+                   row("2026-10-22T10:00:00+07:00", .5),
+                   row("2026-10-22T11:00:00+07:00", .9,
+                       weekly_resets_at="2026-10-28T12:00:00+07:00"),
+                   row(NOW.isoformat(), .8, weekly_resets_at="2026-10-28T12:00:00+07:00")])
+    assert result["start_remaining"] == .9
+    assert result["used"] == pytest.approx(.1)
+    assert result["days_left"] == 7
 
 
 def test_raw_bonus_and_old_history(tmp_path):
