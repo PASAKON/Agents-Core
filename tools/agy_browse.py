@@ -71,7 +71,7 @@ MAX_WAIT_S = 25  # wait-text must still end inside CALL_TIMEOUT_S
 _CORE = r"(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)"
 _ARGS = r"""[A-Za-z0-9 _./:#=@%+,'"()\[\]-]"""
 ALLOW_RULE_REGEX = (
-    rf"^{_CORE}/\.venv/bin/python tools/agy_browse\.py"
+    rf"^{_CORE}/\.venv/bin/python {_CORE}/tools/agy_browse\.py"
     rf"( --port [0-9]{{4,5}})?( --tab [A-Za-z0-9]{{1,64}})?"
     rf" ({'|'.join(VERBS)})( {_ARGS}*)?$"
 )
@@ -113,6 +113,7 @@ class PortPolicy:
     fire_label_regex: str | None = None
     submit_selector: str = "button[type=submit]"
     chip_selector: str | None = None
+    read_only: bool = False
 
 
 def load_policy(path: Path = POLICY_PATH) -> dict[int, PortPolicy]:
@@ -124,6 +125,8 @@ def load_policy(path: Path = POLICY_PATH) -> dict[int, PortPolicy]:
     for port, row in (raw.get("ports") or {}).items():
         if not isinstance(row, dict) or not row.get("allowed_hosts"):
             raise Refused(f"policy row {port} has no allowed_hosts")
+        if any(str(h).strip() == "*" for h in row["allowed_hosts"]):
+            raise Refused(f"policy row {port} has a wildcard host")
         out[int(port)] = PortPolicy(
             port=int(port),
             label=str(row.get("label") or port),
@@ -134,6 +137,7 @@ def load_policy(path: Path = POLICY_PATH) -> dict[int, PortPolicy]:
             fire_label_regex=row.get("fire_label_regex"),
             submit_selector=str(row.get("submit_selector") or "button[type=submit]"),
             chip_selector=row.get("chip_selector"),
+            read_only=bool(row.get("read_only", False)),
         )
     if not out:
         raise Refused("policy lists no ports")
@@ -478,7 +482,14 @@ def shot_dir(env=None) -> Path:
     return (Path(base) if base else Path.cwd()) / "agy-shots"
 
 
+def check_read_only(pol: PortPolicy, verb: str) -> None:
+    if pol.read_only and verb not in ("tabs", "goto", "text", "count", "state",
+                                     "button-label", "wait-text", "chips", "shot", "mute"):
+        raise Refused(f"port {pol.port} is read-only: {verb}")
+
+
 def run_verb(sess: Session, pol: PortPolicy, page, verb: str, args: list[str]) -> str:
+    check_read_only(pol, verb)
     page.set_default_timeout(VERB_TIMEOUT_MS)
     if verb == "goto":
         target = urljoin(page.url, args[0])
@@ -642,6 +653,7 @@ def main(argv: list[str] | None = None, *, session_factory=Session,
         port_arg, tab, verb, args = parse(argv)
         pol = pick_port(load_policy(policy_path), port_arg)
         port_no = pol.port
+        check_read_only(pol, verb)
         if calls_in_last_minute(pol.port, time.time()) >= pol.max_calls_per_min:
             raise Refused(f"rate limit: {pol.max_calls_per_min} calls/min on port {pol.port}")
         try:

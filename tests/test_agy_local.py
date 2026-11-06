@@ -305,8 +305,11 @@ def test_contract_names_agy_browse_only_for_a_browser_brief():
     any other brief keeps the plain list, so agy is never invited to browse."""
     browse = build_agy_prompt(
         "Drive http://127.0.0.1:9280 with tools/agy_browse.py --port 9280 state", "/tmp/wt")
-    assert f"`{agy_local.ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]`" in browse
+    assert f"`{agy_local.ORG_PYTHON} {Path(agy_local.ORG_PYTHON).parents[2] / 'tools/agy_browse.py'} [--port N] [--tab ID] <verb> [args]`" in browse
     assert "It is your only browser." in browse
+    pinned = build_agy_prompt(
+        "Use /opt/MoonieXHQ/Agents/Core/tools/agy_browse.py on http://127.0.0.1:9226", "/tmp/wt")
+    assert "It is your only browser." in pinned
     # a denied command ends the run, so agy is told the allowed set and the positional way round Thai labels
     assert "no Thai or other non-ASCII text" in browse and "ends your run" in browse
     assert "':nth-match(button, N)'" in browse

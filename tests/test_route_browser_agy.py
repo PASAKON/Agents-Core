@@ -47,6 +47,8 @@ def quotas():
 
 @pytest.mark.parametrize("brief,expected", [
     (AGY_BRIEF, "browser_agy"),
+    ("Use /opt/MoonieXHQ/Agents/Core/tools/agy_browse.py on http://127.0.0.1:9226", "browser_agy"),
+    ("Use /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py on http://127.0.0.1:9280", "browser_agy"),
     ("Log in with claude-in-chrome and read the page.", None),
     ("Use tools/agy_browse.py (the Home URL will follow).", None),         # no CDP URL
     ("Browser Home http://127.0.0.1:9280, drive it with claude-in-chrome.", None),

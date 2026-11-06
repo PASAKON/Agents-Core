@@ -16,6 +16,11 @@
 #   submit_selector    what `state`, `button-label` and the fire rule call the submit button
 #   chip_selector      what `chips` counts as a bound reference chip (optional)
 ports:
+  9226:
+    label: flow
+    allowed_hosts: [labs.google]
+    read_only: true
+    upload_dirs: []
   9280:
     label: champa
     allowed_hosts: [champa.io, "*.champa.io"]

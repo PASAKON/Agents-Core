@@ -614,7 +614,8 @@ def plan_line(p: Plan) -> str:
 # Browser Home through tools/agy_browse.py AND names the Home's CDP URL. Any
 # other browser task keeps the Claude-only tools and is never routed.
 BROWSER_AGY_CLASS = "browser_agy"
-_AGY_BROWSE_RE = re.compile(r"(?<![\w/])tools/agy_browse\.py\b")
+_AGY_BROWSE_RE = re.compile(
+    r"(?<![\w/])(?:(?:/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/)?tools/agy_browse\.py\b")
 _CDP_URL_RE = re.compile(r"\bhttp://127\.0\.0\.1:\d{4,5}\b")
 
 

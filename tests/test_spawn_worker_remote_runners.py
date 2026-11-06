@@ -301,12 +301,15 @@ def _generate_report_step_script(task: str = "task-media01", branch: str = "agen
 TASK={task!r}
 BRANCH={branch!r}
 BASE={base!r}
+TASK_META_B64=''
+AGENTS_ROOT={str(SCRIPT.parent.parent)!r}
 GIT_RESET_GUARD='.worker.pid TASK.md'
 {fn_text}
 emit_report_commit_push {runner} "" "" "" "{runner}: task {task}"
 """
     res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True, check=True)
-    return res.stdout
+    return res.stdout.replace('"$AGENTS_ROOT/.venv/bin/python" "$GUARD_COMMIT_TOOL"',
+                              f'"{sys.executable}" "{ROOT}/tools/guard_commit.py"')
 
 
 def _setup_media_test_repo(tmp_path: Path, origin_media_allow: str | None = None, task: str = "task-media01"):
@@ -342,6 +345,24 @@ def _run_report_step(wt: Path, script_body: str) -> subprocess.CompletedProcess:
     script_path = wt / "run_report.sh"
     script_path.write_text(script_body, encoding="utf-8")
     return subprocess.run([BASH3, str(script_path)], cwd=wt, capture_output=True, text=True)
+
+
+@pytest.mark.parametrize("runner", ["agy", "codex"])
+def test_launcher_never_commits_staged_undeclared_guard(tmp_path, runner):
+    task = "task-guard01"
+    origin, wt, branch = _setup_media_test_repo(tmp_path, task=task)
+    guard = wt / "tools/agy_browse.py"
+    guard.parent.mkdir()
+    guard.write_text("trusted\n")
+    subprocess.run(["git", "add", "-A"], cwd=wt, check=True)
+    subprocess.run(["git", "commit", "-m", "trusted guard"], cwd=wt, check=True)
+    guard.write_text("worker bypass\n")
+    subprocess.run(["git", "add", "-A"], cwd=wt, check=True)
+    res = _run_report_step(wt, _generate_report_step_script(task, branch, runner=runner))
+    assert res.returncode == 0, res.stderr
+    committed = subprocess.check_output(["git", "show", "HEAD:tools/agy_browse.py"], cwd=wt)
+    assert committed == b"trusted\n"
+    assert "guard file reverted: tools/agy_browse.py" in (wt / f"docs/reports/{task}/REPORT.md").read_text()
 
 
 def test_media_allow_allowed_png_is_kept(tmp_path):
@@ -514,6 +535,7 @@ def test_report_step_generates_under_set_u_with_the_scripts_own_vars():
 TASK=task-setu01
 BRANCH=agent/developer-task-setu01
 BASE=main
+TASK_META_B64=''
 GIT_RESET_GUARD='.worker.pid TASK.md'
 AGENTS_ROOT=/opt/agents
 LAUNCH_DIR=/opt/agents/.launch-task-setu01
@@ -534,6 +556,7 @@ def _report_step_with_launch(task: str, branch: str, runner: str, launch_dir: Pa
 TASK={task!r}
 BRANCH={branch!r}
 BASE=main
+TASK_META_B64=''
 GIT_RESET_GUARD='.worker.pid TASK.md'
 AGENTS_ROOT=/nonexistent-agents-root
 LAUNCH_DIR={str(launch_dir)!r}
@@ -541,7 +564,9 @@ LAUNCH_DIR={str(launch_dir)!r}
 emit_report_commit_push {runner} "" {log_tail!r} "" "{runner}: task {task}"
 """
     res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True, check=True)
-    return "CLI_RC=0\n" + res.stdout
+    return "CLI_RC=0\n" + res.stdout.replace(
+        '"$AGENTS_ROOT/.venv/bin/python" "$GUARD_COMMIT_TOOL"',
+        f'"{sys.executable}" "{ROOT}/tools/guard_commit.py"')
 
 
 def _branch_files(wt: Path, branch: str) -> list[str]:

@@ -18,6 +18,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
@@ -284,6 +285,11 @@ def media_gate_env(tmp_path):
     (agents / "scripts").mkdir(parents=True)
     shutil.copy(SCRIPT, agents / "scripts" / SCRIPT.name)
     shutil.copytree(ROOT / "roles", agents / "roles")
+    # The commit gate (tools/guard_commit.py) runs under $AGENTS_ROOT/.venv/bin/python, as on a real spoke.
+    (agents / "tools").mkdir()
+    shutil.copy(ROOT / "tools" / "guard_commit.py", agents / "tools" / "guard_commit.py")
+    (agents / ".venv" / "bin").mkdir(parents=True)
+    (agents / ".venv" / "bin" / "python").symlink_to(sys.executable)
 
     bindir = tmp_path / "bin"
     bindir.mkdir()

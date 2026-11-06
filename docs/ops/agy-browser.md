@@ -7,13 +7,33 @@ never an open tool. The MCP route (`chrome-devtools-mcp` in agy) was refused
 by the Claude Code auto-mode classifier on 2026-09-30 and is not coming back.
 
 ```
-<Core>/.venv/bin/python tools/agy_browse.py [--port N] [--tab ID] <verb> [args]
+<Core>/.venv/bin/python <Core>/tools/agy_browse.py [--port N] [--tab ID] <verb> [args]
 exit 0 ok · 2 refused by policy · 1 error        output: short text or one JSON line, <= 2000 chars
 ```
 
 Policy: `config/agy-browse.yaml`, one row per port (hosts, upload dirs, rate
 limit, fire cooldown, fire label). Adding a site = adding a row. Log: one JSON
 line per call in `state/agy-browse.jsonl` (under `$ORG_ROOT` when set).
+
+The executable and policy are trusted launcher assets, outside the worker's
+worktree and Work folder. On Mac/Contabo, `<Core>` is the main checkout's
+absolute path. On winbox, `tools/delegate.py` deploys origin's SHA256-checked
+copies to `C:\Users\passg\mooniex\agy-browse\tools\agy_browse.py` and
+`C:\Users\passg\mooniex\agy-browse\config\agy-browse.yaml`. The interpreter
+is the pinned folder's venv or the named Python311 installation, never a
+worktree venv. The policy path is derived from the executable's location;
+neither cwd nor a worker environment variable selects it. Never add the
+pinned folder or main checkout to the worker's writable directories.
+
+Port 9226 (`flow`) allows only `labs.google` and is read-only: click, type,
+key and upload are refused. Other existing ports retain their policies.
+A bare `*` host makes the entire policy invalid.
+
+Both launchers gate agy/codex commits using task metadata captured before
+launch. Undeclared guard changes are restored from HEAD and recorded as
+`guard file reverted: <path>` in the report. Changing the worker's sidecar
+cannot authorize a guard change. Settings installation requires a CEO card;
+updating the repository does not install the winbox allow rules.
 
 ## Verbs (closed set; anything else exits 2)
 
@@ -47,7 +67,7 @@ must stay identical). The deny rules (curl, ssh, rm, ...) stay as they are.
    "permissions": {
      "allow": [
        "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python -m pytest( .*)?$)",
-+      "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python tools/agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( [A-Za-z0-9 _./:#=@%+,'\"()\\[\\]-]*)?$)",
++      "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python (/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/tools/agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( [A-Za-z0-9 _./:#=@%+,'\"()\\[\\]-]*)?$)",
        "command(git status)",
 ```
 
@@ -84,7 +104,7 @@ carries the same string.
 2. Put **both** of these in the brief, or the router keeps the task on Claude
    (`tools/route.class_for`, class `browser_agy` in `config/plans.yaml`):
    - the Home's CDP URL, e.g. `http://127.0.0.1:9280`;
-   - the exact call form, e.g. `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/agy_browse.py --port 9280 <verb>`.
+   - the exact call form, e.g. `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/agy_browse.py --port 9280 <verb>`.
 3. **Every path in the brief is repo-relative** (`.claude/skills/...`,
    `config/...`). agy in headless mode cannot answer a permission prompt, so a
    read outside the worktree kills the run before it writes anything: that is

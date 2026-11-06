@@ -154,6 +154,10 @@ TMUX_SESSION="mooniex-${TASK}"
 # non-git deploy folder), so no separate role-doc deploy is needed.
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 AGENTS_ROOT=$(dirname "$SCRIPT_DIR")
+GUARD_COMMIT_TOOL="$AGENTS_ROOT/tools/guard_commit.py"
+if [ "$(basename "$SCRIPT_DIR")" = .launch ]; then
+  GUARD_COMMIT_TOOL="$SCRIPT_DIR/guard_commit.py"
+fi
 ROLES_DIR="$AGENTS_ROOT/roles"
 LAUNCH_DIR="$AGENTS_ROOT/.launch-${TASK}"
 CODEX_FINAL_MSG="$LAUNCH_DIR/codex-final.txt"
@@ -567,6 +571,8 @@ emit_report_commit_push() {
   printf 'GIT_RESET_GUARD=%s\n' "$(sh_quote "$GIT_RESET_GUARD")"
   printf 'AGENTS_ROOT=%s\n' "$(sh_quote "$AGENTS_ROOT")"
   printf 'LAUNCH_DIR=%s\n' "$(sh_quote "$LAUNCH_DIR")"
+  printf 'GUARD_TASK_META=%s\n' "$(sh_quote "$TASK_META_B64")"
+  printf 'GUARD_COMMIT_TOOL=%s\n' "$(sh_quote "${GUARD_COMMIT_TOOL:-$AGENTS_ROOT/tools/guard_commit.py}")"
   cat <<'REPORT_STEP_EOF'
 R_DIR="docs/reports/$TASK_ID"
 R="$R_DIR/REPORT.md"
@@ -616,6 +622,7 @@ elif [ -s "$R" ]; then
 fi
 [ -n "$DEAD_RUN" ] || [ -s "$R" ] || build_report
 git add -A
+"$AGENTS_ROOT/.venv/bin/python" "$GUARD_COMMIT_TOOL" "$PWD" "$PWD/$R" "$GUARD_TASK_META" || exit 1
 set -f
 git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
 set +f
@@ -797,6 +804,9 @@ elif [ "$RUNNER" = "codex" ]; then
     emit_report_commit_push codex "$CODEX_FINAL_MSG" "" "" "codex: task $TASK"
   } > "$LAUNCH_SH"
 elif [ "$RUNNER" = "agy" ]; then
+  if [ "$ROLE" = browser_operator ]; then
+    printf '\nBrowser command: %s/.venv/bin/python %s/tools/agy_browse.py [--port N] [--tab ID] <verb> [args]. Use this pinned absolute path for every browser call.\n' "$AGENTS_ROOT" "$AGENTS_ROOT" >> "$WT/TASK.md"
+  fi
   {
     echo '#!/bin/sh'
     printf 'export ORG_HOST=%s\n' "$ORG_HOST"
