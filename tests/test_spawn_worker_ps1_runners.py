@@ -221,7 +221,7 @@ def test_agy_launcher_has_the_hub_commit_push_not_the_agent():
     body = _report_step_body()
     add_idx = body.index("git -C '$wt' add -A")
     reset_idx = body.index("git -C '$wt' reset -q --")
-    commit_idx = body.index("git -C '$wt' commit")
+    commit_idx = body.index("user.email=${Runner}-worker@localhost\" commit")
     ready_idx = body.index("org-publish-ready")
     assert add_idx < reset_idx < commit_idx < ready_idx
     assert "git -C '$wt' push" not in body
@@ -236,7 +236,7 @@ def test_agy_launcher_only_commits_when_something_staged():
     body = _report_step_body()
     diff_idx = body.index("git -C '$wt' diff --cached --quiet")
     if_idx = body.index("if (`$LASTEXITCODE -ne 0)", diff_idx)
-    commit_idx = body.index("git -C '$wt' commit", if_idx)
+    commit_idx = body.index("user.email=${Runner}-worker@localhost\" commit", if_idx)
     assert diff_idx < if_idx < commit_idx
     assert "status --porcelain" not in body
 
@@ -988,3 +988,11 @@ def test_the_quoting_round_trips_the_hostile_corpus():
     assert "'(\\\\*)\"'" in helper and "'(\\\\+)\\z'" in helper   # the same two regexes
     assert "$Value -notmatch '[\\s\"]'" in helper                     # and the same no-quote guard
     assert "an argument holds a NUL" in helper
+
+
+def test_launcher_commit_sets_git_identity():
+    """winbox has no git identity: the launcher commit must pass one itself."""
+    body = (ROOT / "windows" / "spawn-worker.ps1").read_text(encoding="utf-8")
+    ident = "-c \"user.name=${Runner}-worker\" -c \"user.email=${Runner}-worker@localhost\" commit -q"
+    assert body.count(ident) == 2
+    assert "git -C '$wt' commit -q" not in body
