@@ -414,6 +414,7 @@ def run_turn(
     last_res: dict[str, Any] = {}
 
     for idx, model in enumerate(models_to_try):
+        fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
         res = invoke_agy(
             prompt,
             model=model,
@@ -442,13 +443,13 @@ def run_turn(
                 "lane": state.get("lane"),
                 "conversation_id": conv_id,
                 "model_used": model,
+                "fallback_triggered": fallback_triggered,
                 "attempts": attempted,
                 "response": res["response"],
                 "claude_code_tokens_used": 0,
             }
         if res["ok"]:
             previous_model = state.get("active_model")
-            fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
             if fallback_triggered or (previous_model and previous_model != model):
                 state.setdefault("fallback_events", []).append({
                     "ts": _now_iso(),
@@ -646,7 +647,7 @@ def main(argv: list[str] | None = None) -> int:
                       f"conv={res.get('conversation_id')}]\n{res.get('response') or ''}")
                 return 1
             else:
-                fb = " [FALLBACK -> Argon High]" if res["fallback_triggered"] else ""
+                fb = " [FALLBACK -> Argon High]" if res.get("fallback_triggered") else ""
                 print(
                     f"[PH#{res['ph_id']} | model={res['model_used']} ({res['bucket_used']}){fb} | "
                     f"conv={res['conversation_id']} | turn={res['turn_count']} | claude_code=0 tok]\n"
