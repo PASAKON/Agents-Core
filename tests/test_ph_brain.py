@@ -96,7 +96,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
     assert r1["ok"] is True
     assert r1["model_used"] == "claude-opus-5-5-high"
     assert r1["conversation_id"] == "11111111-2222-3333-4444-555555555555"
-    assert r1["fallback_triggered"] is False
+    assert r1.get("fallback_triggered") is False
     assert r1["claude_code_tokens_used"] == 0
 
     # Turn 2: Opus hits quota mid-flight -> automatically retries on same conversation_id with Argon High
@@ -109,7 +109,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
     assert r2["ok"] is True
     assert r2["model_used"] == "gemini-4-argon-high"
     assert r2["conversation_id"] == "11111111-2222-3333-4444-555555555555"
-    assert r2["fallback_triggered"] is True
+    assert r2.get("fallback_triggered") is True
     assert r2["turn_count"] == 2
     assert r2["claude_code_tokens_used"] == 0
 
@@ -182,3 +182,53 @@ def test_run_turn_stops_the_chain_on_timeout(monkeypatch, tmp_path):
                           brains_dir=tmp_path / "b", snapshot_path=snap)
     assert r["ok"] is False and "timed out" in r["response"]
     assert len(calls) == 1
+
+
+@pytest.mark.parametrize("omit_fallback_key", [False, True])
+def test_turn_cli_accepts_success_with_optional_fallback_metadata(monkeypatch, tmp_path, capsys, omit_fallback_key):
+    monkeypatch.setattr(ph_brain, "BRAINS_DIR", tmp_path / "brains")
+    monkeypatch.setattr(ph_brain, "QUOTA_SNAPSHOT", _write_snapshot(tmp_path, 0.94))
+    calls = []
+
+    def fake_invoke(prompt, *, model, **kwargs):
+        calls.append(model)
+        return {"ok": True, "returncode": 0, "conversation_id": "test-conversation",
+                "response": "Plan ready", "limit_hit": None}
+
+    monkeypatch.setattr(ph_brain, "invoke_agy", fake_invoke)
+    real_run_turn = ph_brain.run_turn
+
+    def result_without_optional_metadata(**kwargs):
+        result = real_run_turn(**kwargs)
+        # Simulate a legacy/alternate producer at the CLI result boundary.
+        # Current successful run_turn results already include this key.
+        result.pop("fallback_triggered")
+        return result
+
+    if omit_fallback_key:
+        monkeypatch.setattr(ph_brain, "run_turn", result_without_optional_metadata)
+    rc = ph_brain.main(["turn", "--ph", "999899b1", "--message", "go"])
+    output = capsys.readouterr()
+    assert (rc, output.err) == (0, "")
+    assert "Plan ready" in output.out
+    assert calls == [ph_brain.PRIMARY_MODEL]
+
+
+@pytest.mark.parametrize("retry_first", [False, True])
+def test_timeout_result_includes_fallback_metadata(monkeypatch, tmp_path, retry_first):
+    calls = []
+
+    def fake_invoke(prompt, *, model, **kwargs):
+        calls.append(model)
+        timed_out = not retry_first or len(calls) > 1
+        return {"ok": False, "returncode": None if timed_out else 1,
+                "conversation_id": None, "response": "timed out" if timed_out else "quota exceeded",
+                "limit_hit": None if timed_out else "quota exceeded", "timed_out": timed_out}
+
+    monkeypatch.setattr(ph_brain, "invoke_agy", fake_invoke)
+    result = ph_brain.run_turn(ph_id="999899b1", message="go", brains_dir=tmp_path / "brains",
+                               snapshot_path=_write_snapshot(tmp_path, 0.94))
+    assert result["ok"] is False
+    assert "fallback_triggered" in result
+    assert result.get("fallback_triggered") is retry_first
+    assert len(calls) == (2 if retry_first else 1)
