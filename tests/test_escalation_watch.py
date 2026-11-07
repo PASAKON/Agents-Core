@@ -8,6 +8,30 @@ import pytest
 from tools import escalation_watch as ew
 
 NOW = 1_800_000_000.0
+
+
+@pytest.fixture(autouse=True)
+def no_live_idle_sweep(monkeypatch):
+    from tools import idle_sweep
+    monkeypatch.setattr(idle_sweep, "tick", lambda: None)
+
+
+def test_live_tick_calls_idle_sweep_before_hub(monkeypatch):
+    from tools import idle_sweep
+    calls = []
+    monkeypatch.setattr(idle_sweep, "tick", lambda: calls.append("idle"))
+    def stop():
+        raise RuntimeError("stop after idle hook")
+    from lib import config
+    monkeypatch.setattr(config, "self_host", stop)
+    with pytest.raises(RuntimeError):
+        ew.main(["--nudge"])
+    assert calls == ["idle"]
+    calls.clear()
+    with pytest.raises(RuntimeError):
+        ew.main([])
+    assert calls == []
+
 PERMISSION = """\
  Bash command
    systemctl restart foo

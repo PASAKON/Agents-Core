@@ -9,6 +9,10 @@ WEEKLY = "[Timer]\nOnCalendar=Mon *-*-* 08:00:00 Asia/Bangkok\nPersistent=true"
 
 
 class AuditTests(unittest.TestCase):
+    def test_idle_sweep_is_an_embedded_zero_model_gate(self):
+        self.assertIn("idle_sweep", wake_audit.GATED)
+        self.assertIn("idle_sweep", wake_audit.RUNS_INSIDE["escalation_watch"])
+
     def test_gates(self):
         for name in ("mail_wake_sweep", "run_watch_driver"):
             with self.subTest(name=name):
