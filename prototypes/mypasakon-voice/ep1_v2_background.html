@@ -1,0 +1,41 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MYPASAKON EP1 v2 — deterministic background</title>
+<style>html,body,canvas{margin:0;width:100%;height:100%;overflow:hidden;background:#07111f}</style>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+/* This page is deliberately clock-driven: the recorder calls __setTime(ms),
+   so a frame has no dependency on browser scheduling or wall-clock time. */
+const c=document.querySelector('#c'), x=c.getContext('2d'), W=c.width,H=c.height;
+function rgba(r,g,b,a){return `rgba(${r},${g},${b},${a})`}
+function draw(ms){
+  const t=ms/1000, g=x.createLinearGradient(0,0,W,H);
+  // Layer 1: slow gradient-mesh drift.
+  g.addColorStop(0, '#07152b'); g.addColorStop(.48, '#14244a'); g.addColorStop(1, '#08111f');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  for(let i=0;i<6;i++){
+    const px=W*(.15+.72*((Math.sin(t*.035+i*1.9)+1)/2));
+    const py=H*(.12+.76*((Math.cos(t*.029+i*2.3)+1)/2));
+    const r=430+i*70, orb=x.createRadialGradient(px,py,0,px,py,r);
+    orb.addColorStop(0, rgba(34+i*9,120+i*8,190+i*5,.18)); orb.addColorStop(1,rgba(20,42,78,0));
+    x.fillStyle=orb; x.fillRect(0,0,W,H);
+  }
+  // Layer 2: moving grid / particle field.
+  x.save(); x.globalAlpha=.19; x.strokeStyle='#76b9ff'; x.lineWidth=1;
+  const gx=(t*9)%72, gy=(t*5)%72;
+  for(let i=-72;i<W+72;i+=72){x.beginPath();x.moveTo(i+gx,0);x.lineTo(i+gx,H);x.stroke()}
+  for(let j=-72;j<H+72;j+=72){x.beginPath();x.moveTo(0,j+gy);x.lineTo(W,j+gy);x.stroke()}
+  for(let i=0;i<42;i++){const px=(i*137+t*(7+i%4))%W,py=(i*281+t*(11+i%5))%H;x.fillStyle='#c6e4ff';x.fillRect(px,py,2,2)} x.restore();
+  // Layer 3: blurred candle silhouettes at different parallax depths.
+  x.save(); x.filter='blur(18px)';
+  for(let i=0;i<9;i++){const px=(i*151+t*(i%2?3:-2))%1250-85, base=1660+(i%3)*75;
+    x.fillStyle=rgba(7,10,18,.74);x.fillRect(px,base-180-(i%4)*55,58,220+(i%4)*55);
+    const flame=x.createRadialGradient(px+29,base-205-(i%4)*55,4,px+29,base-205-(i%4)*55,72);
+    flame.addColorStop(0,rgba(255,221,130,.72));flame.addColorStop(.35,rgba(255,129,55,.25));flame.addColorStop(1,rgba(255,90,30,0));x.fillStyle=flame;x.fillRect(px-45,base-280-(i%4)*55,150,150)}
+  x.restore();
+  // Layer 4: diagonal light sweep above the other motion.
+  x.save(); x.translate(W*.5,H*.48); x.rotate(-.42); const sweep=(t*105)%2400-1200;
+  const s=x.createLinearGradient(sweep,-H,sweep+260,H);s.addColorStop(0,rgba(255,255,255,0));s.addColorStop(.5,rgba(150,214,255,.12));s.addColorStop(1,rgba(255,255,255,0));x.fillStyle=s;x.fillRect(-W,-H,W*2,H*2);x.restore();
+}
+window.__setTime=(ms)=>draw(Number(ms)||0); draw(0);
+</script>
