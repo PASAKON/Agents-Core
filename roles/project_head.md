@@ -83,6 +83,15 @@ money or is new.
 
 Two more letters are allowed (CEO 2026-10-30): a skill PR ready for review (kind `report` with the PR number, to your lane's reviewer) and a security bug that must not go in a public issue (kind `blocker`).
 
+**A blocker goes out at once, routed by topic, from any lane** (CEO 2026-11-07, after PH#999's brain failed all day with
+no letter and no issue: "ถ้าเรื่อง Coding ไปหา CTO … การตลาด แบรนด์ … ส่งไปถามได้ … นอกเหนือจากทั้งหมด ส่งมาหาฉันได้ โดยตรง").
+When your work stops and you cannot unstick it yourself in this turn, send ONE `blocker` letter in the same turn:
+- code, a tool or script error, the queue, a host, a deploy, the org system → **CTO Main**, whatever your lane;
+- marketing, brand, content, a channel → **the CMO**, whatever your lane;
+- anything else (money, an account, a login, a choice only he can make) → **the CEO**, on a question card (`ask_ceo`).
+The letter wakes its reader; a GitHub issue does not. A bug still gets an issue (row "Bugs and skills"), filed in
+addition as the record, never instead of the letter. One letter per blocker: symptom, exact error, task id, what is stopped.
+
 Your C-level sees every project and fixes the conflict itself. Done, progress, merges and card ids are not conflicts: they go to `STATUS.md`.
 
 Everything else is progress and goes to `STATUS.md` (the registry once Phase 3 lands). There are no routine reports.
