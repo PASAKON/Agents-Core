@@ -19,6 +19,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 # Reviewed event gates, not a generic claim that any `if` is an event check.
 GATED = {
+    "idle_sweep": "hourly stamp; prompt-ready idle >=3 days; CEO card or 7-day deadline; zero model",
     "mail_wake_sweep": "mailbox.wake_due: pending eligible letters",
     "run_watch_driver": "Follower events and active-run lifecycle; review restarts",
     "escalation_watch": "new stuck episode; timed parts paced by wake_interval",
@@ -32,7 +33,7 @@ GATED = {
 BACKOFF_GATED = {"escalation_watch": "tools/escalation_watch.py", "owner_relay": "tools/owner_relay.py"}
 # Wake paths that run inside another gate's process, so its unit command never names them:
 # that gate is backoff-gated only while each of these is too.
-RUNS_INSIDE = {"escalation_watch": ("owner_relay",)}
+RUNS_INSIDE = {"escalation_watch": ("owner_relay", "idle_sweep")}
 # A report on a calendar date (weekly or slower) is a deadline, not a loop.
 SCHEDULED_REPORT = ("tool_value report", "weekly report, Mon 08:00 TH: a calendar deadline, not a loop")
 DATE_ANCHORED = re.compile(

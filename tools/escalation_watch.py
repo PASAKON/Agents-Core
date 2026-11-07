@@ -727,6 +727,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--nudge", action="store_true", help="send the letters (default: print only)")
     a = ap.parse_args(argv)
+    if a.nudge:
+        from tools import idle_sweep
+        try:
+            idle_sweep.tick()
+        except Exception as exc:
+            print(f"idle sweep skipped: {type(exc).__name__}: {exc}")
     from lib import config
     host = config.self_host()
     now = _now()

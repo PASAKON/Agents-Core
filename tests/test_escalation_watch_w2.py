@@ -14,6 +14,13 @@ from tools import escalation_watch as ew
 from tools import owner_relay as orl
 
 NOW = 1_800_000_000.0
+
+
+@pytest.fixture(autouse=True)
+def no_live_idle_sweep(monkeypatch):
+    from tools import idle_sweep
+    monkeypatch.setattr(idle_sweep, "tick", lambda: None)
+
 MIN = 60
 RULE = "─" * 50
 READY = f"some output\n{RULE}\n❯\xa0\n{RULE}\n  ? for shortcuts\n"
