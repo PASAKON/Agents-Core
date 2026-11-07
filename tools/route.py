@@ -561,7 +561,17 @@ def _tier_plans(plans, tier, *, now=None):
     outside = [p for p in plans if p.choice.runner in ("agy", "codex")]
     def over(p):
         # A bucket with no fresh row counts as under: missing data never closes the gate.
-        return rows.get(p.choice.bucket, {}).get("state") == "over"
+        row = rows.get(p.choice.bucket, {})
+        if row.get("state") != "over":
+            return False
+        # Normal work may exceed today's target while still lasting until reset.
+        # Reuse the plan's forecast; without one, tolerate five percentage points.
+        if p.projection and p.projection.startswith("holds past reset "):
+            return False
+        if p.projection and ", before reset " in p.projection:
+            return True
+        headroom = row.get("headroom")
+        return headroom is not None and headroom < -0.05
     if tier == "low":
         gate = any(rows.get(b, {}).get("state") == "over"
                    for b in ("agy-gemini", "codex", "claude"))
