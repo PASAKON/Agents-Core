@@ -1,0 +1,103 @@
+.............................................s.......................... [  0%]
+..........F
+=================================== FAILURES ===================================
+_____________________ test_zero_in_flight_does_no_api_work _____________________
+
+    def test_zero_in_flight_does_no_api_work() -> bool:
+        def run():
+            return _with_fake(PoisonedModule, itermtab.sync_dev_tab_colors)
+    
+        def with_db():
+            _seed_tasks({"task-aaaaaaaa": "done", "task-bbbbbbbb": "pending"})
+            return run()
+    
+>       hits = _with_scratch_db(with_db)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+scripts/test_dev_tab_color.py:234: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/test_dev_tab_color.py:165: in _with_scratch_db
+    db.init()
+lib/db.py:925: in init
+    with get_conn() as conn:
+/usr/lib/python3.12/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+lib/db.py:700: in get_conn
+    conn = _connect(timeout=timeout, readonly=readonly, path=path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def _connect(*, timeout: float | None = None, readonly: bool = False,
+                 path: str | Path | None = None) -> sqlite3.Connection:
+        """SQLite connection -- unchanged behaviour from before the Postgres
+        backend existed, plus three additive options no pre-existing caller
+        passes (so every pre-existing call site is byte-for-byte unaffected):
+    
+          timeout  -- sqlite3's own busy-timeout; also threaded into the pg
+                      branch of get_conn() as connect_timeout, so a single
+                      kwarg gives both backends a fail-open budget.
+          readonly -- open `file:<path>?mode=ro` instead of read-write, and
+                      never create the file. Raises FileNotFoundError up front
+                      if it doesn't exist (a caller like the self-repo-guard
+                      hook needs "not found" distinguished from "found but
+                      unreadable").
+          path     -- connect to this file instead of the module's own
+                      DB_PATH. Lets a caller address a *specific* checkout's
+                      tasks.db (scripts/hook-self-repo-guard.py, which resolves
+                      a DEV worktree's own hub root) without trusting this
+                      process's ORG_ROOT/__file__ resolution -- and lets its
+                      tests inject a throwaway fixture path. Ignored entirely
+                      under the Postgres backend, which is one global registry
+                      regardless of which checkout asks (see get_conn).
+        """
+        db_path = Path(path) if path is not None else DB_PATH
+        if db_path.is_dir():
+            raise ArchivedDB(ARCHIVED_TASKS_DB_MSG)
+        if os.environ.get("PYTEST_CURRENT_TEST") and (
+            db_path.parent.parent / ".git"
+        ).exists():
+            # ADR 0021 addendum (2026-09-18): a test process inherits whatever
+            # ORG_ROOT its shell carries -- a worker's own shell sets it to the
+            # real hub checkout (runners/worker_init.py) -- so a test that
+            # doesn't monkeypatch DB_PATH/path to a tmp location would otherwise
+            # silently open the real tasks.db (29 test-proj rows + 13 events
+            # landed there this way). A real checkout/worktree always has a
+            # `.git` entry (file for a worktree's gitdir pointer, dir for a full
+            # clone); a tmp_path fixture never does.
+>           raise RuntimeError(
+                "tests must not touch a real checkout's tasks.db (ADR 0021)"
+            )
+E           RuntimeError: tests must not touch a real checkout's tasks.db (ADR 0021)
+
+lib/db.py:490: RuntimeError
+=============================== warnings summary ===============================
+scripts/test_dev_tab_color.py::test_each_status_maps_to_expected_color
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_each_status_maps_to_expected_color returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_terminal_and_pending_statuses_have_no_color
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_terminal_and_pending_statuses_have_no_color returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_clevel_title_never_matched
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_clevel_title_never_matched returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_dev_title_extracts_task_id
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_dev_title_extracts_task_id returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/test_dev_tab_color.py::test_zero_in_flight_does_no_api_work - ...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 81 passed, 1 skipped, 4 warnings in 18.48s

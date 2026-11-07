@@ -197,6 +197,21 @@ CREATE TABLE IF NOT EXISTS letters (
 CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
 """
 
+# Shared PH telemetry uses only portable SQL; included in normal hub init.
+PH_STATE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS ph_state (
+    session_id TEXT NOT NULL, host TEXT NOT NULL, project TEXT NOT NULL,
+    brain TEXT NOT NULL, model TEXT NOT NULL, doing TEXT NOT NULL,
+    owner TEXT NOT NULL, lane TEXT NOT NULL,
+    turn_id TEXT NOT NULL, pid INTEGER, started DOUBLE PRECISION NOT NULL,
+    updated DOUBLE PRECISION NOT NULL, ended DOUBLE PRECISION,
+    exit_code INTEGER, phase TEXT NOT NULL, wait_ref TEXT,
+    alerted INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (session_id, host)
+);
+"""
+SCHEMA += PH_STATE_SCHEMA
+
 # Org Mesh W4.1 (tools/hq_join.py): one-time join tokens. Only the sha256 of a
 # token is stored, never the token. `locks` cannot hold this: it has no used_at
 # and no host, and acquire_lock/_claim purge expired rows, which would turn
@@ -755,7 +770,7 @@ def _pg_schema_current(conn) -> bool:
     this cannot read answers False, so the DDL runs and a new kind of
     statement in a schema script is never skipped by mistake."""
     names = []
-    for script in (db_pg.PG_SCHEMA, JOIN_TOKENS_SCHEMA, NODE_SECRETS_SCHEMA):
+    for script in (db_pg.PG_SCHEMA, JOIN_TOKENS_SCHEMA, NODE_SECRETS_SCHEMA, PH_STATE_SCHEMA):
         for stmt in db_pg._split_statements(script):
             m = _PG_CREATE_RE.match(stmt)
             if m is None:
@@ -800,6 +815,8 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     """init_schema()'s DDL: the backend's schema, the join and secret tables,
     then the forward-only column migrations."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
+    if is_pg:
+        conn.executescript(PH_STATE_SCHEMA)
     if is_pg:
         # Org restructure P3-A: one statement each, never split on ";".
         if not _project_event_kinds_current(conn):

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -23,6 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from tools import rename_service, run_watch as watch, run_watcher as watcher  # noqa: E402
 from lib.run_liveness import _env_int  # noqa: E402
+from lib import ph_state
 
 WORDS = dict(start="เริ่ม", done="เสร็จ", failed="พัง", dead="ตาย",
              quiet="เงียบ", resumed="กลับมา")
@@ -108,9 +110,60 @@ def ready(pane: str) -> bool:
     return rename_service._blocked(pane) is None and rename_service._blocked(pane) is None
 
 
+def ph_snapshot(host, now, *, dry_run=False):
+    """All hosts read one hub; only local native panes and PIDs are inspected."""
+    try:
+        rows = watch.fetch_phs()
+        tasks = watch._query("SELECT owner_cto,status FROM tasks WHERE owner_cto IS NOT NULL", ())
+        if not dry_run:
+            sessions = watch._query("SELECT * FROM c_level_sessions WHERE status='open' AND host=?", (host,))
+            for session in sessions:
+                sid = session['session_id']
+                if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', sid):
+                    continue
+                project = rename_service._read(f'project_head-{sid}.project')
+                if session['role'] != 'project_head' and not project:
+                    continue
+                session['project'] = project or session.get('charter') or sid
+                owner = rename_service._read(f'project_head-{sid}.spawned_by').split(':')
+                if len(owner) == 3:
+                    session.update(lane=owner[1], owner=f'{owner[1]}-{owner[2]}')
+                if any(r['session_id'] == session['session_id'] and r['host'] == host
+                       and r['brain'] != 'claude-native' for r in rows):
+                    continue
+                try:
+                    capture = rename_service.tmux('capture-pane', '-p', '-e', '-t',
+                                                  '=' + session['role'] + '-' + sid + ':0.0')
+                    if capture.returncode == 0:
+                        ph_state.observe_native(session, capture.stdout, now=now)
+                except (OSError, subprocess.TimeoutExpired):
+                    pass
+            rows = ph_state.observe(watch.fetch_phs(), now=now, local_host=host, tasks=tasks)
+            rows = watch.fetch_phs()
+        return {'at': now, 'rows': rows}
+    except Exception:
+        # Never leak a hub DSN; do not turn unreadable data into false red PHs.
+        return {'at': now, 'rows': [], 'error': True}
+
+
+def ph_display_alive(session):
+    try:
+        proc = subprocess.run(['tmux', '-N', 'list-panes', '-t', '=' + session + ':0',
+                               '-F', '#{pane_dead} #{pane_start_command}'],
+                              capture_output=True, text=True, timeout=10)
+        return proc.returncode == 0 and any(
+            line.startswith('0 ') and 'tools/run_watch.py' in line and 'ph-display' in line
+            for line in proc.stdout.splitlines())
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def tick(*, dry_run: bool = False) -> int:
     now = time.time()
     host = watch.this_host()
+    snapshot = ph_snapshot(host, now, dry_run=dry_run)
+    if not dry_run:
+        save(watch.state_file(host).with_name('ph.json'), snapshot)
     try:
         tasks = watch.fetch_tasks()
         runs = watch.collect_runs(tasks, now=now)
@@ -160,6 +213,7 @@ def tick(*, dry_run: bool = False) -> int:
                 if session_id != state.get("uuid"):
                     state["compact_base"] = 0       # a new conversation: nothing compacted yet
                 state.update(uuid=session_id, started_at=now,
+                             ph_pane=False,
                              last_name=watch.format_watch_name(n, light, host=host))
                 follower = watch.Follower()
                 follower.step(runs, now)
@@ -183,12 +237,32 @@ def tick(*, dry_run: bool = False) -> int:
             else:
                 reason = "kill failed"
     if alive:
+        # Keep a dedicated zero-model pane inside Watch. Its own clock can warn
+        # after this driver stops, unlike a one-shot ! print into Claude.
+        if not dry_run and not snapshot.get('error') and (
+                not state.get('ph_pane') or not ph_display_alive(session)):
+            command = shlex.join([sys.executable, str(ROOT / 'tools/run_watch.py'),
+                                  'ph-display', '--host', host])
+            if tmux('split-window', '-d', '-v', '-l', '8', '-t', '=' + session + ':0.0', command):
+                state['ph_pane'] = True
         name = watch.format_watch_name(n, light, host=host)
+        if not snapshot.get('error'):
+            name += ph_state.suffix(snapshot['rows'])
         if name != state.get("last_name") and ready(session):
             typed = f"/rename {name}"
             result = "would type" if dry_run else rename_service.type_rename(session, typed)
             if result == "renamed":
                 state["last_name"] = name
+        ph_changed = ph_state.signature(snapshot) != state.get('ph_signature')
+        if (not snapshot.get('error') and ph_changed and not typed
+                and now - state.get('ph_printed_at', 0) >= 60 and ready(session)):
+            # Claude's ! command runs local Bash directly, without a Haiku turn.
+            # No model-authored report and no prompt content from PH telemetry.
+            typed = '! ' + shlex.join(['bash', 'scripts/hub/org-python.sh',
+                                      'tools/run_watch.py', 'ph-display', '--once', '--host', host])
+            result = 'would type' if dry_run else rename_service.type_rename(session, typed)
+            if result == 'renamed':
+                state.update(ph_signature=ph_state.signature(snapshot), ph_printed_at=now)
         if pending and not typed and ready(session):
             session_id = state.get("uuid")
             grown = max(0, transcript_bytes(session_id) - state.get("compact_base", 0))

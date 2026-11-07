@@ -27,6 +27,7 @@ import re
 import shutil
 import subprocess
 import sys
+from contextvars import ContextVar
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +35,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 BRAINS_DIR = ROOT / "state" / "ph-brains"
+from lib import ph_state
+
+_IN_TURN = ContextVar('ph_brain_turn', default=False)
 QUOTA_SNAPSHOT = ROOT / "state" / "quota-snapshot.json"
 
 PRIMARY_MODEL = "claude-opus-5-5-high"
@@ -292,6 +296,8 @@ def invoke_agy(
     agy_bin: str | None = None,
 ) -> dict[str, Any]:
     """Execute one `agy` CLI call and return structured result."""
+    if not _IN_TURN.get():
+        raise RuntimeError('PH brains must enter through run_turn')
     binary = agy_bin or resolve_agy_bin()
     cmd = [
         binary,
@@ -365,6 +371,11 @@ def invoke_agy(
     }
 
 
+# New brain adapters belong here, never in a second turn/launch branch. The
+# common loop below records every adapter before it receives a prompt.
+BRAIN_RUNNERS = {'agy': lambda *args, **kwargs: invoke_agy(*args, **kwargs)}
+
+
 def run_turn(
     *,
     ph_id: str,
@@ -379,8 +390,13 @@ def run_turn(
     snapshot_path: Path | None = None,
     timeout_s: int = TURN_TIMEOUT_S,
     agy_bin: str | None = None,
+    brain: str = 'agy',
 ) -> dict[str, Any]:
     """Run a single turn on the PH's persistent AGY brain with automatic fallback."""
+    if brain not in BRAIN_RUNNERS:
+        raise ValueError(f'unknown PH brain: {brain}')
+    if brain != 'agy' and not preferred_model:
+        raise ValueError('a non-AGY brain requires an explicit model')
     state = load_brain_state(ph_id, brains_dir=brains_dir)
     if project:
         state["project"] = project
@@ -409,20 +425,28 @@ def run_turn(
         preferred_model,
         snapshot_path=snapshot_path,
         force_fallback=force_fallback,
-    )
+    ) if brain == 'agy' else [preferred_model]
     attempted: list[dict[str, Any]] = []
     last_res: dict[str, Any] = {}
+    telemetry_warning = {}
 
     for idx, model in enumerate(models_to_try):
         fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
-        res = invoke_agy(
-            prompt,
-            model=model,
-            conversation_id=conv_id,
-            add_dirs=add_dirs,
-            timeout_s=timeout_s,
-            agy_bin=agy_bin,
-        )
+        with ph_state.turn(session_id=ph_id, project=state['project'],
+                           warning_state=telemetry_warning,
+                           brain=brain, model=model, doing=message,
+                           owner=state.get('owner'), lane=state.get('lane') or 'cto') as outcome:
+            guard = _IN_TURN.set(True)
+            try:
+                res = BRAIN_RUNNERS[brain](
+                    prompt, model=model, conversation_id=conv_id,
+                    add_dirs=add_dirs, timeout_s=timeout_s, agy_bin=agy_bin,
+                )
+                code = res.get('returncode')
+                outcome.update(returncode=code if code is not None else
+                               (124 if res.get('timed_out') else 1))
+            finally:
+                _IN_TURN.reset(guard)
         # Preserve conversation_id if AGY minted one before hitting a limit
         if res.get("conversation_id"):
             conv_id = res["conversation_id"]
@@ -605,6 +629,7 @@ def main(argv: list[str] | None = None) -> int:
     p_turn.add_argument("--owner", help="Owner C-level session (e.g. cto-d405e3e2)")
     p_turn.add_argument("--message", "-m", required=True, help="Prompt or message for this turn")
     p_turn.add_argument("--model", help="Override primary AGY model")
+    p_turn.add_argument('--brain', choices=tuple(BRAIN_RUNNERS), default='agy')
     p_turn.add_argument("--force-fallback", action="store_true", help="Force fallback to Gemini 4 Argon High on the same conversation")
     p_turn.add_argument("--add-dir", action="append", default=[], help="Additional directory to grant AGY access to")
     p_turn.add_argument("--json", action="store_true", help="Emit JSON output")
@@ -612,6 +637,11 @@ def main(argv: list[str] | None = None) -> int:
     p_status = sub.add_parser("status", help="Show active PH brains and AGY quota status")
     p_status.add_argument("--ph", help="Filter to a single PH id")
     p_status.add_argument("--json", action="store_true", help="Emit JSON output")
+
+    p_wait = sub.add_parser('wait', help='Record a worker task or card wait (zero model calls)')
+    p_wait.add_argument('--ph', required=True)
+    p_wait.add_argument('--ref', required=True)
+    sub.add_parser('observe', help='Sample this host PH panes/PIDs into the hub (zero model calls)')
 
     p_del = sub.add_parser("delegate", help="Create and dispatch an AGY worker task from a PH brain")
     p_del.add_argument("--ph", required=True)
@@ -627,6 +657,14 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     try:
+        if args.cmd == 'wait':
+            ph_state.require_hub()
+            ph_state.wait(args.ph, args.ref)
+            return 0
+        if args.cmd == 'observe':
+            from tools.run_watch_driver import ph_snapshot
+            import time
+            return 1 if ph_snapshot(ph_state.host_name(), time.time()).get('error') else 0
         if args.cmd == "turn":
             extra_dirs = [ROOT] + [Path(d) for d in args.add_dir]
             res = run_turn(
@@ -636,6 +674,7 @@ def main(argv: list[str] | None = None) -> int:
                 owner=args.owner,
                 message=args.message,
                 preferred_model=args.model,
+                brain=args.brain,
                 force_fallback=args.force_fallback,
                 add_dirs=extra_dirs,
             )
