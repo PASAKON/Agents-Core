@@ -1,0 +1,82 @@
+.............                                                            [100%]
+=============================== warnings summary ===============================
+scripts/test_dev_tab_color.py::test_each_status_maps_to_expected_color
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_each_status_maps_to_expected_color returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_terminal_and_pending_statuses_have_no_color
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_terminal_and_pending_statuses_have_no_color returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_clevel_title_never_matched
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_clevel_title_never_matched returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_dev_title_extracts_task_id
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_dev_title_extracts_task_id returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_zero_in_flight_does_no_api_work
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_zero_in_flight_does_no_api_work returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_db_failure_returns_cleanly
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_db_failure_returns_cleanly returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_sync_survives_db_failure
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_sync_survives_db_failure returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_sync_colors_matching_dev_tabs_only
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_sync_colors_matching_dev_tabs_only returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_blocker_badge_names_whoever_ordered_the_work
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_blocker_badge_names_whoever_ordered_the_work returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_only_stuck_tasks_get_a_badge
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_only_stuck_tasks_get_a_badge returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_badge_reaches_the_tab_with_the_right_owner
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_badge_reaches_the_tab_with_the_right_owner returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_stale_color_is_cleared_when_task_leaves_flight
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_stale_color_is_cleared_when_task_leaves_flight returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+scripts/test_dev_tab_color.py::test_untouched_tabs_are_never_cleared
+  /opt/MoonieXHQ/Agents/Core/.venv/lib/python3.12/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but scripts/test_dev_tab_color.py::test_untouched_tabs_are_never_cleared returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+13 passed, 13 warnings in 2.45s

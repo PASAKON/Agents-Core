@@ -9,6 +9,8 @@ from tools import run_watch_driver as d
 
 @pytest.fixture
 def rig(monkeypatch, tmp_path):
+    monkeypatch.setattr(d, 'ph_snapshot', lambda *a, **k: {'at': 1000, 'rows': [], 'error': True})
+    monkeypatch.setattr(d, 'ph_display_alive', lambda *a: True)
     for key in list(d.os.environ):
         if key.startswith("RUN_WATCH_"):
             monkeypatch.delenv(key)
@@ -41,6 +43,8 @@ def rig(monkeypatch, tmp_path):
         elif args[0] == "kill-session":
             assert args[-1] == "=runwatch-contabo"
             r["alive"] = False
+        elif args[0] == 'split-window':
+            pass
         else:
             pytest.fail(str(args))
         return True
@@ -456,6 +460,47 @@ def test_compact_is_typed_only_past_the_threshold_and_before_the_next_event_line
     r["runs"] = dead[:5]
     d.tick()
     assert r["typed"][-1] == "/compact" and r["state"]()["compact_base"] == 800
+
+
+def test_ph_counts_change_only_rename_and_zero_model_hour(rig, monkeypatch):
+    r = rig
+    rows = [{'phase': 'thinking', 'host': 'contabo'}]
+    monkeypatch.setattr(d, 'ph_snapshot', lambda *a, **kw: {'at': r['now'], 'rows': rows})
+    d.tick()
+    assert len(r['typed']) == 1 and r['typed'][0].endswith(' · PH 🧠1 ⏳0 🔴0')
+    for _ in range(60):
+        r['now'] += 60
+        d.tick()
+    assert len(r['typed']) == 2
+    assert r['typed'][1] == '! bash scripts/hub/org-python.sh tools/run_watch.py ph-display --once --host contabo'
+    # Only a slash rename and local Bash, zero model prompts in a simulated hour.
+    assert sum(c[0] == 'split-window' for c in r['calls']) == 1
+    for phase, suffix in [('waiting', '🧠0 ⏳1 🔴0'), ('idle', '🧠0 ⏳0 🔴0'),
+                          ('silent', '🧠0 ⏳0 🔴1')]:
+        rows[0]['phase'] = phase
+        d.tick()
+        assert r['typed'][-1].endswith(' · PH ' + suffix)
+
+
+def test_ph_bash_output_is_change_only_throttled_and_retries(rig, monkeypatch):
+    r = rig
+    rows = [{'phase': 'idle', 'host': 'contabo', 'project': 'one'}]
+    monkeypatch.setattr(d, 'ph_snapshot', lambda *a, **kw: {'at': r['now'], 'rows': rows})
+    d.tick()  # rename
+    d.tick()  # initial Bash print
+    count = len(r['typed'])
+    rows[0]['project'] = 'two'  # line changes, counts do not
+    r['now'] += 59
+    d.tick()
+    assert len(r['typed']) == count
+    r['now'] += 1
+    r['result'] = 'held'
+    d.tick()
+    assert r['state']()['ph_signature'][1][0][1] == 'one'
+    r['result'] = 'renamed'
+    d.tick()
+    assert r['state']()['ph_signature'][1][0][1] == 'two'
+    assert all(t.startswith(('/rename ', '! bash ')) for t in r['typed'])
 
 
 def test_compact_waits_for_a_ready_prompt(rig, monkeypatch):

@@ -45,6 +45,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib import db_pg, run_liveness, session_names  # noqa: E402
+from lib import ph_state
 
 HUB_CONNECT_TIMEOUT_S = 3
 POLL_S_DEFAULT = 10
@@ -109,6 +110,27 @@ def fetch_tasks() -> list[dict]:
     marks = ",".join("?" * len(run_liveness.RUN_STATUSES))
     return _query(f"SELECT * FROM tasks WHERE status IN ({marks}) "
                   "ORDER BY updated_at DESC LIMIT 300", run_liveness.RUN_STATUSES)
+
+
+def fetch_phs():
+    return _query("""SELECT p.* FROM ph_state p LEFT JOIN c_level_sessions s
+        ON s.session_id=p.session_id AND (s.host=p.host OR s.host IS NULL)
+        WHERE s.status IS NULL OR s.status='open' ORDER BY p.host,p.session_id""", ())
+
+
+def ph_display(host, *, once=False):
+    """Independent local display clock: driver death must become visible."""
+    path = state_file(host).with_name('ph.json')
+    while True:
+        try:
+            snapshot = json.loads(path.read_text())
+        except (OSError, ValueError):
+            snapshot = None
+        text = ph_state.render(snapshot, now=time.time())
+        print(('' if once else '\033[2J\033[H') + text, flush=True)
+        if once:
+            return 0
+        time.sleep(5)
 
 
 def fetch_task(needle: str) -> dict | None:
@@ -531,6 +553,9 @@ watch_light_name = format_watch_name
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="run_watch", description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="cmd", required=True)
+    ph = sub.add_parser('ph-display', help='model-free PH display with independent stale clock')
+    ph.add_argument('--once', action='store_true')
+    ph.add_argument('--host')
     st = sub.add_parser("status", help="active and just-ended runs on this host")
     st.add_argument("--json", action="store_true")
     st.add_argument("--bad", action="store_true", help="quiet, failed, dead only")
@@ -554,6 +579,8 @@ def main(argv=None) -> int:
         print(f"host unknown: {exc}")
         return EXIT_HOST
     try:
+        if args.cmd == 'ph-display':
+            return ph_display(host, once=args.once)
         if args.cmd == "follow":
             return run_follow()
         if args.cmd == "tail":
