@@ -188,3 +188,8 @@ anything not already written down will be reopened.
 ## Field notes
 
 - 2026-10-06 [MISSING] §12 Shell scripts on this Mac — the tool shell is zsh, so `${PIPESTATUS[0]}` expands to an empty string and the exit code is lost without an error; use `$pipestatus[1]`, or run without a pipe and `echo $?` · evidence: task-20215157 (validate runs printed `exit ` with nothing after it); second run task-3e3fc846 2026-10-14 (`cmd | tail; echo $?` printed tail's exit) → §12 bullet "A pipe hides the left side's exit code" · status: promoted
+
+## A blocker you cannot clear (CEO 2026-11-07)
+Report it to your owner (the PH or C-level that delegated you) as a `blocker` at once, with the exact error and what is
+stopped. If your owner's session is gone or does not answer, a code/tool/system blocker goes to CTO Main and a
+marketing/brand one to the CMO. Never sit idle waiting, and never let a GitHub issue be the only signal.
