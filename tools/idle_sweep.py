@@ -59,6 +59,9 @@ def activity(name, panes, root):
     from lib.run_liveness import log_files, parse_ts
     files, times = [], []
     project = Path(panes[0][1]).name or "unknown"
+    lock_project = root / "state/locks" / f"{name}.project"
+    if lock_project.is_file():
+        project = lock_project.read_text().strip() or project
     if name.startswith(("mooniex-task-", "wd-task-")):
         from tools import live_sessions
         tid = name.removeprefix("mooniex-").removeprefix("wd-")
