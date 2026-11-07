@@ -36,7 +36,8 @@ def routing(monkeypatch, tmp_path):
 def snapshot(states, *, ts=NOW, day=None):
     usage_budget.SNAPSHOT.write_text(json.dumps({"ts": ts.isoformat(),
         "day": day or ts.astimezone(usage_budget.THAI).date().isoformat(),
-        "rows": {b: {"bucket": b, "state": s} for b, s in zip(BUCKETS, states)}}))
+        "rows": {b: {"bucket": b, "state": s, "headroom": -.20 if s == "over" else .10}
+                 for b, s in zip(BUCKETS, states)}}))
 
 
 @pytest.mark.parametrize("tier", [None, "critical", "normal", "low"])
