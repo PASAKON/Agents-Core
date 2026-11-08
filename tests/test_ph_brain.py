@@ -2,12 +2,77 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from tools import ph_brain
+
+
+@pytest.fixture
+def fake_codex(monkeypatch, tmp_path):
+    binary = tmp_path / 'codex'
+    log = tmp_path / 'codex-calls.jsonl'
+    binary.write_text(f'''#!{sys.executable}
+import json, sys
+with open({str(log)!r}, 'a') as f:
+    f.write(json.dumps(dict(argv=sys.argv[1:], prompt=sys.stdin.read())) + '\\n')
+print(json.dumps(dict(type='thread.started', thread_id='codex-thread')))
+print(json.dumps(dict(type='item.completed', item=dict(type='agent_message', text='Plan ready'))))
+print(json.dumps(dict(type='turn.completed')))
+''')
+    binary.chmod(0o755)
+    monkeypatch.setenv('CODEX_BIN', str(binary))
+    return log
+
+
+def test_codex_first_turn_and_resume(tmp_path, fake_codex):
+    args = dict(ph_id='codex-test', brain='codex', brains_dir=tmp_path / 'brains',
+                snapshot_path=tmp_path / 'missing.json')
+    first = ph_brain.run_turn(message='Plan launch', **args)
+    second = ph_brain.run_turn(message='Continue', **args)
+    calls = [json.loads(line) for line in fake_codex.read_text().splitlines()]
+    assert first['response'] == second['response'] == 'Plan ready'
+    assert 'resume' not in calls[0]['argv']
+    assert calls[1]['argv'][calls[1]['argv'].index('resume') + 1] == 'codex-thread'
+    assert 'sandbox_mode="read-only"' in calls[0]['argv']
+    assert ph_brain.codex_config()[0] in calls[0]['argv']
+    saved = ph_brain.load_brain_state('codex-test', tmp_path / 'brains')
+    assert saved['codex_session_id'] == 'codex-thread'
+    assert saved['conversation_id'] is None
+    assert saved['turn_count'] == 2
+
+
+@pytest.mark.parametrize('remaining', [0.8, 0.1])
+def test_agy_429_codex_fallback_and_reserve(monkeypatch, tmp_path, fake_codex, remaining):
+    agy = tmp_path / 'agy'
+    agy.write_text(f'#!{sys.executable}\nimport sys\nprint("RESOURCE_EXHAUSTED 429 Individual quota reached")\nsys.exit(1)\n')
+    agy.chmod(0o755)
+    snapshot = tmp_path / 'quota.json'
+    snapshot.write_text(json.dumps({'buckets': {'codex': {'weekly_remaining': remaining}}}))
+    args = dict(ph_id='fallback', message='Plan', agy_bin=str(agy),
+                brains_dir=tmp_path / 'brains', snapshot_path=snapshot)
+    if remaining < 0.2:
+        with pytest.raises(RuntimeError, match='codex brain blocked by router budget reserve'):
+            ph_brain.run_turn(**args)
+        assert not fake_codex.exists()
+    else:
+        result = ph_brain.run_turn(**args)
+        assert result['bucket_used'] == 'codex'
+        assert len(result['attempts']) == len(ph_brain.MODEL_CHAIN) + 1
+        saved = ph_brain.load_brain_state('fallback', tmp_path / 'brains')
+        assert saved['fallback_events'][-1]['to_model'] == 'codex'
+
+
+def test_explicit_codex_reserve_gate(tmp_path, fake_codex):
+    snapshot = tmp_path / 'quota.json'
+    snapshot.write_text(json.dumps({'buckets': {'codex': {'weekly_remaining': 0.1}}}))
+    with pytest.raises(RuntimeError, match='router budget reserve'):
+        ph_brain.run_turn(ph_id='blocked', message='plan', brain='codex',
+                          brains_dir=tmp_path / 'brains', snapshot_path=snapshot)
+    assert not fake_codex.exists()
 
 
 @pytest.fixture(autouse=True)

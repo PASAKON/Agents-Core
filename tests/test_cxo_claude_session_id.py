@@ -22,6 +22,8 @@ SAMPLE_UUID = "d405e3e2-1111-2222-3333-a6f2f69c4825"
 def _make_fake_root(tmp_path: Path) -> tuple[Path, Path]:
     fake_root = tmp_path / "core"
     fake_root.mkdir(parents=True)
+    (fake_root / 'docs' / 'plans').mkdir(parents=True)
+    (fake_root / 'docs' / 'plans' / 'cndrama-STATUS.md').write_text('status')
     venv_bin = fake_root / ".venv" / "bin"
     venv_bin.mkdir(parents=True)
     (venv_bin / "python").symlink_to(sys.executable)
@@ -147,6 +149,7 @@ def test_ph_resume_from_full_role_starts_fresh_shell(tmp_path):
     assert cap['preshell'] == SAMPLE_UUID
     assert '--resume' not in cap['argv'] and '--fork-session' not in cap['argv']
     assert any('STATUS' in arg and 'ph_brain.py turn' in arg for arg in cap['argv'])
+    assert any('/cndrama-STATUS.md' in arg for arg in cap['argv'])
 
 
 def test_ph_resume_of_marked_shell_keeps_fork(tmp_path):

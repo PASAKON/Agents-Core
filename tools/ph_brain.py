@@ -1,7 +1,7 @@
-"""100% AGY Project Head Brain with automatic Opus 5.5 -> Argon High fallback.
+"""Persistent Project Head planning brains with AGY-to-Codex quota fallback.
 
 Runs Project Head (PH) reasoning, planning, long-script context (e.g. 95-shot
-video pipelines), and worker delegation entirely on Antigravity CLI (`agy`),
+video pipelines), and worker delegation on Antigravity CLI (`agy`) or Codex,
 consuming 0% Claude Code ($20 Pro) usage.
 
 Architecture:
@@ -59,6 +59,7 @@ LIMIT_PATTERNS: tuple[str, ...] = (
     "quota exceeded",
     "rate_limit_exceeded",
     "model capacity exhausted",
+    "individual quota reached",
 )
 
 # 3 Nov 2026: a brain run with edit rights tried edit_file itself, was refused and sat
@@ -166,6 +167,8 @@ def select_model_chain(
 def is_quota_limit_text(text: str) -> str | None:
     """Return the matched limit pattern if `text` indicates an AGY model quota/capacity stop."""
     low = (text or "").lower()
+    if re.search(r"\b429\b", low):
+        return "429"
     for pat in LIMIT_PATTERNS:
         if pat in low:
             return pat
@@ -231,7 +234,7 @@ def build_initial_prompt(
     owner_str = owner or f"{lane}-main"
     return (
         f"[Project Head Identity: PH#{ph_id} ({lane.upper()}) - Project: {project} | Reports to: {owner_str}]\n"
-        f"You are the Project Head (PH) for project '{project}' in the '{lane}' lane, running on AGY.\n"
+        f"You are the Project Head (PH) for project '{project}' in the '{lane}' lane.\n"
         f"Core rules:\n"
         f"1. Plan milestones, keep full continuity across all turns/shots, and delegate hands-on execution to workers.\n"
         f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high` for code/visual QC, `gemini-3.8-flash-high` for fast browser loops, `claude-sonnet-5-5-high`) or Codex.\n"
@@ -373,7 +376,67 @@ def invoke_agy(
 
 # New brain adapters belong here, never in a second turn/launch branch. The
 # common loop below records every adapter before it receives a prompt.
-BRAIN_RUNNERS = {'agy': lambda *args, **kwargs: invoke_agy(*args, **kwargs)}
+def codex_config() -> tuple[str, str]:
+    from tools.quota import load_plans
+    # The cheaper planning entry (Sol), rather than the complex-work Astra entry.
+    entries = load_plans()['roles']['c_level_openai']
+    entry = next(e for e in entries if e.startswith('codex:'))
+    _, model, *effort = entry.split(':')
+    return model, effort[0] if effort else 'high'
+
+
+def check_codex_budget(snapshot_path: Path | None) -> None:
+    from tools import forecast, limits, quota
+    info = load_quota_buckets(snapshot_path).get('codex', {})
+    q = quota.Quota(provider='openai', weekly_remaining=info.get('weekly_remaining'),
+                    daily_remaining=info.get('daily_remaining'))
+    rows = limits.load_limits()
+    cost, _ = forecast.cost_for('codex', 'S', limits=rows)
+    verdict, _, why = forecast.verdict(q, cost, rows.get('codex'))
+    if verdict == 'will_hit' or info.get('limit_hit'):
+        raise RuntimeError(f'codex brain blocked by router budget reserve: {why}')
+
+
+def invoke_codex(prompt: str, *, model: str, conversation_id=None,
+                 timeout_s=TURN_TIMEOUT_S, **kwargs) -> dict[str, Any]:
+    if not _IN_TURN.get():
+        raise RuntimeError('PH brains must enter through run_turn')
+    _, effort = codex_config()
+    cmd = [os.environ.get('CODEX_BIN') or shutil.which('codex') or 'codex',
+           '-c', 'sandbox_mode="read-only"', '-c', 'approval_policy="never"', 'exec']
+    if conversation_id:
+        cmd += ['resume', conversation_id]
+    cmd += ['--json', '-m', model, '-c', f'model_reasoning_effort="{effort}"', '-']
+    try:
+        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+                              timeout=timeout_s, cwd=str(ROOT))
+    except subprocess.TimeoutExpired:
+        return dict(ok=False, returncode=None, conversation_id=conversation_id,
+                    response=f'brain timed out after {timeout_s}s', limit_hit=None, timed_out=True)
+    replies = []
+    failed = False
+    for line in proc.stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get('type') == 'thread.started':
+            conversation_id = event.get('thread_id') or conversation_id
+        if event.get('type') in ('error', 'turn.failed'):
+            failed = True
+        item = event.get('item', {})
+        if event.get('type') == 'item.completed' and item.get('type') == 'agent_message':
+            replies.append(item.get('text', ''))
+    response = '\n'.join(replies)
+    limit = is_quota_limit_text(proc.stderr + proc.stdout)
+    return dict(ok=proc.returncode == 0 and not failed and not limit and bool(response) and bool(conversation_id),
+                returncode=proc.returncode, conversation_id=conversation_id,
+                response=response, limit_hit=limit, raw_stderr=proc.stderr,
+                raw_stdout=proc.stdout)
+
+
+BRAIN_RUNNERS = {'agy': lambda *args, **kwargs: invoke_agy(*args, **kwargs),
+                 'codex': invoke_codex}
 
 
 def run_turn(
@@ -392,11 +455,9 @@ def run_turn(
     agy_bin: str | None = None,
     brain: str = 'agy',
 ) -> dict[str, Any]:
-    """Run a single turn on the PH's persistent AGY brain with automatic fallback."""
+    """Run a persistent planning turn, falling back to Codex on AGY quota exhaustion."""
     if brain not in BRAIN_RUNNERS:
         raise ValueError(f'unknown PH brain: {brain}')
-    if brain != 'agy' and not preferred_model:
-        raise ValueError('a non-AGY brain requires an explicit model')
     state = load_brain_state(ph_id, brains_dir=brains_dir)
     if project:
         state["project"] = project
@@ -425,20 +486,31 @@ def run_turn(
         preferred_model,
         snapshot_path=snapshot_path,
         force_fallback=force_fallback,
-    ) if brain == 'agy' else [preferred_model]
+    ) + ['codex'] if brain == 'agy' else ['codex']
     attempted: list[dict[str, Any]] = []
     last_res: dict[str, Any] = {}
     telemetry_warning = {}
 
     for idx, model in enumerate(models_to_try):
+        runner = brain
+        if model == 'codex':
+            if brain == 'agy' and not all(a['limit_hit'] for a in attempted):
+                break
+            check_codex_budget(snapshot_path)
+            runner = 'codex'
+            model = (preferred_model if brain == 'codex' else None) or codex_config()[0]
+            conv_id = state.get('codex_session_id')
+            prompt = build_initial_prompt(ph_id=ph_id, project=state['project'],
+                lane=state.get('lane') or 'cto', owner=state.get('owner'),
+                message=f"Previous brain summary: {state.get('last_summary', '')}\n{message}")
         fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
         with ph_state.turn(session_id=ph_id, project=state['project'],
                            warning_state=telemetry_warning,
-                           brain=brain, model=model, doing=message,
+                           brain=runner, model=model, doing=message,
                            owner=state.get('owner'), lane=state.get('lane') or 'cto') as outcome:
             guard = _IN_TURN.set(True)
             try:
-                res = BRAIN_RUNNERS[brain](
+                res = BRAIN_RUNNERS[runner](
                     prompt, model=model, conversation_id=conv_id,
                     add_dirs=add_dirs, timeout_s=timeout_s, agy_bin=agy_bin,
                 )
@@ -450,6 +522,8 @@ def run_turn(
         # Preserve conversation_id if AGY minted one before hitting a limit
         if res.get("conversation_id"):
             conv_id = res["conversation_id"]
+            state['codex_session_id' if runner == 'codex' else 'conversation_id'] = conv_id
+            save_brain_state(state, brains_dir=brains_dir)
         attempted.append({
             "model": model,
             "ok": res["ok"],
@@ -478,10 +552,9 @@ def run_turn(
                 state.setdefault("fallback_events", []).append({
                     "ts": _now_iso(),
                     "from_model": previous_model or models_to_try[0],
-                    "to_model": model,
+                    "to_model": 'codex' if runner == 'codex' else model,
                     "reason": attempted[0].get("limit_hit") or ("forced_fallback" if force_fallback else "quota_gate_or_error"),
                 })
-            state["conversation_id"] = conv_id
             state["active_model"] = model
             state["turn_count"] = int(state.get("turn_count") or 0) + 1
             summary_line = (res["response"] or "").strip().splitlines()[0][:200] if res.get("response") else ""
@@ -494,7 +567,7 @@ def run_turn(
                 "lane": state["lane"],
                 "conversation_id": conv_id,
                 "model_used": model,
-                "bucket_used": MODEL_TO_BUCKET.get(model, "agy"),
+                "bucket_used": 'codex' if runner == 'codex' else MODEL_TO_BUCKET.get(model, "agy"),
                 "turn_count": state["turn_count"],
                 "fallback_triggered": fallback_triggered,
                 "attempts": attempted,
@@ -503,9 +576,9 @@ def run_turn(
             }
 
     raise RuntimeError(
-        f"all AGY models in chain {models_to_try} failed for PH {ph_id}; "
+        f"brain chain {models_to_try} failed for PH {ph_id}; "
         f"last error: rc={last_res.get('returncode')} limit={last_res.get('limit_hit')} "
-        f"stderr={last_res.get('raw_stderr', '')[:200]}"
+        f"error={' '.join((last_res.get('raw_stderr') or last_res.get('raw_stdout') or last_res.get('response') or '').split())[:200]}"
     )
 
 
@@ -686,7 +759,7 @@ def main(argv: list[str] | None = None) -> int:
                       f"conv={res.get('conversation_id')}]\n{res.get('response') or ''}")
                 return 1
             else:
-                fb = " [FALLBACK -> Argon High]" if res.get("fallback_triggered") else ""
+                fb = f" [FALLBACK -> {res['model_used']}]" if res.get("fallback_triggered") else ""
                 print(
                     f"[PH#{res['ph_id']} | model={res['model_used']} ({res['bucket_used']}){fb} | "
                     f"conv={res['conversation_id']} | turn={res['turn_count']} | claude_code=0 tok]\n"
