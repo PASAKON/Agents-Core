@@ -190,7 +190,7 @@ def test_wake_session_drains_letters_formats_notes_and_tail_and_falls_back_on_qu
 
     def fake_call_agy(prompt, *, conversation_id, model, **kw):
         calls.append((model, conversation_id, prompt))
-        if model == "claude-opus-5-5-high":
+        if model == ph_brain.PRIMARY_MODEL:
             return {
                 "ok": False,
                 "returncode": 1,
@@ -213,8 +213,8 @@ def test_wake_session_drains_letters_formats_notes_and_tail_and_falls_back_on_qu
     res = agy_card_run.wake_session(box, sessions_dir=sdir, inbox_root=inbox)
     assert res["ok"] is True
     assert res["woke"] is True
-    assert res["model"] == "gemini-4-argon-high"
-    assert [m for m, _, _ in calls] == ["claude-opus-5-5-high", "gemini-4-argon-high"]
+    assert res["model"] == ph_brain.FALLBACK_MODEL
+    assert [m for m, _, _ in calls] == [ph_brain.PRIMARY_MODEL, ph_brain.FALLBACK_MODEL]
 
     prompt_sent = calls[-1][2]
     assert "active (running) since Sun 2026-11-08" in prompt_sent
@@ -345,3 +345,54 @@ def test_watch_card_writes_letter_and_wakes_local_agy_session(tmp_path, monkeypa
     assert len(woke_calls) == 1
     assert "Q-20261108-1630-1234 answered: Tonight" in woke_calls[0]
     assert "Go ahead now" in woke_calls[0]
+
+
+def test_delegated_agy_worker_worktree_cannot_claim_c_level(tmp_path):
+    wt = tmp_path / "worktrees" / "Agents-Core__developer__task-8669cf28" / "src"
+    wt.mkdir(parents=True)
+
+    # Even with ANTIGRAVITY_CONVERSATION_ID present, a process inside a worker worktree
+    # resolves as the worker (developer-task-8669cf28) and is refused C-level/PH roles.
+    req = ask_run.resolve_requester(
+        None,
+        None,
+        None,
+        env={"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID},
+        cwd=wt,
+    )
+    assert req == {
+        "session": "developer-task-8669cf28",
+        "role": "developer",
+        "task": "task-8669cf28",
+    }
+
+    with pytest.raises(ask_run.Refused, match="a worker cannot claim role 'cto'"):
+        ask_run.resolve_requester(
+            None,
+            "cto",
+            None,
+            env={"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID},
+            cwd=wt,
+        )
+
+
+def test_ask_run_auto_binds_agy_session_from_antigravity_conversation_id(tmp_path, monkeypatch):
+    sdir = tmp_path / "agy-sessions"
+    monkeypatch.setattr(agy_card_run, "AGY_SESSIONS_DIR", sdir)
+    watched = []
+    monkeypatch.setattr(
+        agy_card_run,
+        "spawn_card_watcher",
+        lambda cid, box, **kw: watched.append((cid, box)) or 9999,
+    )
+
+    env = {"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID, "ORG_HOST": "mac"}
+    req = ask_run.resolve_requester(None, None, None, env=env)
+    assert req == {"session": "cto-agy-aced3034", "role": "cto"}
+
+    ask_run._auto_bind_agy_session({"requester": req}, "RUN-20261108-1700-cafe", env=env)
+    saved = agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)
+    assert saved is not None
+    assert saved["conversation_id"] == CONV_UUID
+    assert saved["cards"] == ["RUN-20261108-1700-cafe"]
+    assert watched == [("RUN-20261108-1700-cafe", "cto-agy-aced3034")]

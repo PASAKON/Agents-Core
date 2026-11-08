@@ -386,20 +386,58 @@ def parse_script_spec(spec: str) -> tuple[str, str, str]:
     return repo, sha, path
 
 
-def _env_box(env: dict) -> tuple[str | None, str | None]:
+_WORKTREE_TRIPLE_RE = re.compile(r"^[A-Za-z0-9._-]+__(?P<role>[A-Za-z0-9_]+)__(?P<task>task-[0-9a-f]{8})$")
+_WORKTREE_TASK_RE = re.compile(r"^(?P<task>task-[0-9a-f]{8})$")
+
+
+def _detect_worktree_worker(cwd: Path | None = None) -> tuple[str, str] | None:
+    """Detect `(role, task_id)` when running inside a delegated worker worktree directory
+    (`<Project>__<role>__task-<8hex>` or `worktrees/task-<8hex>`), even if the launcher
+    did not export `WORKER_TASK_ID`."""
+    try:
+        cur = Path(cwd or Path.cwd()).resolve()
+    except OSError:
+        return None
+    for part in (cur, *list(cur.parents)[:4]):
+        m = _WORKTREE_TRIPLE_RE.fullmatch(part.name)
+        if m:
+            return m.group("role").lower(), m.group("task")
+        m2 = _WORKTREE_TASK_RE.fullmatch(part.name)
+        if m2 and part.parent.name == "worktrees":
+            return "dev", m2.group("task")
+    return None
+
+
+def _agy_env_conv(env: dict) -> str | None:
+    """Return active AGY conversation UUID from `env` (`AGY_CONVERSATION_ID` or, outside
+    pytest's inherited host env, `ANTIGRAVITY_CONVERSATION_ID`)."""
+    explicit = (env.get("AGY_CONVERSATION_ID") or "").strip()
+    if explicit:
+        return explicit
+    if env is os.environ and "PYTEST_CURRENT_TEST" in env:
+        return None
+    auto = (env.get("ANTIGRAVITY_CONVERSATION_ID") or "").strip()
+    return auto or None
+
+
+def _env_box(env: dict, *, cwd: Path | None = None) -> tuple[str | None, str | None]:
     """(role, session id) of the mailbox this process drains — the same
-    resolution as scripts/hook-inbox.py `_current_box`, plus
-    tools/agent_transport.py's bare CTO_SESSION_ID fallback and AGY_CONVERSATION_ID."""
+    resolution as scripts/hook-inbox.py `_current_box`, plus worktree worker
+    detection, bare CTO_SESSION_ID fallback, and AGY conversation detection."""
+    task = env.get("WORKER_TASK_ID")
+    if not task and (cwd is not None or (env is os.environ and "PYTEST_CURRENT_TEST" not in env)):
+        wt = _detect_worktree_worker(cwd)
+        if wt:
+            return wt[0], wt[1]
     role = env.get("CXO_ROLE")
     if role:
         return role, env.get("CXO_SESSION_ID") or env.get("CTO_SESSION_ID") or None
-    task = env.get("WORKER_TASK_ID")
     if task:
         return env.get("WORKER_ROLE") or "dev", task
     sid = env.get("CTO_SESSION_ID")
     if sid:
         return "cto", sid
-    conv = (env.get("AGY_CONVERSATION_ID") or "").strip()
+    conv = _agy_env_conv(env)
     if conv:
         agy_role = (env.get("AGY_ROLE") or "cto").strip().lower() or "cto"
         short = re.sub(r"[^A-Za-z0-9._-]", "", conv[:8]) or "session"
@@ -408,15 +446,18 @@ def _env_box(env: dict) -> tuple[str | None, str | None]:
 
 
 def resolve_requester(session: str | None, role: str | None, task: str | None,
-                      env: dict | None = None) -> dict:
+                      env: dict | None = None, *, cwd: Path | None = None) -> dict:
     env = os.environ if env is None else env
-    env_role, env_sid = _env_box(env)
+    wt_worker = None
+    if not env.get("WORKER_TASK_ID") and (cwd is not None or (env is os.environ and "PYTEST_CURRENT_TEST" not in env)):
+        wt_worker = _detect_worktree_worker(cwd)
+    env_role, env_sid = _env_box(env, cwd=cwd)
     role = (role or env_role or "").strip().lower()
     if not role:
         raise Refused("cannot tell this session's role: pass --role "
                       "(your C-level role, or dev for a worker)")
-    worker = env.get("WORKER_TASK_ID")
-    if worker and role in card_roles():   # whatever CXO_ROLE says: a worker env is never C-level or a PH
+    worker = env.get("WORKER_TASK_ID") or (wt_worker[1] if wt_worker else None)
+    if worker and role in card_roles():   # whatever CXO_ROLE or AGY says: a worker is never C-level or a PH
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
     session = (session or "").strip()
@@ -431,7 +472,7 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     if not _NAME_RE.match(session):
         raise Refused(f"--session must be a mailbox name like cto-6ebacd0e (got {session!r})")
     requester = {"session": session, "role": role}
-    task = (task or env.get("WORKER_TASK_ID") or "").strip()
+    task = (task or worker or "").strip()
     if task:
         if not _NAME_RE.match(task):
             raise Refused(f"--task must be a task id like task-8669cf28 (got {task!r})")
@@ -2269,6 +2310,42 @@ def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
     return out
 
 
+def _auto_bind_agy_session(payload: dict, card_id: str, env: dict | None = None) -> None:
+    """When `ask_run.py` is called directly inside an Antigravity (AGY) session
+    (`ANTIGRAVITY_CONVERSATION_ID` or `AGY_CONVERSATION_ID` in env), automatically register
+    `state/agy-sessions/<box>.json` (and spawn the peer watcher on Mac/Winbox) so the CEO's
+    tap on `/run` wakes this exact AGY conversation without needing a separate command."""
+    env = os.environ if env is None else env
+    if env is os.environ and "PYTEST_CURRENT_TEST" in env and not env.get("AGY_AUTO_BIND_IN_TEST"):
+        return
+    if env.get("_AGY_PASSTHROUGH_ACTIVE") == "1":
+        return
+    conv_id = _agy_env_conv(env)
+    if not conv_id:
+        return
+    req = payload.get("requester") if isinstance(payload.get("requester"), dict) else {}
+    box = req.get("session")
+    role = req.get("role")
+    if not box or not role:
+        return
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools import agy_card_run
+        rec = agy_card_run.register_session(
+            box=box,
+            role=role,
+            conversation_id=conv_id,
+            card_id=card_id,
+            env=env,
+        )
+        host = rec.get("host") or agy_card_run.detect_host(env)
+        if host != "contabo" and env.get("AGY_NO_WATCH") != "1":
+            agy_card_run.spawn_card_watcher(card_id, box)
+    except Exception:
+        pass
+
+
 # ------------------------------------------------------------------ verbs
 def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
     payload = prepare_ask(args, script_args)
@@ -2279,6 +2356,7 @@ def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
         return EXIT_OK
     resp = submit(payload)
     ask_id = resp["id"]
+    _auto_bind_agy_session(payload, ask_id)
     if args.json:
         print(json.dumps(resp, indent=2, ensure_ascii=False))
     else:
@@ -2300,6 +2378,7 @@ def cmd_ask_batch(args: argparse.Namespace) -> int:
         return EXIT_OK
     resp = submit_question_group(payload)
     group_id = resp["group_id"]
+    _auto_bind_agy_session(payload, group_id)
     if args.json:
         print(json.dumps(resp, indent=2, ensure_ascii=False))
     else:
@@ -2336,6 +2415,7 @@ def cmd_ask(args: argparse.Namespace) -> int:
     else:
         resp = submit_question(payload)
     question_id = resp["id"]
+    _auto_bind_agy_session(payload, question_id)
     if args.json:
         print(json.dumps(resp, indent=2, ensure_ascii=False))
     else:

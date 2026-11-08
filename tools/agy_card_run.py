@@ -130,10 +130,23 @@ def resolve_identity(
     *,
     env: dict | None = None,
     brain_dir: Path | None = None,
+    cwd: Path | None = None,
 ) -> tuple[str, str, str, str | None]:
     """Return `(box, role, session_id, conversation_id)` for an AGY session."""
     env = os.environ if env is None else env
     conv_id = detect_conversation_id(conversation_id, env=env, brain_dir=brain_dir)
+
+    # Worker guard: if running as a delegated worker (env WORKER_TASK_ID or inside a worker worktree),
+    # resolve as the worker role + task id so ask_run's role gates enforce worker boundaries.
+    worker_task = (env.get("WORKER_TASK_ID") or "").strip()
+    worker_role = (env.get("WORKER_ROLE") or "").strip().lower()
+    if not worker_task and (cwd is not None or (env is os.environ and "PYTEST_CURRENT_TEST" not in env)):
+        wt = ask_run._detect_worktree_worker(cwd)
+        if wt:
+            worker_role, worker_task = wt[0], wt[1]
+    if worker_task and not session and not role:
+        w_role = worker_role or "dev"
+        return f"{w_role}-{worker_task}", w_role, worker_task, conv_id
 
     explicit_session = (session or env.get("ORG_SESSION_ID") or "").strip()
     explicit_role = (role or env.get("CXO_ROLE") or env.get("AGY_ROLE") or "").strip().lower()
@@ -760,8 +773,16 @@ def run_passthrough(
         )
 
     buf_out = io.StringIO()
-    with contextlib.redirect_stdout(buf_out):
-        rc = ask_run.main([verb, *final_args])
+    prev_flag = os.environ.get("_AGY_PASSTHROUGH_ACTIVE")
+    os.environ["_AGY_PASSTHROUGH_ACTIVE"] = "1"
+    try:
+        with contextlib.redirect_stdout(buf_out):
+            rc = ask_run.main([verb, *final_args])
+    finally:
+        if prev_flag is None:
+            os.environ.pop("_AGY_PASSTHROUGH_ACTIVE", None)
+        else:
+            os.environ["_AGY_PASSTHROUGH_ACTIVE"] = prev_flag
 
     out_text = buf_out.getvalue()
     if out_text:
