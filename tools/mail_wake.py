@@ -83,8 +83,31 @@ from tools import live_sessions  # noqa: E402
 
 try:
     import fcntl
-except ImportError:          # Windows: no flock and no setsid; the caller wakes the pane
+except ImportError:          # Windows: fall back to msvcrt non-blocking byte lock
     fcntl = None
+
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
+
+
+def _try_lock_fd(fd: int) -> bool:
+    """Acquire an exclusive non-blocking lock on `fd` across POSIX (`fcntl`) and Windows (`msvcrt`)."""
+    if fcntl is not None:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except OSError:
+            return False
+    if msvcrt is not None:
+        try:
+            os.lseek(fd, 0, os.SEEK_SET)
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+            return True
+        except OSError:
+            return False
+    return False
 
 DEFAULT_LABEL = "RUN-INBOX"
 # One path segment: the same rule the hub puts on requester.session.
@@ -235,7 +258,7 @@ def _spawn_agy_runner(box: str) -> None:
 def handle_agy(box: str) -> dict | None:
     """Wake a registered AGY session (`state/agy-sessions/<box>.json`) if one exists for `box`."""
     try:
-        if fcntl is None or not BOX_RE.fullmatch(box or ""):
+        if (fcntl is None and msvcrt is None) or not BOX_RE.fullmatch(box or ""):
             return None
         from tools import agy_card_run
         if agy_card_run.load_session(box, sessions_dir=_agy_sessions_dir()) is None:
@@ -252,9 +275,7 @@ def _agy_flock(box: str):
     sdir.mkdir(parents=True, exist_ok=True)
     fd = os.open(sdir / f"wake-{box}.lock", os.O_RDWR | os.O_CREAT | _NOFOLLOW, 0o600)
     try:
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
+        if not _try_lock_fd(fd):
             yield False
             return
         yield True
@@ -264,7 +285,7 @@ def _agy_flock(box: str):
 
 def run_agy(box: str) -> str:
     """Detached runner for a registered AGY session (`--run-agy`)."""
-    if fcntl is None or not BOX_RE.fullmatch(box or ""):
+    if (fcntl is None and msvcrt is None) or not BOX_RE.fullmatch(box or ""):
         raise ValueError(f"cannot run AGY wake for {box!r}")
     from tools import agy_card_run
     sdir = _agy_sessions_dir()
@@ -313,9 +334,7 @@ def _flock(sid: str):
     FALLBACK_DIR.mkdir(parents=True, exist_ok=True)
     fd = os.open(FALLBACK_DIR / f"fallback-{sid}.lock", os.O_RDWR | os.O_CREAT | _NOFOLLOW, 0o600)
     try:
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
+        if not _try_lock_fd(fd):
             yield False
             return
         yield True
