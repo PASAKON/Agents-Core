@@ -905,7 +905,15 @@ class FlowBrowser:
         except Exception as e:
             _log(f"  resolution select err: {e!r}")
         try:
-            panel.locator("mat-button-toggle").filter(has_text=f"{dur_s} วินาที").first.click(timeout=3000)
+            slider = panel.locator("flow-duration-slider input.mdc-slider__input")
+            if slider.count():
+                inp = slider.first
+                inp.focus()
+                inp.press("Home")
+                for _ in range(max(0, int(dur_s) - 3)):
+                    inp.press("ArrowRight")
+            else:
+                panel.locator("mat-button-toggle").filter(has_text=f"{dur_s} วินาที").first.click(timeout=3000)
         except Exception as e:
             _log(f"  duration select err: {e!r}")
         try:
@@ -956,7 +964,7 @@ class FlowBrowser:
             "aspect": self._toggle_checked(panel, aspect),
             "qty_x1": self._toggle_checked(panel, "x1"),
             "resolution": self._toggle_checked(panel, resolution),
-            "duration": self._toggle_checked(panel, f"{dur_s} วินาที"),
+            "duration": self._toggle_checked(panel, f"{dur_s} วินาที") or f"ความยาว\n{dur_s} วินาที" in body,
         }
 
     def chip_count(self) -> int:
