@@ -479,6 +479,14 @@ if [ "${ORG_PH_SHELL:-0}" = 1 ]; then
     ARGS=("${NEW_ARGS[@]}")
     RESUME_UUID=""
     PH_STATUS_PATH="${ORG_PH_STATUS_PATH:-$ROOT/docs/plans/$PH_PROJECT-STATUS.md}"
+    if [ ! -f "$PH_STATUS_PATH" ] && [ -z "${ORG_PH_STATUS_PATH:-}" ]; then
+      for candidate in "$ROOT"/docs/plans/*; do
+        if [ -f "$candidate" ] && [ "$(printf '%s' "${candidate##*/}" | tr '[:upper:]' '[:lower:]')" = "$(printf '%s' "$PH_PROJECT-STATUS.md" | tr '[:upper:]' '[:lower:]')" ]; then
+          PH_STATUS_PATH="$candidate"
+          break
+        fi
+      done
+    fi
     INITIAL_PROMPT="Project STATUS: $PH_STATUS_PATH. First run bash scripts/hub/org-python.sh tools/ph_brain.py turn --ph \"\$CXO_SESSION_ID\" --project \"\$ORG_PH_PROJECT\" --lane \"\$ORG_PH_LANE\" --message \"<this handover and the incoming prompt>\". ${INITIAL_PROMPT}"
   fi
 fi

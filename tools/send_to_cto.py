@@ -65,6 +65,33 @@ ROOT = Path(__file__).resolve().parent.parent
 STATE_DIR = ROOT / "state"
 
 
+def resolve_owner(role: str, sid: str) -> str:
+    """Prefer the recorded live owner, then the role's active/live session."""
+    if role not in live_c_level_roles():
+        return sid
+    tmux = agent_transport.tmux_session
+    try:
+        if sid != 'fresh' and tmux.has_session(session_name.lock_basename(role, sid)):
+            return sid
+        active = agent_transport._active_session_id(role, STATE_DIR / 'locks')
+        if active and active != 'fresh' and tmux.has_session(session_name.lock_basename(role, active)):
+            return active
+        # Lock files name every launched session; keep only the ones whose
+        # tmux session is still up (no shell-out from this module).
+        candidates = sorted(
+            p.name[len(role) + 1:-len('.lock')]
+            for p in (STATE_DIR / 'locks').glob(f'{role}-*.lock')
+            if p.name != f'{role}-fresh.lock'
+            and tmux.has_session(p.name[:-len('.lock')]))
+        if candidates:
+            return candidates[0]
+    except OSError:
+        pass
+    print(f'[send_to_cto] no live session for {role}; queued to recorded owner {role}-{sid}',
+          file=sys.stderr)
+    return sid
+
+
 def _log_orphan(cto_id: str, from_id: str, role: str | None,
                 message: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -148,9 +175,10 @@ def send(from_id: str, message: str, role: str | None = None,
 
     `wake=False` queues the letter without sending any pane keys.
 
-    `cto_id` + `owner_role`: the owning session identifies the mailbox box
-    directly (`(owner_role, cto_id)`) -- no window/winid lookup, so a known
-    owner always succeeds; this call either returns `True` or raises
+    `cto_id` + `owner_role`: retain a live owner; a fresh or gone C-level
+    owner resolves to the role's live active pointer or tmux session. If none
+    is live, queue to the recorded mailbox and print that fact. A known
+    owner always queues; this call either returns `True` or raises
     whatever `lib.mailbox.send()` raises (disk full, permission denied --
     no silent partial failure).
 
@@ -173,6 +201,7 @@ def send(from_id: str, message: str, role: str | None = None,
     wake_label = f"{label} {from_id}"
 
     if cto_id:
+        cto_id = resolve_owner(owner_role, cto_id)
         mailbox.send(owner_role, cto_id, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
         if wake:
