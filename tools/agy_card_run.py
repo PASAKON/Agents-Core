@@ -293,6 +293,24 @@ def register_session(
     app_data_dir = (env_map.get("ANTIGRAVITY_APP_DATA_DIR") or existing.get("app_data_dir") or "").strip() or None
     trajectory_id = (env_map.get("ANTIGRAVITY_TRAJECTORY_ID") or existing.get("trajectory_id") or "").strip() or None
 
+    # When invoked from a PreInvocation hook (where ANTIGRAVITY_LS_ADDRESS is not in os.environ),
+    # inherit LS connection details from any sibling active session on the same host.
+    if (not ls_address or not csrf_token) and "PYTEST_CURRENT_TEST" not in os.environ:
+        base_dir = Path(sessions_dir or AGY_SESSIONS_DIR)
+        if base_dir.is_dir() and not base_dir.is_symlink():
+            for sib in sorted(base_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+                if sib.is_symlink():
+                    continue
+                with contextlib.suppress(OSError, ValueError):
+                    sdata = json.loads(sib.read_text(encoding="utf-8"))
+                    if isinstance(sdata, dict) and sdata.get("ls_address") and sdata.get("csrf_token"):
+                        ls_address = ls_address or str(sdata["ls_address"])
+                        csrf_token = csrf_token or str(sdata["csrf_token"])
+                        agentapi_exe = agentapi_exe or sdata.get("agentapi_exe")
+                        project_id = project_id or sdata.get("project_id")
+                        app_data_dir = app_data_dir or sdata.get("app_data_dir")
+                        break
+
     record: dict[str, Any] = {
         **existing,
         "box": resolved_box,

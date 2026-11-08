@@ -181,19 +181,39 @@ def _ensure_live_publisher() -> None:
         pass
 
 
-def _agy_box(payload: dict) -> tuple[str, str] | None:
-    """Resolve `(role, session_id)` and auto-register `state/agy-sessions/<box>.json`
+AGY_CARDRUN_NOTICE = (
+    "[SYSTEM NOTICE — AGY CardRun v2 Active] "
+    "Whenever you have a question/choice for the CEO or a command requiring CEO approval, "
+    "never ask in chat and never use `ask_question`. Always raise a CardRun immediately via "
+    "`/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/ask_run.py ask|create` "
+    "(or `tools/agy_card_run.py`), print the Card ID + https://terminal.mooniex.com/run#<id> in one line, "
+    "and end your turn. This Antigravity session will wake up automatically via `agentapi send-message` "
+    "the moment the CEO taps the card on `/run`."
+)
+
+
+def _agy_box(payload: dict) -> tuple[str, str, bool] | None:
+    """Resolve `(role, session_id, needs_notice)` and auto-register `state/agy-sessions/<box>.json`
     when invoked as an Antigravity (`conversationId`) lifecycle hook."""
     conv_id = str(payload.get("conversationId") or "").strip()
     if not conv_id:
         return None
     try:
         from tools import agy_card_run
-        box, role, sid, _ = agy_card_run.resolve_identity(conversation_id=conv_id)
+        ws = payload.get("workspacePaths")
+        ws_cwd = ws[0] if isinstance(ws, list) and ws else str(ROOT.parent.parent)
+        box, role, sid, _ = agy_card_run.resolve_identity(conversation_id=conv_id, cwd=Path(ws_cwd))
+        needs_notice = False
         if not os.environ.get("PYTEST_CURRENT_TEST"):
             with contextlib.suppress(Exception):
-                agy_card_run.register_session(box=box, role=role, conversation_id=conv_id)
-        return role, sid
+                existing = agy_card_run.load_session(box) or {}
+                needs_notice = not bool(existing.get("card_run_notified"))
+                rec = agy_card_run.register_session(box=box, role=role, conversation_id=conv_id, cwd=ws_cwd)
+                if needs_notice:
+                    rec["card_run_notified"] = True
+                    p = agy_card_run.session_path(box)
+                    p.write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        return role, sid, needs_notice
     except Exception:
         return None
 
@@ -229,7 +249,13 @@ def main() -> int:
 
     is_agy = bool(payload.get("conversationId"))
     _ensure_live_publisher()    # before the drain: an empty box still runs it
-    box = _current_box() or (_agy_box(payload) if is_agy else None)
+    needs_notice = False
+    box = _current_box()
+    if box is None and is_agy:
+        agy_res = _agy_box(payload)
+        if agy_res is not None:
+            box = (agy_res[0], agy_res[1])
+            needs_notice = agy_res[2]
     if box is None:
         if is_agy:
             print("{}")
@@ -240,21 +266,20 @@ def main() -> int:
         from lib import mailbox
         letters = mailbox.drain(role, session_id)
     except Exception:
-        if is_agy:
-            print("{}")
-        return 0
-    if not letters:
+        letters = []
+    if not letters and not needs_notice:
         if is_agy:
             print("{}")
         return 0
 
-    rendered = _render_letters(letters)
+    rendered = _render_letters(letters) if letters else ""
     if is_agy:
-        print(json.dumps({
-            "injectSteps": [
-                {"ephemeralMessage": rendered.rstrip()}
-            ]
-        }, ensure_ascii=False))
+        steps: list[dict] = []
+        if needs_notice:
+            steps.append({"ephemeralMessage": AGY_CARDRUN_NOTICE})
+        if rendered.strip():
+            steps.append({"ephemeralMessage": rendered.rstrip()})
+        print(json.dumps({"injectSteps": steps} if steps else {}, ensure_ascii=False))
         return 0
 
     sys.stdout.write(rendered)
