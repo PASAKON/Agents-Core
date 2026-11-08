@@ -727,6 +727,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--nudge", action="store_true", help="send the letters (default: print only)")
     a = ap.parse_args(argv)
+    try:
+        from tools import rc_reconnect
+        for line in rc_reconnect.tick(dry_run=not a.nudge):
+            print(f"rc       {line}")
+    except Exception as exc:
+        print(f"rc reconnect skipped: {type(exc).__name__}")
     if a.nudge:
         from tools import idle_sweep
         try:
