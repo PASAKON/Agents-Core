@@ -230,7 +230,7 @@ class _FlowStub:
     def close(self): pass
     def reset_composer(self): self._chips = 0
 
-    def set_settings(self, dur_s, resolution="720p", aspect="9:16"):
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash"):
         return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
