@@ -86,14 +86,38 @@ def test_evaluate_preflight_blocks_moving_cookierun_off_winbox():
     assert r"C:\Users\passg\cookierun-bot\.venv\Scripts\python.exe" in pf_ok["no_reinstall_rule"]
     assert "NEVER run pip install" in pf_ok["no_reinstall_rule"]
 
-    # Trying to move CookieRun to mac or contabo -> BLOCKED_WRONG_HOST
+    # Trying to move CookieRun to mac or contabo -> BLOCKED_WRONG_HOST + RED Run Card spec
     pf_mac = agy_takeover.evaluate_preflight(info, requested_host="mac")
     assert pf_mac["ready"] is False
     assert pf_mac["status"] == "BLOCKED_WRONG_HOST"
     assert any("Host-Affinity Violation" in r for r in pf_mac["block_reasons"])
+    mc = pf_mac["migration_card"]
+    assert mc is not None
+    assert mc["risk"] == "red"
+    assert mc["tag"] == "[ย้ายงาน]"
+    assert "[ย้ายงาน]" in mc["why"]
+    assert "ต้องติดตั้ง:" in mc["why"]
+    assert "ยอมรับไหม?" in mc["why"]
 
 
-def test_evaluate_preflight_blocks_cross_host_drift_and_missing_cwd():
+def test_evaluate_preflight_allows_portable_cndrama_across_ready_hosts_and_blocks_missing_cwd(monkeypatch):
+    monkeypatch.setattr(
+        agy_takeover,
+        "_run_probe_on_host",
+        lambda host, mode, arg="", max_turns=10: {
+            "ok": True,
+            "host": host,
+            "cwd": "/Users/gob/MoonieXHQ/Agents/Core",
+            "cwd_exists": True,
+            "git_ready": True,
+            "venv_python": "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python",
+            "has_package_json": False,
+            "node_modules_ready": True,
+            "disk_free_gb": 55.0,
+            "tools": {"git": "/usr/bin/git", "ffmpeg": "/opt/homebrew/bin/ffmpeg", "agy": "agy"},
+            "local_large_items": [],
+        },
+    )
     info = {
         "host": "contabo",
         "short_id": "3511068d",
@@ -107,19 +131,23 @@ def test_evaluate_preflight_blocks_cross_host_drift_and_missing_cwd():
             "has_package_json": False,
             "node_modules_ready": True,
             "disk_free_gb": 48.5,
-            "tools": {"git": "/usr/bin/git", "agy": "/root/.local/bin/agy"},
+            "tools": {"git": "/usr/bin/git", "ffmpeg": "/usr/bin/ffmpeg", "agy": "/root/.local/bin/agy"},
             "local_large_items": [],
         },
     }
-    pf_drift = agy_takeover.evaluate_preflight(info, requested_host="mac")
-    assert pf_drift["ready"] is False
-    assert pf_drift["status"] == "BLOCKED_WRONG_HOST"
+    # CnDrama is portable: moving from contabo -> mac where git+ffmpeg+.venv exist is READY!
+    pf_portable = agy_takeover.evaluate_preflight(info, requested_host="mac")
+    assert pf_portable["portable"] is True
+    assert pf_portable["ready"] is True
+    assert pf_portable["status"] == "READY"
+    assert "Work/<task>/ <= 500 MB" in pf_portable["no_reinstall_rule"]
 
     info_missing = dict(info)
     info_missing["env_probe"] = dict(info["env_probe"], cwd_exists=False)
     pf_missing = agy_takeover.evaluate_preflight(info_missing, requested_host="contabo")
     assert pf_missing["ready"] is False
     assert pf_missing["status"] == "MISSING_ENV"
+    assert pf_missing["migration_card"]["risk"] == "red"
 
 
 def test_resume_in_place_dry_run_and_refuses_wrong_host(monkeypatch, tmp_path):

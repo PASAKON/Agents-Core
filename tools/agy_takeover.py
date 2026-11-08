@@ -382,6 +382,12 @@ HOST_AFFINITY_RULES: list[dict[str, Any]] = [
         "allowed_hosts": ("winbox",),
         "blocked_hosts": ("mac", "contabo"),
         "default_cwd": r"C:\Users\passg\cookierun-bot",
+        "missing_on_other_hosts": [
+            "ติดตั้ง Windows Game Client + ระบบจับภาพหน้าจอ Windows GUI",
+            "ติดตั้ง ONNX Runtime / Obstacle Detector (.venv)",
+            "โอนย้าย Dataset ภาพฝึก label_review/ (1.44 GB)",
+        ],
+        "estimated_install_minutes": 30,
         "reason": (
             "CookieRun game client, Windows GUI capture, ONNX obstacle detector, "
             "and 1.44 GB training dataset (label_review/) exist ONLY on winbox "
@@ -396,6 +402,11 @@ HOST_AFFINITY_RULES: list[dict[str, Any]] = [
         "allowed_hosts": ("contabo", "winbox"),
         "blocked_hosts": ("mac",),
         "default_cwd": "/opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor",
+        "missing_on_other_hosts": [
+            "ติดตั้ง MetaTrader 5 (MT5) Terminal + MQL5 Compiler (MetaEditor64)",
+            "ตั้งค่าบัญชีเทรด / ข้อมูล Tick Data สำหรับ Backtest",
+        ],
+        "estimated_install_minutes": 25,
         "reason": (
             "EA MQL5 git repository lives on contabo (/opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor; "
             "config/hosts.yaml never_on blocks git worktrees on winbox), while MetaTrader 5 (MT5) "
@@ -416,23 +427,47 @@ HOST_AFFINITY_RULES: list[dict[str, Any]] = [
     },
     {
         "match_keywords": (
-            "mooniex-console",
-            "sompong",
-            "mooniex-sompong",
             "cndrama",
             "champaveo",
             "khaohomsurvival",
             "blackliquidity",
             "mimipage",
         ),
-        "project_key": "contabo-service-or-ph",
+        "project_key": "portable-video-content",
+        "pinned_host": "contabo",
+        "allowed_hosts": ("contabo", "mac", "winbox"),
+        "blocked_hosts": (),
+        "required_tools": ("git", "ffmpeg"),
+        "portable": True,
+        "default_cwd": "/opt/MoonieXHQ/Agents/Core",
+        "host_cwds": {
+            "mac": "/Users/gob/MoonieXHQ/Agents/Core",
+            "contabo": "/opt/MoonieXHQ/Agents/Core",
+            "winbox": r"C:\Users\passg\mooniex\repo\MoonieX-Agents",
+        },
+        "reason": (
+            "Video/content production (CnDrama, ChampaVeo, KhaoHom, BL, Mimi) is portable across "
+            "contabo, mac, and winbox whenever git + Python + ffmpeg are ready; sync only active "
+            "episode/task files (Work/<task>/ <= 500 MB) when switching machines."
+        ),
+    },
+    {
+        "match_keywords": (
+            "mooniex-console",
+            "sompong",
+            "mooniex-sompong",
+        ),
+        "project_key": "contabo-service",
         "pinned_host": "contabo",
         "allowed_hosts": ("contabo",),
         "blocked_hosts": ("winbox",),
         "default_cwd": "/opt/MoonieXHQ/Agents/Core",
+        "missing_on_other_hosts": [
+            "ตั้งค่า 24/7 systemd services + Browser Homes (9280/9281/9224) + rclone Drive bridge",
+        ],
+        "estimated_install_minutes": 20,
         "reason": (
-            "Project Head state, 24/7 systemd services, ffmpeg, rclone Drive bridge, "
-            "and Browser Homes (9280/9281/9224) are provisioned on contabo (/opt/MoonieXHQ)."
+            "24/7 systemd services (mooniex-console, sompong) and Browser Homes live on contabo (/opt/MoonieXHQ)."
         ),
     },
     {
@@ -442,49 +477,56 @@ HOST_AFFINITY_RULES: list[dict[str, Any]] = [
         "allowed_hosts": ("mac",),
         "blocked_hosts": ("contabo", "winbox"),
         "default_cwd": "/Users/gob/MoonieXHQ",
+        "missing_on_other_hosts": [
+            "ติดตั้ง Blender Bridge / Electron ClaudeSign + macOS GUI dependencies",
+        ],
+        "estimated_install_minutes": 15,
         "reason": "Blender bridge, macOS Computer Use, and ClaudeSign live on mac.",
     },
 ]
 
 
 def resolve_host_affinity(project: str, cwd: str = "", source_host: str = "") -> dict[str, Any]:
-    """Return the host-affinity policy for `project` / `cwd` / `source_host`.
-
-    Every takeover defaults to `stay_on_host=True` on `source_host` so a worker never
-    moves to an unprovisioned machine and never reinstalls packages from scratch.
-    """
+    """Return the host-affinity policy for `project` / `cwd` / `source_host`."""
     haystack = f"{project or ''} {cwd or ''}".lower()
     for rule in HOST_AFFINITY_RULES:
         if any(kw in haystack for kw in rule["match_keywords"]):
             pinned = rule["pinned_host"]
-            # If the session was already running on an allowed host (e.g. winbox for EA runtime),
-            # keep it pinned to that exact host.
             effective_host = source_host if (source_host and source_host in rule["allowed_hosts"]) else pinned
             return {
-                "stay_on_host": True,
+                "stay_on_host": not bool(rule.get("portable", False)),
+                "portable": bool(rule.get("portable", False)),
                 "project_key": rule["project_key"],
                 "pinned_host": effective_host,
                 "runtime_host": rule.get("runtime_host") or effective_host,
                 "default_cwd": rule.get("default_cwd") or "",
+                "host_cwds": dict(rule.get("host_cwds") or {}),
+                "required_tools": list(rule.get("required_tools") or ("git",)),
+                "missing_on_other_hosts": list(rule.get("missing_on_other_hosts") or []),
+                "estimated_install_minutes": int(rule.get("estimated_install_minutes", 0)),
                 "allowed_hosts": list(rule["allowed_hosts"]),
                 "blocked_hosts": list(rule["blocked_hosts"]),
                 "reason": rule["reason"],
-                "explicit_pin": True,
+                "explicit_pin": not bool(rule.get("portable", False)),
             }
 
     effective = (source_host or "contabo").lower()
     return {
         "stay_on_host": True,
+        "portable": False,
         "project_key": project or "session",
         "pinned_host": effective,
         "runtime_host": effective,
         "default_cwd": cwd or "",
+        "host_cwds": {},
+        "required_tools": ["git"],
+        "missing_on_other_hosts": [],
+        "estimated_install_minutes": 0,
         "allowed_hosts": [effective],
         "blocked_hosts": [h for h in HOSTS if h != effective],
         "reason": (
             f"Session originated on '{effective}' at '{cwd or '(host root)'}' where its "
-            f"worktree, .venv, and packages are already installed. Stay on '{effective}' "
-            f"(switch Runner to AGY in-place; do NOT copy repo or reinstall packages on another host)."
+            f"worktree, .venv, and packages are already installed."
         ),
         "explicit_pin": False,
     }
@@ -495,15 +537,14 @@ def evaluate_preflight(
     *,
     requested_host: str | None = None,
 ) -> dict[str, Any]:
-    """Verify Host-Affinity + In-Place Environment Readiness + Transfer Limits before resuming work."""
+    """Verify Host-Affinity + Target Environment Readiness + Migration Card spec before resuming work."""
     source_host = (info.get("host") or "").lower().strip()
     project = str(info.get("project") or info.get("role_label") or "")
     cwd = str(info.get("cwd") or "")
     affinity = resolve_host_affinity(project=project, cwd=cwd, source_host=source_host)
     pinned_host = affinity["pinned_host"]
+    is_portable = bool(affinity.get("portable", False))
 
-    # If a Project Head coordinator on Contabo manages a host-pinned project (e.g. CookieRun on winbox),
-    # the execution host is `pinned_host` unless an explicit `requested_host` was passed.
     effective_source_host = (
         pinned_host
         if (affinity.get("explicit_pin") and source_host not in affinity["allowed_hosts"])
@@ -516,32 +557,23 @@ def evaluate_preflight(
     )
     target_host = (requested_host or effective_source_host).lower().strip()
 
-    # 1. Check Host-Affinity (block cross-host drift to unprepared machines)
-    wrong_host = False
-    block_reasons: list[str] = []
-    if target_host in affinity["blocked_hosts"] or (
-        affinity["allowed_hosts"] and target_host not in affinity["allowed_hosts"]
-    ):
-        wrong_host = True
-        block_reasons.append(
-            f"Host-Affinity Violation: '{project}' is pinned to {affinity['allowed_hosts']} "
-            f"(requested '{target_host}'). {affinity['reason']}"
-        )
-    elif effective_source_host and target_host != effective_source_host:
-        wrong_host = True
-        block_reasons.append(
-            f"Cross-Host Drift Blocked: Session #{info.get('short_id')} belongs to '{effective_source_host}' "
-            f"at '{effective_cwd}', not '{target_host}'. Takeover must switch the Brain/Runner to AGY "
-            f"IN-PLACE on '{effective_source_host}' so no packages or dependencies are reinstalled from 0."
-        )
+    # Determine the working directory to probe on `target_host`
+    host_cwds = affinity.get("host_cwds") or {}
+    if target_host == effective_source_host:
+        probe_host = effective_source_host
+        probe_cwd = effective_cwd
+    elif is_portable and target_host in host_cwds:
+        probe_host = target_host
+        probe_cwd = host_cwds[target_host]
+    else:
+        probe_host = effective_source_host
+        probe_cwd = effective_cwd
 
-    # 2. Probe environment readiness on the pinned/source host
-    probe_host = effective_source_host
-    env_probe = info.get("env_probe") if effective_source_host == source_host else None
+    env_probe = info.get("env_probe") if (probe_host == source_host and probe_cwd == cwd) else None
     if not isinstance(env_probe, dict) or not env_probe.get("cwd"):
-        probe_res = _run_probe_on_host(probe_host, "env", effective_cwd)
+        probe_res = _run_probe_on_host(probe_host, "env", probe_cwd)
         env_probe = probe_res if probe_res.get("ok") else {
-            "cwd": effective_cwd,
+            "cwd": probe_cwd,
             "cwd_exists": False,
             "git_ready": False,
             "venv_python": "",
@@ -551,6 +583,50 @@ def evaluate_preflight(
             "local_large_items": [],
         }
 
+    # Check if moving to `target_host` requires installing missing packages/tools/runtime
+    wrong_host = False
+    block_reasons: list[str] = []
+    missing_installs: list[str] = []
+    estimated_minutes = 0
+
+    if target_host in affinity["blocked_hosts"] or (
+        affinity["allowed_hosts"] and target_host not in affinity["allowed_hosts"]
+    ):
+        wrong_host = True
+        missing_installs.extend(
+            affinity.get("missing_on_other_hosts")
+            or [
+                f"Clone โปรเจกต์ '{project}' ไปยังเครื่อง '{target_host}'",
+                "ติดตั้ง Python .venv / pip install แพ็กเกจทั้งหมดใหม่จาก 0",
+            ]
+        )
+        estimated_minutes = int(affinity.get("estimated_install_minutes") or 12)
+        block_reasons.append(
+            f"Host-Affinity Violation: '{project}' is pinned to {affinity['allowed_hosts']} "
+            f"(requested '{target_host}'). {affinity['reason']}"
+        )
+    elif effective_source_host and target_host != effective_source_host and not is_portable:
+        wrong_host = True
+        missing_installs.extend([
+            f"สร้าง Worktree/Clone '{project}' บนเครื่อง '{target_host}'",
+            "ติดตั้ง Python .venv / node_modules ใหม่ และซิงก์ไฟล์งานค้าง",
+        ])
+        estimated_minutes = 10
+        block_reasons.append(
+            f"Cross-Host Drift Blocked: Session #{info.get('short_id')} belongs to '{effective_source_host}' "
+            f"at '{effective_cwd}', not '{target_host}'. Takeover must switch the Brain/Runner to AGY "
+            f"IN-PLACE on '{effective_source_host}' so no packages or dependencies are reinstalled from 0."
+        )
+
+    # Check required tools on probe_host (e.g. ffmpeg for CnDrama)
+    installed_tools = env_probe.get("tools") or {}
+    for req_tool in affinity.get("required_tools") or ():
+        if req_tool == "git" and env_probe.get("git_ready"):
+            continue
+        if req_tool not in installed_tools and installed_tools:
+            missing_installs.append(f"ติดตั้งเครื่องมือ '{req_tool}' บนเครื่อง '{probe_host}'")
+            estimated_minutes += 5
+
     min_disk = TRANSFER_LIMITS["keep_free_disk_gb"].get(probe_host, 5.0)
     disk_free = float(env_probe.get("disk_free_gb", -1.0))
     disk_ok = (disk_free < 0) or (disk_free >= min_disk)
@@ -558,10 +634,15 @@ def evaluate_preflight(
     node_ok = bool(env_probe.get("node_modules_ready", True))
 
     if not cwd_ok:
+        missing_installs.append(f"Clone โฟลเดอร์งาน '{probe_cwd}' และตั้งค่า .venv บน '{probe_host}'")
+        estimated_minutes += 8
         block_reasons.append(
-            f"Working directory '{effective_cwd}' does not exist on host '{probe_host}' — "
+            f"Working directory '{probe_cwd}' does not exist on host '{probe_host}' — "
             f"refusing to start in an unprovisioned directory."
         )
+    if env_probe.get("has_package_json") and not node_ok:
+        missing_installs.append(f"รัน npm ci เพื่อติดตั้ง node_modules บน '{probe_host}'")
+        estimated_minutes += 4
     if not disk_ok:
         block_reasons.append(
             f"Disk free space on '{probe_host}' is {disk_free} GB (below safety floor {min_disk} GB)."
@@ -570,7 +651,7 @@ def evaluate_preflight(
     if wrong_host:
         status = "BLOCKED_WRONG_HOST"
         ready = False
-    elif not cwd_ok or not disk_ok:
+    elif not cwd_ok or not disk_ok or missing_installs:
         status = "MISSING_ENV"
         ready = False
     else:
@@ -578,29 +659,82 @@ def evaluate_preflight(
         ready = True
 
     venv_py = env_probe.get("venv_python") or "python3"
+    active_files_note = (
+        f" (Cross-host portable move '{effective_source_host}' -> '{probe_host}': sync ONLY active "
+        f"episode/task working files Work/<task>/ <= 500 MB via rsync/Drive; leave cold archive in place.)"
+        if (is_portable and target_host != effective_source_host and ready)
+        else ""
+    )
     no_reinstall_rule = (
         f"HARD RULE (STAY ON '{probe_host.upper()}' / ZERO PACKAGE REINSTALL): "
-        f"Execute all commands IN-PLACE on host '{probe_host}' inside '{effective_cwd}'. "
+        f"Execute all commands IN-PLACE on host '{probe_host}' inside '{probe_cwd}'. "
         f"Use pre-installed Python '{venv_py}'"
         + (" and existing 'node_modules'." if env_probe.get("has_package_json") and node_ok else ".")
-        + " NEVER copy this project to another host and NEVER run pip install / npm install from scratch."
+        + " NEVER run pip install / npm install from scratch."
+        + active_files_note
     )
+
+    migration_card: dict[str, Any] | None = None
+    if missing_installs:
+        items_str = ", ".join(missing_installs)
+        est_min = max(estimated_minutes, 5)
+        migration_card = {
+            "tag": "[ย้ายงาน]",
+            "risk": "red",
+            "host": target_host,
+            "project": project,
+            "source_host": effective_source_host,
+            "target_host": target_host,
+            "missing_installs": missing_installs,
+            "estimated_minutes": est_min,
+            "why": (
+                f"[ย้ายงาน] ย้ายโปรเจกต์ '{project}' จาก '{effective_source_host}' ไป '{target_host}' — "
+                f"ต้องติดตั้ง: {items_str} | ใช้เวลาประมาณ: ~{est_min} นาที | ยอมรับไหม?"
+            ),
+            "expected": (
+                f"กดอนุมัติ (Run) หากยอมรับให้ติดตั้งระบบและย้ายไฟล์งานไปยัง '{target_host}' (~{est_min} นาที) "
+                f"หรือปฏิเสธเพื่อให้ทำต่อที่เครื่องเดิม ('{effective_source_host}') ทันทีโดยไม่ต้องติดตั้งใหม่"
+            ),
+            "command": f"echo 'Approved cross-host migration of {project} from {effective_source_host} to {target_host}'",
+        }
 
     return {
         "status": status,
         "ready": ready,
-        "source_host": probe_host,
+        "source_host": effective_source_host,
         "requested_host": target_host,
         "pinned_host": pinned_host,
-        "stay_on_host": True,
+        "stay_on_host": not is_portable,
+        "portable": is_portable,
         "affinity": affinity,
         "env": env_probe,
         "disk_ok": disk_ok,
         "min_disk_free_gb": min_disk,
+        "missing_installs": missing_installs,
+        "estimated_install_minutes": estimated_minutes,
+        "migration_card": migration_card,
         "block_reasons": block_reasons,
         "no_reinstall_rule": no_reinstall_rule,
         "transfer_limits": TRANSFER_LIMITS,
     }
+
+
+def raise_migration_card(preflight: dict[str, Any], *, session_box: str | None = None, role: str = "cto") -> dict[str, Any]:
+    """Raise a RED Run Card (`[ย้ายงาน]`) to the CEO when moving a task requires installing packages/tools."""
+    spec = preflight.get("migration_card")
+    if not isinstance(spec, dict):
+        raise ValueError("No migration approval card needed — target host is already READY.")
+    from tools import agy_card_run
+    return agy_card_run.create_card(
+        host=spec["target_host"] if spec["target_host"] in HOSTS else "contabo",
+        command=spec["command"],
+        why=spec["why"],
+        expected=spec["expected"],
+        risk="red",
+        role=role,
+        session_box=session_box,
+        auto_watch=True,
+    )
 
 
 def _run_probe_on_host(host: str, mode: str, arg: str = "", max_turns: int = 10) -> dict[str, Any]:
@@ -905,6 +1039,7 @@ def main(argv: list[str] | None = None) -> int:
     p_pre.add_argument("target", help="Project name (e.g. CookieRun, CnDrama) or session id")
     p_pre.add_argument("--host", choices=("mac", "contabo", "winbox"), help="Host to search session on")
     p_pre.add_argument("--target-host", choices=("mac", "contabo", "winbox"), help="Verify if moving to this host is allowed")
+    p_pre.add_argument("--raise-card", action="store_true", help="Automatically raise a RED Run Card ([ย้ายงาน]) if target host needs installation")
     p_pre.add_argument("--json", action="store_true")
 
     p_res = sub.add_parser("resume", help="Verify pre-flight readiness and resume session IN-PLACE on its native host")
@@ -966,17 +1101,24 @@ def main(argv: list[str] | None = None) -> int:
                     "env_probe": env_res if env_res.get("ok") else {},
                 }
             pf = evaluate_preflight(info, requested_host=args.target_host)
+            if args.raise_card and pf.get("migration_card"):
+                pf["raised_card"] = raise_migration_card(pf)
             if args.json:
                 print(json.dumps(pf, indent=2, ensure_ascii=False))
             else:
                 print(f"=== Pre-Flight Readiness & Host-Affinity Check: {info.get('project')} ===")
-                print(f"Status          : {pf['status']} (Ready={pf['ready']})")
+                print(f"Status          : {pf['status']} (Ready={pf['ready']}, Portable={pf.get('portable')})")
                 print(f"Source/Pinned   : {pf['source_host']} (Requested={pf['requested_host']})")
                 print(f"Working Dir     : {pf['env'].get('cwd')} (Exists={pf['env'].get('cwd_exists')})")
                 print(f"Pre-installed Py: {pf['env'].get('venv_python')}")
                 print(f"Disk Free       : {pf['env'].get('disk_free_gb')} GB (Min={pf['min_disk_free_gb']} GB)")
                 print(f"Affinity Reason : {pf['affinity'].get('reason')}")
                 print(f"Execution Rule  : {pf['no_reinstall_rule']}")
+                if pf.get("migration_card"):
+                    mc = pf["migration_card"]
+                    print(f"🚨 RED RUN CARD : {mc['why']}")
+                if pf.get("raised_card"):
+                    print(f"📨 CARD SENT    : {pf['raised_card'].get('id')} (risk=red)")
                 if pf["block_reasons"]:
                     for br in pf["block_reasons"]:
                         print(f"❌ BLOCKED      : {br}")
