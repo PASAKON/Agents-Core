@@ -11,11 +11,12 @@ import hashlib
 import logging
 import time
 import uuid
+from pathlib import Path
 
 from lib import db
 
 SCHEMA = db.PH_STATE_SCHEMA
-ICONS = {"thinking": "🧠", "waiting": "⏳", "idle": "💤", "silent": "🔴"}
+ICONS = {"thinking": "🧠", "waiting": "⏳", "idle": "💤", "silent": "🔴", "no_brain": "🔴"}
 
 
 def init():
@@ -206,8 +207,37 @@ def observe_native(session, screen, *, now):
 
 
 def suffix(rows):
-    return ' · PH ' + ' '.join(f"{ICONS[s]}{sum(r['phase'] == s for r in rows)}"
-                              for s in ('thinking', 'waiting', 'silent'))
+    counts = {state: 0 for state in ('thinking', 'waiting', 'silent')}
+    for row in rows:
+        state = 'silent' if row['phase'] == 'no_brain' else row['phase']
+        if state in counts:
+            counts[state] += 1
+    return ' · PH ' + ' '.join(f'{ICONS[state]}{counts[state]}' for state in counts)
+
+
+def missing_brains(sessions, rows, *, now, locks_dir: Path, brains_dir: Path):
+    """Display aged shell launches with neither a brain file nor telemetry."""
+    seen = {(row['session_id'], row['host']) for row in rows}
+    missing = []
+    for session in sessions:
+        sid, host = session['session_id'], session['host']
+        if session['role'] != 'project_head' or (sid, host) in seen:
+            continue
+        marker = locks_dir / f'project_head-{sid}.shell'
+        if not marker.is_file():
+            continue
+        if (brains_dir / f'{sid}.json').is_file():
+            continue
+        try:
+            started = marker.stat().st_mtime
+        except OSError:
+            continue
+        if now - started <= 600:
+            continue
+        missing.append(dict(session_id=sid, host=host,
+                            project=session.get('project') or sid,
+                            updated=started, phase='no_brain'))
+    return missing
 
 
 def signature(snapshot):
@@ -226,5 +256,6 @@ def render(snapshot, *, now):
     for row in snapshot.get('rows', []):
         age = max(0, int(now - row['updated']))
         project = ' '.join(row['project'].split())[:40]
-        lines.append(f"{ICONS[row['phase']]} #{row['session_id'][:3]} {project} · {row['host']} · {age//60}:{age%60:02}")
+        detail = ' · no brain' if row['phase'] == 'no_brain' else ''
+        lines.append(f"{ICONS[row['phase']]} #{row['session_id'][:3]} {project} · {row['host']} · {age//60}:{age%60:02}{detail}")
     return '\n'.join(lines) or '💤 no PHs'

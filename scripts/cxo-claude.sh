@@ -43,6 +43,9 @@
 # (docs/design/sompong-coo-session.md, acceptance probe 5).
 set -euo pipefail
 
+# This marker belongs to the process being launched, never an inherited parent.
+unset ORG_PH_SHELL
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Org restructure P2: a Project Head never starts a session (plan §3.2), and
@@ -252,6 +255,7 @@ ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "
 CHROME_ARGS=()
 if [ "$IS_PH" = "1" ]; then
   if org_flag ORG_PH_AGY_BRAIN; then
+    export ORG_PH_SHELL=1
     MODEL="haiku"
     EFFORT="low"
     ROLE_PROMPT="$(cat "$ROOT/roles/ph_shell.md")"
@@ -457,6 +461,26 @@ if [ "$CXO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
   CXO_UUID="$RESUME_UUID"
 fi
 UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
+if [ "${ORG_PH_SHELL:-0}" = 1 ]; then
+  SHELL_MARKER="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.shell"
+  if [ -n "$RESUME_UUID" ] && { [ ! -f "$SHELL_MARKER" ] || [ "$(cat "$SHELL_MARKER")" != "$RESUME_UUID" ]; }; then
+    # The source conversation used the full PH role. A fork would carry its
+    # behavior into Haiku, so start with a new conversation and a brain handover.
+    printf '%s\n' "$RESUME_UUID" >"$UUID_FILE.preshell"
+    NEW_ARGS=()
+    for ((i=0; i<${#ARGS[@]}; i++)); do
+      case "${ARGS[i]}" in
+        -r|--resume) i=$((i+1)) ;;
+        -c|--continue) ;;
+        *) NEW_ARGS+=("${ARGS[i]}") ;;
+      esac
+    done
+    ARGS=("${NEW_ARGS[@]}")
+    RESUME_UUID=""
+    PH_STATUS_PATH="${ORG_PH_STATUS_PATH:-$ROOT/docs/plans/$PH_PROJECT-STATUS.md}"
+    INITIAL_PROMPT="Project STATUS: $PH_STATUS_PATH. First run bash scripts/hub/org-python.sh tools/ph_brain.py turn --ph \"\$CXO_SESSION_ID\" --project \"\$ORG_PH_PROJECT\" --lane \"\$ORG_PH_LANE\" --message \"<this handover and the incoming prompt>\". ${INITIAL_PROMPT}"
+  fi
+fi
 printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
 
 LOCKS_DIR="$ROOT/state/locks"
@@ -953,6 +977,9 @@ if org_flag ORG_SESSION_SCOPE && [ "$(id -u)" = "0" ] && command -v systemd-run 
 fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
+if [ "${ORG_PH_SHELL:-0}" = 1 ]; then
+  printf '%s\n' "$CXO_UUID" >"$SHELL_MARKER"
+fi
 if [ "$IS_PH" = "1" ] && org_flag ORG_PH_AGY_BRAIN && org_flag ORG_PH_HEADLESS_AGY; then
   "$PH_PY" "$ROOT/tools/ph_brain.py" turn \
     --ph "$CXO_SESSION_ID" \
