@@ -461,6 +461,7 @@ if [ "$CXO_SESSION_ID" = fresh ] && [ -n "$RESUME_UUID" ]; then
   CXO_UUID="$RESUME_UUID"
 fi
 UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
+printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
 if [ "${ORG_PH_SHELL:-0}" = 1 ]; then
   SHELL_MARKER="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.shell"
   if [ -n "$RESUME_UUID" ] && { [ ! -f "$SHELL_MARKER" ] || [ "$(cat "$SHELL_MARKER")" != "$RESUME_UUID" ]; }; then
@@ -481,7 +482,6 @@ if [ "${ORG_PH_SHELL:-0}" = 1 ]; then
     INITIAL_PROMPT="Project STATUS: $PH_STATUS_PATH. First run bash scripts/hub/org-python.sh tools/ph_brain.py turn --ph \"\$CXO_SESSION_ID\" --project \"\$ORG_PH_PROJECT\" --lane \"\$ORG_PH_LANE\" --message \"<this handover and the incoming prompt>\". ${INITIAL_PROMPT}"
   fi
 fi
-printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
 
 LOCKS_DIR="$ROOT/state/locks"
 mkdir -p "$LOCKS_DIR"
