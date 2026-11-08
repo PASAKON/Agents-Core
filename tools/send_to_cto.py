@@ -138,13 +138,15 @@ def _envelope_kw(subject: str | None, kind: str | None, prio: str | None) -> dic
 def send(from_id: str, message: str, role: str | None = None,
          cto_id: str | None = None, owner_role: str = "cto", *,
          subject: str | None = None, kind: str | None = None,
-         prio: str | None = None) -> bool:
+         prio: str | None = None, wake: bool = True) -> bool:
     """Queue `message` into the owning C-level's mailbox, then attempt a
     wake. Returns `True` once the letter is queued.
 
     `role` is the DEV's role key (e.g. `web_designer`); its display label
     (e.g. `Web Designer`) names the sender in the wake marker. Falls back
     to `Dev` when role is missing or unknown.
+
+    `wake=False` queues the letter without sending any pane keys.
 
     `cto_id` + `owner_role`: the owning session identifies the mailbox box
     directly (`(owner_role, cto_id)`) -- no window/winid lookup, so a known
@@ -173,8 +175,9 @@ def send(from_id: str, message: str, role: str | None = None,
     if cto_id:
         mailbox.send(owner_role, cto_id, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio),
-              mailbox.letter_kind(kind, message))
+        if wake:
+            _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio),
+                  mailbox.letter_kind(kind, message))
         return True
 
     if os.environ.get("SEND_TO_CTO_BROADCAST") != "1":
@@ -193,8 +196,9 @@ def send(from_id: str, message: str, role: str | None = None,
             continue
         mailbox.send(r, sid, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio),
-              mailbox.letter_kind(kind, message))
+        if wake:
+            _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio),
+                  mailbox.letter_kind(kind, message))
         delivered_any = True
     return delivered_any
 

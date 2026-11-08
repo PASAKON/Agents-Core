@@ -13,7 +13,26 @@ NOW = 1_800_000_000.0
 @pytest.fixture(autouse=True)
 def no_live_idle_sweep(monkeypatch):
     from tools import idle_sweep
+    from tools import rc_reconnect
+    monkeypatch.setattr(rc_reconnect, "tick", lambda **kw: [])
     monkeypatch.setattr(idle_sweep, "tick", lambda: None)
+
+
+def test_rc_tick_modes_and_failure_isolation(monkeypatch):
+    from tools import rc_reconnect
+    from lib import config
+    calls = []
+    def tick(**kw):
+        calls.append(kw)
+        raise ValueError("broken state")
+    def stop():
+        raise RuntimeError("reached host")
+    monkeypatch.setattr(rc_reconnect, "tick", tick)
+    monkeypatch.setattr(config, "self_host", stop)
+    for args in ([], ["--nudge"]):
+        with pytest.raises(RuntimeError, match="reached host"):
+            ew.main(args)
+    assert calls == [{"dry_run": True}, {"dry_run": False}]
 
 
 def test_live_tick_calls_idle_sweep_before_hub(monkeypatch):
