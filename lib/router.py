@@ -179,6 +179,43 @@ def manual_line(host: str, source: str) -> str:
     return f"manual: {host} · {source}"
 
 
+def is_box_bound(task: dict) -> bool:
+    """Return True when `task` is strictly bound to its pinned host and must not
+    auto-spillover to another host without explicit relocation."""
+    if task.get("box_bound") is True or task.get("allow_spillover") is False:
+        return True
+    desc = str(task.get("description") or "")
+    hdr = header(desc).lower()
+    if "override: box-bound" in hdr or "override: box_bound" in hdr:
+        return True
+    project = str(task.get("project") or "").strip().lower()
+    if project == "comfy-runpod-worker":
+        return True
+    role = str(task.get("role") or "").strip().lower()
+    if role == "project_head":
+        return True
+    if role == "browser_operator" and ("127.0.0.1:" in desc or "localhost:" in desc):
+        return True
+    return False
+
+
+def _is_spillover_reason(why: str | None) -> bool:
+    """Return True when a host rejection reason is a capacity/fill/availability
+    constraint that should trigger spillover to another eligible host."""
+    if not why:
+        return False
+    return (
+        why.startswith("full ")
+        or why.startswith("fill ")
+        or why.startswith("free RAM ")
+        or why.startswith("CPU exception slot")
+        or why.startswith("status ")
+        or why.startswith("no probe")
+        or why == "PC lease held or unknown"
+    )
+
+
+
 def _json_list(raw) -> list[str] | None:
     """A JSON-array column as a list; None when absent or not a list."""
     if raw is None:
@@ -343,8 +380,10 @@ def _cap_reason(name: str, row: dict, task: dict, policy: dict,
             return f"free RAM unknown (floor {floor} GB)", False
         if free < floor:
             return f"free RAM {free:.1f} GB under the {floor} GB floor", False
-    if capable and task.get("role") == "project_head" and name == "winbox" \
-            and facts.get("ceo_hold", True):
+    if capable and name == "winbox" and (
+        facts.get("ceo_hold") is True
+        or (task.get("role") == "project_head" and facts.get("ceo_hold", True))
+    ):
         return "PC lease held or unknown", False
     if not capable:
         return None, False        # hub-only row: no fill sensors, the old checks decide
@@ -401,16 +440,23 @@ def _merge_live(rows: list[dict], live: dict[str, dict], registry: dict, now: da
 
 
 def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
-              now: datetime | None = None, reserve_exception: bool = False) -> HostPick:
+              now: datetime | None = None, reserve_exception: bool = False,
+              exclude_hosts: set[str] | list[str] | None = None) -> HostPick:
     """Choose a host for `task` (a tasks row), or say why none fits.
 
     `hosts_rows` and `now` exist for tests and mesh_check; without rows the hub
     table is read and the hosts are probed live (module docstring).
+    When `pin` is `first_host` (e.g. `contabo`) or `task.get("allow_spillover")`
+    is True and `not is_box_bound(task)`, a full/overloaded `pin` automatically
+    spills over to the remaining configured hosts (`mac`, `winbox`).
     Never raises on bad data: an unreadable table or router error is a
     rejection of every host, with the error as the reason.
     """
     now = now or datetime.now(timezone.utc)
+    excluded = {str(h).strip().lower() for h in (exclude_hosts or ()) if h}
     pin = (task.get("host") or "").strip().lower() or None
+    if pin in excluded:
+        pin = None
     try:
         policy, registry = settings(), config.hosts()
         rows = db.list_hosts() if hosts_rows is None else list(hosts_rows)
@@ -418,14 +464,36 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
         # A Project Head runs in the org checkout (verb_spawn_ph), not in its project's repo:
         # a new portfolio project needs no config/projects.yaml row (CEO 4 Nov, CMO LituyaTrailer).
         known_project = task.get("role") == "project_head" or task.get("project") in config.projects()
-        scope = [pin] if pin else sorted(configured | {r.get("host") or r.get("name") for r in rows})
+        all_scope = [
+            h for h in sorted(configured | {r.get("host") or r.get("name") for r in rows})
+            if h and h not in excluded
+        ]
+        scope = [pin] if pin else all_scope
     except Exception as e:  # noqa: BLE001 -- see docstring
         return HostPick(None, f"no_host: router error: {type(e).__name__}: {e}")
+    first = policy.get("first_host", "contabo")
+    can_spillover = bool(
+        pin
+        and not is_box_bound(task)
+        and (
+            pin == first
+            or bool(task.get("allow_spillover"))
+            or "override: spillover" in header(str(task.get("description") or "")).lower()
+        )
+    )
     ctx = dict(task=task, policy=policy, registry=registry, known_project=known_project,
                now=now, pin=pin, reserve=reserve_exception)
     if hosts_rows is not None:
-        return _decide([_hub_shape(r, registry, now) for r in rows], scope, **ctx)
-    first, timeout = policy.get("first_host", "contabo"), policy.get("probe_timeout_s", 10)
+        shaped = [_hub_shape(r, registry, now) for r in rows]
+        pick = _decide(shaped, scope, **ctx)
+        if pick.host or not can_spillover or not _is_spillover_reason(pick.rejected.get(pin)):
+            return pick
+        other_rows = [r for r in shaped if r.get("host") != pin and r.get("host") not in excluded]
+        if not other_rows:
+            return pick
+        spill = _decide(shaped, all_scope, **ctx)
+        return spill if spill.host or len(other_rows) > 0 else pick
+    timeout = policy.get("probe_timeout_s", 10)
     probeable = [n for n in scope if n in configured]
     live: dict[str, dict] = {}
     probed: list[str] = []
@@ -439,7 +507,14 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
                        [n for n in scope if n in probed or n not in configured], **ctx)
         if pick.host:
             return pick
-    return pick or _decide(_merge_live(rows, live, registry, now), scope, **ctx)
+    pick = pick or _decide(_merge_live(rows, live, registry, now), scope, **ctx)
+    if not pick.host and can_spillover and _is_spillover_reason(pick.rejected.get(pin)):
+        extra_stage = [n for n in all_scope if n in configured and n not in probed]
+        if extra_stage:
+            live.update(_live_rows(extra_stage, timeout))
+            probed += extra_stage
+        pick = _decide(_merge_live(rows, live, registry, now), all_scope, **ctx)
+    return pick
 
 
 def _decide(rows: list[dict], names: list[str], *, task: dict, policy: dict, registry: dict,

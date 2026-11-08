@@ -2115,6 +2115,30 @@ async def _route_host(task: dict, host: str | None) -> tuple[str | None, str]:
     return pick.host, pick.line
 
 
+async def _try_spillover_host(
+    task: dict,
+    failed_host: str,
+    reason: str,
+) -> tuple[str | None, str | None]:
+    """When `failed_host` fails a local disk_floor or resource_gate check during
+    `_delegate_task` and `host_router.enabled()` is True, pick the next available
+    host (`mac` / `winbox` / `contabo`) if `task` is not box-bound."""
+    if not host_router.enabled() or host_router.is_box_bound(task):
+        return None, None
+    try:
+        pick = await asyncio.to_thread(
+            host_router.pick_host,
+            {**task, "host": None},
+            reserve_exception=True,
+            exclude_hosts={failed_host},
+        )
+        if pick.host and pick.host != failed_host:
+            return pick.host, f"{pick.line} · spillover_from:{failed_host}({reason})"
+    except Exception as e:
+        warn(f"spillover host lookup failed task={task.get('id')}: {e}")
+    return None, None
+
+
 def _keep_host_line(task_id: str, line: str) -> None:
     """_route_runner overwrites delegate_log with its own `router:` line; put
     the host decision back in front of it so the row shows both. (The
@@ -2338,8 +2362,19 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         db.set_fields(task_id, delegate_log=host_line, actor="cto")
         if resolved_host is None:
             from tools import host_queue
-            host_queue.enqueue(task_id, task.get("owner_cto"), host=host or task.get("host"))
+            ahead = host_queue.enqueue(task_id, task.get("owner_cto"), host=host or task.get("host"))
             warn(f"{host_line} task={task_id}")
+            try:
+                send_to_cto.send(
+                    task_id,
+                    f"queued for host capacity ({ahead} ahead) — {host_line}. "
+                    f"Will spawn automatically when a host frees up (or run relocate_task to move).",
+                    role=task.get("role"),
+                    cto_id=task.get("owner_cto"),
+                    owner_role=task.get("owner_role") or "cto",
+                )
+            except Exception as e:
+                warn(f"host queue: notify owner failed task={task_id}: {e}")
             return db.get_task(task_id)
     else:
         resolved_host = host if host is not None else (task.get("host") or self_host())
@@ -2430,48 +2465,47 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
             db.set_fields(task_id, delegate_log=f'disk orange on {resolved_host}: video/download spawn refused', actor='cto')
             return db.get_task(task_id)
     if disk_floor_applies and free_gb is not None and free_gb < orange_gb:
-        # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
-        # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no
-        # longer just dies here — it joins tools/disk_queue.py's FIFO queue
-        # (state/disk_queue.jsonl) and runners/watchdog.py's scan_once drains
-        # it, oldest first, one per tick, once free space clears
-        # gauge.orange + 1 GB. Status is left exactly as it was (pending),
-        # matching the pre-queue behaviour this branch already had.
-        #
-        # KNOWN GAP (task-a5c0549d, not fixed here — runners/watchdog.py is
-        # not a declared touches path for this task): _drain_disk_queue()'s
-        # own resume check (runners/watchdog.py DISK_QUEUE_RESUME_MARGIN_GB)
-        # still gates EVERY queued entry on the Mac's free space alone,
-        # regardless of which host it was queued for. A task queued here for
-        # a spoke whose own disk is fine will still wait on the Mac's disk
-        # clearing before the watchdog even attempts to drain it — this
-        # function's re-resolution of `resolved_host` fixes the INITIAL
-        # refusal to gate on the right box, but the drain's resume gate
-        # needs the same per-entry host awareness to fully close the loop.
-        host_note = "" if resolved_host == this_host else f" on {resolved_host}"
-        ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
-        msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
-               f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
-        warn(f"disk floor blocked task={task_id}: {msg}")
-        db.set_fields(task_id, delegate_log=msg, actor="cto")
-        try:
-            send_to_cto.send(
-                task_id,
-                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free{host_note}, "
-                f"needs {orange_gb:.1f} GB. Will spawn automatically once "
-                f"space clears.",
-                role=task.get("role"), cto_id=task.get("owner_cto"),
-                owner_role=task.get("owner_role") or "cto",
-            )
-        except Exception as e:  # never let a mailbox failure break the refusal
-            warn(f"disk queue: notify owner failed task={task_id}: {e}")
-        return db.get_task(task_id)
+        spill_host, spill_line = await _try_spillover_host(
+            task, resolved_host, f"disk {free_gb:.1f}GB<{orange_gb:.1f}GB"
+        )
+        if spill_host:
+            info(f"disk floor on {resolved_host}: spilling over task={task_id} to {spill_host}")
+            resolved_host = spill_host
+            host_line = spill_line
+            db.set_fields(task_id, delegate_log=host_line, actor="cto")
+        else:
+            host_note = "" if resolved_host == this_host else f" on {resolved_host}"
+            ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
+            msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
+                   f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
+            warn(f"disk floor blocked task={task_id}: {msg}")
+            db.set_fields(task_id, delegate_log=msg, actor="cto")
+            try:
+                send_to_cto.send(
+                    task_id,
+                    f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free{host_note}, "
+                    f"needs {orange_gb:.1f} GB. Will spawn automatically once "
+                    f"space clears.",
+                    role=task.get("role"), cto_id=task.get("owner_cto"),
+                    owner_role=task.get("owner_role") or "cto",
+                )
+            except Exception as e:  # never let a mailbox failure break the refusal
+                warn(f"disk queue: notify owner failed task={task_id}: {e}")
+            return db.get_task(task_id)
 
     p2_refusal = _p2_spawn_refusal(task, resolved_host, this_host)
     if p2_refusal:
-        warn(f"P2 gate blocked task={task_id}: {p2_refusal}")
-        db.set_fields(task_id, delegate_log=p2_refusal, actor="cto")
-        return db.get_task(task_id)
+        spill_host, spill_line = await _try_spillover_host(task, resolved_host, p2_refusal)
+        if spill_host:
+            info(f"P2 gate on {resolved_host}: spilling over task={task_id} to {spill_host}")
+            resolved_host = spill_host
+            host_line = spill_line
+            db.set_fields(task_id, delegate_log=host_line, actor="cto")
+            p2_refusal = _p2_spawn_refusal(task, resolved_host, this_host)
+        if p2_refusal:
+            warn(f"P2 gate blocked task={task_id}: {p2_refusal}")
+            db.set_fields(task_id, delegate_log=p2_refusal, actor="cto")
+            return db.get_task(task_id)
 
     role_name = task["role"]
     project_key = task["project"]
@@ -2789,3 +2823,26 @@ async def delegate_parallel(task_ids: list[str], max_concurrent: int = 3,
             return await delegate_task(tid, wait=wait, kickoff=kickoff)
 
     return await asyncio.gather(*[_run(t) for t in task_ids])
+
+
+async def relocate_task(
+    task_id: str,
+    target_host: str | None = None,
+    *,
+    dry_run: bool = False,
+    confirmed: bool = False,
+    raise_card: bool = False,
+) -> dict:
+    """Relocate a pending or running task (`task_id`) to `target_host` (or auto-pick
+    the best available host), transferring its git checkpoint and active
+    `Work/<task-id>/{in,out}` files, or raising a RED `[ย้ายงาน]` `/run` card
+    when `target_host` requires heavy package/tool installation."""
+    from tools import relocate_task as _relocate_mod
+
+    return await _relocate_mod.relocate_task(
+        task_id,
+        target_host=target_host,
+        dry_run=dry_run,
+        confirmed=confirmed,
+        raise_card=raise_card,
+    )

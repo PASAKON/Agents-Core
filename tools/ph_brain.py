@@ -203,7 +203,31 @@ def state_path(ph_id: str, brains_dir: Path | None = None) -> Path:
     return base / f"{clean}.json"
 
 
-def load_brain_state(ph_id: str, brains_dir: Path | None = None) -> dict[str, Any]:
+def _fetch_hub_ph_state(ph_id: str) -> dict[str, Any] | None:
+    """Query the Hub `ph_state` table for the latest state of `ph-<ph_id>` / `<ph_id>`
+    so a PH brain relocated to another host inherits its context seamlessly."""
+    try:
+        from lib import db
+        candidates = (f"ph-{ph_id}", ph_id)
+        with db.get_conn() as conn:
+            row = conn.execute(
+                "SELECT session_id, project, lane, owner, host, model, doing "
+                "FROM ph_state WHERE session_id IN (?, ?) ORDER BY updated DESC LIMIT 1",
+                candidates,
+            ).fetchone()
+            if row:
+                return dict(row)
+    except Exception:
+        pass
+    return None
+
+
+def load_brain_state(
+    ph_id: str,
+    brains_dir: Path | None = None,
+    *,
+    fetch_hub: bool | None = None,
+) -> dict[str, Any]:
     path = state_path(ph_id, brains_dir)
     if path.is_file():
         try:
@@ -212,8 +236,9 @@ def load_brain_state(ph_id: str, brains_dir: Path | None = None) -> dict[str, An
                 return data
         except (OSError, ValueError):
             pass
-    return {
-        "ph_id": _validate_ph_id(ph_id),
+    clean_id = _validate_ph_id(ph_id)
+    base = {
+        "ph_id": clean_id,
         "project": None,
         "lane": "cto",
         "owner": None,
@@ -225,6 +250,21 @@ def load_brain_state(ph_id: str, brains_dir: Path | None = None) -> dict[str, An
         "updated_at": _now_iso(),
         "last_summary": "",
     }
+    should_fetch = fetch_hub if fetch_hub is not None else (brains_dir is None)
+    if should_fetch:
+        hub_row = _fetch_hub_ph_state(clean_id)
+        if isinstance(hub_row, dict):
+            if hub_row.get("project"):
+                base["project"] = hub_row["project"]
+            if hub_row.get("lane"):
+                base["lane"] = str(hub_row["lane"]).lower()
+            if hub_row.get("owner"):
+                base["owner"] = hub_row["owner"]
+            if hub_row.get("doing"):
+                base["last_summary"] = str(hub_row["doing"])
+            if hub_row.get("host"):
+                base["relocated_from_host"] = str(hub_row["host"])
+    return base
 
 
 def save_brain_state(state: dict[str, Any], brains_dir: Path | None = None) -> Path:
@@ -243,9 +283,18 @@ def build_initial_prompt(
     lane: str,
     owner: str | None,
     message: str,
+    previous_summary: str | None = None,
+    relocated_from_host: str | None = None,
 ) -> str:
     """Wrap the first turn of a Project Head with its identity and core rules."""
     owner_str = owner or f"{lane}-main"
+    continuity_block = ""
+    if (previous_summary or "").strip():
+        from_note = f" on '{relocated_from_host}'" if relocated_from_host else ""
+        continuity_block = (
+            f"\n[Cross-Host Continuity Summary from previous PH turn{from_note}]\n"
+            f"{previous_summary.strip()}\n"
+        )
     return (
         f"[Project Head Identity: PH#{ph_id} ({lane.upper()}) - Project: {project} | Reports to: {owner_str}]\n"
         f"You are the Project Head (PH) for project '{project}' in the '{lane}' lane.\n"
@@ -254,7 +303,8 @@ def build_initial_prompt(
         f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high` for code/visual QC, `gemini-3.8-flash-high` for fast browser loops, `claude-sonnet-5-5-high`) or Codex.\n"
         f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-3.8-flash-high`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
         f"4. Keep responses concise, structured, and actionable.\n"
-        f"5. {PLANNER_RULE}\n\n"
+        f"5. {PLANNER_RULE}\n"
+        f"{continuity_block}\n"
         f"--- Task / Message ---\n{message}"
     )
 
@@ -546,6 +596,8 @@ def run_turn(
             lane=state.get("lane") or "cto",
             owner=state.get("owner"),
             message=message,
+            previous_summary=state.get("last_summary"),
+            relocated_from_host=state.get("relocated_from_host"),
         )
         if is_first_turn
         else message

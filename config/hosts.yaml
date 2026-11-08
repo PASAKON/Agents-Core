@@ -52,7 +52,7 @@ hosts:
     mesh_ssh: gob@100.64.2.37
     agents_root: /Users/gob/MoonieXHQ/Agents/Core
     worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
-    provides: [chrome, macos_cu, blender_bridge]
+    provides: [chrome, macos_cu, blender_bridge, ffmpeg]
     max_workers: 2
     # Worker CLI(s) this host can spawn (task-adbc6f43). claude and agy are
     # supported locally — agy is wired via runners/agy_local.py (2026-09-29).
@@ -78,7 +78,7 @@ hosts:
     mesh_ssh: passg@100.124.196.11
     agents_root: 'C:\Users\passg\mooniex'
     worktrees: 'C:\Users\passg\mooniex\worktrees'
-    provides: [chrome, blender, win_gui]
+    provides: [chrome, blender, win_gui, ffmpeg]
     # CEO 2026-10-30 host-fill plan: three workers, with a 4 GB RAM floor.
     max_workers: 3
     max_browser_operators: 2
