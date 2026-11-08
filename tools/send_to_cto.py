@@ -49,7 +49,6 @@ Usage:
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -77,13 +76,16 @@ def resolve_owner(role: str, sid: str) -> str:
         active = agent_transport._active_session_id(role, STATE_DIR / 'locks')
         if active and active != 'fresh' and tmux.has_session(session_name.lock_basename(role, active)):
             return active
-        result = subprocess.run([tmux.tmux_bin(), 'list-sessions', '-F', '#{session_name}'],
-                                capture_output=True, text=True, timeout=5)
-        candidates = sorted(name[len(role) + 1:] for name in result.stdout.splitlines()
-                            if name.startswith(role + '-') and name != role + '-fresh')
-        if result.returncode == 0 and candidates:
+        # Lock files name every launched session; keep only the ones whose
+        # tmux session is still up (no shell-out from this module).
+        candidates = sorted(
+            p.name[len(role) + 1:-len('.lock')]
+            for p in (STATE_DIR / 'locks').glob(f'{role}-*.lock')
+            if p.name != f'{role}-fresh.lock'
+            and tmux.has_session(p.name[:-len('.lock')]))
+        if candidates:
             return candidates[0]
-    except (OSError, subprocess.SubprocessError):
+    except OSError:
         pass
     print(f'[send_to_cto] no live session for {role}; queued to recorded owner {role}-{sid}',
           file=sys.stderr)
