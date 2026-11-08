@@ -389,14 +389,15 @@ def test_aspect_readback(aspect, selected, collapsed):
     assert browser.read_settings(4, aspect=aspect)["aspect"] is (aspect == selected)
 
 
+@pytest.mark.parametrize("model", [None, "Omni 1.2 Flash"])
 @pytest.mark.parametrize("aspect", [None, "16:9"])
-def test_set_settings_clicks_requested_aspect(monkeypatch, aspect):
+def test_set_settings_clicks_requested_aspect(monkeypatch, aspect, model):
     from unittest.mock import MagicMock
     browser = flow_shoot.FlowBrowser()
     page = MagicMock()
     panel = page.locator.return_value
     panel.count.return_value = 1
-    panel.evaluate.return_value = "Omni 1.1 Flash 4 วินาที"
+    panel.evaluate.return_value = f"{model or 'Omni 1.1 Flash'} 4 วินาที"
     browser.page = page
     monkeypatch.setattr(browser, "_close_account_panel", lambda: None)
     monkeypatch.setattr(browser, "_close_settings_panel", lambda: None)
@@ -408,7 +409,11 @@ def test_set_settings_clicks_requested_aspect(monkeypatch, aspect):
         locator.first.get_attribute.return_value = "mat-button-toggle-checked"
         return locator
     panel.locator.return_value.filter.side_effect = toggle
-    settings = browser.set_settings(4, **({"aspect": aspect} if aspect else {}))
+    page.locator.return_value.filter.side_effect = toggle
+    settings = browser.set_settings(4, **({"aspect": aspect} if aspect else {}),
+                                    **({"model": model} if model else {}))
+    assert (model or "Omni 1.1 Flash") in clicks
+    assert settings["model_omni"] is True
     expected = aspect or "9:16"
     assert expected in clicks
     assert ("9:16" if expected == "16:9" else "16:9") not in clicks
@@ -486,6 +491,47 @@ class _FakePage:
 
     def evaluate(self, _script: str) -> str:
         return self._body
+
+
+@pytest.mark.parametrize("collapsed", [False, True])
+@pytest.mark.parametrize("selected", ["Omni 1.1 Flash", "Omni 1.2 Flash"])
+def test_model_readback(selected, collapsed):
+    browser = flow_shoot.FlowBrowser()
+    browser.page = (_FakePage(body=selected) if collapsed else
+                    _FakePage(panel=_FakePanel(set(), inner_text=selected)))
+    assert browser.read_settings(10, model="Omni 1.2 Flash")["model_omni"] is (
+        selected == "Omni 1.2 Flash")
+
+
+@pytest.mark.parametrize("duration", [3, 10, 15])
+def test_duration_range_accepted(duration):
+    args = flow_shoot.build_parser().parse_args([
+        "run", "--sheet", "s", "--ledger", "l", "--dest", "out",
+        "--force-duration", str(duration)])
+    assert args.model == "Omni 1.1 Flash"
+    assert args.force_duration == duration
+    assert flow_shoot.effective_duration(duration, None) == duration
+    browser = flow_shoot.FlowBrowser()
+    label = f"{duration} วินาที"
+    browser.page = _FakePage(panel=_FakePanel({label}, known_labels={label}))
+    assert browser.read_settings(duration)["duration"] is True
+
+
+@pytest.mark.parametrize("duration", [2, 16])
+def test_duration_range_refused(duration, tmp_path):
+    args = _run_args(tmp_path, "duration.tsv")
+    with pytest.raises(SystemExit):
+        flow_shoot.build_parser().parse_args([
+            "run", "--sheet", "s", "--ledger", "l", "--dest", "out",
+            "--force-duration", str(duration)])
+    with pytest.raises(flow_shoot.argparse.ArgumentTypeError, match="3 to 15"):
+        flow_shoot.effective_duration(duration, None)
+    sheet = tmp_path / "bad-duration.md"
+    sheet.write_text(Path(args.sheet).read_text().replace(" · 6s · ", f" · {duration}s · "))
+    args.sheet = str(sheet)
+    def no_browser():
+        pytest.fail("invalid sheet must be refused before browser attachment")
+    assert flow_shoot.cmd_run(args, browser_factory=no_browser) == 1
 
 
 def test_read_settings_confirms_matching_resolution_and_duration():
@@ -745,7 +791,7 @@ class _GateStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash") -> dict:
         return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
@@ -804,11 +850,27 @@ def test_chip_count_mismatch_blocks_submit(tmp_path):
     assert rc == 1  # this row left "todo" without reaching "verified"
 
 
+def test_model_mismatch_blocks_submit(tmp_path):
+    args = _run_args(tmp_path, "model_mismatch.tsv")
+    args.model = "Omni 1.2 Flash"
+    stub = _GateStubBrowser(chip_count_sequence=[])
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=_FakePanel(
+        {"6 วินาที", "720p", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash"))
+    stub.set_settings = browser.read_settings
+    assert flow_shoot.cmd_run(args, browser_factory=lambda: stub) == 1
+    assert stub.submit_called is False
+    row = flow_ledger.load_ledger(tmp_path / "model_mismatch.tsv")[35]
+    assert row["status"] == "needs_model"
+    assert "model_omni" in row["note"]
+
+
 def test_aspect_mismatch_blocks_submit(tmp_path):
     args = _run_args(tmp_path, "aspect_mismatch.tsv")
     args.aspect = "16:9"
     stub = _GateStubBrowser(chip_count_sequence=[])
-    def settings(dur_s, resolution="720p", aspect="9:16"):
+    def settings(dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash"):
         assert aspect == "16:9"
         return {"aspect": False}
     stub.set_settings = settings
@@ -877,7 +939,7 @@ class _DryRunAwareStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash") -> dict:
         return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 
@@ -995,7 +1057,7 @@ class _EstimateUnreadableStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash") -> dict:
         self.set_settings_calls += 1
         return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
@@ -1191,7 +1253,7 @@ class _ZeroChipsStubBrowser:
     def close(self) -> None:
         pass
 
-    def set_settings(self, dur_s, resolution="720p", aspect="9:16") -> dict:
+    def set_settings(self, dur_s, resolution="720p", aspect="9:16", model="Omni 1.1 Flash") -> dict:
         return {"model_omni": True, "mode_ingredients": True, "aspect": True,
                 "qty_x1": True, "resolution": True, "duration": True}
 

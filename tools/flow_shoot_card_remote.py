@@ -46,6 +46,7 @@ def other_flow_job():
 
 
 def shoot():
+    """Forward runner arguments, including --model, unchanged to flow_shoot."""
     root = Path(sys.argv[2])
     sys.path.insert(0, str(root))
     os.chdir(root)

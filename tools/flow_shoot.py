@@ -13,7 +13,8 @@ non-verified row, and a verified row is never re-fired.
     python3 tools/flow_shoot.py run    --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 \
         --credit-cap 300 [--max-credits 300] [--only 37-46] [--dry-run] \
-        [--resolution {720p,360p}] [--force-duration N]
+        [--resolution {720p,360p}] [--force-duration N (3-15 seconds)]
+        [--model {"Omni 1.1 Flash","Omni 1.2 Flash"}]
     python3 tools/flow_shoot.py pull   --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 [--only 53-58]
     python3 tools/flow_shoot.py status --ledger state/banchi/ACT2.tsv
@@ -368,12 +369,20 @@ def normalize_prompt_whitespace(text: str) -> str:
     return re.sub(r"\n+", "\n", text).strip()
 
 
+def duration_seconds(value) -> int:
+    """Validate a Flow duration: an integer from 3 through 15 seconds."""
+    if not re.fullmatch(r"\d+", str(value)) or not 3 <= int(value) <= 15:
+        raise argparse.ArgumentTypeError("duration must be an integer from 3 to 15 seconds")
+    return int(value)
+
+
 def effective_duration(sheet_dur_s: int, force_duration: int | None) -> int:
     """--force-duration (proof shots only) overrides the sheet's per-shot
     duration for BOTH the composer's duration setting and verify_clip's
     tolerance — the two must never disagree, or a shot generated at the
     override length would fail verification against the sheet's length."""
-    return force_duration if force_duration is not None else sheet_dur_s
+    duration_seconds(sheet_dur_s)
+    return duration_seconds(force_duration) if force_duration is not None else sheet_dur_s
 
 
 def parse_credit_estimate(text: str) -> int | None:
@@ -805,8 +814,9 @@ class FlowBrowser:
         ).first.wait_for(state="visible", timeout=60_000)
         self.mute_all_media()
 
-    def set_settings(self, dur_s: int, resolution: str = "720p", aspect: str = "9:16") -> dict:
-        """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, chosen aspect, qty=x1,
+    def set_settings(self, dur_s: int, resolution: str = "720p", aspect: str = "9:16",
+                     model: str = "Omni 1.1 Flash") -> dict:
+        """Set chosen model (default Omni 1.1 Flash), mode=องค์ประกอบ, aspect, qty=x1,
         resolution, duration=dur_s, then read every one of them back off the
         DOM — NONE of them are sticky (BANCHI-SHOOT-BRIEF.md).
 
@@ -866,7 +876,7 @@ class FlowBrowser:
                 timeout=3000, force=True)
             page.wait_for_timeout(300)
             page.locator("[role=menuitem]").filter(
-                has_text="Omni 1.1 Flash"
+                has_text=model
             ).first.click(timeout=3000, force=True)
         except Exception as e:
             _log(f"  model select err: {e!r}")
@@ -903,7 +913,7 @@ class FlowBrowser:
         except Exception as e:
             _log(f"  quantity select err: {e!r}")
         page.wait_for_timeout(200)
-        settings = self.read_settings(dur_s, resolution, aspect)
+        settings = self.read_settings(dur_s, resolution, aspect, model)
         self._close_settings_panel()
         page.wait_for_timeout(200)
         return settings
@@ -921,7 +931,8 @@ class FlowBrowser:
             return False
         return "mat-button-toggle-checked" in (el.get_attribute("class") or "")
 
-    def read_settings(self, dur_s: int, resolution: str = "720p", aspect: str = "9:16") -> dict:
+    def read_settings(self, dur_s: int, resolution: str = "720p", aspect: str = "9:16",
+                      model: str = "Omni 1.1 Flash") -> dict:
         page = self.page
         panel = page.locator("flow-prompt-box-settings")
         if panel.count() == 0:
@@ -931,7 +942,7 @@ class FlowBrowser:
             # collapsed at all, so they can't be contradicted from here.
             body = page.evaluate("() => document.body.innerText")
             return {
-                "model_omni": "Omni 1.1 Flash" in body,
+                "model_omni": model in body,
                 "mode_ingredients": True,
                 "aspect": aspect in body,
                 "qty_x1": True,
@@ -940,7 +951,7 @@ class FlowBrowser:
             }
         body = panel.evaluate("el => el.innerText")
         return {
-            "model_omni": "Omni 1.1 Flash" in body,
+            "model_omni": model in body,
             "mode_ingredients": self._toggle_checked(panel, "องค์ประกอบ"),
             "aspect": self._toggle_checked(panel, aspect),
             "qty_x1": self._toggle_checked(panel, "x1"),
@@ -1698,6 +1709,12 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     flow_ledger.init_ledger(sheet_path, ledger_path)
     rows = flow_ledger.load_ledger(ledger_path)
     sheet_shots = {s["shot"]: s for s in flow_ledger.parse_sheet(sheet_path)}
+    for shot in sheet_shots.values():
+        try:
+            effective_duration(shot["dur_s"], args.force_duration)
+        except argparse.ArgumentTypeError as exc:
+            _log(f"REFUSED: shot {shot['shot']}: {exc}")
+            return 1
 
     todo = [n for n in sorted(rows)
             if rows[n]["status"] not in ("verified", "refused")
@@ -1764,7 +1781,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 # from a prior dry-run or another shot. This must precede
                 # set_settings(): navigation resets those facets too.
                 browser.reset_composer()
-                settings = browser.set_settings(dur_s, args.resolution, args.aspect)
+                settings = browser.set_settings(dur_s, args.resolution, args.aspect, args.model)
                 bad = [k for k, v in settings.items() if not v]
                 if bad:
                     row["status"], row["note"] = "needs_model", f"settings not confirmed: {bad}"
@@ -2146,8 +2163,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--download-resolution", choices=["1080p", "720p"], default="1080p",
         help="Export resolution. Defaults to Flow's free 1080p upscale; 4K "
              "is intentionally unsupported because it costs 50 credits.")
-    p_run.add_argument("--force-duration", type=int, default=None,
-                        help="PROOF SHOTS ONLY. Overrides the sheet's per-shot "
+    p_run.add_argument("--model", choices=["Omni 1.1 Flash", "Omni 1.2 Flash"],
+                       default="Omni 1.1 Flash", help="Composer model; verified by page read-back.")
+    p_run.add_argument("--force-duration", type=duration_seconds, default=None,
+                        help="PROOF SHOTS ONLY. Integer 3-15 seconds. Overrides the sheet's per-shot "
                              "duration for both the composer's duration setting "
                              "and verify_clip's tolerance.")
     p_run.add_argument("--expect-gb", type=float, default=None,

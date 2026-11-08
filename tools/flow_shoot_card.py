@@ -46,6 +46,7 @@ def parse(argv):
     p.add_argument('--only', type=pattern(r'\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*'))
     p.add_argument('--resolution', choices=('720p', '360p'), default='720p')
     p.add_argument('--aspect', choices=('9:16', '16:9'), default='9:16')
+    p.add_argument('--model', choices=('Omni 1.1 Flash', 'Omni 1.2 Flash'), default='Omni 1.1 Flash')
     p.add_argument('--dry-run', action='store_true')
     for name in ('channel', 'purpose', 'task'):
         p.add_argument('--' + name, required=True, type=pattern(r'[\w .,:()/\-]{1,300}'))
@@ -105,7 +106,7 @@ def inner_argv(a, folder):
               'run', '--max-credits', str(a.max_credits),
               '--sheet', folder + r'\sheet.md', '--ledger', folder + r'\ledger.tsv',
               '--dest', folder + r'\out', '--resolution', a.resolution,
-              '--aspect', a.aspect]
+              '--aspect', a.aspect, '--model', a.model]
     if a.only:
         result += ['--only', a.only]
     if a.dry_run:
@@ -171,6 +172,7 @@ def main(argv=None, runner=None, live_path=LIVE_LEDGER):
         print('sheet must identify exactly one Flow project URL')
         return 4
     project = projects.pop()
+    print(f'Flow card model: {a.model}', flush=True)
     r = runner or Runner()
     folder = None
     old_handlers = {}

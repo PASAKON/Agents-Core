@@ -94,9 +94,30 @@ def test_exact_inner_argv(setup):
     f = kw['folder']
     assert kw['argv'] == [card.PYTHON, '-u', f + r'\tools\flow_shoot.py', 'run',
         '--max-credits', '5.0', '--sheet', f + r'\sheet.md', '--ledger', f + r'\ledger.tsv',
-        '--dest', f + r'\out', '--resolution', '720p', '--aspect', '9:16', '--only', '1-2', '--dry-run']
+        '--dest', f + r'\out', '--resolution', '720p', '--aspect', '9:16',
+        '--model', 'Omni 1.1 Flash', '--only', '1-2', '--dry-run']
     assert kw['argv'].count('--max-credits') == 1
     assert '--credit-cap' not in kw['argv']
+
+
+def test_model_forwarded_and_displayed(setup, capsys, monkeypatch, tmp_path):
+    from tools import flow_shoot
+    argv, live = setup
+    runner = FakeRunner()
+    assert card.main(argv + ['--model', 'Omni 1.2 Flash'], runner, live) == 0
+    inner = next(kw['argv'] for verb, kw in runner.calls if verb == 'run')
+    assert inner[inner.index('--model') + 1] == 'Omni 1.2 Flash'
+    assert 'Flow card model: Omni 1.2 Flash' in capsys.readouterr().out
+    (tmp_path / 'project.txt').write_text('https://flow.google.com/project/test')
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, 'argv', ['remote', 'shoot', str(tmp_path)] + inner[3:])
+    monkeypatch.setattr(flow_shoot.FlowBrowser, 'attach', None)
+    received = []
+    monkeypatch.setattr(flow_shoot, 'main', lambda args: received.append(args) or 0)
+    with pytest.raises(SystemExit) as exc:
+        remote.shoot()
+    assert exc.value.code == 0
+    assert received == [inner[3:]]
 
 
 def test_aspect_parser_and_inner_argv(setup):
