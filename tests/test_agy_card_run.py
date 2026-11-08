@@ -425,3 +425,53 @@ def test_detect_conversation_id_from_source_metadata_and_cli_pb_files(tmp_path):
     box, role, sid, cid = agy_card_run.resolve_identity(env=ph_env)
     assert (box, role, sid, cid) == ("project_head-3511068d", "project_head", "3511068d", CONV_UUID)
 
+
+def test_wake_session_uses_agentapi_for_desktop_app_and_falls_back_to_cli(tmp_path, monkeypatch):
+    sdir = tmp_path / "agy-sessions"
+    inbox = tmp_path / "inbox"
+    fake_ls = tmp_path / "language_server"
+    fake_ls.write_text("#!/bin/sh\nexit 0\n")
+    fake_ls.chmod(0o755)
+
+    desktop_env = {
+        "ANTIGRAVITY_CONVERSATION_ID": CONV_UUID,
+        "ANTIGRAVITY_LS_ADDRESS": "localhost:63985",
+        "ANTIGRAVITY_CSRF_TOKEN": "csrf-secret-123",
+        "ANTIGRAVITY_AGENTAPI_EXE": str(fake_ls),
+        "ANTIGRAVITY_PROJECT_ID": "default-cli-project",
+        "ORG_HOST": "mac",
+    }
+    rec = agy_card_run.register_session(sessions_dir=sdir, env=desktop_env)
+    assert rec["ls_address"] == "localhost:63985"
+    assert rec["csrf_token"] == "csrf-secret-123"
+    assert rec["agentapi_exe"] == str(fake_ls)
+
+    mailbox.send("cto", "agy-aced3034", "Q-20261108-1649-a4dd answered: ทดสอบผ่าน!", "run-inbox", "hub", root=inbox)
+    res = agy_card_run.wake_session("cto-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
+    assert res["ok"] is True
+    assert res["woke"] is True
+    assert res["method"] == "agentapi"
+    assert agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)["last_wake_method"] == "agentapi"
+
+    # If the Desktop App language server returns non-zero (e.g. closed), wake_session falls back to _call_agy_cli
+    fake_ls.write_text("#!/bin/sh\nexit 1\n")
+    mailbox.send("cto", "agy-aced3034", "RUN-20261108-1705-abcd done (exit 0)", "run-inbox", "hub", root=inbox)
+    cli_called = []
+    monkeypatch.setattr(
+        agy_card_run,
+        "_call_agy_cli",
+        lambda prompt, **kw: cli_called.append(prompt) or {
+            "ok": True,
+            "returncode": 0,
+            "model": "claude-opus-5-5-high",
+            "conversation_id": CONV_UUID,
+            "response": "woke via cli fallback",
+            "limit_hit": None,
+        },
+    )
+    res2 = agy_card_run.wake_session("cto-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
+    assert res2["ok"] is True
+    assert res2["woke"] is True
+    assert len(cli_called) == 1
+
+

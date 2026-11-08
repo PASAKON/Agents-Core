@@ -285,6 +285,14 @@ def register_session(
         cards.append(card_id)
         cards = cards[-50:]
 
+    env_map = ({} if "PYTEST_CURRENT_TEST" in os.environ else os.environ) if env is None else env
+    ls_address = (env_map.get("ANTIGRAVITY_LS_ADDRESS") or existing.get("ls_address") or "").strip() or None
+    csrf_token = (env_map.get("ANTIGRAVITY_CSRF_TOKEN") or existing.get("csrf_token") or "").strip() or None
+    agentapi_exe = (env_map.get("ANTIGRAVITY_AGENTAPI_EXE") or existing.get("agentapi_exe") or "").strip() or None
+    project_id = (env_map.get("ANTIGRAVITY_PROJECT_ID") or existing.get("project_id") or "").strip() or None
+    app_data_dir = (env_map.get("ANTIGRAVITY_APP_DATA_DIR") or existing.get("app_data_dir") or "").strip() or None
+    trajectory_id = (env_map.get("ANTIGRAVITY_TRAJECTORY_ID") or existing.get("trajectory_id") or "").strip() or None
+
     record: dict[str, Any] = {
         **existing,
         "box": resolved_box,
@@ -301,6 +309,18 @@ def register_session(
         "created_at": existing.get("created_at") or _now_iso(),
         "updated_at": _now_iso(),
     }
+    if ls_address:
+        record["ls_address"] = ls_address
+    if csrf_token:
+        record["csrf_token"] = csrf_token
+    if agentapi_exe:
+        record["agentapi_exe"] = agentapi_exe
+    if project_id:
+        record["project_id"] = project_id
+    if app_data_dir:
+        record["app_data_dir"] = app_data_dir
+    if trajectory_id:
+        record["trajectory_id"] = trajectory_id
 
     path = session_path(resolved_box, sessions_dir=sessions_dir)
     if path.is_symlink():
@@ -386,6 +406,77 @@ def format_wake_prompt(box: str, letters: list[dict[str, Any]]) -> str:
         f"{joined}\n\n"
         f"Continue the task in this session based on the CEO's response / command output above."
     )
+
+
+DEFAULT_AGENTAPI_EXE_MAC = "/Applications/Antigravity.app/Contents/Resources/bin/language_server"
+
+
+def _call_agentapi_send_message(
+    prompt: str,
+    *,
+    conversation_id: str,
+    ls_address: str,
+    csrf_token: str,
+    agentapi_exe: str | None = None,
+    project_id: str | None = None,
+    app_data_dir: str | None = None,
+    title: str = "CardRun Wake",
+    timeout_s: int = 30,
+) -> dict[str, Any]:
+    """Deliver a reactive wakeup message into a live Antigravity Desktop App / LS conversation."""
+    exe = (
+        agentapi_exe
+        or os.environ.get("ANTIGRAVITY_AGENTAPI_EXE")
+        or (DEFAULT_AGENTAPI_EXE_MAC if Path(DEFAULT_AGENTAPI_EXE_MAC).is_file() else None)
+    )
+    if not exe or not Path(exe).is_file():
+        return {
+            "ok": False,
+            "returncode": 127,
+            "conversation_id": conversation_id,
+            "response": f"agentapi binary not found ({exe!r})",
+        }
+
+    cmd = [exe, "agentapi", "send-message", "--title", title, conversation_id, prompt]
+    env = dict(os.environ)
+    env["ANTIGRAVITY_LS_ADDRESS"] = ls_address
+    env["ANTIGRAVITY_CSRF_TOKEN"] = csrf_token
+    env["ANTIGRAVITY_CONVERSATION_ID"] = conversation_id
+    env["ANTIGRAVITY_PROJECT_ID"] = project_id or "default-cli-project"
+    if app_data_dir:
+        env["ANTIGRAVITY_APP_DATA_DIR"] = app_data_dir
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            env=env,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "ok": False,
+            "returncode": 124,
+            "conversation_id": conversation_id,
+            "response": f"agentapi send-message timed out after {timeout_s}s",
+        }
+    except OSError as e:
+        return {
+            "ok": False,
+            "returncode": 127,
+            "conversation_id": conversation_id,
+            "response": f"cannot start agentapi: {e}",
+        }
+
+    out = (proc.stdout or proc.stderr or "").strip()
+    return {
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "conversation_id": conversation_id,
+        "response": out or "delivered via agentapi send-message",
+    }
 
 
 def _call_agy_cli(
@@ -499,12 +590,47 @@ def wake_session(
         return {"ok": True, "box": box, "reason": "idle", "woke": False}
 
     prompt = format_wake_prompt(box, letters)
+    last_res: dict[str, Any] = {}
+
+    if agy_bin is None and rec.get("ls_address") and rec.get("csrf_token"):
+        api_res = _call_agentapi_send_message(
+            prompt,
+            conversation_id=rec["conversation_id"],
+            ls_address=str(rec["ls_address"]),
+            csrf_token=str(rec["csrf_token"]),
+            agentapi_exe=rec.get("agentapi_exe"),
+            project_id=rec.get("project_id"),
+            app_data_dir=rec.get("app_data_dir"),
+            title=f"CardRun Wake ({box})",
+            timeout_s=min(timeout_s, 30),
+        )
+        last_res = api_res
+        if api_res.get("ok"):
+            rec["last_wake_at"] = _now_iso()
+            rec["last_wake_ok"] = True
+            rec["last_wake_method"] = "agentapi"
+            rec["last_response_preview"] = (api_res.get("response") or "")[:500]
+            try:
+                path = session_path(box, sessions_dir=sessions_dir)
+                path.write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            except OSError:
+                pass
+            return {
+                "ok": True,
+                "woke": True,
+                "box": box,
+                "reason": "ok",
+                "method": "agentapi",
+                "model": rec.get("model") or DEFAULT_MODEL,
+                "conversation_id": rec["conversation_id"],
+                "response": api_res.get("response") or "",
+            }
+
     models = ph_brain.select_model_chain(
         rec.get("model") or DEFAULT_MODEL,
         snapshot_path=snapshot_path,
     )
 
-    last_res: dict[str, Any] = {}
     for model in models:
         res = _call_agy_cli(
             prompt,
