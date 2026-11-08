@@ -991,6 +991,20 @@ $heartbeatStart
 . '$nativeArgsPath'
 Invoke-NativeExe -Exe `$exe -Arguments `$argArray -LogPath '$agyLog' -NullStdin
 `$cliExit = `$LASTEXITCODE
+if (Test-Path -LiteralPath '$agyLog') {
+    `$firstLog = [System.IO.File]::ReadAllText('$agyLog')
+    if (`$firstLog -match '(?i)(exhausted your quota|Individual quota reached|RESOURCE_EXHAUSTED|AI: Out of credits|model capacity exhausted)' -and ('$agyModel' -ne 'gemini-4-argon-high')) {
+        Move-Item -LiteralPath '$agyLog' -Destination ('{0}.pre-swap' -f '$agyLog') -Force -ErrorAction SilentlyContinue
+        [System.IO.File]::WriteAllText('$agyLog', "[agy-autoswap] Quota limit hit on $agyModel; swapping seamlessly to gemini-4-argon-high...`n", (New-Object System.Text.UTF8Encoding `$false))
+        `$swapArgs = @(`$argArray | ForEach-Object { if (`$_ -eq '$agyModel') { 'gemini-4-argon-high' } else { `$_ } })
+        if (`$firstLog -match '"conversation_id"\s*:\s*"([0-9a-fA-F-]{36})"') {
+            `$swapConv = `$Matches[1]
+            `$swapArgs += @('--conversation', `$swapConv)
+        }
+        Invoke-NativeExe -Exe `$exe -Arguments `$swapArgs -LogPath '$agyLog' -NullStdin
+        `$cliExit = `$LASTEXITCODE
+    }
+}
 $heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
 $agyDeniedStep

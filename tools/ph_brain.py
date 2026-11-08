@@ -5,7 +5,7 @@ video pipelines), and worker delegation on Antigravity CLI (`agy`) or Codex,
 consuming 0% Claude Code ($20 Pro) usage.
 
 Architecture:
-- Primary Brain: `claude-opus-5-5-high` (bucket `agy-claude`)
+- Primary Brain: `claude-opus-5-5-medium` (bucket `agy-claude`)
 - Auto-Fallback 1: `gemini-4-argon-high` (bucket `agy-gemini`)
 - Auto-Fallback 2: `claude-sonnet-5-5-high` (bucket `agy-claude`)
 - Auto-Fallback 3: `gemini-3.8-flash-high` (bucket `agy-gemini`)
@@ -40,17 +40,27 @@ from lib import ph_state
 _IN_TURN = ContextVar('ph_brain_turn', default=False)
 QUOTA_SNAPSHOT = ROOT / "state" / "quota-snapshot.json"
 
-PRIMARY_MODEL = "claude-opus-5-5-high"
+PRIMARY_MODEL = "claude-opus-5-5-medium"
 FALLBACK_MODEL = "gemini-4-argon-high"
 
 MODEL_CHAIN: tuple[tuple[str, str], ...] = (
-    ("claude-opus-5-5-high", "agy-claude"),
+    ("claude-opus-5-5-medium", "agy-claude"),
     ("gemini-4-argon-high", "agy-gemini"),
     ("claude-sonnet-5-5-high", "agy-claude"),
     ("gemini-3.8-flash-high", "agy-gemini"),
 )
 
-MODEL_TO_BUCKET: dict[str, str] = dict(MODEL_CHAIN)
+MODEL_TO_BUCKET: dict[str, str] = {
+    **dict(MODEL_CHAIN),
+    "claude-opus-5-5-high": "agy-claude",
+    "claude-opus-5-5-low": "agy-claude",
+    "claude-sonnet-5-5-medium": "agy-claude",
+    "claude-sonnet-5-5-low": "agy-claude",
+    "gemini-4-argon-medium": "agy-gemini",
+    "gemini-4-argon-low": "agy-gemini",
+    "gemini-3.8-flash-medium": "agy-gemini",
+    "gemini-3.8-flash-low": "agy-gemini",
+}
 
 LIMIT_PATTERNS: tuple[str, ...] = (
     "you have exhausted your quota on this model",
@@ -76,19 +86,23 @@ def _now_iso() -> str:
 
 
 def resolve_agy_bin() -> str:
-    """Find the `agy` binary across Contabo (/root/.local/bin/agy) and Mac (~/.local/bin/agy)."""
+    """Find the `agy` binary across Contabo (/root/.local/bin/agy), Mac (~/.local/bin/agy), and Winbox."""
     env_bin = os.environ.get("AGY_BIN", "").strip()
     if env_bin and Path(env_bin).is_file():
         return env_bin
+    local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
     candidates = [
         Path.home() / ".local" / "bin" / "agy",
         Path("/root/.local/bin/agy"),
         Path("/Users/gob/.local/bin/agy"),
     ]
+    if local_app_data:
+        candidates.append(Path(local_app_data) / "agy" / "bin" / "agy.exe")
+    candidates.append(Path("C:/Users/passg/AppData/Local/agy/bin/agy.exe"))
     for c in candidates:
         if c.is_file() and os.access(c, os.X_OK):
             return str(c)
-    which = shutil.which("agy")
+    which = shutil.which("agy") or shutil.which("agy.exe")
     if which:
         return which
     return str(Path.home() / ".local" / "bin" / "agy")
@@ -141,7 +155,7 @@ def select_model_chain(
         ordered = [
             ("gemini-4-argon-high", "agy-gemini"),
             ("gemini-3.8-flash-high", "agy-gemini"),
-            ("claude-opus-5-5-high", "agy-claude"),
+            ("claude-opus-5-5-medium", "agy-claude"),
             ("claude-sonnet-5-5-high", "agy-claude"),
         ]
     else:
@@ -343,23 +357,37 @@ def invoke_agy(
             "raw_stderr": "",
         }
     parsed = _parse_agy_json(proc.stdout)
-    combined_text = "\n".join(
-        part for part in (
-            proc.stdout,
-            proc.stderr,
-            (parsed or {}).get("response") or "",
-        ) if part
-    )
-    limit_hit = is_quota_limit_text(combined_text)
     conv_id = (parsed or {}).get("conversation_id") or conversation_id
     response_text = (parsed or {}).get("response")
     if response_text is None:
         response_text = (proc.stdout or proc.stderr or "").strip()
 
+    combined_text = "\n".join(
+        part for part in (
+            proc.stdout,
+            proc.stderr,
+            response_text or "",
+        ) if part
+    )
+    # When a resumed conversation_id had an earlier turn hit 429, agy --output-format json
+    # keeps that earlier turn's `"error"` field inside proc.stdout even when the fallback
+    # model (e.g. gemini-4-argon-high) succeeds with returncode == 0 and a non-empty response.
+    # Only treat this turn as limit_hit when it actually failed or emitted AGY_ERROR / limit text in response.
+    has_agy_error_banner = "AGY_ERROR:" in (proc.stdout or "") or "AGY_ERROR:" in (proc.stderr or "")
+    if (
+        isinstance(parsed, dict)
+        and proc.returncode == 0
+        and bool((response_text or "").strip())
+        and not has_agy_error_banner
+    ):
+        limit_hit = is_quota_limit_text("\n".join(part for part in (proc.stderr, response_text) if part))
+    else:
+        limit_hit = is_quota_limit_text(combined_text)
+
     ok = (
         proc.returncode == 0
         and limit_hit is None
-        and bool(response_text)
+        and bool((response_text or "").strip())
         and "jetski: no output produced" not in combined_text
     )
     return {
@@ -438,6 +466,41 @@ def invoke_codex(prompt: str, *, model: str, conversation_id=None,
 BRAIN_RUNNERS = {'agy': lambda *args, **kwargs: invoke_agy(*args, **kwargs),
                  'codex': invoke_codex}
 
+_PROJECT_ALIASES: dict[str, str] = {
+    "cookie-run": "cookierun-bot",
+    "cookierun": "cookierun-bot",
+    "expert-advisor": "mooniex-expertadvisor",
+    "expertadvisor": "mooniex-expertadvisor",
+    "ea": "mooniex-expertadvisor",
+    "lumina-skies": "mooniex-bedrock",
+    "luminaskies": "mooniex-bedrock",
+    "bedrock": "mooniex-bedrock",
+    "comfy-runpod": "comfy-runpod-worker",
+    "comfyrunpod": "comfy-runpod-worker",
+}
+
+
+def resolve_project_repo_dir(project: str | None) -> Path | None:
+    """Resolve the local checkout directory for `project` on this host if it exists."""
+    if not project:
+        return None
+    clean = (project or "").strip()
+    resolved_key = _PROJECT_ALIASES.get(clean.lower(), clean)
+    try:
+        from lib import config
+        host = ph_state.host_name()
+        for entry in config.projects():
+            key = (entry.get("key") or "").strip()
+            name = (entry.get("name") or "").strip()
+            if key.lower() == resolved_key.lower() or name.lower() == clean.lower():
+                paths = entry.get("paths") or {}
+                candidate = paths.get(host) or entry.get("path")
+                if candidate and Path(candidate).is_dir():
+                    return Path(candidate)
+    except Exception:
+        pass
+    return None
+
 
 def run_turn(
     *,
@@ -468,6 +531,12 @@ def run_turn(
     if owner:
         state["owner"] = owner
 
+    effective_dirs = list(add_dirs) if add_dirs is not None else [ROOT]
+    if add_dirs is None or (len(effective_dirs) == 1 and effective_dirs[0] == ROOT):
+        proj_dir = resolve_project_repo_dir(state.get("project"))
+        if proj_dir and proj_dir not in effective_dirs:
+            effective_dirs.append(proj_dir)
+
     conv_id = state.get("conversation_id")
     is_first_turn = not bool(conv_id)
     prompt = (
@@ -482,8 +551,11 @@ def run_turn(
         else message
     )
 
+    effective_preferred = preferred_model
+    if not effective_preferred and state.get("fallback_events") and state.get("active_model") in MODEL_TO_BUCKET:
+        effective_preferred = state["active_model"]
     models_to_try = select_model_chain(
-        preferred_model,
+        effective_preferred,
         snapshot_path=snapshot_path,
         force_fallback=force_fallback,
     ) + ['codex'] if brain == 'agy' else ['codex']
@@ -512,17 +584,24 @@ def run_turn(
             try:
                 res = BRAIN_RUNNERS[runner](
                     prompt, model=model, conversation_id=conv_id,
-                    add_dirs=add_dirs, timeout_s=timeout_s, agy_bin=agy_bin,
+                    add_dirs=effective_dirs, timeout_s=timeout_s, agy_bin=agy_bin,
                 )
                 code = res.get('returncode')
                 outcome.update(returncode=code if code is not None else
                                (124 if res.get('timed_out') else 1))
             finally:
                 _IN_TURN.reset(guard)
-        # Preserve conversation_id if AGY minted one before hitting a limit
-        if res.get("conversation_id"):
+        # Preserve conversation_id when the turn succeeded or when continuing an established thread.
+        # On turn 1 (turn_count == 0), if the first model failed before producing any output, keep
+        # conv_id only if the next model needs it or let it mint/resume cleanly.
+        if res.get("conversation_id") and (res.get("ok") or state.get("turn_count", 0) > 0 or conv_id):
             conv_id = res["conversation_id"]
             state['codex_session_id' if runner == 'codex' else 'conversation_id'] = conv_id
+            save_brain_state(state, brains_dir=brains_dir)
+        elif res.get("conversation_id") and runner == 'agy':
+            # Still pass the minted conversation_id within this turn if needed, and save on success
+            conv_id = res["conversation_id"]
+            state['conversation_id'] = conv_id
             save_brain_state(state, brains_dir=brains_dir)
         attempted.append({
             "model": model,
@@ -550,9 +629,10 @@ def run_turn(
         if res["ok"]:
             previous_model = state.get("active_model")
             if fallback_triggered or (previous_model and previous_model != model):
+                from_model = attempted[0]["model"] if idx > 0 else (previous_model or models_to_try[0])
                 state.setdefault("fallback_events", []).append({
                     "ts": _now_iso(),
-                    "from_model": previous_model or models_to_try[0],
+                    "from_model": from_model,
                     "to_model": 'codex' if runner == 'codex' else model,
                     "reason": attempted[0].get("limit_hit") or ("forced_fallback" if force_fallback else "quota_gate_or_error"),
                 })
@@ -585,12 +665,6 @@ def run_turn(
         f"last error: rc={last_res.get('returncode')} limit={last_res.get('limit_hit')} "
         f"error={' '.join((last_res.get('raw_stderr') or last_res.get('raw_stdout') or last_res.get('response') or '').split())[:200]}"
     )
-
-
-_PROJECT_ALIASES: dict[str, str] = {
-    "cookie-run": "cookierun-bot",
-    "cookierun": "cookierun-bot",
-}
 
 
 def delegate_from_ph(

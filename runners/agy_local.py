@@ -96,6 +96,24 @@ def run_git(worktree: str, args: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
+_LIMIT_PATTERNS = (
+    "you have exhausted your quota on this model",
+    "individual quota reached",
+    "resource_exhausted",
+    "ai: out of credits",
+    "quota exceeded",
+    "rate_limit_exceeded",
+    "model capacity exhausted",
+)
+_CONV_ID_RE = re.compile(r'"conversation_id"\s*:\s*"([0-9a-fA-F-]{8,64})"')
+FALLBACK_AGY_MODEL = "gemini-4-argon-high"
+
+
+def _is_limit_log(text: str) -> bool:
+    low = (text or "").lower()
+    return any(p in low for p in _LIMIT_PATTERNS)
+
+
 def run_agy_subprocess(
     agy_bin: str,
     prompt: str,
@@ -106,36 +124,67 @@ def run_agy_subprocess(
     worker_env: dict[str, str] | None = None,
 ) -> int:
     """Run agy headless with stdout and stderr appended to log_path.
+    If the primary model (e.g. claude-opus-5-5-medium) hits a quota limit,
+    automatically swaps to gemini-4-argon-high in the same run and worktree.
     `worker_env` (WORKER_TASK_ID, WORKER_ROLE) goes into the agent's env only:
     the relay role gate marks a worker by them, and an agy worker leaves
     runners/worker_init.py before the claude env block that sets them."""
     effective_model = model if model else (os.environ.get("AGY_MODEL") or "gemini-3.8-flash-high")
-    cmd = [agy_bin, "-p", prompt, "--model", effective_model, "--mode", "accept-edits", "--add-dir", worktree]
+    base_dirs = ["--add-dir", worktree]
     work_dir = os.environ.get("WORK_DIR")
     if work_dir and Path(work_dir).is_dir():
         # agy_browse writes shots to $WORK_DIR/agy-shots; outside the workspace a headless
         # read_file of one is auto-denied and the run dies (task-4245497d, task-ed829cdc).
-        cmd += ["--add-dir", work_dir]
-    with open(log_path, "a", encoding="utf-8") as f:
+        base_dirs += ["--add-dir", work_dir]
+    child_env = {**env_without_org_db(dict(os.environ)), **(worker_env or {})}
+
+    def _invoke_once(run_model: str, run_prompt: str, conv_id: str | None = None) -> int:
+        cmd = [agy_bin, "-p", run_prompt, "--model", run_model, "--mode", "accept-edits"]
+        if conv_id:
+            cmd += ["--conversation", conv_id]
+        cmd += base_dirs
+        with open(log_path, "a", encoding="utf-8") as f:
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    cwd=worktree,
+                    # The hub URL stays with this process (it reports through
+                    # lib.db); the agent's shell never gets it (task-1b8ef857).
+                    env=child_env,
+                    stdin=subprocess.DEVNULL,
+                    stdout=f,
+                    stderr=subprocess.STDOUT,
+                    timeout=timeout,
+                )
+                return proc.returncode
+            except subprocess.TimeoutExpired:
+                f.write(f"\n[agy_local] Process timed out after {timeout} seconds\n")
+                return 124
+            except Exception as e:
+                f.write(f"\n[agy_local] Process execution failed: {e}\n")
+                return 1
+
+    rc = _invoke_once(effective_model, prompt)
+    if effective_model != FALLBACK_AGY_MODEL and log_path.exists():
         try:
-            proc = subprocess.run(
-                cmd,
-                cwd=worktree,
-                # The hub URL stays with this process (it reports through
-                # lib.db); the agent's shell never gets it (task-1b8ef857).
-                env={**env_without_org_db(dict(os.environ)), **(worker_env or {})},
-                stdin=subprocess.DEVNULL,
-                stdout=f,
-                stderr=subprocess.STDOUT,
-                timeout=timeout,
-            )
-            return proc.returncode
-        except subprocess.TimeoutExpired:
-            f.write(f"\n[agy_local] Process timed out after {timeout} seconds\n")
-            return 124
-        except Exception as e:
-            f.write(f"\n[agy_local] Process execution failed: {e}\n")
-            return 1
+            first_log = log_path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            first_log = ""
+        if _is_limit_log(first_log):
+            m = _CONV_ID_RE.search(first_log)
+            conv_id = m.group(1) if m else None
+            pre_swap = log_path.with_name(f"{log_path.name}.pre-swap")
+            try:
+                log_path.replace(pre_swap)
+            except OSError:
+                pass
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(
+                    f"[agy_local] Quota limit hit on {effective_model}; "
+                    f"auto-swapping seamlessly to {FALLBACK_AGY_MODEL}...\n"
+                )
+            rc = _invoke_once(FALLBACK_AGY_MODEL, prompt, conv_id=conv_id)
+    return rc
 
 
 def run_agy_task(task: dict, worktree: str, prompt: str, role: str) -> int:
@@ -164,7 +213,7 @@ def run_agy_task(task: dict, worktree: str, prompt: str, role: str) -> int:
     # Git stage: add all, unstage the run log, check cached diff
     run_git(worktree, ["add", "-A"])
     # REPORT.md is read into the task row below, never merged into the repo.
-    run_git(worktree, ["reset", "-q", "--", ".agy-run.log", "REPORT.md"])
+    run_git(worktree, ["reset", "-q", "--", ".agy-run.log", ".agy-run.log.pre-swap", "REPORT.md"])
     diff_res = run_git(worktree, ["diff", "--cached", "--quiet"])
 
     # git diff --quiet exits 0 when there are no differences (nothing staged)

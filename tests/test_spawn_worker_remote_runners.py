@@ -623,3 +623,14 @@ def test_agy_normal_log_still_builds_the_report(tmp_path):
     res = _run_report_step(wt, _report_step_with_launch(task, branch, "agy", launch, str(log)))
     assert res.returncode == 0, res.stderr
     assert f"docs/reports/{task}/REPORT.md" in _branch_files(wt, branch)
+
+
+def test_agy_launcher_auto_swaps_to_argon_on_quota_limit():
+    """When AGY Opus hits a quota limit, launch.sh rotates the log to .pre-swap
+    and resumes the same conversation on gemini-4-argon-high in the same run."""
+    code = SCRIPT.read_text(encoding="utf-8")
+    assert ".pre-swap" in code
+    assert "gemini-4-argon-high" in code
+    assert "--conversation \"$SWAP_CONV\"" in code
+    assert "[agy-autoswap] Quota limit hit on" in code
+
