@@ -244,3 +244,45 @@ def test_snapshot_all_hosts_and_native_shell_does_not_override_brain(hub, monkey
     assert len(captures) == 1 and captures[0][-1] == '=project_head-054:0.0'
     assert next(r for r in snapshot['rows'] if r['session_id'] == '054')['phase'] == 'thinking'
     assert all(r['phase'] == 'idle' for r in snapshot['rows'] if r['session_id'] == '053')
+
+
+def test_shell_without_brain_is_red_after_ten_minutes(hub):
+    sessions = [dict(role='project_head', session_id='abc12345', host='contabo',
+                     project='CnDrama')]
+    locks = hub / 'locks'
+    brains = hub / 'ph-brains'
+    locks.mkdir()
+    brains.mkdir()
+    (locks / 'project_head-abc12345.shell').write_text('shell uuid')
+    os.utime(locks / 'project_head-abc12345.shell', (1000, 1000))
+    assert p.missing_brains(sessions, [], now=1600, locks_dir=locks, brains_dir=brains) == []
+    missing = p.missing_brains(sessions, [], now=1601, locks_dir=locks, brains_dir=brains)
+    assert missing[0]['phase'] == 'no_brain'
+    assert '🔴 #abc CnDrama' in p.render({'at': 1601, 'rows': missing}, now=1601)
+    assert 'no brain' in p.render({'at': 1601, 'rows': missing}, now=1601)
+    assert p.suffix(missing).endswith('🔴1')
+    assert p.missing_brains(sessions, [dict(session_id='abc12345', host='contabo')],
+                            now=1601, locks_dir=locks, brains_dir=brains) == []
+    (brains / 'abc12345.json').write_text('{}')
+    assert p.missing_brains(sessions, [], now=1601, locks_dir=locks, brains_dir=brains) == []
+
+
+def test_driver_observes_missing_shell_brain(hub, monkeypatch):
+    locks = hub / 'state' / 'locks'
+    locks.mkdir(parents=True)
+    marker = locks / 'project_head-abc12345.shell'
+    marker.write_text('shell uuid')
+    os.utime(marker, (1000, 1000))
+    session = dict(role='project_head', session_id='abc12345', host='contabo', status='open')
+    monkeypatch.setattr(driver, 'ROOT', hub)
+    monkeypatch.setattr(driver.rename_service, 'LOCKS_DIR', locks)
+    monkeypatch.setattr(driver.rename_service, '_read',
+                        lambda name: 'CnDrama' if name.endswith('.project') else '')
+    monkeypatch.setattr(driver.rename_service, 'tmux',
+                        lambda *args: pytest.fail('shell must not be sampled as native'))
+    monkeypatch.setattr(driver.watch, '_query',
+                        lambda sql, params: [session] if 'FROM c_level_sessions' in sql else [])
+    monkeypatch.setattr(driver.watch, 'fetch_phs', lambda: [])
+    snapshot = driver.ph_snapshot('contabo', 1601)
+    assert not snapshot.get('error')
+    assert snapshot['rows'][0]['phase'] == 'no_brain'

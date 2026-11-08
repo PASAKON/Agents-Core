@@ -168,6 +168,10 @@
           },
           {
             "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-ph-shell-relay.py"
+          },
+          {
+            "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-phone-only-commands.py"
           }
         ]

@@ -80,6 +80,9 @@ def _make_fake_root(tmp_path: Path) -> tuple[Path, Path]:
         "    'cto_sid': os.environ.get('CTO_SESSION_ID', ''),\n"
         "    'uuid_file_exists': uuid_path.exists(),\n"
         "    'uuid_file_content': uuid_path.read_text().strip() if uuid_path.exists() else None,\n"
+        "    'shell': os.environ.get('ORG_PH_SHELL'),\n"
+        "    'shell_marker': uuid_path.with_suffix('.shell').exists(),\n"
+        "    'preshell': (uuid_path.with_name(uuid_path.name + '.preshell').read_text().strip() if uuid_path.with_name(uuid_path.name + '.preshell').exists() else None),\n"
         "    'argv': sys.argv[1:],\n"
         "}\n"
         "pathlib.Path(os.environ['FAKE_CLAUDE_OUT']).write_text(json.dumps(data))\n"
@@ -96,6 +99,8 @@ def _run_launcher(
     tmux_session_name: str | None = None,
     taken: bool = False,
     rename_fail: bool = False,
+    ph_shell_source: str | None = None,
+    marked_shell: bool = False,
 ) -> tuple[subprocess.CompletedProcess[str], dict]:
     fake_root, bin_dir = _make_fake_root(tmp_path)
     out_file = tmp_path / "claude_out.json"
@@ -112,6 +117,15 @@ def _run_launcher(
     env["ORG_SESSION_SCOPE"] = "0"
     for k in ("CXO_SESSION_ID", "CTO_SESSION_ID", "CXO_ROLE", "TMUX"):
         env.pop(k, None)
+    if ph_shell_source is not None:
+        env.update(CXO_SESSION_ID='f69c4825', ORG_PH_ROLES='1',
+                   ORG_PH_AGY_BRAIN='1', ORG_PH_OWNER='abcdef12')
+        locks = fake_root / 'state' / 'locks'
+        locks.mkdir(parents=True)
+        (locks / 'project_head-f69c4825.spawned_by').write_text('cxo:cmo:abcdef12')
+        (locks / 'project_head-f69c4825.uuid').write_text(ph_shell_source)
+        if marked_shell:
+            (locks / 'project_head-f69c4825.shell').write_text(ph_shell_source)
     if tmux_session_name is not None:
         env["TMUX"] = "/tmp/tmux-0/default,123,0"
         env["FAKE_TMUX_SESSION_NAME"] = tmux_session_name
@@ -122,6 +136,27 @@ def _run_launcher(
     )
     captured = json.loads(out_file.read_text()) if out_file.exists() else {}
     return proc, captured
+
+
+def test_ph_resume_from_full_role_starts_fresh_shell(tmp_path):
+    proc, cap = _run_launcher(
+        tmp_path, ['--role', 'project_head', '--lane', 'cmo', '--project', 'CnDrama',
+                   '--resume', SAMPLE_UUID], ph_shell_source=SAMPLE_UUID)
+    assert proc.returncode == 0, proc.stderr
+    assert cap['shell'] == '1' and cap['shell_marker']
+    assert cap['preshell'] == SAMPLE_UUID
+    assert '--resume' not in cap['argv'] and '--fork-session' not in cap['argv']
+    assert any('STATUS' in arg and 'ph_brain.py turn' in arg for arg in cap['argv'])
+
+
+def test_ph_resume_of_marked_shell_keeps_fork(tmp_path):
+    proc, cap = _run_launcher(
+        tmp_path, ['--role', 'project_head', '--lane', 'cmo', '--project', 'CnDrama',
+                   '--resume', SAMPLE_UUID], ph_shell_source=SAMPLE_UUID,
+        marked_shell=True)
+    assert proc.returncode == 0, proc.stderr
+    assert cap['shell_marker'] and cap['preshell'] is None
+    assert '--resume' in cap['argv'] and '--fork-session' in cap['argv']
 
 
 def test_fresh_tmux_rename(tmp_path):

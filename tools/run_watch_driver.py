@@ -125,12 +125,15 @@ def ph_snapshot(host, now, *, dry_run=False):
                 if session['role'] != 'project_head' and not project:
                     continue
                 session['project'] = project or session.get('charter') or sid
+                shell_marker = rename_service.LOCKS_DIR / f'project_head-{sid}.shell'
                 owner = rename_service._read(f'project_head-{sid}.spawned_by').split(':')
                 if len(owner) == 3:
                     session.update(lane=owner[1], owner=f'{owner[1]}-{owner[2]}')
                 if any(r['session_id'] == session['session_id'] and r['host'] == host
                        and r['brain'] != 'claude-native' for r in rows):
                     continue
+                if shell_marker.is_file():
+                    continue  # A shell is never a native PH brain.
                 try:
                     capture = rename_service.tmux('capture-pane', '-p', '-e', '-t',
                                                   '=' + session['role'] + '-' + sid + ':0.0')
@@ -139,7 +142,13 @@ def ph_snapshot(host, now, *, dry_run=False):
                 except (OSError, subprocess.TimeoutExpired):
                     pass
             rows = ph_state.observe(watch.fetch_phs(), now=now, local_host=host, tasks=tasks)
-            rows = watch.fetch_phs()
+            rows = [row for row in watch.fetch_phs()
+                    if not (row['host'] == host and row['brain'] == 'claude-native'
+                            and (rename_service.LOCKS_DIR /
+                                 f"project_head-{row['session_id']}.shell").is_file())]
+            rows += ph_state.missing_brains(
+                sessions, rows, now=now, locks_dir=rename_service.LOCKS_DIR,
+                brains_dir=ROOT / 'state' / 'ph-brains')
         return {'at': now, 'rows': rows}
     except Exception:
         # Never leak a hub DSN; do not turn unreadable data into false red PHs.

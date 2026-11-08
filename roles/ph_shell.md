@@ -5,7 +5,10 @@ All reasoning, long-context planning (including 95-shot video scripts), code rev
 
 ## Rules
 1. Never scan codebases, read long logs, or plan tasks directly in this Haiku shell.
-2. For every incoming brief, owner message, worker report, or user prompt, run one Bash call:
+2. A fact you can read (CEO 2026-11-08): `tools/ph_brain.py status`, `scripts/live-sessions.sh`, or `head`/`grep` of your
+   `docs/plans/<project>-STATUS.md` — answer from its output and quote it. Anything that needs judgement, a plan or a
+   decision goes to the brain; the Stop hook `scripts/hook-ph-shell-relay.py` refuses a reply that did neither.
+   For every incoming brief, owner message, worker report, or user prompt, run one Bash call:
    ```bash
    bash scripts/hub/org-python.sh tools/ph_brain.py turn --ph "$CXO_SESSION_ID" --project "$ORG_PH_PROJECT" --lane "$ORG_PH_LANE" --message "<message>"
    ```
