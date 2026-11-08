@@ -102,6 +102,28 @@ $P $A create --host contabo --script Agents-Core@<sha>:scripts/contabo_blueprint
 $P $A wait RUN-20260925-1632-0bfe --max-wait 1800
 ```
 
+### Raising cards from Antigravity (`agy` CLI / IDE / Takeover) with automatic session wake
+
+In an **AGY session** (where `cxo-claude.sh` env vars and Claude Code's `UserPromptSubmit` hook are not active), use `tools/agy_card_run.py`:
+
+```bash
+# Command Card (RUN-...) — auto-detects AGY conversation UUID, registers state/agy-sessions/<box>.json,
+# and wakes this exact AGY conversation when the CEO taps Run/Deny on /run:
+.venv/bin/python tools/agy_card_run.py create --host contabo \
+  --command "systemctl status mooniex-console" \
+  --why "org-rule: check Console status" --expected "active (running)" --risk green
+
+# Question Card (Q-... / QG-...) — wakes this exact AGY conversation when the CEO taps ส่งคำตอบ:
+.venv/bin/python tools/agy_card_run.py ask \
+  --question "Ship the Console fix tonight or tomorrow 09:00?" \
+  --option "Tonight" --option "Tomorrow 09:00" --recommended 1 \
+  --why "his-choice: Tests are green. Tonight restarts Console at 22:00 TH."
+
+# Or bind an existing mailbox (e.g. during /takeover of cto-6ebacd0e) to this AGY conversation:
+.venv/bin/python tools/agy_card_run.py register --session cto-6ebacd0e --role cto
+```
+On **Contabo**, `tools/mail_wake.py` reads `state/agy-sessions/<box>.json` and spawns `--run-agy` to resume `agy --conversation <uuid>` with the drained letter, full CEO notes, and command `tail`. On **Mac / Winbox**, `agy_card_run.py` automatically spawns a detached background watcher (`watch <card_id> --box <box>`) that waits on the hub and triggers `agy --conversation <uuid>` locally when the CEO taps.
+
 **≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
 file).** `--why` + `--expected` together are at most 5 lines of at most 90 chars; an empty line counts,
 a lone link may run to 200, and the command bytes do not count (the CEO approves them as they are).

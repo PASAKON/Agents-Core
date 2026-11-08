@@ -389,7 +389,7 @@ def parse_script_spec(spec: str) -> tuple[str, str, str]:
 def _env_box(env: dict) -> tuple[str | None, str | None]:
     """(role, session id) of the mailbox this process drains — the same
     resolution as scripts/hook-inbox.py `_current_box`, plus
-    tools/agent_transport.py's bare CTO_SESSION_ID fallback."""
+    tools/agent_transport.py's bare CTO_SESSION_ID fallback and AGY_CONVERSATION_ID."""
     role = env.get("CXO_ROLE")
     if role:
         return role, env.get("CXO_SESSION_ID") or env.get("CTO_SESSION_ID") or None
@@ -399,6 +399,11 @@ def _env_box(env: dict) -> tuple[str | None, str | None]:
     sid = env.get("CTO_SESSION_ID")
     if sid:
         return "cto", sid
+    conv = (env.get("AGY_CONVERSATION_ID") or "").strip()
+    if conv:
+        agy_role = (env.get("AGY_ROLE") or "cto").strip().lower() or "cto"
+        short = re.sub(r"[^A-Za-z0-9._-]", "", conv[:8]) or "session"
+        return agy_role, f"agy-{short}"
     return None, None
 
 

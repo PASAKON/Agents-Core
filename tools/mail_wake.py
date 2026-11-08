@@ -95,8 +95,11 @@ WORKER_BOX_RE = re.compile(r"[A-Za-z][A-Za-z0-9_]*-(task-[0-9a-f]{8})")
 ROOT = mailbox.ROOT          # the hub checkout: the PH's letters, locks and brain live here
 LOCKS_DIR = ROOT / "state" / "locks"
 FALLBACK_DIR = ROOT / "state" / "ph-brain"
+AGY_SESSIONS_DIR = ROOT / "state" / "agy-sessions"
 
 FALLBACK_REASON = "claude spent: ran AGY brain"
+NO_PANE_PH_REASON = "no pane: ran AGY brain"
+AGY_REASON = "woke AGY session"
 MESSAGE_MAX = 4000           # characters of letters handed to one brain turn
 MAX_TURNS = 3                # passes of one runner while letters keep arriving
 MAX_COMMANDS = 5             # plan commands run per turn
@@ -107,6 +110,16 @@ MAX_STATEMENT_LINES = 200
 PH_SID_RE = re.compile(r"[0-9a-f]{8}")
 OWNER_SID_RE = re.compile(r"[0-9a-f]{8}|fresh")      # the same rule as tools/owner_relay.py
 _NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_DEFAULT_INBOX_ROOT = ROOT / "state" / "inbox"
+_DEFAULT_AGY_SESSIONS_DIR = ROOT / "state" / "agy-sessions"
+
+
+def _agy_sessions_dir() -> Path:
+    if AGY_SESSIONS_DIR != _DEFAULT_AGY_SESSIONS_DIR:
+        return AGY_SESSIONS_DIR
+    if mailbox.INBOX_ROOT != _DEFAULT_INBOX_ROOT:
+        return mailbox.INBOX_ROOT.parent / "agy-sessions"
+    return AGY_SESSIONS_DIR
 
 
 def _result(box: str, woke: bool, reason: str) -> dict:
@@ -138,11 +151,17 @@ def _wake(box: str, label: str) -> dict:
     role, _, sid = box.partition("-")
     if sid and role == PH_ROLE and (fallback := handle_ph(sid)) is not None:
         return _result(box, fallback["woke"], fallback["reason"])
+    if sid and (role in c_level_roles() or role == PH_ROLE) and (agy := handle_agy(box)) is not None:
+        return _result(box, agy["woke"], agy["reason"])
     if sid and (role in c_level_roles() or role == PH_ROLE):
         from tools import send_to_cxo  # lazy: a refusal above never pays for the import
 
         woke = send_to_cxo.attempt_wake(role, sid, label)
+        if not woke and role == PH_ROLE and (fallback := handle_ph(sid, require_claude_spent=False)) is not None:
+            return _result(box, fallback["woke"], fallback["reason"])
     elif (m := WORKER_BOX_RE.fullmatch(box)):
+        if (agy := handle_agy(box)) is not None:
+            return _result(box, agy["woke"], agy["reason"])
         from tools import agent_transport, tmux_session
 
         woke = agent_transport.attempt_wake(
@@ -185,18 +204,86 @@ def _spawn_runner(sid: str) -> None:
         os.close(fd)
 
 
-def handle_ph(sid: str) -> dict | None:
+def handle_ph(sid: str, *, require_claude_spent: bool = True) -> dict | None:
     """The fallback for a wake aimed at Project Head `sid`. None: it does not apply, wake the
     pane as before. Otherwise {"woke": True, "reason": FALLBACK_REASON} and the pane is left
     alone. Never raises: a broken fallback must cost the caller nothing it had."""
     try:
-        if (fcntl is None or not PH_SID_RE.fullmatch(sid or "") or not claude_quota.claude_spent()
+        if (fcntl is None or not PH_SID_RE.fullmatch(sid or "")
+                or (require_claude_spent and not claude_quota.claude_spent())
                 or not org_flags.on("ORG_PH_AGY_BRAIN") or _ph_record(sid) is None):
             return None
         _spawn_runner(sid)
-        return {"woke": True, "reason": FALLBACK_REASON}
+        return {"woke": True, "reason": FALLBACK_REASON if require_claude_spent else NO_PANE_PH_REASON}
     except Exception:
         return None
+
+
+def _spawn_agy_runner(box: str) -> None:
+    """Start the detached AGY session wake runner (`--run-agy`)."""
+    sdir = _agy_sessions_dir()
+    sdir.mkdir(parents=True, exist_ok=True)
+    fd = os.open(sdir / f"wake-{box}.log", os.O_WRONLY | os.O_CREAT | os.O_APPEND | _NOFOLLOW, 0o600)
+    try:
+        subprocess.Popen([sys.executable, "-m", "tools.mail_wake", box, "--run-agy"],
+                         cwd=str(ROOT), stdin=subprocess.DEVNULL, stdout=fd, stderr=fd,
+                         start_new_session=True, close_fds=True)
+    finally:
+        os.close(fd)
+
+
+def handle_agy(box: str) -> dict | None:
+    """Wake a registered AGY session (`state/agy-sessions/<box>.json`) if one exists for `box`."""
+    try:
+        if fcntl is None or not BOX_RE.fullmatch(box or ""):
+            return None
+        from tools import agy_card_run
+        if agy_card_run.load_session(box, sessions_dir=_agy_sessions_dir()) is None:
+            return None
+        _spawn_agy_runner(box)
+        return {"woke": True, "reason": AGY_REASON}
+    except Exception:
+        return None
+
+
+@contextlib.contextmanager
+def _agy_flock(box: str):
+    sdir = _agy_sessions_dir()
+    sdir.mkdir(parents=True, exist_ok=True)
+    fd = os.open(sdir / f"wake-{box}.lock", os.O_RDWR | os.O_CREAT | _NOFOLLOW, 0o600)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            yield False
+            return
+        yield True
+    finally:
+        os.close(fd)
+
+
+def run_agy(box: str) -> str:
+    """Detached runner for a registered AGY session (`--run-agy`)."""
+    if fcntl is None or not BOX_RE.fullmatch(box or ""):
+        raise ValueError(f"cannot run AGY wake for {box!r}")
+    from tools import agy_card_run
+    sdir = _agy_sessions_dir()
+    if agy_card_run.load_session(box, sessions_dir=sdir) is None:
+        _log(f"AGY {box} has no registered session; nothing run")
+        return "no-session"
+    turns = 0
+    for _ in range(MAX_TURNS):
+        with _agy_flock(box) as got:
+            if not got:
+                _log(f"another runner holds AGY {box}")
+                return "busy"
+            res = agy_card_run.wake_session(box, sessions_dir=sdir, inbox_root=mailbox.INBOX_ROOT)
+            reason = str(res.get("reason") or "failed")
+            if reason != "ok":
+                return "ok" if reason == "idle" and turns else reason
+            _log(f"AGY {box} woke on model={res.get('model')} conv={res.get('conversation_id')}")
+        turns += 1
+    return "capped"
 
 
 def _py(*args: str) -> list[str]:
@@ -238,12 +325,15 @@ def _flock(sid: str):
 
 def format_letters(letters: list[dict], sid: str) -> str:
     """The letters as one message for the brain, cut at MESSAGE_MAX characters."""
+    from tools import agy_card_run
     blocks = []
     for lt in letters:
         frm = lt.get("from") if isinstance(lt.get("from"), dict) else {}
         head = " ".join(f"[{lt.get('id', '?')}] {str(lt.get('kind') or 'message').upper()} from "
                         f"{frm.get('role', '?')} {frm.get('session_id', '?')} · {lt.get('sent_at', '')}".split())
-        blocks.append(f"{head}\n{lt.get('body', '')}")
+        body = str(lt.get("body", ""))
+        extra = agy_card_run.extract_letter_extras(lt, body)
+        blocks.append(f"{head}\n{body}{extra}")
     text = "\n\n".join(blocks)
     if len(text) <= MESSAGE_MAX:
         return text
@@ -257,13 +347,16 @@ def brain_argv(sid: str, rec: dict, message: str) -> list[str]:
                "--lane", rec["lane"], "--owner", rec["owner"], f"--message={message}")
 
 
-# --- the commands roles/ph_shell.md rule 4 allows ---------------------------------------
+# --- the commands roles/ph_shell.md rule 4 + rule 7 allow ------------------------------
 _LEAD_RE = re.compile(r"^(?:\s|>|\*|`|-(?=\s)|\$(?=\s)|\d+[.)](?=\s))*")      # bullet, prompt, fence
 _START_RE = re.compile(
     r"(?:bash\s+\S*org-python\.sh\s+|\S*python3?\s+)?"
-    r"(?:tools/ph_brain\.py\s+(?P<sub>delegate|status)|-m\s+tools\.session_charter\s+(?P<charter>set))(?=[\s;&|<>()]|$)")
+    r"(?:tools/ph_brain\.py\s+(?P<sub>delegate|status)"
+    r"|-m\s+tools\.session_charter\s+(?P<charter>set)"
+    r"|tools/(?:ask_run|agy_card_run)\.py\s+(?P<ask_run>create|ask|cancel))(?=[\s;&|<>()]|$)")
 _VAR_RE = re.compile(r"\$(?:\{(CXO_SESSION_ID|ORG_PH_PROJECT|ORG_PH_LANE)\}|(CXO_SESSION_ID|ORG_PH_PROJECT|ORG_PH_LANE)\b)")
 _OPERATORS = set("();<>|&")
+_CARD_ID_LINE_RE = re.compile(r"^(?:RUN-[A-Za-z0-9][A-Za-z0-9-]{3,63}|Q(?:G)?-[0-9]{8}-[0-9]{4}-[0-9a-f]{4})$")
 
 
 def _unclosed(stmt: str) -> bool:
@@ -291,12 +384,26 @@ def _statements(reply: str) -> list[str]:
     return out
 
 
+def _flag_values(tokens: list[str], flag: str) -> list[str]:
+    vals = []
+    for k, t in enumerate(tokens):
+        if t == "--":
+            break
+        if t.startswith(flag + "="):
+            vals.append(t.split("=", 1)[1])
+        elif t == flag and k + 1 < len(tokens):
+            vals.append(tokens[k + 1])
+    return vals
+
+
 def plan_commands(reply: str, sid: str, rec: dict) -> tuple[list[list[str]], list[str]]:
     """(argv lists to run through org-python.sh, reasons a command-looking line was not run).
-    Only `tools/ph_brain.py delegate|status` and `-m tools.session_charter set`; `--ph` is
-    this PH's id or is added; $CXO_SESSION_ID, $ORG_PH_PROJECT and $ORG_PH_LANE are filled in
-    as the PH shell's environment would; a shell operator outside quotes refuses the line."""
+    Only `tools/ph_brain.py delegate|status`, `-m tools.session_charter set`, and
+    `tools/ask_run.py create|ask|cancel`; `--ph` / `--session` / `--role` are checked or added;
+    $CXO_SESSION_ID, $ORG_PH_PROJECT and $ORG_PH_LANE are filled in as the PH shell's
+    environment would; a shell operator outside quotes refuses the line."""
     values = {"CXO_SESSION_ID": sid, "ORG_PH_PROJECT": rec["project"], "ORG_PH_LANE": rec["lane"]}
+    ph_box = f"{PH_ROLE}-{sid}"
     run, skipped = [], []
     for stmt in _statements(reply or ""):
         m = _START_RE.match(stmt)
@@ -313,9 +420,30 @@ def plan_commands(reply: str, sid: str, rec: dict) -> tuple[list[list[str]], lis
             continue
         if m.group("charter"):
             argv = ["-m", "tools.session_charter", "set", *tokens]
+        elif m.group("ask_run"):
+            verb = m.group("ask_run")
+            sessions = _flag_values(tokens, "--session")
+            roles = _flag_values(tokens, "--role")
+            if any(v not in (ph_box, sid) for v in sessions):
+                skipped.append(f"{label}: --session is not this PH ({ph_box})")
+                continue
+            if any(v != PH_ROLE for v in roles):
+                skipped.append(f"{label}: --role is not {PH_ROLE}")
+                continue
+            extra_flags: list[str] = []
+            if verb in ("create", "ask"):
+                if not roles:
+                    extra_flags.extend(["--role", PH_ROLE])
+                if not sessions:
+                    extra_flags.extend(["--session", ph_box])
+            if "--" in tokens and extra_flags:
+                cut = tokens.index("--")
+                merged = tokens[:cut] + extra_flags + tokens[cut:]
+            else:
+                merged = tokens + extra_flags
+            argv = ["tools/ask_run.py", verb, *merged]
         else:
-            own = [t.split("=", 1)[1] if t.startswith("--ph=") else tokens[k + 1]
-                   for k, t in enumerate(tokens) if t.startswith("--ph=") or (t == "--ph" and k + 1 < len(tokens))]
+            own = _flag_values(tokens, "--ph")
             if any(v != sid for v in own):
                 skipped.append(f"{label}: --ph is not this PH ({sid})")
                 continue
@@ -338,6 +466,12 @@ def _run_plan(sid: str, rec: dict, reply: str) -> None:
     for argv in run:
         rc, out = _run_cmd(_py(*argv), env=env, timeout=COMMAND_TIMEOUT_S)
         _log(f"plan command rc={rc}: {shlex.join(argv)[:300]}\n{out.strip()[:2000]}")
+        if rc == 0 and len(argv) >= 2 and argv[0] == "tools/ask_run.py" and argv[1] in ("create", "ask"):
+            first_line = (out.strip().splitlines() or [""])[0].strip()
+            if _CARD_ID_LINE_RE.fullmatch(first_line):
+                with contextlib.suppress(Exception):
+                    from lib import ph_state
+                    ph_state.wait(sid, first_line)
 
 
 def _requeue(sid: str, message: str) -> None:
@@ -394,6 +528,8 @@ def main(argv: list[str] | None = None) -> int:
                    help=f"who the wake says it is from (default {DEFAULT_LABEL})")
     p.add_argument("--run-fallback", action="store_true",
                    help="internal: the detached runner handle_ph starts for box project_head-<sid>")
+    p.add_argument("--run-agy", action="store_true",
+                   help="internal: the detached runner handle_agy starts for a registered AGY box")
     args = p.parse_args(argv)
     if args.run_fallback:
         role, _, sid = args.box.partition("-")
@@ -403,6 +539,15 @@ def main(argv: list[str] | None = None) -> int:
             _log(f"run PH {sid}: {run_fallback(sid)}")
         except Exception as e:      # the log is the only place this runner can report to
             _log(f"run PH {sid}: error {type(e).__name__}: {e}")
+            return 1
+        return 0
+    if args.run_agy:
+        try:
+            if not BOX_RE.fullmatch(args.box or ""):
+                raise ValueError(f"--run-agy needs a valid box name, not {args.box!r}")
+            _log(f"run AGY {args.box}: {run_agy(args.box)}")
+        except Exception as e:
+            _log(f"run AGY {args.box}: error {type(e).__name__}: {e}")
             return 1
         return 0
     print(json.dumps(wake(args.box, args.label)))

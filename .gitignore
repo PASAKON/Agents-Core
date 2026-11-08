@@ -202,3 +202,8 @@ state/wake/
 state/spend_guard/
 # SomPong's research workers: each task's brief, report and runner logs (runners/coo_worker.py)
 state/coo-work/
+# AGY session registry, wake logs, PH brains, and takeover snapshots (runtime per-machine state)
+state/agy-sessions/
+state/ph-brains/
+state/ph-brain/
+state/takeover/

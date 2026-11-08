@@ -50,3 +50,20 @@ Depending on which host owns the session:
   /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/agy_takeover.py handoff-to-brain "<target>"
   ```
 - **Winbox (`winbox`)**: Run commands over `ssh winbox` (using `C:\Users\passg\AppData\Local\Programs\Python\Python311\python.exe -` or PowerShell in `C:\Users\passg\mooniex\repo\MoonieX-Agents`).
+
+## Step 5: Raising CardRun (`RUN-...` / `Q-...`) & Auto-Triggering AGY
+
+To raise a Command Card or Question Card from AGY (or bind the taken-over Claude mailbox `<role>-<sid>` so the CEO's tap on `terminal.mooniex.com/run` wakes your AGY session automatically):
+
+```bash
+# Bind a taken-over mailbox (e.g. cto-6ebacd0e) to this AGY conversation:
+.venv/bin/python tools/agy_card_run.py register --session <role>-<sid> --role <role>
+
+# Raise a Command Card (auto-registers session + auto-triggers AGY when CEO taps Run):
+.venv/bin/python tools/agy_card_run.py create --host contabo \
+  --command "<command>" --why "<reason>" --expected "<expected>" --risk amber
+
+# Raise a Question Card (auto-registers session + auto-triggers AGY when CEO taps Answer):
+.venv/bin/python tools/agy_card_run.py ask \
+  --question "<question>" --option "<opt1>" --option "<opt2>" --recommended 1 --why "<why>"
+```
