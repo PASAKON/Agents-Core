@@ -996,3 +996,14 @@ def test_launcher_commit_sets_git_identity():
     ident = "-c \"user.name=${Runner}-worker\" -c \"user.email=${Runner}-worker@localhost\" commit -q"
     assert body.count(ident) == 2
     assert "git -C '$wt' commit -q" not in body
+
+
+def test_agy_launcher_auto_swaps_to_argon_on_quota_limit():
+    """When AGY Opus hits a quota limit on winbox, launch.ps1 rotates the log to .pre-swap
+    and resumes the same conversation on gemini-4-argon-high in the same run."""
+    code = _code_only()
+    assert ".pre-swap" in code
+    assert "gemini-4-argon-high" in code
+    assert "'--conversation', `$swapConv" in code
+    assert "[agy-autoswap] Quota limit hit on" in code
+

@@ -105,8 +105,8 @@ def _write_snapshot(tmp_path: Path, agy_claude_weekly: float, agy_gemini_weekly:
 def test_select_model_chain_prefers_opus_when_agy_claude_available(tmp_path):
     snap = _write_snapshot(tmp_path, agy_claude_weekly=0.94, agy_gemini_weekly=0.96)
     chain = ph_brain.select_model_chain(snapshot_path=snap)
-    assert chain[0] == "claude-opus-5-5-high"
-    assert "gemini-4-argon-high" in chain
+    assert chain[0] == "claude-opus-5-5-medium"
+    assert chain[1] == "gemini-4-argon-high"
 
 
 def test_select_model_chain_falls_back_to_argon_when_agy_claude_exhausted(tmp_path):
@@ -128,13 +128,13 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
                 "returncode": 0,
                 "model": model,
                 "conversation_id": "11111111-2222-3333-4444-555555555555",
-                "response": "Turn 1 planned with Opus 5.5",
+                "response": "Turn 1 planned with Opus 5.5 Medium",
                 "limit_hit": None,
                 "raw_stdout": "",
                 "raw_stderr": "",
             }
-        if len(calls) == 2 and model == "claude-opus-5-5-high":
-            # Simulate mid-flight quota exhaustion on Opus 5.5
+        if len(calls) == 2 and model == "claude-opus-5-5-medium":
+            # Simulate mid-flight quota exhaustion on Opus 5.5 Medium
             return {
                 "ok": False,
                 "returncode": 1,
@@ -158,7 +158,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
 
     monkeypatch.setattr(ph_brain, "invoke_agy", fake_invoke)
 
-    # Turn 1: starts with claude-opus-5-5-high
+    # Turn 1: starts with claude-opus-5-5-medium
     r1 = ph_brain.run_turn(
         ph_id="7cf12345",
         project="VideoPipeline",
@@ -169,7 +169,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
         snapshot_path=snap,
     )
     assert r1["ok"] is True
-    assert r1["model_used"] == "claude-opus-5-5-high"
+    assert r1["model_used"] == "claude-opus-5-5-medium"
     assert r1["conversation_id"] == "11111111-2222-3333-4444-555555555555"
     assert r1.get("fallback_triggered") is False
     assert r1["claude_code_tokens_used"] == 0
@@ -196,8 +196,20 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
     saved = ph_brain.load_brain_state("7cf12345", brains_dir=brains_dir)
     assert saved["active_model"] == "gemini-4-argon-high"
     assert len(saved["fallback_events"]) == 1
-    assert saved["fallback_events"][0]["from_model"] == "claude-opus-5-5-high"
+    assert saved["fallback_events"][0]["from_model"] == "claude-opus-5-5-medium"
     assert saved["fallback_events"][0]["to_model"] == "gemini-4-argon-high"
+
+    # Turn 3: since Turn 2 already swapped to gemini-4-argon-high, Turn 3 stays on gemini-4-argon-high directly
+    r3 = ph_brain.run_turn(
+        ph_id="7cf12345",
+        message="Turn 3 follow-up",
+        brains_dir=brains_dir,
+        snapshot_path=snap,
+    )
+    assert r3["ok"] is True
+    assert r3["model_used"] == "gemini-4-argon-high"
+    assert calls[3]["model"] == "gemini-4-argon-high"
+    assert len(calls) == 4
 
 
 def test_ensure_browser_agy_brief_passes_route_class_for():
@@ -308,3 +320,45 @@ def test_timeout_result_includes_fallback_metadata(monkeypatch, tmp_path, retry_
     assert "fallback_triggered" in result
     assert result.get("fallback_triggered") is retry_first
     assert len(calls) == (2 if retry_first else 1)
+
+
+def test_invoke_agy_ignores_sticky_conversation_error_when_fallback_succeeds(monkeypatch):
+    """When claude-opus-5-5-medium hits 429 on a conversation_id and gemini-4-argon-high
+    resumes that same conversation_id, agy --output-format json still includes the earlier
+    turn's `"error": "Individual quota reached..."` in stdout even though returncode==0
+    and response is non-empty. invoke_agy must mark that fallback turn ok=True."""
+    monkeypatch.setattr(ph_brain, '_IN_TURN', type('Guard', (), {'get': lambda self: True})())
+
+    def fake_run(cmd, **kw):
+        model = cmd[cmd.index("--model") + 1]
+        if model == "claude-opus-5-5-medium":
+            stdout = (
+                'AGY_ERROR: {"short_error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached."}\n'
+                '{"conversation_id":"2eaa92be-5d1a-4ef8-b63e-fa219c9b6f54","status":"ERROR","response":"",'
+                '"error":"Individual quota reached. Please upgrade your subscription to increase your limits."}\n'
+            )
+            return SimpleNamespace(returncode=3, stdout=stdout, stderr="error: Individual quota reached.\n")
+        stdout = (
+            '{"conversation_id":"2eaa92be-5d1a-4ef8-b63e-fa219c9b6f54","status":"ERROR",'
+            '"response":"READY_FROM_ARGON_HIGH\\n",'
+            '"error":"Individual quota reached. Please upgrade your subscription to increase your limits."}\n'
+        )
+        return SimpleNamespace(returncode=0, stdout=stdout, stderr="")
+
+    monkeypatch.setattr(ph_brain.subprocess, "run", fake_run)
+    r_opus = ph_brain.invoke_agy("plan", model="claude-opus-5-5-medium", add_dirs=[], agy_bin="agy")
+    assert r_opus["ok"] is False
+    assert r_opus["limit_hit"] is not None
+    assert r_opus["conversation_id"] == "2eaa92be-5d1a-4ef8-b63e-fa219c9b6f54"
+
+    r_argon = ph_brain.invoke_agy(
+        "plan",
+        model="gemini-4-argon-high",
+        conversation_id=r_opus["conversation_id"],
+        add_dirs=[],
+        agy_bin="agy",
+    )
+    assert r_argon["ok"] is True
+    assert r_argon["limit_hit"] is None
+    assert r_argon["response"].strip() == "READY_FROM_ARGON_HIGH"
+

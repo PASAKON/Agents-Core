@@ -833,7 +833,20 @@ elif [ "$RUNNER" = "agy" ]; then
       "$(sh_quote "$AGY_MODEL")" \
       "$AGY_ADD_DIRS" \
       "$(sh_quote "$AGY_LOG")"
-    printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\ncleanup_heartbeat\n'
+    printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\n'
+    if [ "$AGY_MODEL" != "gemini-4-argon-high" ]; then
+      printf 'if grep -Eiq "exhausted your quota|Individual quota reached|RESOURCE_EXHAUSTED|AI: Out of credits|model capacity exhausted" %s 2>/dev/null; then\n' "$(sh_quote "$AGY_LOG")"
+      printf '  SWAP_CONV=$(sed -n '\''s/.*"conversation_id":"\([0-9a-fA-F-]*\)".*/\1/p'\'' %s | tail -n 1)\n' "$(sh_quote "$AGY_LOG")"
+      printf '  mv -f %s %s 2>/dev/null || true\n' "$(sh_quote "$AGY_LOG")" "$(sh_quote "${AGY_LOG}.pre-swap")"
+      printf '  printf "[agy-autoswap] Quota limit hit on %s; swapping seamlessly to gemini-4-argon-high...\\n" > %s\n' "$AGY_MODEL" "$(sh_quote "$AGY_LOG")"
+      printf '  if [ -n "$SWAP_CONV" ]; then\n'
+      printf '    %s -p "$(cat TASK.md)" --model gemini-4-argon-high --conversation "$SWAP_CONV" --mode accept-edits %s < /dev/null >> %s 2>&1 &\n' "$(sh_quote "$AGY_BIN")" "$AGY_ADD_DIRS" "$(sh_quote "$AGY_LOG")"
+      printf '  else\n'
+      printf '    %s -p "$(cat TASK.md)" --model gemini-4-argon-high --mode accept-edits %s < /dev/null >> %s 2>&1 &\n' "$(sh_quote "$AGY_BIN")" "$AGY_ADD_DIRS" "$(sh_quote "$AGY_LOG")"
+      printf '  fi\n'
+      printf '  runner_pid=$!\n  wait "$runner_pid"\n  CLI_RC=$?\n  runner_pid=\nfi\n'
+    fi
+    printf 'cleanup_heartbeat\n'
     emit_report_commit_push agy "" "$AGY_LOG" "-c user.name=agy-worker -c user.email=agy-worker@localhost" "agy: task $TASK"
   } > "$LAUNCH_SH"
 fi

@@ -500,3 +500,59 @@ def test_work_dir_added_to_agy_workspace(tmp_path, monkeypatch):
     monkeypatch.setenv("WORK_DIR", str(tmp_path / "gone"))
     agy_local.run_agy_subprocess(str(fake_bin), "p", str(worktree), log)
     assert captured.read_text(encoding="utf-8").count("--add-dir") == 1
+
+
+def test_run_agy_task_auto_swaps_opus_to_argon_on_limit(tmp_path, monkeypatch):
+    """When claude-opus-5-5-medium hits a quota limit, run_agy_task seamlessly
+    swaps to gemini-4-argon-high in the same run, passes --conversation <id>,
+    completes the task, and never commits .agy-run.log.pre-swap."""
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    _init_git_repo(worktree)
+
+    calls_file = tmp_path / "calls.log"
+    fake_bin = tmp_path / "fake_agy_swap.sh"
+    fake_bin.write_text(
+        "#!/bin/sh\n"
+        f"printf 'CALL:' >> '{calls_file}'\n"
+        f"printf '%s ' \"$@\" | tr '\\n' ' ' >> '{calls_file}'\n"
+        f"printf '\\n' >> '{calls_file}'\n"
+        "case \"$*\" in\n"
+        "  *claude-opus-5-5-medium*)\n"
+        "    echo 'AGY_ERROR: {\"short_error\":\"RESOURCE_EXHAUSTED (code 429): Individual quota reached.\"}'\n"
+        "    echo '{\"conversation_id\":\"aaaa1111-2222-3333-4444-555555555555\",\"status\":\"ERROR\"}'\n"
+        "    exit 3\n"
+        "    ;;\n"
+        "  *gemini-4-argon-high*)\n"
+        "    echo 'swapped solution' > swapped.py\n"
+        "    printf '## Files changed\\n- swapped.py\\n\\n## What was done\\n- Auto-swapped\\n\\n## Blockers\\nNone\\n' > REPORT.md\n"
+        "    exit 0\n"
+        "    ;;\n"
+        "esac\n"
+    )
+    fake_bin.chmod(0o755)
+    monkeypatch.setenv("AGY_BIN", str(fake_bin))
+
+    recorded = []
+    monkeypatch.setattr(agy_local.db, "update_status", lambda tid, st, **kw: recorded.append((tid, st, kw)) or True)
+    monkeypatch.setattr(agy_local, "update_status", lambda tid, st, **kw: recorded.append((tid, st, kw)) or True)
+
+    task = {"id": "task-swap01", "title": "Auto-swap test", "runner_model": "claude-opus-5-5-medium"}
+    rc = agy_local.run_agy_task(task, str(worktree), "Implement feature", "developer")
+    assert rc == 0
+    assert recorded[-1][1] == "review"
+
+    calls = calls_file.read_text(encoding="utf-8").splitlines()
+    assert len(calls) == 2
+    assert "--model claude-opus-5-5-medium" in calls[0]
+    assert "--model gemini-4-argon-high" in calls[1]
+    assert "--conversation aaaa1111-2222-3333-4444-555555555555" in calls[1]
+
+    tree_files = subprocess.check_output(
+        ["git", "-C", str(worktree), "ls-tree", "-r", "--name-only", "HEAD"],
+        text=True,
+    ).splitlines()
+    assert "swapped.py" in tree_files
+    assert ".agy-run.log" not in tree_files
+    assert ".agy-run.log.pre-swap" not in tree_files
+

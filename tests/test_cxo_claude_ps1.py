@@ -256,3 +256,13 @@ def test_hub_banner_keeps_the_phrase_the_winbox_check_reads():
     code = _code_only(CXO_SCRIPT)
     hub_branch = code[code.index(HUB_IF): code.index("} else {", code.index(HUB_IF))]
     assert "[cxo-claude] hub mode: org MCP on" in hub_branch
+
+
+def test_ph_agy_brain_wires_haiku_shell_and_marker():
+    """When ORG_PH_AGY_BRAIN is on, Windows PH sessions use ph_shell.md + Haiku + Bash only."""
+    code = _code_only(CXO_SCRIPT)
+    assert "org-flags\\ORG_PH_AGY_BRAIN" in code
+    assert "$env:ORG_PH_SHELL = '1'" in code
+    assert "roles\\ph_shell.md" in code
+    assert "$Role-$sid.shell" in code
+

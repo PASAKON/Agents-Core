@@ -125,7 +125,9 @@ def test_needs_claude_tool(brief, want):
 
 def test_live_plans_yaml():
     cfg = load_plans()
-    assert cfg["roles"]["dev_general"][0] == "agy:gemini-4-argon-high"
+    assert cfg["roles"]["dev_general"][:2] == ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high"]
+    assert cfg["roles"]["dev_shell"][:2] == ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high"]
+    assert "agy" in cfg["shell_runners"]
     assert cfg["roles"]["doc_text"][0] == "agy:gemini-4-argon-high"
     assert cfg["roles"]["browser_agy"][0] == "agy:gemini-3.8-flash-high"
     assert cfg["small_first"]["dev_general"] == "agy:gemini-3.8-flash-high"

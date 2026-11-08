@@ -480,7 +480,26 @@ $machineLabel = 'WINDOWS'
 # by another bare token, so it stops consuming at --session-id), session-id,
 # fork, positional prompt.
 $chromeArgs = @()
-if ($isPh) { $chromeArgs = @('--chrome') }
+if ($isPh) {
+    $flagRoot = if ($env:ProgramData) { $env:ProgramData } else { 'C:\ProgramData' }
+    if ($env:ORG_PH_AGY_BRAIN -eq '1' -or (Test-Path -LiteralPath (Join-Path $flagRoot 'org-flags\ORG_PH_AGY_BRAIN'))) {
+        $env:ORG_PH_SHELL = '1'
+        $model = 'haiku'
+        $effort = 'low'
+        $modelArgs = @('--model', $model, '--fallback-model', $fallbackModel, '--effort', $effort)
+        $rolePrompt = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'roles\ph_shell.md')
+        if (-not $mcpConfig) { $mcpConfig = Join-Path $env:TEMP "cxo-mcp-$sid.json" }
+        Set-Content -Path $mcpConfig -Value '{"mcpServers":{}}' -Encoding ASCII
+        $mcpArgs = @('--mcp-config', $mcpConfig)
+        if ($strictMcp -eq '1') { $mcpArgs += @('--strict-mcp-config') }
+        $allowedTools = @('Bash')
+        $allowedToolsArgs = @('--allowed-tools') + $allowedTools
+        $chromeArgs = @()
+        Set-Content -Path (Join-Path $locksDir "$Role-$sid.shell") -Value $cxoUuid -Encoding ASCII -NoNewline
+    } else {
+        $chromeArgs = @('--chrome')
+    }
+}
 $sessionName = "$machineLabel $resolvedTabTitle"
 if (-not $PSBoundParameters.ContainsKey('TabTitle')) {
     try {
