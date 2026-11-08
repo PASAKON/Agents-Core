@@ -1,0 +1,32 @@
+{
+  "org-agy-inbox": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 ../scripts/hook-inbox.py",
+        "timeout": 8
+      }
+    ]
+  },
+  "org-agy-card-run-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "ask_question",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ../scripts/hook-phone-only-commands.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 ../scripts/hook-phone-only-commands.py",
+        "timeout": 8
+      }
+    ]
+  }
+}

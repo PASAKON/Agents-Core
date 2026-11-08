@@ -181,15 +181,58 @@ def _ensure_live_publisher() -> None:
         pass
 
 
-def main() -> int:
+def _agy_box(payload: dict) -> tuple[str, str] | None:
+    """Resolve `(role, session_id)` and auto-register `state/agy-sessions/<box>.json`
+    when invoked as an Antigravity (`conversationId`) lifecycle hook."""
+    conv_id = str(payload.get("conversationId") or "").strip()
+    if not conv_id:
+        return None
     try:
-        json.load(sys.stdin)
+        from tools import agy_card_run
+        box, role, sid, _ = agy_card_run.resolve_identity(conversation_id=conv_id)
+        if not os.environ.get("PYTEST_CURRENT_TEST"):
+            with contextlib.suppress(Exception):
+                agy_card_run.register_session(box=box, role=role, conversation_id=conv_id)
+        return role, sid
+    except Exception:
+        return None
+
+
+def _render_letters(letters: list[dict]) -> str:
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        if _envelope_on():
+            _print_envelopes(letters)
+        else:
+            print(f"## Mailbox — {len(letters)} letter(s) delivered (drained; each arrives once)")
+            print()
+            for letter in letters:
+                frm = letter.get("from") or {}
+                role_label = str(frm.get("role") or "?").upper()
+                body = letter.get("body", "")
+                print(f"[{role_label}] : {body}")
+                for ln in _note_lines(letter, str(body)):
+                    print(ln)
+                print(f"    ({frm.get('session_id', '?')} · {letter.get('sent_at', '')})")
+                print()
+    return buf.getvalue()
+
+
+def main() -> int:
+    payload: dict = {}
+    try:
+        loaded = json.load(sys.stdin)
+        if isinstance(loaded, dict):
+            payload = loaded
     except Exception:
         pass
 
+    is_agy = bool(payload.get("conversationId"))
     _ensure_live_publisher()    # before the drain: an empty box still runs it
-    box = _current_box()
+    box = _current_box() or (_agy_box(payload) if is_agy else None)
     if box is None:
+        if is_agy:
+            print("{}")
         return 0
     role, session_id = box
 
@@ -197,25 +240,24 @@ def main() -> int:
         from lib import mailbox
         letters = mailbox.drain(role, session_id)
     except Exception:
+        if is_agy:
+            print("{}")
         return 0
     if not letters:
+        if is_agy:
+            print("{}")
         return 0
 
-    if _envelope_on():
-        _print_envelopes(letters)
+    rendered = _render_letters(letters)
+    if is_agy:
+        print(json.dumps({
+            "injectSteps": [
+                {"ephemeralMessage": rendered.rstrip()}
+            ]
+        }, ensure_ascii=False))
         return 0
 
-    print(f"## Mailbox — {len(letters)} letter(s) delivered (drained; each arrives once)")
-    print()
-    for letter in letters:
-        frm = letter.get("from") or {}
-        role_label = str(frm.get("role") or "?").upper()
-        body = letter.get("body", "")
-        print(f"[{role_label}] : {body}")
-        for ln in _note_lines(letter, str(body)):
-            print(ln)
-        print(f"    ({frm.get('session_id', '?')} · {letter.get('sent_at', '')})")
-        print()
+    sys.stdout.write(rendered)
     return 0
 
 

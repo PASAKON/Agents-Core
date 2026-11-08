@@ -46,7 +46,7 @@ ASK_TOOLS = frozenset({"mcp__org__ask_ceo", "mcp__org__ask_run", "mcp__sompong__
 LETTER_TOOLS = frozenset({"SendMessage", "mcp__org__send_to_cxo"})
 # ask_run.py takes its verb first, so the verb sits right after the script name.
 CARD_COMMAND = re.compile(
-    r"(?:tools/ask_run\.py|tools\.ask_run)\s+(?:ask|create)\b|relay-request\.mjs\s+open\b")
+    r"(?:tools/(?:ask_run|agy_card_run)\.py|tools\.(?:ask_run|agy_card_run))\s+(?:ask|create)\b|relay-request\.mjs\s+open\b")
 BLOCKER = re.compile(r"\bblocker\b", re.IGNORECASE)
 CARD_ID = re.compile(r"(?:Q|QG|RUN)-\d{8}-\d{4}-[0-9a-f]{4}|rq-[0-9a-f]{8}")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
@@ -140,6 +140,22 @@ def turn(transcript: Path) -> tuple[str, list[dict]]:
                 if isinstance(content, list):
                     tools.extend(b for b in content
                                  if isinstance(b, dict) and b.get("type") == "tool_use")
+            elif kind == "USER_INPUT":
+                c = rec.get("content")
+                if isinstance(c, str) and c.strip():
+                    parts, tools = [], []
+            elif kind == "PLANNER_RESPONSE":
+                c = rec.get("content")
+                if isinstance(c, str) and c.strip():
+                    parts.append(c)
+                tcs = rec.get("tool_calls")
+                if isinstance(tcs, list):
+                    for tc in tcs:
+                        if isinstance(tc, dict):
+                            tools.append({
+                                "name": tc.get("name"),
+                                "input": tc.get("args") or tc.get("input") or {},
+                            })
     return "\n".join(parts), tools
 
 
@@ -175,8 +191,10 @@ def _raises_card(text: str, tools: list[dict]) -> bool:
         inp = t.get("input")
         if name in ASK_TOOLS:
             return True
-        if name == "Bash" and isinstance(inp, dict) and CARD_COMMAND.search(str(inp.get("command") or "")):
-            return True
+        if name in ("Bash", "run_command") and isinstance(inp, dict):
+            cmd_str = str(inp.get("command") or inp.get("CommandLine") or "")
+            if CARD_COMMAND.search(cmd_str):
+                return True
         if name in LETTER_TOOLS and BLOCKER.search(json.dumps(inp, ensure_ascii=False)):
             return True
     return False
@@ -209,25 +227,67 @@ def question_offenders(text: str, tools: list[dict]) -> list[str]:
     return hits
 
 
+def _effective_role(env, is_agy: bool) -> str:
+    role = (
+        env.get("CXO_ROLE")
+        or env.get("ORG_ROLE")
+        or env.get("AGY_ROLE")
+        or ""
+    ).strip().lower()
+    if role:
+        return role
+    if is_agy and not (env.get("WORKER_TASK_ID") or "").strip():
+        return "cto"
+    return ""
+
+
 def decide(payload: dict, env=os.environ) -> dict | None:
+    is_agy = bool(payload.get("conversationId") or payload.get("transcriptPath") or payload.get("toolCall"))
+    tool_call = payload.get("toolCall") if isinstance(payload.get("toolCall"), dict) else None
+    if tool_call is not None:
+        if (
+            tool_call.get("name") == "ask_question"
+            and env.get("PHONE_ONLY_GUARD", "").lower() != "off"
+            and env.get("CARD_GUARD", "").lower() != "off"
+            and _effective_role(env, True) in QUESTION_ROLES
+        ):
+            return {
+                "decision": "deny",
+                "reason": (
+                    "Run-card rule (CEO 30 Oct 2026): Do not use the IDE ask_question widget. "
+                    "Raise a Run Inbox question card instead with `tools/ask_run.py ask` "
+                    "(or `tools/agy_card_run.py ask`) and give the Q-... id and /run link."
+                ),
+            }
+        return {"decision": "allow"}
+
     if env.get("PHONE_ONLY_GUARD", "").lower() == "off":
-        return None
+        return {"decision": "allow"} if is_agy else None
     if payload.get("stop_hook_active"):
-        return None
-    tp = payload.get("transcript_path")
+        return {"decision": "allow"} if is_agy else None
+    if is_agy:
+        if payload.get("terminationReason") and payload.get("terminationReason") != "NO_TOOL_CALL":
+            return {"decision": "allow"}
+        if int(payload.get("executionNum") or 1) > 1:
+            return {"decision": "allow"}
+
+    tp = payload.get("transcript_path") or payload.get("transcriptPath")
     if not tp or not Path(tp).exists():
-        return None
+        return {"decision": "allow"} if is_agy else None
     text, tools = turn(Path(tp))
     reasons = [REASON.format(hit=h[:160]) for h in offenders(text)[:1]]
-    asks_ceo = env.get("CXO_ROLE", "").strip().lower() in QUESTION_ROLES
+    asks_ceo = _effective_role(env, is_agy) in QUESTION_ROLES
     if asks_ceo and env.get("CARD_GUARD", "").lower() != "off":
         try:
             reasons += [QUESTION_REASON.format(hit=h[:160]) for h in question_offenders(text, tools)[:1]]
         except Exception as e:  # a bug here must not take the `!` check down with it
             print(f"hook-phone-only-commands: question check failed, skipped ({e})", file=sys.stderr)
     if not reasons:
-        return None
-    return {"decision": "block", "reason": "\n\n".join(reasons)}
+        return {"decision": "allow"} if is_agy else None
+    return {
+        "decision": "continue" if is_agy else "block",
+        "reason": "\n\n".join(reasons),
+    }
 
 
 def main() -> int:

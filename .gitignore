@@ -92,6 +92,12 @@ state/fomo-scanner.db-shm
 # parent directory is excluded).
 .agents/*
 !.agents/README.md
+!.agents/hooks.json
+!.agents/skills.json
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/takeover/
+!.agents/skills/takeover/**
 worktrees/
 # Per-machine tool installs a worker's launch.sh may prepend onto PATH
 # (task-378523bb: Node 22 for workers on Contabo, system Node untouched).

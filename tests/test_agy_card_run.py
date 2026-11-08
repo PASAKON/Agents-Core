@@ -475,3 +475,52 @@ def test_wake_session_uses_agentapi_for_desktop_app_and_falls_back_to_cli(tmp_pa
     assert len(cli_called) == 1
 
 
+def test_shared_hooks_support_both_claude_and_agy_payloads(tmp_path):
+    import importlib.util
+
+    hook_cmd_path = agy_card_run.ROOT / "scripts" / "hook-phone-only-commands.py"
+    spec = importlib.util.spec_from_file_location("hook_phone_only_commands", hook_cmd_path)
+    hook_cmd = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook_cmd)
+
+    # 1. AGY PreToolUse on ask_question is denied with a pointer to ask_run.py ask
+    pre_res = hook_cmd.decide(
+        {"conversationId": CONV_UUID, "toolCall": {"name": "ask_question", "args": {}}},
+        env={},
+    )
+    assert pre_res is not None
+    assert pre_res["decision"] == "deny"
+    assert "ask_run.py ask" in pre_res["reason"]
+
+    # 2. AGY Stop hook on a PLANNER_RESPONSE that asks the CEO a question in chat without a card -> continue
+    transcript = tmp_path / "transcript.jsonl"
+    transcript.write_text(
+        json.dumps({"type": "USER_INPUT", "content": "ช่วยเช็คหน่อย"}) + "\n"
+        + json.dumps({"type": "PLANNER_RESPONSE", "content": "จะให้ทำเลยไหมครับ?", "tool_calls": []}) + "\n",
+        encoding="utf-8",
+    )
+    stop_res = hook_cmd.decide(
+        {"conversationId": CONV_UUID, "transcriptPath": str(transcript), "terminationReason": "NO_TOOL_CALL", "executionNum": 1},
+        env={},
+    )
+    assert stop_res is not None
+    assert stop_res["decision"] == "continue"
+
+    # 3. AGY Stop hook when turn called run_command with tools/ask_run.py ask -> allow
+    transcript.write_text(
+        json.dumps({"type": "USER_INPUT", "content": "ช่วยเช็คหน่อย"}) + "\n"
+        + json.dumps({
+            "type": "PLANNER_RESPONSE",
+            "content": "จะให้ทำเลยไหมครับ?",
+            "tool_calls": [{"name": "run_command", "args": {"CommandLine": "python3 tools/ask_run.py ask --question x"}}],
+        }) + "\n",
+        encoding="utf-8",
+    )
+    stop_ok = hook_cmd.decide(
+        {"conversationId": CONV_UUID, "transcriptPath": str(transcript), "terminationReason": "NO_TOOL_CALL", "executionNum": 1},
+        env={},
+    )
+    assert stop_ok == {"decision": "allow"}
+
+
+
