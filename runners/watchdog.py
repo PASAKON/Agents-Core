@@ -66,12 +66,35 @@ _ORG_TAB_DOMAINS = ("higgsfield.ai", "flow.google.com", "grok.com")
 
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
+FAST_DEAD_STALL_AFTER_S = 10 * 60
 INTERVAL_S = 300
 MESH_PROBE_INTERVAL_S = 900
 MESH_PROBE_STATE = Path(__file__).resolve().parent.parent / "state/watchdog-mesh-probe.json"
 _mesh_probe_state: dict | None = None
 _mesh_probe_skip_noted = False
 _mesh_probe_details: dict[str, str] = {}
+
+_LONG_RENDER_KEYWORDS = ("render", "higgsfield", "colab", "flow.google", "comfy", "seedance", "veo")
+
+
+def is_long_render_task(task: dict) -> bool:
+    """Return True for video/render/browser jobs that legitimately stay silent for 20-40 min."""
+    role = str(task.get("role") or "").strip().lower()
+    if role in ("video_editor", "browser_operator"):
+        return True
+    haystack = f"{task.get('project') or ''} {task.get('title') or ''} {task.get('description') or ''}".lower()
+    return any(kw in haystack for kw in _LONG_RENDER_KEYWORDS)
+
+
+def _stall_threshold_seconds(task: dict, *, pid_alive: bool | None = None) -> float:
+    """Smart stall timeout: long render/browser tasks always keep `STALL_AFTER_S` (30m);
+    when `ORG_SMART_STALL_TIMEOUT=1` and `pid_alive is False`, fast code/script tasks
+    whose worker process has already died are caught at `FAST_DEAD_STALL_AFTER_S` (10m)."""
+    if is_long_render_task(task):
+        return float(STALL_AFTER_S)
+    if pid_alive is False and os.environ.get("ORG_SMART_STALL_TIMEOUT") == "1":
+        return float(FAST_DEAD_STALL_AFTER_S)
+    return float(STALL_AFTER_S)
 
 
 def _mesh_probe_interval() -> int:
@@ -1116,6 +1139,76 @@ def _reap_finished_workers() -> list[dict]:
     return reaped
 
 
+def _auto_heal_stalled_workers(stalled_items: list[dict]) -> list[dict]:
+    """Auto-Self-Heal (1-Retry): for tasks that just stalled with `pid_alive is False`,
+    checkpoint partial git work and re-delegate (or spillover to a healthy host)
+    once automatically when `ORG_WATCHDOG_AUTO_HEAL=1`."""
+    if os.environ.get("ORG_WATCHDOG_AUTO_HEAL") != "1" or not stalled_items:
+        return []
+    from lib import router as host_router
+    from tools import relocate_task as relocate_mod
+
+    healed: list[dict] = []
+    for item in stalled_items:
+        if item.get("pid_alive") is not False:
+            continue
+        tid = item.get("task")
+        if not tid:
+            continue
+        task = db.get_task(tid)
+        if not task or task.get("role") == "project_head":
+            continue
+        try:
+            review = json.loads(task.get("review") or "{}")
+        except json.JSONDecodeError:
+            review = {}
+        if review.get("auto_healed"):
+            continue
+
+        src_host = row_host(task)
+        ckpt = relocate_mod.checkpoint_source_worktree(task, "auto")
+        branch = task.get("branch")
+        new_desc = relocate_mod.prepend_continuation_instruction(
+            str(task.get("description") or ""),
+            branch if ckpt.get("checkpointed") else None,
+            src_host,
+        )
+        review["auto_healed"] = True
+        review["auto_healed_at"] = db.now_iso()
+        review["auto_healed_from_host"] = src_host
+        target_host = task.get("host") if host_router.is_box_bound(task) else None
+
+        db.update_status(
+            tid,
+            "pending",
+            actor="watchdog",
+            assigned_agent=None,
+            pid=None,
+            worktree=None,
+            tmux_session=None,
+            description=new_desc,
+            review=json.dumps(review),
+            delegate_log=f"auto-healed (1/1) after dead worker on {src_host}",
+        )
+        try:
+            row = asyncio.run(delegate.delegate_task(tid, host=target_host))
+            new_host = (row or {}).get("host") or target_host or src_host
+            healed.append({"task": tid, "from_host": src_host, "to_host": new_host})
+            try:
+                send_to_cto.send(
+                    tid,
+                    f"auto-healed (1/1): dead worker on {src_host} was checkpointed and restarted on {new_host}.",
+                    role=task.get("role"),
+                    cto_id=task.get("owner_cto"),
+                    owner_role=task.get("owner_role") or "cto",
+                )
+            except Exception:
+                pass
+        except Exception as e:
+            warn(f"watchdog auto-heal failed for {tid}: {e}")
+    return healed
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -1138,9 +1231,10 @@ def scan_once() -> dict:
         silent = _silent_seconds(t["updated_at"])
         if silent < PING_AFTER_S:
             continue
-        if silent >= STALL_AFTER_S:
-            pid = t.get("pid")
-            pid_alive = _pid_alive(pid)
+        pid = t.get("pid")
+        pid_alive = _pid_alive(pid)
+        threshold = _stall_threshold_seconds(t, pid_alive=pid_alive)
+        if silent >= threshold:
             # CEO rule (ADDENDUM 2, task-92118d4e): never close a surface
             # under a worker that may be working. A live pid means silence
             # is suspicion, not proof of death — a Higgsfield render takes
@@ -1366,7 +1460,14 @@ def scan_once() -> dict:
         warn(f"watchdog work watch error: {e}")
         work_watch_result = {"alerted": [], "lungnote_filed": [], "green": []}
 
-    return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
+    try:
+        auto_healed = _auto_heal_stalled_workers(stalled)
+    except Exception as e:
+        warn(f"watchdog auto-heal error: {e}")
+        auto_healed = []
+
+    return {"pinged": pinged, "stalled": stalled, "auto_healed": auto_healed,
+            "reaped": reaped,
             "surface_reaped": surface_reaped,
             "scanned": len(rows) + len(human_rows),
             "gc_cancelled": len(gc_cancelled),
@@ -1426,6 +1527,10 @@ def main() -> int:
     # watchdog's pings and kickoff letters go out as cto/watchdog, never as the CEO.
     if not (os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_ROLE")):
         os.environ["CTO_SESSION_ID"] = "watchdog"
+    os.environ.setdefault("ORG_WATCHDOG_AUTO_HEAL", "1")
+    os.environ.setdefault("ORG_SMART_STALL_TIMEOUT", "1")
+    os.environ.setdefault("ORG_HUB_QUEUE_SYNC", "1")
+    os.environ.setdefault("ORG_SHARED_QUOTA_SYNC", "1")
     ap = argparse.ArgumentParser(description="Watchdog for stuck DEV tasks")
     ap.add_argument("--mesh-probe", action="store_true",
                     help="probe mesh hosts now, ignoring the interval")

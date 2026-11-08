@@ -719,6 +719,11 @@ def _merge_local(task_id: str, task: dict, proj: dict, repo: Path, base: str,
         except Exception as e:
             result["cleaned"] = False
             result["cleanup_error"] = str(e)[:300]
+        try:
+            from tools import relocate_task as _relocate_mod
+            _relocate_mod.cleanup_source_artifacts(task)
+        except Exception:
+            pass
 
     db.update_status(
         task_id, "done", actor="cto",
@@ -912,6 +917,11 @@ def _merge_via_temp_worktree(task_id: str, task: dict, proj: dict, repo: Path,
         except Exception as e:
             result["cleaned"] = False
             result["cleanup_error"] = str(e)[:300]
+        try:
+            from tools import relocate_task as _relocate_mod
+            _relocate_mod.cleanup_source_artifacts(task)
+        except Exception:
+            pass
 
     db.update_status(
         task_id, "done", actor="cto",

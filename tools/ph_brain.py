@@ -140,15 +140,68 @@ def bucket_is_usable(
     return True
 
 
+_QUOTA_COOLDOWN_PREFIX = "quota_cooldown:"
+
+
+def record_shared_model_cooldown(model: str, *, ttl_s: int = 1800) -> bool:
+    """Record a cross-host quota cooldown in the Hub DB `locks` table so all
+    machines (`contabo`, `mac`, `winbox`) immediately skip `model` while it is
+    rate-limited."""
+    if not model:
+        return False
+    try:
+        from datetime import timedelta
+        from lib import config, db
+        exp = (datetime.now(timezone.utc) + timedelta(seconds=ttl_s)).isoformat(timespec="seconds")
+        key = f"{_QUOTA_COOLDOWN_PREFIX}{model}"
+        owner = config.self_host()
+        with db.get_conn() as conn:
+            conn.execute(
+                "INSERT INTO locks (key, owner, expires_at) VALUES (?, ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET owner=excluded.owner, expires_at=excluded.expires_at",
+                (key, owner, exp),
+            )
+        return True
+    except Exception:
+        return False
+
+
+def get_shared_cooldown_models() -> set[str]:
+    """Return set of model names currently in cross-host quota cooldown on the Hub DB."""
+    out: set[str] = set()
+    try:
+        from lib import db
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        with db.get_conn() as conn:
+            rows = conn.execute(
+                "SELECT key FROM locks WHERE key LIKE ? AND expires_at > ?",
+                (f"{_QUOTA_COOLDOWN_PREFIX}%", now),
+            ).fetchall()
+        for r in rows:
+            k = str(r["key"] or "")
+            if k.startswith(_QUOTA_COOLDOWN_PREFIX):
+                out.add(k[len(_QUOTA_COOLDOWN_PREFIX):])
+    except Exception:
+        pass
+    return out
+
+
 def select_model_chain(
     preferred_model: str | None = None,
     *,
     snapshot_path: Path | None = None,
     min_remaining: float = 0.02,
     force_fallback: bool = False,
+    check_shared_cooldown: bool | None = None,
 ) -> list[str]:
     """Return ordered list of AGY models to try for this turn."""
     buckets = load_quota_buckets(snapshot_path)
+    use_shared = (
+        check_shared_cooldown
+        if check_shared_cooldown is not None
+        else (snapshot_path is None and os.environ.get("ORG_SHARED_QUOTA_SYNC") == "1")
+    )
+    cooled_down = get_shared_cooldown_models() if use_shared else set()
     chain: list[str] = []
 
     if force_fallback:
@@ -161,16 +214,20 @@ def select_model_chain(
     else:
         ordered = list(MODEL_CHAIN)
 
-    if preferred_model and not force_fallback:
+    if preferred_model and not force_fallback and preferred_model not in cooled_down:
         bucket = MODEL_TO_BUCKET.get(preferred_model, "agy-claude")
         if bucket_is_usable(bucket, buckets, min_remaining=min_remaining):
             chain.append(preferred_model)
 
     for model, bucket in ordered:
-        if model not in chain and bucket_is_usable(bucket, buckets, min_remaining=min_remaining):
+        if (
+            model not in chain
+            and model not in cooled_down
+            and bucket_is_usable(bucket, buckets, min_remaining=min_remaining)
+        ):
             chain.append(model)
 
-    # Always keep fallback models at the tail even if snapshot was stale
+    # Always keep fallback / cooled-down models at the tail so the chain is never empty
     for model, _ in ordered:
         if model not in chain:
             chain.append(model)
@@ -662,6 +719,8 @@ def run_turn(
             "returncode": res["returncode"],
             "error": ' '.join((res.get('raw_stderr') or res.get('raw_stdout') or res.get('response') or '').split())[:120],
         })
+        if res.get("limit_hit") and (brains_dir is None or os.environ.get("ORG_SHARED_QUOTA_SYNC") == "1"):
+            record_shared_model_cooldown(model)
         last_res = res
         if res.get("timed_out"):
             # A timeout is not a quota limit: the next model would hang as long again.
