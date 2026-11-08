@@ -529,6 +529,7 @@ def run_turn(
             "ok": res["ok"],
             "limit_hit": res["limit_hit"],
             "returncode": res["returncode"],
+            "error": ' '.join((res.get('raw_stderr') or res.get('raw_stdout') or res.get('response') or '').split())[:120],
         })
         last_res = res
         if res.get("timed_out"):
@@ -575,8 +576,12 @@ def run_turn(
                 "claude_code_tokens_used": 0,
             }
 
+    summary = '; '.join(f"{a['model']} rc={a['returncode']} limit={a['limit_hit']} err={a['error'][:80]}"
+                        for a in attempted)
     raise RuntimeError(
         f"brain chain {models_to_try} failed for PH {ph_id}; "
+        # Every model's own result: the last model's 429 once hid an earlier non-quota failure.
+        f"attempts: {summary}; "
         f"last error: rc={last_res.get('returncode')} limit={last_res.get('limit_hit')} "
         f"error={' '.join((last_res.get('raw_stderr') or last_res.get('raw_stdout') or last_res.get('response') or '').split())[:200]}"
     )
