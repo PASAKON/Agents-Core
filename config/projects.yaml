@@ -456,6 +456,7 @@ projects:
     auto_push: false
     review_required: true
     paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/ExpertAdvisor
       contabo: /opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor
     spawn_backend: tmux
 

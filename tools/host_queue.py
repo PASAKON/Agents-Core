@@ -49,17 +49,32 @@ def _save(entries: list[dict]) -> None:
         QUEUE_PATH, "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in entries))
 
 
-def enqueue(task_id, owner_cto, *, host=None):
+def enqueue(task_id, owner_cto, *, host=None) -> int:
     with _locked():
         entries = load()
-        for entry in entries:
+        ahead = 0
+        for idx, entry in enumerate(entries):
             if entry["task_id"] == task_id:
                 entry["host"] = host
+                ahead = idx
                 break
         else:
+            ahead = len(entries)
             entries.append(dict(task_id=task_id, owner_cto=owner_cto,
                                 host=host, queued_at=db.now_iso()))
         _save(entries)
+        return ahead
+
+
+def remove(task_id: str) -> bool:
+    """Remove `task_id` from the host queue if present. Returns True if removed."""
+    with _locked():
+        entries = load()
+        kept = [e for e in entries if e.get("task_id") != task_id]
+        if len(kept) == len(entries):
+            return False
+        _save(kept)
+        return True
 
 
 async def drain():
