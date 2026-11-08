@@ -2,11 +2,13 @@
 # Emergency Shortcut: Open AGY CLI to take over stalled Claude Code work across Mac, Contabo, or Winbox.
 #
 # Usage:
-#   agy-takeover                     # Scan Mac/Contabo/Winbox & open interactive AGY CLI with /takeover
-#   agy-takeover CnDrama             # Inspect CnDrama session & open interactive AGY CLI with full handoff context
-#   agy-takeover --scan              # Only print cross-host scan table (non-interactive)
-#   agy-takeover --inspect <target>  # Only print the session handoff brief (non-interactive)
-#   agy-takeover --brain <target>    # Hand off session directly into headless AGY ph_brain.py
+#   agy-takeover                       # Scan Mac/Contabo/Winbox & open interactive AGY CLI with /takeover
+#   agy-takeover CnDrama               # Inspect CnDrama session & open interactive AGY CLI with full handoff context
+#   agy-takeover --scan                # Only print cross-host scan table (non-interactive)
+#   agy-takeover --inspect <target>    # Only print the session handoff brief (non-interactive)
+#   agy-takeover --preflight <target>  # Verify Host-Affinity, In-Place Env Readiness & Transfer Limits
+#   agy-takeover --resume <target>     # Verify preflight & resume session IN-PLACE on its native host
+#   agy-takeover --brain <target>      # Hand off session directly into headless AGY ph_brain.py
 set -euo pipefail
 
 # Resolve Agents/Core root on Mac or Contabo
@@ -43,12 +45,20 @@ case "${1:-}" in
     shift
     exec "$PY" "$ROOT/tools/agy_takeover.py" inspect "$@" --save
     ;;
+  --preflight|-p)
+    shift
+    exec "$PY" "$ROOT/tools/agy_takeover.py" preflight "$@"
+    ;;
+  --resume|-r)
+    shift
+    exec "$PY" "$ROOT/tools/agy_takeover.py" resume "$@"
+    ;;
   --brain|-b)
     shift
     exec "$PY" "$ROOT/tools/agy_takeover.py" handoff-to-brain "$@"
     ;;
   --help|-h)
-    sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
     exit 0
     ;;
 esac
