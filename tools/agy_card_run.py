@@ -56,6 +56,8 @@ from tools import ask_run, ph_brain  # noqa: E402
 
 AGY_SESSIONS_DIR = ROOT / "state" / "agy-sessions"
 DEFAULT_BRAIN_DIR = Path.home() / ".gemini" / "antigravity" / "brain"
+DEFAULT_CLI_BRAIN_DIR = Path.home() / ".gemini" / "antigravity-cli" / "brain"
+DEFAULT_CLI_CONV_DIR = Path.home() / ".gemini" / "antigravity-cli" / "conversations"
 
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -95,7 +97,7 @@ def detect_conversation_id(
     env: dict | None = None,
     brain_dir: Path | None = None,
 ) -> str | None:
-    """Resolve active AGY conversation UUID from flag, env, or ~/.gemini/antigravity/brain/."""
+    """Resolve active AGY conversation UUID from flag, env, or ~/.gemini/antigravity(-cli)/brain/."""
     if explicit and explicit.strip():
         return explicit.strip()
     env = os.environ if env is None else env
@@ -103,20 +105,45 @@ def detect_conversation_id(
         val = (env.get(key) or "").strip()
         if val:
             return val
-    base = Path(brain_dir or DEFAULT_BRAIN_DIR)
-    if not base.is_dir():
-        return None
+    raw_meta = (env.get("ANTIGRAVITY_SOURCE_METADATA") or "").strip()
+    if raw_meta:
+        try:
+            meta = json.loads(raw_meta)
+            meta_cid = ((meta.get("tool") or {}).get("conversationId") or "").strip()
+            if meta_cid:
+                return meta_cid
+        except (ValueError, AttributeError):
+            pass
+
+    search_dirs: list[Path] = []
+    if brain_dir is not None:
+        search_dirs.append(Path(brain_dir))
+    else:
+        app_data = (env.get("ANTIGRAVITY_APP_DATA_DIR") or "").strip()
+        if app_data:
+            search_dirs.append(Path(app_data) / "brain")
+        search_dirs.extend([DEFAULT_BRAIN_DIR, DEFAULT_CLI_BRAIN_DIR, DEFAULT_CLI_CONV_DIR])
+
     candidates: list[tuple[float, str]] = []
-    try:
-        for child in base.iterdir():
-            if child.is_dir() and not child.is_symlink() and _UUID_RE.fullmatch(child.name):
-                try:
-                    mtime = child.stat().st_mtime
-                except OSError:
+    for base in search_dirs:
+        if not base.is_dir():
+            continue
+        try:
+            for child in base.iterdir():
+                if child.is_symlink():
                     continue
-                candidates.append((mtime, child.name))
-    except OSError:
-        return None
+                if child.is_dir() and _UUID_RE.fullmatch(child.name):
+                    try:
+                        candidates.append((child.stat().st_mtime, child.name))
+                    except OSError:
+                        continue
+                elif child.is_file() and child.suffix == ".pb" and _UUID_RE.fullmatch(child.stem):
+                    try:
+                        candidates.append((child.stat().st_mtime, child.stem))
+                    except OSError:
+                        continue
+        except OSError:
+            continue
     if not candidates:
         return None
     candidates.sort(reverse=True)
@@ -148,8 +175,8 @@ def resolve_identity(
         w_role = worker_role or "dev"
         return f"{w_role}-{worker_task}", w_role, worker_task, conv_id
 
-    explicit_session = (session or env.get("ORG_SESSION_ID") or "").strip()
-    explicit_role = (role or env.get("CXO_ROLE") or env.get("AGY_ROLE") or "").strip().lower()
+    explicit_session = (session or env.get("ORG_SESSION_ID") or env.get("ORG_SESSION_NAME") or "").strip()
+    explicit_role = (role or env.get("CXO_ROLE") or env.get("ORG_ROLE") or env.get("AGY_ROLE") or "").strip().lower()
 
     if explicit_session:
         part_role, sep, part_sid = explicit_session.partition("-")

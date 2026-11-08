@@ -410,14 +410,25 @@ def _detect_worktree_worker(cwd: Path | None = None) -> tuple[str, str] | None:
 
 def _agy_env_conv(env: dict) -> str | None:
     """Return active AGY conversation UUID from `env` (`AGY_CONVERSATION_ID` or, outside
-    pytest's inherited host env, `ANTIGRAVITY_CONVERSATION_ID`)."""
+    pytest's inherited host env, `ANTIGRAVITY_CONVERSATION_ID` / `ANTIGRAVITY_SOURCE_METADATA`)."""
     explicit = (env.get("AGY_CONVERSATION_ID") or "").strip()
     if explicit:
         return explicit
     if env is os.environ and "PYTEST_CURRENT_TEST" in env:
         return None
     auto = (env.get("ANTIGRAVITY_CONVERSATION_ID") or "").strip()
-    return auto or None
+    if auto:
+        return auto
+    raw_meta = (env.get("ANTIGRAVITY_SOURCE_METADATA") or "").strip()
+    if raw_meta:
+        try:
+            meta = json.loads(raw_meta)
+            meta_cid = ((meta.get("tool") or {}).get("conversationId") or "").strip()
+            if meta_cid:
+                return meta_cid
+        except (ValueError, AttributeError):
+            pass
+    return None
 
 
 def _env_box(env: dict, *, cwd: Path | None = None) -> tuple[str | None, str | None]:
@@ -429,9 +440,9 @@ def _env_box(env: dict, *, cwd: Path | None = None) -> tuple[str | None, str | N
         wt = _detect_worktree_worker(cwd)
         if wt:
             return wt[0], wt[1]
-    role = env.get("CXO_ROLE")
+    role = env.get("CXO_ROLE") or env.get("ORG_ROLE")
     if role:
-        return role, env.get("CXO_SESSION_ID") or env.get("CTO_SESSION_ID") or None
+        return role, env.get("CXO_SESSION_ID") or env.get("ORG_SESSION_NAME") or env.get("CTO_SESSION_ID") or None
     if task:
         return env.get("WORKER_ROLE") or "dev", task
     sid = env.get("CTO_SESSION_ID")

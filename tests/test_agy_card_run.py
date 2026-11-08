@@ -396,3 +396,32 @@ def test_ask_run_auto_binds_agy_session_from_antigravity_conversation_id(tmp_pat
     assert saved["conversation_id"] == CONV_UUID
     assert saved["cards"] == ["RUN-20261108-1700-cafe"]
     assert watched == [("RUN-20261108-1700-cafe", "cto-agy-aced3034")]
+
+
+def test_detect_conversation_id_from_source_metadata_and_cli_pb_files(tmp_path):
+    meta_env = {
+        "ANTIGRAVITY_SOURCE_METADATA": '{"tool":{"conversationId":"aced3034-2643-403e-ac26-42f1884593d6"}}'
+    }
+    assert agy_card_run.detect_conversation_id(env=meta_env, brain_dir=tmp_path) == CONV_UUID
+    assert ask_run._agy_env_conv(meta_env) == CONV_UUID
+
+    # Also supports antigravity-cli/conversations/<uuid>.pb files (Contabo / CLI layout)
+    conv_dir = tmp_path / "conversations"
+    conv_dir.mkdir()
+    pb_file = conv_dir / f"{CONV_UUID}.pb"
+    pb_file.write_bytes(b"proto")
+    assert agy_card_run.detect_conversation_id(env={}, brain_dir=conv_dir) == CONV_UUID
+
+    # ORG_ROLE=project_head + ORG_SESSION_NAME=project_head-3511068d resolves cleanly on AGY
+    ph_env = {
+        "ORG_ROLE": "project_head",
+        "ORG_SESSION_NAME": "project_head-3511068d",
+        "ANTIGRAVITY_CONVERSATION_ID": CONV_UUID,
+    }
+    assert ask_run.resolve_requester(None, None, None, env=ph_env) == {
+        "session": "project_head-3511068d",
+        "role": "project_head",
+    }
+    box, role, sid, cid = agy_card_run.resolve_identity(env=ph_env)
+    assert (box, role, sid, cid) == ("project_head-3511068d", "project_head", "3511068d", CONV_UUID)
+
