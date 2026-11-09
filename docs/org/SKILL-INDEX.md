@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-67 org skills by kind — Rules 8 · Knowledge 18 · Workflow 5 · Procedure 13 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+73 org skills by kind — Rules 9 · Knowledge 19 · Workflow 6 · Procedure 13 · Standard 10 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -20,6 +20,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_Secrets` | CTO | all | One rule set for every credential: where it lives, its name, scope and expiry, how it is read, and what a leak sets off. |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
+| `CMO_Rules_YouTube_MultiLangAB` | CMO | cmo, cto, cgo | Mandatory YouTube multi-language publish & A/B/C test rules for Jade Tally (YT: คลิปจีน): 3 universal covers (A/B/C), 3 A/B/C titles per… |
 | `CTO_Rules_Bedrock_References` | CTO | cto, worker | Every link, picture, video, pack or data file handed over as a reference for Minecraft Bedrock work is recorded with its URL and our… |
 | `CXO_Rules_GDrive_Filing` | COO | cxo | Filing rules for the CEO's Google Drive — read before ANY Drive action (create/upload/move/rename/delete, rclone, the gdrive-bridge, the… |
 
@@ -29,6 +30,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `ALL_Knowledge_Jev` | CTO | all | How to get the most out of Jev for the least money — the decisions it fits, the choice/score/noul question types, the cost formula… |
 | `ALL_Knowledge_RunnerPicks` | CTO | all | Which runner:model:effort to send each job kind to (code, fix, review, research, docs, decision …), read from reviewers' verdicts on real… |
+| `BROWSER_OPERATOR_Knowledge_XmPartners` | COO | cxo, worker | How to navigate the XM Partner Area (mypartners.xm.com) on winbox port 9224 in read-only mode: entry URLs, hash routes, exact CSS… |
 | `CMO_Knowledge_CinematicPrompts` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | Pick ready cinematic video prompts: job -> style -> model -> prompt across 66 verified entries with free weekly source updates. |
 | `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Professional cinematography for a SHORT MOVIE (หนังสั้น, cinema grammar) made with AI video engines: lighting setups, portrait patterns… |
 | `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one, reference plates, what to… |
@@ -80,8 +82,11 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Standard_BlackLiquidity_Script` | CMO | cmo, cto, script_writer, developer | Write the Thai script for a BLACK LIQUIDITY episode — the AI-avatar TikTok channel that exposes Forex and Ponzi scams. Use this whenever… |
+| `CMO_Standard_EditorSFX` | CMO | cmo, video_editor, script_writer, developer | Mass-editor free SFX library, situation mapping, pre-roll peak alignment, and -14 LUFS mixing rules for vertical reels and shorts. |
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
+| `CMO_Standard_GhostChannel_DNA` | CMO | cmo, video_editor, script_writer, developer | Visual, spatial, and -14 LUFS sound DNA for RED SEAL ARCHIVE (@redsealarchive) 16:9 horror videos: Nero torn-paper UI cards (A-F), 5-layer… |
 | `CMO_Standard_HumanVoice_TH` | CMO | cmo, content_strategist, script_writer, browser_operator | Final pass on Thai text we publish for outsiders (captions, first comments, comment replies, LINE groups, chatbot templates): Thai AI… |
+| `CMO_Standard_MYPASAKON_NeonDNA` | CMO | cmo, video_editor, script_writer, developer | Minimalist luxury Neon Green DNA for MYPASAKON (@mypasakon) 9:16 videos: Style A Razor Chamfer frame (12px-4px-1px), @keanu.visuals… |
 | `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page 'บ้านนี้มีมีมี่' — who Mimi the black dog is, the CEO's… |
 | `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page "ละครสั้นคุณธรรม" — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
 | `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
