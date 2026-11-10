@@ -38,7 +38,8 @@ CEO order Q-20261110-1404-34fb (C) is done on winbox. All 6 old-channel videos (
 - REPORT.md — this report. No other repo files.
 
 ## Commits
-- see `git log` on branch agent/browser_operator-task-ca79b69b (REPORT.md only)
+- 5945e34b — report: ghost channel move done (old channel parked, Ghost Rules created)
+- e2910eb6 — remove stale BLOCKER.md: brief delivered inline, task completed
 
 ## Tests
 - ran: none (no code changed)
