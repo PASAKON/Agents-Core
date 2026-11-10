@@ -112,9 +112,11 @@ def test_box_bound_tasks_do_not_spillover_automatically():
     assert router.pick_host(t_browser, hosts_rows=rows, now=NOW).host is None
 
 
-def test_guardrail_4_winbox_ceo_hold_blocks_worker_spillover():
+def test_guardrail_4_winbox_ceo_hold_blocks_worker_spillover(monkeypatch):
     """Guardrail #4: When CEO holds the PC lease on Winbox (`ceo_hold=True`),
     workers do not spillover onto Winbox."""
+    base = router.settings()  # checks the lease guard itself, so no move_exclude
+    monkeypatch.setattr(router, "settings", lambda: {**base, "move_exclude": []})
     rows = [
         _row("contabo", running=3, max_workers=3),
         _row("winbox", running=0, max_workers=3, ceo_hold=True),
@@ -300,3 +302,25 @@ def test_ph_brain_cross_host_continuity(monkeypatch, tmp_path):
     )
     assert "[Cross-Host Continuity Summary from previous PH turn on 'contabo']" in prompt
     assert "Completed EP04 script & voiceover" in prompt
+
+
+def test_move_exclude_blocks_spillover_onto_winbox(monkeypatch):
+    """CEO 2026-11-10 Q-20261110-1300-f6ba: no spillover onto a router.move_exclude host
+    until AGY's relocation code is reviewed; a free Mac still takes the task."""
+    base = router.settings()
+    monkeypatch.setattr(router, "settings", lambda: {**base, "move_exclude": ["winbox"]})
+    task = {"id": "task-noexcl", "project": "mooniex-agents", "role": "developer",
+            "host": "contabo", "runner": "agy", "description": "Implement feature X"}
+    full = _row("contabo", running=3, max_workers=3)
+    winbox = _row("winbox", running=0, max_workers=3, cpu_pct=5.0, ceo_hold=False)
+    only_winbox = router.pick_host(task, hosts_rows=[full, _row("mac", running=2, max_workers=2), winbox], now=NOW)
+    assert only_winbox.host is None
+    with_mac = router.pick_host(task, hosts_rows=[full, _row("mac", cpu_pct=20.0), winbox], now=NOW)
+    assert with_mac.host == "mac"
+
+
+def test_move_exclude_refuses_explicit_relocation(monkeypatch):
+    monkeypatch.setattr(router, "move_excluded", lambda: {"winbox"})
+    monkeypatch.setattr(db, "get_task", lambda tid: {"id": tid, "status": "in_progress", "host": "contabo"})
+    with pytest.raises(ValueError, match="move_exclude"):
+        asyncio.run(relocate_task.relocate_task("task-x", target_host="winbox"))

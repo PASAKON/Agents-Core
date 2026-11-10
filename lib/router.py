@@ -132,6 +132,15 @@ def settings() -> dict:
     return yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8")).get("router", {})
 
 
+def move_excluded() -> set[str]:
+    """Hosts a spillover or relocation may not move a task onto (`router.move_exclude`,
+    CEO 2026-11-10 Q-20261110-1300-f6ba). Never raises: an unreadable config excludes nothing."""
+    try:
+        return {str(h).strip().lower() for h in (settings().get("move_exclude") or []) if h}
+    except Exception:  # noqa: BLE001
+        return set()
+
+
 @dataclass
 class HostPick:
     host: str | None            # None = no host fits; the task stays pending
@@ -488,10 +497,12 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
         pick = _decide(shaped, scope, **ctx)
         if pick.host or not can_spillover or not _is_spillover_reason(pick.rejected.get(pin)):
             return pick
-        other_rows = [r for r in shaped if r.get("host") != pin and r.get("host") not in excluded]
+        no_move = move_excluded()
+        other_rows = [r for r in shaped if r.get("host") != pin and r.get("host") not in excluded
+                      and r.get("host") not in no_move]
         if not other_rows:
             return pick
-        spill = _decide(shaped, all_scope, **ctx)
+        spill = _decide(shaped, [h for h in all_scope if h == pin or h not in no_move], **ctx)
         return spill if spill.host or len(other_rows) > 0 else pick
     timeout = policy.get("probe_timeout_s", 10)
     probeable = [n for n in scope if n in configured]
@@ -509,11 +520,13 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
             return pick
     pick = pick or _decide(_merge_live(rows, live, registry, now), scope, **ctx)
     if not pick.host and can_spillover and _is_spillover_reason(pick.rejected.get(pin)):
-        extra_stage = [n for n in all_scope if n in configured and n not in probed]
+        no_move = move_excluded()
+        spill_scope = [n for n in all_scope if n == pin or n not in no_move]
+        extra_stage = [n for n in spill_scope if n in configured and n not in probed]
         if extra_stage:
             live.update(_live_rows(extra_stage, timeout))
             probed += extra_stage
-        pick = _decide(_merge_live(rows, live, registry, now), all_scope, **ctx)
+        pick = _decide(_merge_live(rows, live, registry, now), spill_scope, **ctx)
     return pick
 
 

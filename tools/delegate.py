@@ -2130,7 +2130,7 @@ async def _try_spillover_host(
             host_router.pick_host,
             {**task, "host": None},
             reserve_exception=True,
-            exclude_hosts={failed_host},
+            exclude_hosts={failed_host} | host_router.move_excluded(),
         )
         if pick.host and pick.host != failed_host:
             return pick.host, f"{pick.line} · spillover_from:{failed_host}({reason})"
