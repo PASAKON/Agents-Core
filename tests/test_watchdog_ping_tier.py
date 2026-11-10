@@ -37,6 +37,10 @@ def scan(monkeypatch, tmp_path):
     monkeypatch.setattr(watchdog.work_watch, "watch",
                         lambda: {"alerted": [], "lungnote_filed": [], "green": []})
     monkeypatch.delenv("ORG_WATCHDOG_BRANCH_POLL", raising=False)
+    # watchdog.main() setdefaults these into os.environ (6d3356ec); a test that runs main()
+    # earlier in the same process leaves them on and the 10-min dead-worker stall fires here.
+    monkeypatch.delenv("ORG_SMART_STALL_TIMEOUT", raising=False)
+    monkeypatch.delenv("ORG_WATCHDOG_AUTO_HEAL", raising=False)
     monkeypatch.setattr(watchdog, "_pid_alive", lambda pid: False)
     monkeypatch.setattr(watchdog, "_mac_surfaces", lambda: False)
     monkeypatch.setattr(watchdog, "_file_stalled_issue", lambda t, s: "issue-url")
