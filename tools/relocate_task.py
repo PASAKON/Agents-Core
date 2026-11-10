@@ -645,13 +645,16 @@ async def relocate_task(
             host_router.pick_host,
             {**task, "host": None, "allow_spillover": True},
             reserve_exception=True,
-            exclude_hosts={source_host},
+            exclude_hosts={source_host} | host_router.move_excluded(),
         )
         if not pick.host:
             raise RuntimeError(f"no eligible target host available to relocate {task_id}: {pick.line}")
         resolved_target = pick.host
     else:
         resolved_target = target_host.strip().lower()
+    if resolved_target in host_router.move_excluded():
+        raise ValueError(f"relocation to {resolved_target} is blocked (router.move_exclude, "
+                         "CEO 2026-11-10 Q-20261110-1300-f6ba)")
 
     local_work = work_dir or (Path(WORK_ROOT_BY_HOST.get(source_host, "/opt/MoonieXHQ/Work")) / task_id)
     work_bytes = measure_active_work_bytes(local_work) if (source_host == config.self_host() or work_dir) else 0

@@ -33,6 +33,9 @@ router:
     winbox: 4
   never_on:
     mooniex-expertadvisor: [winbox]
+  # CEO 2026-11-10 (Q-20261110-1300-f6ba): a spillover or relocation (AGY's #687) may not move a task
+  # onto these hosts until that code is reviewed. A task routed or pinned there directly is unchanged.
+  move_exclude: [winbox]
   cpu_exception:
     min_free_ram_gb: 1.6
     slot_ttl_s: 600
