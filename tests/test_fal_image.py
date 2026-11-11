@@ -65,3 +65,10 @@ def test_cli_refuses_unpriced_quality_before_api(work, monkeypatch, capsys, qual
     monkeypatch.setattr(fi, "fetch_key", lambda: pytest.fail("invalid request must not read key"))
     assert fi.main(["--job", "edit", "--max-usd", "1", "--out", str(work / "out"), "edit",
                     "--prompt", "edit", "--ref", str(ref), "--quality", quality, "--size", "1024x1024"]) == 2
+
+
+def test_layerize_reserves_base_plus_16_layers(work):
+    image = png(work / "in.png", 1024, 1024)
+    rc = fi.main(["--job", "j", "--max-usd", "0.5", "--out", str(work / "o"),
+                  "layerize", "--image", str(image), "--prompt", "x"])
+    assert rc == fi.EXIT_CAP  # 17 x $0.03375 = $0.574 > $0.50

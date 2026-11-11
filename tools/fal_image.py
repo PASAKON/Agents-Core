@@ -28,6 +28,7 @@ CAP_RE = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 MAX_BYTES, MAX_ANSWER, POLL_N, POLL_S = 30 << 20, 1 << 20, 150, 2
 MAX_5XX = 2
+MAX_LAYERS = 17  # base image + up to 16 layers; the reserve is always the worst case
 EXIT_FAIL, EXIT_BAD, EXIT_CAP, EXIT_KEY = 1, 2, 3, 4
 EDIT_BASE = {("1920x1072", "low"): .00441, ("1920x1072", "medium"): .00951,
              ("1920x1072", "high"): .03945, ("1024x1024", "low"): .00588,
@@ -195,7 +196,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", required=True); ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--fire", action="store_true", help="send paid calls; default is dry-run")
     subs = ap.add_subparsers(dest="kind", required=True)
-    lp = subs.add_parser("layerize", allow_abbrev=False); lp.add_argument("--image", required=True); lp.add_argument("--prompt", required=True); lp.add_argument("--max-layers", type=int, default=8)
+    lp = subs.add_parser("layerize", allow_abbrev=False); lp.add_argument("--image", required=True); lp.add_argument("--prompt", required=True)
     ep = subs.add_parser("edit", allow_abbrev=False); ep.add_argument("--prompt", required=True); ep.add_argument("--ref", action="append", required=True); ep.add_argument("--quality", required=True); ep.add_argument("--size", required=True)
     a = ap.parse_args(argv)
     if a.fire and a.dry_run: ap.error("--fire and --dry-run cannot be combined")
@@ -203,9 +204,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         out = under_work(a.out, "--out")
         if a.kind == "layerize":
-            if not 1 <= a.max_layers <= 16: raise JobError("--max-layers must be 1 to 16")
-            image = under_work(a.image, "--image"); w, h, _ = image_info(image)
-            model = LAYERIZE; cost = a.max_layers * (.03375 if w <= 1536 and h <= 1536 else .0675)
+            # fal returns a base image plus up to 16 layers and has no count input: reserve all 17 (CTO review).
+            image = under_work(a.image, "--image")
+            model = LAYERIZE; cost = price_layerize(image, MAX_LAYERS)
             refs = [image]; body = {"image_url": None, "prompt": a.prompt}
         else:
             if a.quality not in ("low", "medium", "high"): raise JobError("quality must be low, medium or high (auto/xhigh/max refused)")
@@ -243,7 +244,6 @@ def main(argv: list[str] | None = None) -> int:
             urls = [upload(p, key) for p in refs]
             if model == LAYERIZE: body["image_url"] = urls[0]
             else: body["image_urls"] = urls
-            # Seedream schema has no output layer-count field; max_layers is pricing reserve only.
             lf.seek(0, os.SEEK_END); lf.write(json.dumps({"at":dt.datetime.now(dt.timezone.utc).isoformat(),"what":"attempt","model":model,"usd":cost})+"\n"); lf.flush(); os.fsync(lf.fileno())
             rid, res = one_call(model, key, body)
             images = res.get("images")

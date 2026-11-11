@@ -9,7 +9,7 @@
 ## What was done
 
 - Added required `--job`, `--max-usd`, `--out`, `layerize`, and `edit` CLI options. `--fire` is required to make uploads or paid calls; otherwise the invocation is a dry-run.
-- Reads PNG/JPEG/WebP dimensions locally to choose the Seedream area tier. Uses the task brief's per-layer price and layer maximum for the pre-send reserve. Seedream's current API schema has no layer-count input field, so `--max-layers` is used for pricing only.
+- Reads PNG/JPEG/WebP dimensions locally to choose the Seedream area tier. Uses the task brief's per-layer price and layer maximum for the pre-send reserve. Seedream's current API schema has no layer-count input field, so the pre-send reserve always prices the worst case: the base image plus 16 layers (17 images; CTO review removed `--max-layers`).
 - Prices Flare output by supported size and low/medium/high quality, plus $0.012 per reference. Rejects all other qualities and sizes.
 - Uses the existing FAL_MEDIA_API_KEY_RW environment/Infisical source and does not print the key. Input paths must resolve under `/opt/MoonieXHQ/Work/`; uploads and image downloads are confined to fal storage URLs.
 - Uses a locked `<job>.ledger.jsonl` under the work root and refuses before uploads when the ledger-inclusive cap would be exceeded.
@@ -23,7 +23,7 @@
 ## Not checked / risk
 
 - Mocked unit tests need to be run in an environment with pytest installed.
-- Seedream's documented schema returns a base image plus up to 16 separated layers but exposes no layer-count input. The worst-case cap reserve follows `--max-layers`; the API request cannot enforce that output count.
+- Seedream's documented schema returns a base image plus up to 16 separated layers but exposes no layer-count input. The reserve therefore always assumes 17 images ($0.574 low tier, $1.15 high tier); a smaller output is billed below the reserve.
 - This worker does not create or open a PR. The task launcher owns commit and push; PR creation remains outside this worktree workflow.
 
 ## Blockers
