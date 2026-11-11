@@ -82,7 +82,7 @@ hosts:
     agents_root: 'C:\Users\passg\mooniex'
     worktrees: 'C:\Users\passg\mooniex\worktrees'
     provides: [chrome, blender, win_gui, ffmpeg]
-    # CEO 2026-10-30 host-fill plan: three workers, with a 4 GB RAM floor.
+    # CEO 2026-10-30 host-fill plan: three workers; the 4 GB floor was replaced 2026-11-11 by the 90% fill limit.
     max_workers: 3
     max_browser_operators: 2
     # Measured 2026-09-20, RECONCILED 2026-09-22 (CTO REVIEW-ITER2.md, doc

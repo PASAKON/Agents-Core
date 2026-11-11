@@ -135,8 +135,9 @@ PH HostSpawn's (#a08).
 - One exception (CEO 30 Oct, Q-20261030-0315-9f03): work that can run only on Contabo may start while Contabo is at
   80% or more from CPU alone, if its RAM used is under 80% (`ram_free_gb` ≥ 1.6 in `tools/host_fill.py --json`).
   Only one such job runs at a time, across every lane; a worker, a render and a Flow card each count as one.
-- A task or a PH that names its host keeps it, except: ExpertAdvisor never runs on winbox; winbox keeps 4 GB of
-  RAM free for the live EA (§winbox below); renders stay on Contabo until the winbox render test has passed.
+- A task or a PH that names its host keeps it, except: ExpertAdvisor never runs on winbox; winbox has no fixed RAM
+  reserve; work starts there while RAM, CPU and disk are each under 90% (CEO 11 Nov, Q-20261111-0524-640c);
+  renders stay on Contabo until the winbox render test has passed.
 - The router is switched on (`config/hosts.yaml` `router.enabled: true`, 2026-11-02): when `host=` is omitted,
   `create_task` and `spawn_ph` pick the least-full online host that fits (`tools/host_fill.py`). Pass `host=` only
   when a task or PH must be pinned to a specific host.
