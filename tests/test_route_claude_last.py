@@ -133,7 +133,9 @@ def test_live_plans_yaml():
     assert cfg["small_first"]["dev_general"] == "agy:gemini-3.8-flash-high"
     assert cfg["role_classes"]["content_strategist"] == "doc_text"
     assert cfg["role_classes"]["script_writer"] == "doc_text"
-    assert "prompt_engineer" not in cfg["role_classes"]
+    # CEO 11 Nov (CMO chat): CMO-lane shell roles route AGY -> codex -> Claude.
+    assert cfg["role_classes"]["prompt_engineer"] == "dev_shell"
+    assert cfg["role_classes"]["video_editor"] == "dev_shell"
 
 
 def test_codex_bonus_holds_codex_full_until_7_nov():
