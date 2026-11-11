@@ -563,6 +563,29 @@ def fetch_claude(cfg: dict | None = None) -> Quota:
         )
 
 
+# 11 Nov 2026: the newest rollout is often a session that has not logged a rate_limits event yet (or an
+# aborted one). Reading only that file returned "no payload.rate_limits" and the router dropped codex
+# from every plan, so CMO-lane and developer work sat in budget_queue while Codex was 96% free.
+CODEX_LOOKBACK = 20
+_CODEX_FILE_SEP = "@@codex-rollout-end@@"
+
+
+def _first_codex_quota(files) -> Quota:
+    """Parse (source, lines) pairs newest first; return the first reading without an error.
+
+    With none, return the newest file's error so the cause stays visible."""
+    first = None
+    for source, lines in files:
+        q = parse_codex(lines, source=source)
+        if q.error is None:
+            return q
+        if first is None:
+            first = q
+    if first is None:
+        raise RuntimeError("no codex session files found matching glob")
+    return first
+
+
 def fetch_codex(cfg: dict | None = None) -> Quota:
     """Fetch Codex usage from configured source (newest rollout JSONL)."""
     cfg = cfg or load_plans()
@@ -573,22 +596,25 @@ def fetch_codex(cfg: dict | None = None) -> Quota:
 
     try:
         if ssh:
-            # Find the newest rollout file and cat it
-            remote_cmd = f"ls -t {glob_pat} 2>/dev/null | head -n 1 | xargs -r cat"
+            # The newest rollout files that carry usage data, newest first (see CODEX_LOOKBACK).
+            remote_cmd = (f"ls -t {glob_pat} 2>/dev/null | head -n {CODEX_LOOKBACK} | "
+                          "while read -r f; do grep -q -e '\"rate_limits\"' -e '\"task_complete\"' \"$f\" "
+                          "&& { cat \"$f\"; printf '\\n%s\\n' '" + _CODEX_FILE_SEP + "'; }; done")
             cmd = ["ssh", ssh, remote_cmd]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             if res.returncode != 0:
                 raise RuntimeError(f"ssh exit {res.returncode}: {res.stderr.strip()[:200]}")
             raw = res.stdout
             if not raw.strip():
                 raise RuntimeError("no codex session files found on remote host")
-            return parse_codex(raw.splitlines(), source=src_label)
+            files = [(src_label, chunk.splitlines()) for chunk in raw.split(_CODEX_FILE_SEP) if chunk.strip()]
+            return _first_codex_quota(files)
         else:
             matches = sorted(glob.glob(glob_pat), key=os.path.getmtime, reverse=True)
             if not matches:
                 raise RuntimeError("no codex session files found matching glob")
-            lines = Path(matches[0]).read_text().splitlines()
-            return parse_codex(lines, source=str(matches[0]))
+            files = ((str(m), Path(m).read_text().splitlines()) for m in matches[:CODEX_LOOKBACK])
+            return _first_codex_quota(files)
     except Exception as e:
         return Quota(
             provider="codex",
