@@ -225,3 +225,40 @@ def test_router_treats_quota_without_rate_limits_as_exhausted():
     assert choices[0].candidate == "agy:gemini-3.8-flash-high"
     assert choices[-1].candidate == "codex:"
     assert choices[-1].reason == "exhausted"
+
+
+def test_fetch_codex_skips_newest_rollout_without_usage(tmp_path):
+    """11 Nov 2026: a fresh session with no rate_limits yet must not hide the last real reading."""
+    import json as _json
+    import os as _os
+    import time as _time
+    from tools.quota import fetch_codex
+
+    day = tmp_path / "2026" / "11" / "11"
+    day.mkdir(parents=True)
+    old = day / "rollout-old.jsonl"
+    old.write_text(_json.dumps({"payload": {"rate_limits": {
+        "primary": {"used_percent": 4.0, "window_minutes": 10080, "resets_at": 1794988949},
+        "secondary": None}}}) + "\n")
+    new = day / "rollout-new.jsonl"
+    new.write_text(_json.dumps({"payload": {"type": "user_message"}}) + "\n")
+    now = _time.time()
+    _os.utime(old, (now - 600, now - 600))
+    _os.utime(new, (now, now))
+    cfg = {"quota_sources": {"codex": {"ssh": "", "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
+    q = fetch_codex(cfg)
+    assert q.error is None
+    assert q.weekly_remaining == 0.96
+    assert q.source == str(old)
+
+
+def test_fetch_codex_reports_newest_error_when_no_file_has_usage(tmp_path):
+    import json as _json
+    from tools.quota import fetch_codex
+
+    day = tmp_path / "2026" / "11" / "11"
+    day.mkdir(parents=True)
+    (day / "rollout-a.jsonl").write_text(_json.dumps({"payload": {"type": "user_message"}}) + "\n")
+    cfg = {"quota_sources": {"codex": {"ssh": "", "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
+    q = fetch_codex(cfg)
+    assert q.error and "rate_limits" in q.error
