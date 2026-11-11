@@ -46,7 +46,7 @@ load. Hooks run on `.venv\Scripts\python3.exe`.
 - Shell: PowerShell (default) + cmd. Git, Python 3.11, Node 24 + npm, winget
   available. Claude Code installed at `%USERPROFILE%\.local\bin` (the user
   was `UsEr` before the 2026-09 reinstall, `passg` after).
-- RAM is tight (~4 GB free) — run ONE heavy thing at a time, don't spawn
+- Start work while RAM, CPU and disk are each under 90%; run ONE heavy thing at a time, don't spawn
   parallel subagents casually.
 - The Mac can reach this box over SSH (`ssh winbox`) for file drops; deliver
   artifacts to predictable paths and say where you put them.
