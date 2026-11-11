@@ -409,6 +409,40 @@ class ChatGPTBrowser:
             return ("human_check", "relay needed: attach button missing for >20 s")
         return None
 
+    def delete_library_files(self) -> int:
+        """Delete only this conversation's Library files; credentials stay in-page."""
+        match = re.fullmatch(r"https://chatgpt\.com/c/([A-Za-z0-9-]+)(?:[?#].*)?", self.page.url)
+        if not match:
+            raise RuntimeError("chat cleanup failed: no current conversation id")
+        try:
+            deleted = self.page.evaluate("""async (id) => {
+                try {
+                    if (!id) return -1;
+                    const session = await fetch('/api/auth/session');
+                    if (!session.ok) return -1;
+                    const {accessToken} = await session.json();
+                    if (!accessToken) return -1;
+                    const headers = {'Content-Type': 'application/json', Authorization: 'Bearer ' + accessToken};
+                    const response = await fetch('/backend-api/files/library/nodes?entry_surface=library&include_hidden_files=false&include_files=true&include_saved_entities=true&defer_sharing_badges=true&include_sites=false&include_folder_counts=false&include_onedrive=false&hydrate_folder_thumbnails=false', {headers});
+                    if (!response.ok) return -1;
+                    const data = await response.json();
+                    if (!Array.isArray(data.items)) return -1;
+                    const files = data.items.filter(n => n.kind === 'file' && n.origination_thread_id === id)
+                        .map(n => ({library_file_id: n.id, file_id: n.file_id,
+                                    parent_directory_id: n.parent_directory_id, file_name: n.name}));
+                    if (!files.length) return 0;
+                    const deletion = await fetch('/backend-api/files/library/files/delete-batch', {
+                        method: 'POST', headers, body: JSON.stringify({files})
+                    });
+                    return deletion.ok ? files.length : -1;
+                } catch (_) { return -1; }
+            }""", match.group(1))
+        except Exception:
+            raise RuntimeError("chat cleanup failed: library request failed") from None
+        if type(deleted) is not int or deleted < 0:
+            raise RuntimeError("chat cleanup failed: library rejected request")
+        return deleted
+
     def delete_chat(self):
         # The header selector is no longer present. Use the authorized backend
         # fallback; keep the session token entirely inside the page context.
@@ -779,7 +813,7 @@ def process_steps(browser, image, out_dir, ledger_path, ledger, timeout_s):
     row = {
         "name": name, "status": "done", "chat_url": chat_url, "md5": md5,
         "bytes": len(data), "width": result.get("width"), "height": result.get("height"),
-        "time": now_iso(), "note": "",
+        "time": now_iso(), "note": "", "deleted_from_chatgpt": 0,
     }
     if parent or resume_url:
         row["continued_from"] = parent or resume_url
@@ -817,7 +851,7 @@ def recover_one(browser: ChatGPTBrowser, name: str, out_dir: Path,
     return new
 
 
-def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s):
+def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s, keep_in_chatgpt=False):
     """Cooperative round-robin: Playwright stays on its owning thread."""
     pending = list(todo)
     busy = {}
@@ -903,11 +937,13 @@ def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s):
             if row and row["status"] == "stopped":
                 return stop(row), completed
             if row and row["status"] == "done":
-                if not any(owners.get(im.get("continue")) is tab for im in pending):
+                if not keep_in_chatgpt and not any(owners.get(im.get("continue")) is tab for im in pending):
                     try:
+                        row["deleted_from_chatgpt"] = tab.delete_library_files()
                         tab.delete_chat()
                     except Exception as exc:
                         print(f"chat cleanup failed: {exc}")
+                    save_ledger(ledger_path, ledger)
         if busy:
             time.sleep(POLL_S)
         elif pending:
@@ -980,7 +1016,8 @@ def cmd_run(args) -> int:
     try:
         browser.attach()
         tabs = [browser] + [browser.new_tab() for _ in range(getattr(args, "parallel", 1) - 1)]
-        code, completed = run_scheduler(tabs, todo, out_dir, ledger_path, ledger, args.timeout_s)
+        code, completed = run_scheduler(tabs, todo, out_dir, ledger_path, ledger, args.timeout_s,
+                                        keep_in_chatgpt=getattr(args, "keep_in_chatgpt", False))
     except Exception as exc:
         print(f"runner failed: {exc}")
     finally:
@@ -1011,6 +1048,8 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--one", help="only process this one image name")
     ap.add_argument("--dry-run", action="store_true",
                      help="parse the brief and print what would run; no browser touched")
+    ap.add_argument("--keep-in-chatgpt", action="store_true",
+                    help="keep Library files and chats after saving images locally")
     ap.add_argument("--cdp-url", default=CDP_DEFAULT,
                      help=f"default {CDP_DEFAULT} — the dedicated ChatGPT Chrome")
     ap.add_argument("--timeout-s", type=int, default=COMPLETION_TIMEOUT_S,
