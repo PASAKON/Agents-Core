@@ -49,6 +49,7 @@ Usage:
 from __future__ import annotations
 
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -240,9 +241,34 @@ def main() -> int:
     role = sys.argv[3] if len(sys.argv) > 3 else None
     cto_id = sys.argv[4] if len(sys.argv) > 4 else None
     owner_role = sys.argv[5] if len(sys.argv) > 5 else "cto"
+    # 11 Nov: `... cto fresh project_head-8dbe4ccc` swapped cto_id and owner_role. The
+    # letter went to mailbox project_head-8dbe4ccc-fresh, nobody read it, and the CLI
+    # still printed "queued". A role is a bare word; refuse anything else before writing.
+    bad = [f"{n}={v!r}" for n, v in (("owner_role", owner_role), ("role", role))
+           if v and not re.fullmatch(r"[a-z][a-z_]*", v)]
+    if bad:
+        print(f"refused: {', '.join(bad)} is not a role name (lowercase, no '-' or id). "
+              f"Mailbox = <owner_role>-<cto_id>, e.g. `... cto fresh 8dbe4ccc project_head`.",
+              file=sys.stderr)
+        return 2
     ok = send(sys.argv[1], sys.argv[2], role=role, cto_id=cto_id,
               owner_role=owner_role)
-    print("queued" if ok else "orphaned (see state/orphan-dev-replies-*.log)")
+    if not ok:
+        print("orphaned (see state/orphan-dev-replies-*.log)")
+        return 0
+    if cto_id:
+        target = session_name.lock_basename(owner_role, resolve_owner(owner_role, cto_id))
+        try:
+            live = agent_transport.tmux_session.has_session(target)
+        except OSError:
+            live = False
+        if not live:
+            print(f"queued to {target}, but NO LIVE SESSION has that name: nobody is woken. "
+                  f"Check the name with scripts/live-sessions.sh.")
+            return 3
+        print(f"queued to {target} (live)")
+        return 0
+    print("queued")
     return 0
 
 
