@@ -21,6 +21,11 @@ import pytest
 
 from tools import chatgpt_images as ci
 
+
+@pytest.fixture(autouse=True)
+def no_real_wait(monkeypatch):
+    monkeypatch.setattr(ci.time, "sleep", lambda _: None)
+
 FIXTURE_BRIEF = (Path(__file__).resolve().parent.parent / "docs" / "ops" / "briefs"
                   / "ilag-trailer-chatgpt-round3-village.md")
 
@@ -173,6 +178,12 @@ class StubBrowser:
     def close(self):
         self.closed = True
 
+    def bring_to_front(self):
+        self.calls.append(("front",))
+
+    def delete_chat(self):
+        self.calls.append(("delete",))
+
     def new_chat(self):
         self.calls.append(("new_chat",))
 
@@ -228,7 +239,7 @@ class StubBrowser:
 
 def _run(images, script, out_dir, one=None, dry_run=False):
     browser = StubBrowser(script)
-    orig_process_one = ci.process_one
+    orig_process_one = ci.process_steps
 
     def patched(browser_arg, image, out_dir_arg, ledger_path, ledger, timeout_s):
         browser_arg.process(image["name"])
@@ -242,7 +253,7 @@ def _run(images, script, out_dir, one=None, dry_run=False):
 
     import unittest.mock as mock
     with mock.patch.object(ci, "ChatGPTBrowser", return_value=browser), \
-         mock.patch.object(ci, "process_one", patched):
+         mock.patch.object(ci, "process_steps", patched):
         code = ci.cmd_run(args)
     return code, browser
 
@@ -294,7 +305,7 @@ def test_cmd_run_stops_the_whole_batch_on_a_hazard(tmp_path):
     script = {"apple": {"result": {"status": "hazard", "hazard_kind": "usage_limit",
                                      "text": "usage cap reached"}}}
     code, browser = _run(images, script, tmp_path)
-    assert code == 1
+    assert code == 5
     assert browser.seen_names == ["apple"]  # pear never attempted
     ledger = ci.load_ledger(tmp_path / "ledger.json")
     assert ledger["apple"]["status"] == "stopped"
@@ -437,3 +448,178 @@ def test_a_garbled_first_paste_is_cleared_before_the_retry(tmp_path):
                           tmp_path / "ledger.json", {}, timeout_s=1)
     assert row["status"] == "done"
     assert ("clear_composer",) in browser.calls
+
+
+@pytest.mark.parametrize("text", ["คุณใช้โควต้าสร้างรูปภาพหมดแล้ว",
+                                   "ถึงลิมิตของแพ็กเกจ Free", "รอสร้างเพิ่มเวลา 13:29"])
+def test_thai_usage_limit(text):
+    kind, excerpt = ci.classify_hazard(text, True)
+    assert kind == "usage_limit"
+    if "13:29" in text:
+        assert "13:29" in excerpt
+
+
+@pytest.mark.parametrize("text", ["Just a moment", "รอสักครู่", "Verify you are human"])
+def test_human_check(text):
+    assert ci.classify_hazard(text, True)[0] == "human_check"
+
+
+def schedule(tmp_path, monkeypatch, images, results=None, ledger=None, parallel=2):
+    events = []
+    results = results or {}
+    ledger = ledger if ledger is not None else {}
+
+    class Tab(StubBrowser):
+        def __init__(self, number):
+            super().__init__({im["name"]: _done("src:" + im["name"], im["name"].encode())
+                              for im in images})
+            self.number = number
+
+        def new_chat(self):
+            self.page.url = "https://chatgpt.com/c/" + self._current
+
+        def paste_prompt(self, text):
+            self._pasted = text
+
+        def send(self):
+            events.append(("send", self._current, self.number))
+
+        def poll_result(self, **kwargs):
+            # A needs longer than B, exercising refill while A remains busy.
+            for _ in range(3 if self._current == "a" else 1):
+                events.append(("poll", self._current, self.number))
+                yield None
+            events.append(("finish", self._current, self.number))
+            return results.get(self._current, self.script[self._current]["result"])
+
+        def delete_chat(self):
+            events.append(("delete", self._current, self.number))
+
+    original = ci.process_steps
+
+    def steps(tab, image, *args):
+        tab.process(image["name"])
+        return original(tab, image, *args)
+
+    monkeypatch.setattr(ci, "process_steps", steps)
+    tabs = [Tab(i) for i in range(parallel)]
+    todo = [im for im in images if ledger.get(im["name"], {}).get("status") != "done"]
+    code, rows = ci.run_scheduler(tabs, todo, tmp_path, tmp_path / "ledger.json", ledger, 60)
+    return code, events, ledger
+
+
+@pytest.mark.parametrize("parallel", [1, 2, 3, 4])
+def test_scheduler_fills_all_slots_and_refills(tmp_path, monkeypatch, parallel):
+    images = [{"name": n, "prompt": n} for n in "abcdef"]
+    code, events, ledger = schedule(tmp_path, monkeypatch, images, parallel=parallel)
+    assert code == 0
+    assert [e[0] for e in events[:parallel]] == ["send"] * parallel
+    assert all(row["status"] == "done" for row in ledger.values())
+    if parallel > 1:
+        next_name = "abcdef"[parallel]
+        assert next(e for e in events if e[:2] == ("send", next_name))[2] == 1
+        assert next(i for i, e in enumerate(events) if e[:2] == ("send", next_name)) < events.index(("finish", "a", 0))
+
+
+def test_scheduler_continue_waits_and_keeps_parent_tab(tmp_path, monkeypatch):
+    images = [{"name": "a", "prompt": "a"},
+              {"name": "child", "prompt": "edit", "continue": "a"},
+              {"name": "b", "prompt": "b"},
+              {"name": "grandchild", "prompt": "edit", "continue": "child"}]
+    code, events, ledger = schedule(tmp_path, monkeypatch, images)
+    assert code == 0
+    for parent, child in [("a", "child"), ("child", "grandchild")]:
+        assert events.index(("finish", parent, 0)) < events.index(("send", child, 0))
+        assert ledger[parent]["chat_url"] == ledger[child]["chat_url"]
+        assert ("delete", parent, 0) not in events
+    assert ("delete", "grandchild", 0) in events
+
+
+@pytest.mark.parametrize("text, expected", [("คุณใช้โควต้าสร้างรูปภาพหมดแล้ว รอสร้างเพิ่มเวลา 13:29", 5),
+                                             ("Just a moment", 6)])
+def test_scheduler_hazard_stops_all_tabs(tmp_path, monkeypatch, capsys, text, expected):
+    kind, excerpt = ci.classify_hazard(text, True)
+    images = [{"name": n, "prompt": n} for n in "abcd"]
+    code, events, ledger = schedule(tmp_path, monkeypatch, images,
+        results={"b": {"status": "hazard", "hazard_kind": kind, "text": excerpt}})
+    assert code == expected
+    assert [e[1] for e in events if e[0] == "send"] == ["a", "b"]
+    assert ledger["a"]["status"] == ledger["b"]["status"] == "stopped"
+    output = capsys.readouterr().out
+    assert ("relay needed" if expected == 6 else "13:29") in output
+
+
+def test_scheduler_failed_parent_blocks_child(tmp_path, monkeypatch):
+    code, events, ledger = schedule(tmp_path, monkeypatch,
+        [{"name": "a", "prompt": "a"}, {"name": "b", "prompt": "b", "continue": "a"}],
+        results={"a": {"status": "timeout"}})
+    assert code == 1
+    assert ledger["b"]["status"] == "failed"
+    assert not any(e[:2] == ("send", "b") for e in events)
+
+
+def test_cmd_failure_exit_and_summary(tmp_path, capsys):
+    code, _ = _run([{"name": "a", "prompt": "x"}],
+                   {"a": {"result": {"status": "timeout"}}}, tmp_path)
+    assert code == 1
+    assert "done 0 · failed 1 · skipped 0 · elapsed" in capsys.readouterr().out
+
+
+def test_scheduler_resume_skips_done_parent(tmp_path, monkeypatch):
+    ledger = {"a": {"status": "done", "chat_url": "https://chatgpt.com/c/old"}}
+    code, events, ledger = schedule(tmp_path, monkeypatch,
+        [{"name": "a", "prompt": "a"}, {"name": "b", "prompt": "edit", "continue": "a"}], ledger=ledger)
+    assert code == 0
+    assert [e[1] for e in events if e[0] == "send"] == ["b"]
+    assert ledger["b"]["chat_url"] == ledger["a"]["chat_url"]
+
+
+def test_adapter_missing_attach_times_out_and_resets(monkeypatch):
+    from unittest.mock import Mock
+    browser = ci.ChatGPTBrowser()
+    browser.page = Mock()
+    browser.page.title.return_value = "ChatGPT"
+    browser.body_text = lambda: ""
+    browser.composer_present = lambda: True
+    browser.page.locator.return_value.count.return_value = 0
+    clock = [0]
+    monkeypatch.setattr(ci.time, "monotonic", lambda: clock[0])
+    assert browser.hazard() is None
+    clock[0] = 20
+    assert browser.hazard() is None
+    clock[0] = 21
+    assert browser.hazard()[0] == "human_check"
+    browser.page.locator.return_value.count.return_value = 1
+    assert browser.hazard() is None
+    browser.page.locator.return_value.count.return_value = 0
+    assert browser.hazard() is None
+
+
+def test_adapter_title_check_precedes_old_image_filter():
+    from unittest.mock import Mock
+    browser = ci.ChatGPTBrowser()
+    browser.page = Mock()
+    browser.page.title.return_value = "Just a moment"
+    browser.body_text = lambda: ""
+    browser.composer_present = lambda: False
+    with pytest.raises(StopIteration) as done:
+        next(browser.poll_result(exclude_src="old-image", min_assistant_turns=99))
+    assert done.value.value["hazard_kind"] == "human_check"
+
+
+def test_adapter_new_tabs_share_context_and_close_only_owned_pages():
+    from unittest.mock import Mock
+    browser = ci.ChatGPTBrowser()
+    browser.page = Mock()
+    browser._owned_pages = [browser.page]
+    second = browser.new_tab()
+    assert second.page is browser.page.context.new_page.return_value
+    browser.close()
+    browser.page.close.assert_called_once()
+    second.page.close.assert_called_once()
+
+
+@pytest.mark.parametrize("value", ["0", "5", "-1"])
+def test_parallel_range(value):
+    with pytest.raises(SystemExit):
+        ci.build_parser().parse_args(["--prompt", "x", "--out", "out", "--parallel", value])

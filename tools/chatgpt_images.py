@@ -62,7 +62,8 @@ Any of {logged out, usage limit, paywall, a turn that ends with no image —
 refusal, clarifying question, or anything else this zero-model runner
 cannot judge} **stops the whole run cleanly** (brief's own list) — the
 ledger row for the image in progress records what was seen, the run
-returns exit code 1, and re-running the same command later picks up from
+returns exit code 5 for usage limits, 6 for human checks, or 1 for other
+failures, and re-running the same command later picks up from
 the first name whose ledger status is not yet "done". A single image's own
 technical hiccup (attach failed, paste didn't verify, timeout, a duplicate
 MD5) fails only that image (ledger status "failed") and the run continues
@@ -78,6 +79,7 @@ import os
 import re
 import sys
 import time
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -115,6 +117,8 @@ COMPOSER_SEL = '#prompt-textarea, div[contenteditable="true"]'
 # aria-label "ส่ง" (the runner failed 4 of 4 with "send did not register" until this was added).
 SEND_SEL = ('button#composer-submit-button, button[data-testid="send-button"], '
             'button[aria-label="ส่ง"], button[aria-label="Send prompt"]')
+ATTACH_SEL = ('button[data-testid="composer-plus-btn"], '
+              'button[aria-label="Attach files" i], button[aria-label="แนบไฟล์"]')
 
 PASTE_JS = """
 (text) => {
@@ -190,7 +194,9 @@ POLL_JS = """
 SIGNED_OUT_RE = re.compile(r"\blog\s?in\b", re.IGNORECASE)
 USAGE_LIMIT_RE = re.compile(
     r"(you.?ve (reached|hit)|usage cap|message limit|rate limit|"
-    r"try again (later|in)|too many requests)", re.IGNORECASE)
+    r"try again (later|in)|too many requests|คุณใช้โควต้าสร้างรูปภาพหมดแล้ว|"
+    r"ถึงลิมิตของแพ็กเกจ\s*Free|รอสร้างเพิ่มเวลา)", re.IGNORECASE)
+HUMAN_CHECK_RE = re.compile(r"Just a moment|รอสักครู่|Verify you are human", re.IGNORECASE)
 PAYWALL_RE = re.compile(
     r"(upgrade to (plus|go|pro|team)|get chatgpt plus|subscribe to continue|"
     r"unlock with plus|plus plan|pro plan)", re.IGNORECASE)
@@ -203,13 +209,17 @@ def classify_hazard(body_text: str, composer_present: bool) -> tuple[str, str] |
     terminal "generation ended with no image" state, handled by the caller
     with the assistant's own turn text (whatever it actually said)."""
     text = body_text or ""
+    if HUMAN_CHECK_RE.search(text):
+        return ("human_check", text[:1000])
     if not composer_present:
         m = SIGNED_OUT_RE.search(text)
         if m:
             return ("signed_out", text[max(0, m.start() - 40):m.end() + 40].strip())
     m = USAGE_LIMIT_RE.search(text)
     if m:
-        return ("usage_limit", text[max(0, m.start() - 40):m.end() + 80].strip())
+        reset = re.search(r"\b\d{1,2}:\d{2}\b", text)
+        excerpt = text[max(0, m.start() - 40):m.end() + 80].strip()
+        return ("usage_limit", excerpt + (f" · reset {reset.group()}" if reset else ""))
     m = PAYWALL_RE.search(text)
     if m:
         return ("paywall", text[max(0, m.start() - 40):m.end() + 80].strip())
@@ -293,7 +303,15 @@ def load_ledger(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+_LEDGER_LOCK = threading.RLock()
+
+
 def save_ledger(path: Path, rows: dict) -> None:
+    with _LEDGER_LOCK:
+        _save_ledger(path, rows)
+
+
+def _save_ledger(path: Path, rows: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(rows, indent=2, ensure_ascii=False, sort_keys=True),
@@ -338,13 +356,16 @@ class ChatGPTBrowser:
         self._pw = None
         self._browser = None
         self.page = None
+        self._owned_pages = []
+        self._missing_attach_since = None
 
     def attach(self):
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
         ctx = self._browser.contexts[0]
-        page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        page = ctx.new_page()
+        self._owned_pages.append(page)
         try:
             page.bring_to_front()
         except Exception:
@@ -352,7 +373,41 @@ class ChatGPTBrowser:
         self.page = page
         return page
 
+    def new_tab(self):
+        tab = ChatGPTBrowser(self.cdp_url)
+        tab.page = self.page.context.new_page()
+        self._owned_pages.append(tab.page)
+        return tab
+
+    def bring_to_front(self):
+        self.page.bring_to_front()
+
+    def hazard(self):
+        hazard = classify_hazard(self.page.title() + "\n" + self.body_text(),
+                                 self.composer_present())
+        if hazard:
+            return hazard
+        if self.page.locator(ATTACH_SEL).count():
+            self._missing_attach_since = None
+        elif self._missing_attach_since is None:
+            self._missing_attach_since = time.monotonic()
+        elif time.monotonic() - self._missing_attach_since > 20:
+            return ("human_check", "relay needed: attach button missing for >20 s")
+        return None
+
+    def delete_chat(self):
+        # Delete only the current conversation, through its own header menu.
+        self.page.locator('button[data-testid="conversation-options-button"]').click(timeout=3000)
+        self.page.get_by_role("menuitem", name=re.compile(r"^(Delete|ลบ)", re.I)).click(timeout=3000)
+        self.page.get_by_role("dialog").get_by_role(
+            "button", name=re.compile(r"^(Delete|ลบ)", re.I)).click(timeout=3000)
+
     def close(self) -> None:
+        for page in self._owned_pages:
+            try:
+                page.close()
+            except Exception:
+                pass
         try:
             if self._browser:
                 self._browser.close()
@@ -486,17 +541,32 @@ class ChatGPTBrowser:
 
     def wait_for_result(self, timeout_s: int = COMPLETION_TIMEOUT_S,
                         exclude_src: str | None = None, min_assistant_turns: int = 0) -> dict:
+        work = self.poll_result(timeout_s, exclude_src, min_assistant_turns)
+        while True:
+            try:
+                next(work)
+            except StopIteration as done:
+                return done.value
+            time.sleep(POLL_S)
+
+    def poll_result(self, timeout_s=COMPLETION_TIMEOUT_S,
+                    exclude_src=None, min_assistant_turns=0):
         """exclude_src / min_assistant_turns: in a continued chat the previous
         reply, with its finished image, is the newest turn until the new one
         appears — it must never be taken for the result."""
-        start = time.time()
+        start = time.monotonic()
         last_src, stable = None, 0
         last_text, text_stable = None, 0
-        while time.time() - start < timeout_s:
+        while True:
+            hazard = self.hazard()
+            if hazard:
+                return {"status": "hazard", "hazard_kind": hazard[0], "text": hazard[1]}
+            if time.monotonic() - start >= timeout_s:
+                return {"status": "timeout"}
             state = self.page.evaluate(POLL_JS)
             if state["assistantTurns"] < min_assistant_turns or (
                     exclude_src and state["imgSrc"] == exclude_src):
-                time.sleep(POLL_S)
+                yield None
                 continue
             hazard = classify_hazard(state["bodySnippet"], state["composerPresent"])
             if hazard:
@@ -513,7 +583,7 @@ class ChatGPTBrowser:
                             "width": state["naturalW"], "height": state["naturalH"]}
             else:
                 last_src, stable = None, 0
-            elapsed = time.time() - start
+            elapsed = time.monotonic() - start
             text = (state["lastAssistantText"] or "").strip()
             if not state["stillGenerating"] and not state["imgPresent"] and text:
                 text_stable = text_stable + 1 if text == last_text else 1
@@ -522,8 +592,7 @@ class ChatGPTBrowser:
                     return {"status": "refusal", "text": text}
             else:
                 last_text, text_stable = None, 0
-            time.sleep(POLL_S)
-        return {"status": "timeout"}
+            yield None
 
     def fetch_image_bytes(self, url: str) -> bytes:
         if url.startswith("blob:"):
@@ -544,6 +613,16 @@ class ChatGPTBrowser:
 
 def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
                  ledger_path: Path, ledger: dict, timeout_s: int) -> dict:
+    work = process_steps(browser, image, out_dir, ledger_path, ledger, timeout_s)
+    while True:
+        try:
+            next(work)
+        except StopIteration as done:
+            return done.value
+        time.sleep(POLL_S)
+
+
+def process_steps(browser, image, out_dir, ledger_path, ledger, timeout_s):
     name = image["name"]
     out_path = out_dir / f"{name}.png"
 
@@ -564,6 +643,7 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
             return _fail("failed", f"cannot continue {parent!r}: no finished ledger row with a chat_url")
         resume_url = prow["chat_url"]
 
+    _fail("running", "preparing", **({"chat_url": resume_url} if resume_url else {}))
     if resume_url:
         browser.open_chat(resume_url)
         before = browser.baseline()
@@ -571,6 +651,19 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
     else:
         browser.new_chat()
         wait_kw = {}
+
+    if hasattr(browser, "hazard"):
+        ready_start = time.monotonic()
+        while True:
+            hazard = browser.hazard()
+            if hazard:
+                return _fail("stopped", hazard[1], hazard_kind=hazard[0])
+            if browser.composer_present() and browser.page.locator(ATTACH_SEL).count():
+                break
+            if time.monotonic() - ready_start > 20:
+                return _fail("stopped", "relay needed: composer/attach unavailable for >20 s",
+                             hazard_kind="human_check")
+            yield None
 
     if image.get("attach"):
         try:
@@ -601,7 +694,15 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
     except Exception as e:
         return _fail("failed", f"send failed: {e!r}")
 
-    result = browser.wait_for_result(timeout_s=timeout_s, **wait_kw)
+    _fail("running", "submitted", chat_url=browser.page.url)
+    # Suspend immediately after submission; the scheduler fills other tabs first.
+    submitted = time.monotonic()
+    yield None
+    if hasattr(browser, "poll_result"):
+        result = yield from browser.poll_result(
+            timeout_s=max(0, timeout_s - (time.monotonic() - submitted)), **wait_kw)
+    else:
+        result = browser.wait_for_result(timeout_s=timeout_s, **wait_kw)
     # read the URL only now: a new chat gets its /c/<id> address a moment after
     # the user turn appears, and a follow-up needs that address, not chatgpt.com/
     chat_url = browser.page.url
@@ -671,7 +772,112 @@ def recover_one(browser: ChatGPTBrowser, name: str, out_dir: Path,
     return new
 
 
+def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s):
+    """Cooperative round-robin: Playwright stays on its owning thread."""
+    pending = list(todo)
+    busy = {}
+    owners = {}
+    completed = []
+
+    def record_failure(image, note, status="failed", **extra):
+        row = {"name": image["name"], "status": status, "note": note,
+               "time": now_iso(), **extra}
+        ledger[image["name"]] = row
+        save_ledger(ledger_path, ledger)
+        return row
+
+    def advance(tab):
+        image, work = busy[tab]
+        try:
+            tab.bring_to_front()
+            next(work)
+            return None
+        except StopIteration as done:
+            row = done.value
+        except Exception as exc:
+            hazard = None
+            try:
+                if hasattr(tab, "hazard"):
+                    hazard = tab.hazard()
+            except Exception:
+                pass
+            if hazard:
+                row = record_failure(image, hazard[1], "stopped", hazard_kind=hazard[0])
+            else:
+                row = record_failure(image, str(exc))
+        del busy[tab]
+        completed.append(row)
+        print(f"{image['name']}: {row['status']} {row.get('note', '')}")
+        return row
+
+    def stop(row):
+        kind = row.get("hazard_kind")
+        if kind == "human_check":
+            print("relay needed")
+        for tab, (image, work) in list(busy.items()):
+            completed.append(record_failure(image, "batch stopped: " + row.get("note", ""),
+                                            "stopped", hazard_kind=kind, chat_url=tab.page.url))
+            work.close()
+        busy.clear()
+        return {"usage_limit": 5, "human_check": 6}.get(kind, 1)
+
+    while pending or busy:
+        # A tab stays reserved while any pending descendant needs its chat.
+        for tab in tabs:
+            if tab in busy:
+                continue
+            chosen = None
+            for image in pending:
+                parent = image.get("continue")
+                if parent:
+                    if ledger.get(parent, {}).get("status") != "done":
+                        continue
+                    owner = owners.get(parent)
+                    if owner is None:
+                        url = ledger.get(parent, {}).get("chat_url")
+                        owner = next((owners[n] for n in owners
+                                      if url and ledger.get(n, {}).get("chat_url") == url), None)
+                    if owner is not None and owner is not tab:
+                        continue
+                reserved = any(owners.get(im.get("continue")) is tab for im in pending)
+                if reserved and owners.get(parent) is not tab:
+                    continue
+                chosen = image
+                break
+            if chosen is None:
+                continue
+            pending.remove(chosen)
+            owners[chosen["name"]] = tab
+            busy[tab] = (chosen, process_steps(tab, chosen, out_dir, ledger_path, ledger, timeout_s))
+            row = advance(tab)
+            if row and row["status"] == "stopped":
+                return stop(row), completed
+
+        for tab in list(busy):
+            row = advance(tab)
+            if row and row["status"] == "stopped":
+                return stop(row), completed
+            if row and row["status"] == "done":
+                if not any(owners.get(im.get("continue")) is tab for im in pending):
+                    try:
+                        tab.delete_chat()
+                    except Exception as exc:
+                        print(f"chat cleanup failed: {exc}")
+        if busy:
+            time.sleep(POLL_S)
+        elif pending:
+            # Continue dependencies may be forward references; only fail when
+            # no remaining item can make progress (failed/missing parent/cycle).
+            if not any(not im.get("continue") or ledger.get(im["continue"], {}).get("status") == "done"
+                       for im in pending):
+                for image in pending:
+                    completed.append(record_failure(image, "cannot continue: parent failed, missing, or cyclic"))
+                pending.clear()
+    return (1 if any(row["status"] != "done" for row in completed) else 0), completed
+
+
 def cmd_run(args) -> int:
+    started = time.monotonic()
     if getattr(args, "recover", None):
         out_dir = Path(args.out)
         ledger_path = out_dir / "ledger.json"
@@ -720,25 +926,25 @@ def cmd_run(args) -> int:
     todo = [im for im in images if ledger.get(im["name"], {}).get("status") != "done"]
     if not todo:
         print("nothing to do — every requested image already has a 'done' ledger row")
+        print(f"done 0 · failed 0 · skipped {len(images)} · elapsed 0s")
         return 0
 
     browser = ChatGPTBrowser(cdp_url=args.cdp_url)
-    browser.attach()
+    completed = []
+    code = 1
     try:
-        for image in todo:
-            row = process_one(browser, image, out_dir, ledger_path, ledger, args.timeout_s)
-            if row["status"] == "stopped":
-                print(f"STOPPED at {image['name']!r}: {row.get('hazard_kind')} — {row.get('note')}")
-                print("Fix the underlying condition (log in / wait out the usage limit / "
-                      "review the refusal) and re-run the same command — finished images "
-                      "are skipped automatically.")
-                return 1
-            extra = f" — {row.get('note')}" if row.get("note") else ""
-            print(f"{image['name']}: {row['status']}{extra}")
+        browser.attach()
+        tabs = [browser] + [browser.new_tab() for _ in range(getattr(args, "parallel", 1) - 1)]
+        code, completed = run_scheduler(tabs, todo, out_dir, ledger_path, ledger, args.timeout_s)
+    except Exception as exc:
+        print(f"runner failed: {exc}")
     finally:
         browser.close()
-
-    return 0
+    done = sum(row["status"] == "done" for row in completed)
+    failed = len(completed) - done
+    skipped = len(images) - len(completed)
+    print(f"done {done} · failed {failed} · skipped {skipped} · elapsed {time.monotonic() - started:.0f}s")
+    return code
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -764,6 +970,8 @@ def build_parser() -> argparse.ArgumentParser:
                      help=f"default {CDP_DEFAULT} — the dedicated ChatGPT Chrome")
     ap.add_argument("--timeout-s", type=int, default=COMPLETION_TIMEOUT_S,
                      help="per-image generation timeout in seconds (default 360)")
+    ap.add_argument("--parallel", type=int, choices=range(1, 5), default=1,
+                    help="number of in-flight chats in the same browser context (1..4)")
     return ap
 
 
