@@ -517,6 +517,11 @@ def codex_config() -> tuple[str, str]:
     entries = load_plans()['roles']['c_level_openai']
     entry = next(e for e in entries if e.startswith('codex:'))
     _, model, *effort = entry.split(':')
+    # plans.yaml carries the short label; the Codex CLI only knows the full id
+    # (same map as scripts/spawn-worker-remote.sh). "sol" alone fails with
+    # "Model metadata for sol not found".
+    if model in ('sol', 'astra', 'luna'):
+        model = f'gpt-6-{model}'
     return model, effort[0] if effort else 'high'
 
 
