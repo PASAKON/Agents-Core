@@ -184,6 +184,10 @@ class StubBrowser:
     def delete_chat(self):
         self.calls.append(("delete",))
 
+    def delete_library_files(self):
+        self.calls.append(("delete_files",))
+        return 2
+
     def new_chat(self):
         self.calls.append(("new_chat",))
 
@@ -237,7 +241,7 @@ class StubBrowser:
         self.seen_names.append(name)
 
 
-def _run(images, script, out_dir, one=None, dry_run=False):
+def _run(images, script, out_dir, one=None, dry_run=False, keep_in_chatgpt=False):
     browser = StubBrowser(script)
     orig_process_one = ci.process_steps
 
@@ -248,6 +252,7 @@ def _run(images, script, out_dir, one=None, dry_run=False):
     args = argparse.Namespace(
         brief=None, json=str(out_dir / "images.json"), out=str(out_dir),
         one=one, dry_run=dry_run, cdp_url="stub://", timeout_s=1,
+        keep_in_chatgpt=keep_in_chatgpt,
     )
     (out_dir / "images.json").write_text(json.dumps(images), encoding="utf-8")
 
@@ -495,6 +500,10 @@ def schedule(tmp_path, monkeypatch, images, results=None, ledger=None, parallel=
         def delete_chat(self):
             events.append(("delete", self._current, self.number))
 
+        def delete_library_files(self):
+            events.append(("delete_files", self._current, self.number))
+            return 2
+
     original = ci.process_steps
 
     def steps(tab, image, *args):
@@ -532,7 +541,9 @@ def test_scheduler_continue_waits_and_keeps_parent_tab(tmp_path, monkeypatch):
         assert events.index(("finish", parent, 0)) < events.index(("send", child, 0))
         assert ledger[parent]["chat_url"] == ledger[child]["chat_url"]
         assert ("delete", parent, 0) not in events
+        assert ("delete_files", parent, 0) not in events
     assert ("delete", "grandchild", 0) in events
+    assert events.index(("delete_files", "grandchild", 0)) < events.index(("delete", "grandchild", 0))
 
 
 @pytest.mark.parametrize("text, expected", [("คุณใช้โควต้าสร้างรูปภาพหมดแล้ว รอสร้างเพิ่มเวลา 13:29", 5),
@@ -674,6 +685,89 @@ def test_delete_rejects_non_chat_and_sanitizes_exceptions():
     with pytest.raises(RuntimeError) as error:
         browser.delete_chat()
     assert "sensitive" not in str(error.value)
+
+
+@pytest.mark.parametrize("keep", [False, True])
+def test_library_cleanup_flag_and_ledger(tmp_path, keep):
+    args = ci.build_parser().parse_args(["--prompt", "x", "--out", str(tmp_path),
+                                       *(["--keep-in-chatgpt"] if keep else [])])
+    assert args.keep_in_chatgpt is keep
+    code, browser = _run([{"name": "a", "prompt": "x"}],
+                         {"a": _done("src:a", b"PNG")}, tmp_path, keep_in_chatgpt=keep)
+    assert code == 0
+    cleanup = [c for c in browser.calls if c[0].startswith("delete")]
+    assert cleanup == ([] if keep else [("delete_files",), ("delete",)])
+    assert ci.load_ledger(tmp_path / "ledger.json")["a"]["deleted_from_chatgpt"] == (0 if keep else 2)
+
+
+@pytest.mark.parametrize("stage", ["delete_library_files", "delete_chat"])
+def test_cleanup_failure_preserves_saved_png(tmp_path, monkeypatch, stage):
+    def fail(self):
+        raise RuntimeError("cleanup unavailable")
+    monkeypatch.setattr(StubBrowser, stage, fail)
+    code, browser = _run([{"name": "a", "prompt": "x"}],
+                         {"a": _done("src:a", b"PNG")}, tmp_path)
+    assert code == 0
+    assert (tmp_path / "a.png").read_bytes() == b"PNG"
+    row = ci.load_ledger(tmp_path / "ledger.json")["a"]
+    assert row["status"] == "done"
+    assert row["deleted_from_chatgpt"] == (0 if stage == "delete_library_files" else 2)
+    if stage == "delete_library_files":
+        assert ("delete",) not in browser.calls
+
+
+def test_library_missing_id_and_sanitized_exception():
+    from unittest.mock import Mock
+    browser = ci.ChatGPTBrowser()
+    browser.page = Mock(url="https://chatgpt.com/")
+    with pytest.raises(RuntimeError, match="no current conversation"):
+        browser.delete_library_files()
+    browser.page.evaluate.assert_not_called()
+    browser.page.url = "https://chatgpt.com/c/abc"
+    browser.page.evaluate.side_effect = RuntimeError("sensitive response")
+    with pytest.raises(RuntimeError, match="library request failed") as error:
+        browser.delete_library_files()
+    assert "sensitive" not in str(error.value)
+
+
+@pytest.mark.parametrize("chat_id, reject", [("abc", False), ("absent", False), ("", False), ("abc", True)])
+def test_library_javascript_filters_actual_fetches(chat_id, reject):
+    """Execute the page callback with mocked fetch, rather than mocking its result."""
+    import subprocess
+    from unittest.mock import Mock
+    browser = ci.ChatGPTBrowser()
+    browser.page = Mock(url="https://chatgpt.com/c/abc")
+    browser.page.evaluate.return_value = 0
+    browser.delete_library_files()
+    script = browser.page.evaluate.call_args.args[0]
+    harness = """
+    const calls = [];
+    const items = [
+        {kind:'file', origination_thread_id:'other', id:'unrelated'},
+        {kind:'folder', origination_thread_id:'abc', id:'folder'},
+        {kind:'file', id:'unknown'},
+        ...['one','two'].map(id => ({kind:'file', origination_thread_id:'abc',
+            id, file_id:'file-'+id, parent_directory_id:'root', name:id+'.png'}))
+    ];
+    global.fetch = async (url, options) => {
+        calls.push({url, body:options?.body});
+        if (url === '/api/auth/session') return {ok:true, json:async () => ({accessToken:'fake-token'})};
+        if (url.includes('/nodes?')) return {ok:true, json:async () => ({items})};
+        return {ok:!REJECT};
+    };
+    (CALLBACK)(CHAT_ID).then(result => process.stdout.write(JSON.stringify({result,calls})));
+    """.replace("CALLBACK", script).replace("CHAT_ID", json.dumps(chat_id)).replace("REJECT", json.dumps(reject))
+    output = subprocess.run(["node", "-e", harness], check=True, capture_output=True, text=True)
+    result = json.loads(output.stdout)
+    assert result["result"] == (-1 if reject or not chat_id else 2 if chat_id == "abc" else 0)
+    deletes = [c for c in result["calls"] if c["url"].endswith('/delete-batch')]
+    if chat_id == "abc":
+        assert [f["library_file_id"] for f in json.loads(deletes[0]["body"])["files"]] == ["one", "two"]
+    else:
+        assert deletes == []
+    if not chat_id:
+        assert result["calls"] == []
+    assert "fake-token" not in output.stdout
 
 
 def test_startup_reload_precedes_hazard_and_only_happens_once():
