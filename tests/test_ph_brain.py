@@ -362,3 +362,9 @@ def test_invoke_agy_ignores_sticky_conversation_error_when_fallback_succeeds(mon
     assert r_argon["limit_hit"] is None
     assert r_argon["response"].strip() == "READY_FROM_ARGON_HIGH"
 
+
+
+def test_codex_config_maps_label_to_full_model_id():
+    # GhostRules PH 11 Nov: "-m sol" -> "Model metadata for sol not found".
+    model, _ = ph_brain.codex_config()
+    assert model.startswith('gpt-6-'), model
