@@ -22,6 +22,10 @@
 # admitted call if fal generates up to its 120 s output limit is $0.375.
 tools/fal_tts.py --max-usd
 
+# GPT Image 2.5 Flare is priced per output plus $0.012 per reference; Seedream reserves --max-layers
+# at the pixel-area tier. The cap and job ledger are checked before uploading or submitting.
+tools/fal_image.py --max-usd
+
 # fal-ai/sync-lipsync (lipsync-1.9.0-beta $0.0117/s, lipsync-2 $0.05/s; sync_mode cut_off only, CTO review
 # PR #664 5 Nov 2026): prices each call from the
 # duration in seconds of its local input audio (.mp3/.wav under /opt/MoonieXHQ/Work/) before sending,
