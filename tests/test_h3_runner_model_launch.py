@@ -137,6 +137,42 @@ def test_spawn_remote_refreshes_task_from_db(tmp_path, monkeypatch):
 
 
 
+def test_spawn_remote_replaces_a_stale_model_with_the_row(tmp_path, monkeypatch):
+    """Verify that _spawn_remote reads fresh task from db.get_task(task_id)."""
+    import asyncio
+    db_path = tmp_path / "tasks.db"
+    monkeypatch.setattr(db, "DB_PATH", db_path)
+    db.init()
+
+    task_id = "task-fresh02"
+    with db.get_conn() as conn:
+        now = db.now_iso()
+        conn.execute(
+            """INSERT INTO tasks (id, project, role, status, title, description, touches,
+               depends_on, branch, host, runner, runner_model, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (task_id, "mooniex-agents", "developer", "pending", "Test", "Desc", "[]",
+             "[]", "agent/developer-task-fresh02", "contabo", "agy", "claude-sonnet-4-6", now, now),
+        )
+        conn.commit()
+
+    # Stale dict: the full row as the caller holds it, before the router's
+    # set_fields wrote runner_model (real callers pass the whole row).
+    stale_dict = dict(db.get_task(task_id))
+    stale_dict["runner_model"] = "gemini-4-argon-high"  # 11 Nov: agy pick, deferred, then codex
+
+    res = asyncio.run(delegate._spawn_remote(stale_dict, "contabo", dry_run=True))
+    assert res is not None
+
+    # Verify delegate_log dry-run output contains task_meta_b64 decoding to runner_model
+    log_text = res.get("delegate_log") or ""
+    m = re.search(r"--task-meta-b64\s+(\S+)", log_text)
+    assert m, f"task-meta-b64 not found in dry-run ssh_cmd: {log_text}"
+    decoded = json.loads(base64.b64decode(m.group(1)).decode("utf-8"))
+    assert decoded.get("runner_model") == "claude-sonnet-4-6"
+
+
+
 def _insert_task(task_id, runner, runner_model, host):
     with db.get_conn() as conn:
         now = db.now_iso()

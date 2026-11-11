@@ -1465,7 +1465,10 @@ async def _spawn_remote(task: dict, host_name: str, *,
         fresh_task = db.get_task(task_id)
     except Exception:
         fresh_task = None
-    if fresh_task and fresh_task.get("runner_model") and not task.get("runner_model"):
+    # The row wins whenever it holds a model: a task first routed to agy, deferred to budget_queue
+    # and re-delegated to codex kept the stale agy model in the caller's dict, so codex was launched
+    # with `-m gemini-4-argon-high` (task-3c5b39f1, 11 Nov: "model is not supported").
+    if fresh_task and fresh_task.get("runner_model") and fresh_task["runner_model"] != task.get("runner_model"):
         task = {**task, "runner_model": fresh_task["runner_model"]}
 
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
