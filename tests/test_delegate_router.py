@@ -157,3 +157,25 @@ def test_pin_without_reason_raises_permission_error_and_logs(
 
     # pick_runner was never called
     pick_runner.assert_not_called()
+
+
+def _pin_agy(task):
+    with db_mod.get_conn() as conn:
+        conn.execute("UPDATE tasks SET runner=?, runner_model=?, description=? WHERE id=?",
+                     ("agy", "gemini-4-argon-high", "override: review — test\nd", task["id"]))
+        conn.commit()
+    return db_mod.get_task(task["id"])
+
+
+@pytest.mark.parametrize("weekly,routed", [(0.0, True), (0.4, False)])
+def test_agy_pin_on_an_exhausted_bucket_goes_to_the_router(task, pick_runner, monkeypatch, weekly, routed):
+    # 12 Nov: task-75a566a1 and task-3334d815 were pinned to AGY at 0% and died rate_limited.
+    import tools.route as route
+    monkeypatch.setattr(route, "cached_quotas",
+                        lambda cfg, **k: {"agy-gemini": SimpleNamespace(weekly_remaining=weekly, limit_hit=False, error=None)})
+    monkeypatch.setattr(route, "bucket_for", lambda cand, cfg: "agy-gemini")
+    monkeypatch.setattr(route, "load_plans", lambda *a, **k: {})
+    monkeypatch.setattr(route, "usage_budget", SimpleNamespace(load_gate_rows=lambda: {}), raising=False)
+    row = _pin_agy(task)
+    delegate._route_runner(row, "developer", "test-host")
+    assert pick_runner.called is routed

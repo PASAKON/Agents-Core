@@ -83,7 +83,8 @@ WAKE_LABEL = "OWNER-RELAY"
 
 STATUS = {"status_failed": "failed", "status_stalled": "stalled", "status_blocked_human": "blocked_human",
           "status_blocked_host": "blocked_host", "status_conflict": "conflict",
-          "status_cancelled": "cancelled", "status_review": "review"}
+          "status_cancelled": "cancelled", "status_review": "review",
+          "status_rate_limited": "rate_limited"}
 GC_ACTORS = ("gc_stale_tasks", "system", "watchdog")   # a cancel by anyone else was meant
 NEXT = {
     "failed": "reopen or re-delegate it",
@@ -93,6 +94,7 @@ NEXT = {
     "conflict": "rebase it, then review",
     "cancelled": "re-delegate it if still needed",
     "review": "review_diff, then merge",
+    "rate_limited": "runner quota out: python3 tools/quota_handoff.py on it, or re-delegate to codex",
     "dead": "worker pid and tmux gone: reopen or re-delegate",
     "suspect": "worker silent: read its log",
     "blocked": "answer the worker's blocker",
@@ -102,7 +104,7 @@ NEXT = {
     "rewake": "look at its pane, clear what holds it, or take its work",
     "ph_dead": "resume it (scripts/spawn-ph.sh --resume {sid}) or take its work",
 }
-BLOCKER_KINDS = {"failed", "stalled", "blocked_human", "blocked_host", "conflict", "cancelled", "dead",
+BLOCKER_KINDS = {"failed", "rate_limited", "stalled", "blocked_human", "blocked_host", "conflict", "cancelled", "dead",
                  "suspect", "blocked", "rewake", "ph_dead"}
 # A hold that is not a failed try: the session is mid-turn (record or screen), or a cap
 # holds the wake (escalation_watch.rewake spends no ladder try on these).
