@@ -447,3 +447,16 @@ def test_wake_lane_clevel_letters_the_lane_owner(monkeypatch):
 def test_ph_brain_chain_is_one_model_per_agy_lane_then_luna():
     assert [m for m, _ in ph_brain.MODEL_CHAIN] == ['claude-sonnet-5-5-high', 'gemini-4-argon-high']
     assert ph_brain.codex_config() == ('gpt-6-luna', 'high')
+
+
+@pytest.mark.parametrize("runner,model,want", [
+    ("codex", None, None),                          # task-c3dcc1ab: was gemini-4-argon-high
+    ("codex", "gemini-4-argon-high", None),
+    ("codex", "gpt-6-luna:high", "gpt-6-luna:high"),
+    ("agy", None, "gemini-4-argon-high"),
+    ("agy", "gpt-6-sol", "gemini-4-argon-high"),
+])
+def test_delegate_from_ph_gives_each_runner_its_own_model(runner, model, want):
+    res = ph_brain.delegate_from_ph(ph_id="7cf12345", project="VideoPipeline", role="developer",
+                                    title="t", brief="b", runner=runner, runner_model=model, dry_run=True)
+    assert res["runner_model"] == want
