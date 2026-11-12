@@ -5,10 +5,10 @@ video pipelines), and worker delegation on Antigravity CLI (`agy`) or Codex,
 consuming 0% Claude Code ($20 Pro) usage.
 
 Architecture:
-- Primary Brain: `claude-opus-5-5-medium` (bucket `agy-claude`)
-- Auto-Fallback 1: `gemini-4-argon-high` (bucket `agy-gemini`)
-- Auto-Fallback 2: `claude-sonnet-5-5-high` (bucket `agy-claude`)
-- Auto-Fallback 3: `gemini-3.8-flash-high` (bucket `agy-gemini`)
+- Primary Brain: `claude-sonnet-5-5-high` (AGY lane `agy-claude`)
+- Auto-Fallback 1: `gemini-4-argon-high` (AGY lane `agy-gemini`)
+- Auto-Fallback 2: Codex `gpt-6-luna` medium (`c_level_openai` in config/plans.yaml)
+- All out: the PH waits and its lane C-level is woken; no Claude Code brain.
 
 Key property verified on `agy` CLI:
 Passing `--conversation <uuid> --model <new_model>` resumes the exact same
@@ -40,14 +40,15 @@ from lib import ph_state
 _IN_TURN = ContextVar('ph_brain_turn', default=False)
 QUOTA_SNAPSHOT = ROOT / "state" / "quota-snapshot.json"
 
-PRIMARY_MODEL = "claude-opus-5-5-medium"
+# CEO 12 Nov: AGY has two usage lanes (Claude models, Google models); one model per lane,
+# then Codex Luna medium (c_level_openai). Opus/Flash share a lane with Sonnet/Argon, so
+# trying them after a limit only repeats the same 429.
+PRIMARY_MODEL = "claude-sonnet-5-5-high"
 FALLBACK_MODEL = "gemini-4-argon-high"
 
 MODEL_CHAIN: tuple[tuple[str, str], ...] = (
-    ("claude-opus-5-5-medium", "agy-claude"),
-    ("gemini-4-argon-high", "agy-gemini"),
     ("claude-sonnet-5-5-high", "agy-claude"),
-    ("gemini-3.8-flash-high", "agy-gemini"),
+    ("gemini-4-argon-high", "agy-gemini"),
 )
 
 MODEL_TO_BUCKET: dict[str, str] = {
@@ -205,12 +206,7 @@ def select_model_chain(
     chain: list[str] = []
 
     if force_fallback:
-        ordered = [
-            ("gemini-4-argon-high", "agy-gemini"),
-            ("gemini-3.8-flash-high", "agy-gemini"),
-            ("claude-opus-5-5-medium", "agy-claude"),
-            ("claude-sonnet-5-5-high", "agy-claude"),
-        ]
+        ordered = [MODEL_CHAIN[1], MODEL_CHAIN[0]]
     else:
         ordered = list(MODEL_CHAIN)
 
@@ -513,7 +509,7 @@ def invoke_agy(
 # common loop below records every adapter before it receives a prompt.
 def codex_config() -> tuple[str, str]:
     from tools.quota import load_plans
-    # CEO Q-20261112-0643-fe07: the PH brain's Codex step is Astra.
+    # CEO 12 Nov: the PH brain's Codex step is Luna medium.
     entries = load_plans()['roles']['c_level_openai']
     entry = next(e for e in entries if e.startswith('codex:'))
     _, model, *effort = entry.split(':')
