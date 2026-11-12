@@ -368,3 +368,32 @@ def test_codex_config_maps_label_to_full_model_id():
     # GhostRules PH 11 Nov: "-m sol" -> "Model metadata for sol not found".
     model, _ = ph_brain.codex_config()
     assert model.startswith('gpt-6-'), model
+
+
+def test_every_brain_out_wakes_the_lane_clevel(monkeypatch, tmp_path, fake_codex):
+    # CEO Q-20261112-0643-fe07: no Claude brain; every brain out -> PH waits + its C-level is woken.
+    woke = []
+    monkeypatch.setattr(ph_brain, '_wake_lane_clevel', lambda ph, st, models: woke.append((ph, models)))
+    agy = tmp_path / 'agy'
+    agy.write_text(f'#!{sys.executable}\nimport sys\nprint("RESOURCE_EXHAUSTED 429 Individual quota reached")\nsys.exit(1)\n')
+    agy.chmod(0o755)
+    snapshot = tmp_path / 'quota.json'
+    snapshot.write_text(json.dumps({'buckets': {'codex': {'weekly_remaining': 0.05}}}))
+    with pytest.raises(RuntimeError):
+        ph_brain.run_turn(ph_id='allout', message='Plan', agy_bin=str(agy),
+                          brains_dir=tmp_path / 'brains', snapshot_path=snapshot)
+    assert len(woke) == 1 and woke[0][0] == 'allout' and 'codex: reserve' in woke[0][1]
+
+
+def test_wake_lane_clevel_letters_the_lane_owner(monkeypatch):
+    from tools import send_to_cto
+    sent = []
+    monkeypatch.setattr(send_to_cto, 'send', lambda *a, **k: sent.append((a, k)) or True)
+    ph_brain._wake_lane_clevel('f85ae4fe', {'lane': 'cmo', 'owner': None, 'project': 'GhostRules'}, ['m1'])
+    (args, kw), = sent
+    assert args[0] == 'f85ae4fe' and kw['owner_role'] == 'cmo' and kw['cto_id'] == 'fresh'
+    assert kw['kind'] == 'blocker'
+
+
+def test_ph_codex_brain_is_astra():
+    assert ph_brain.codex_config()[0] == 'gpt-6-astra'

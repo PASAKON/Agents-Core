@@ -513,7 +513,7 @@ def invoke_agy(
 # common loop below records every adapter before it receives a prompt.
 def codex_config() -> tuple[str, str]:
     from tools.quota import load_plans
-    # The cheaper planning entry (Sol), rather than the complex-work Astra entry.
+    # CEO Q-20261112-0643-fe07: the PH brain's Codex step is Astra.
     entries = load_plans()['roles']['c_level_openai']
     entry = next(e for e in entries if e.startswith('codex:'))
     _, model, *effort = entry.split(':')
@@ -682,7 +682,12 @@ def run_turn(
         if model == 'codex':
             if brain == 'agy' and not all(a['limit_hit'] for a in attempted):
                 break
-            check_codex_budget(snapshot_path)
+            try:
+                check_codex_budget(snapshot_path)
+            except RuntimeError:
+                if brain == 'agy' and attempted and all(a['limit_hit'] for a in attempted):
+                    _wake_lane_clevel(ph_id, state, [a['model'] for a in attempted] + ['codex: reserve'])
+                raise
             runner = 'codex'
             model = (preferred_model if brain == 'codex' else None) or codex_config()[0]
             conv_id = state.get('codex_session_id')
@@ -774,6 +779,8 @@ def run_turn(
 
     summary = '; '.join(f"{a['model']} rc={a['returncode']} limit={a['limit_hit']} err={a['error'][:80]}"
                         for a in attempted)
+    if attempted and all(a['limit_hit'] for a in attempted):
+        _wake_lane_clevel(ph_id, state, [a['model'] for a in attempted])
     raise RuntimeError(
         f"brain chain {models_to_try} failed for PH {ph_id}; "
         # Every model's own result: the last model's 429 once hid an earlier non-quota failure.
@@ -781,6 +788,22 @@ def run_turn(
         f"last error: rc={last_res.get('returncode')} limit={last_res.get('limit_hit')} "
         f"error={' '.join((last_res.get('raw_stderr') or last_res.get('raw_stdout') or last_res.get('response') or '').split())[:200]}"
     )
+
+
+def _wake_lane_clevel(ph_id: str, state: dict, models: list) -> None:
+    """Every brain is out of quota: the PH waits, and its lane C-level is woken once
+    (CEO Q-20261112-0643-fe07: no Claude brain; "PH รอ + ปลุก C-level")."""
+    lane = state.get('lane') or 'cto'
+    owner = str(state.get('owner') or '').rsplit('-', 1)[-1] or 'fresh'
+    msg = (f"PH {ph_id} ({state.get('project')}): every brain is out of quota ({', '.join(models)}). "
+           "The PH waits; no Claude brain by CEO ruling Q-20261112-0643-fe07. "
+           "Take its next step yourself or let it wait for the reset.")
+    try:
+        from tools import send_to_cto  # noqa: PLC0415
+        send_to_cto.send(ph_id, msg, role='project_head', cto_id=owner, owner_role=lane,
+                         kind='blocker', prio='urgent')
+    except Exception as e:  # the RuntimeError below still reaches the PH shell
+        print(f"warn: lane C-level not told: {e}", file=sys.stderr)
 
 
 def delegate_from_ph(
