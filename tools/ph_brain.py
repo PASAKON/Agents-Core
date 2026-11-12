@@ -872,10 +872,18 @@ def delegate_from_ph(
     touches: list[str] | None = None,
     host: str | None = None,
     runner: str = "agy",
-    runner_model: str = FALLBACK_MODEL,
+    runner_model: str | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Create and dispatch a worker task from an AGY PH without using Claude Code."""
+    # 12 Nov (task-c7065d2a, task-c3dcc1ab): the default model was Argon for every runner, so
+    # `--runner codex` launched codex with gemini-4-argon-high (400 model_not_found).
+    from tools.delegate import _model_fits_runner
+    if runner_model and runner and not _model_fits_runner(runner, runner_model):
+        print(f"warn: runner_model {runner_model!r} does not fit runner {runner}; dropped", file=sys.stderr)
+        runner_model = None
+    if not runner_model and runner == "agy":
+        runner_model = FALLBACK_MODEL
     state = load_brain_state(ph_id)
     resolved_project = _PROJECT_ALIASES.get((project or "").strip().lower(), project)
     resolved_host = (host or "").strip() or ("winbox" if resolved_project == "cookierun-bot" else None)
@@ -999,7 +1007,7 @@ def main(argv: list[str] | None = None) -> int:
     p_del.add_argument("--touches", default="[]", help="JSON array of touched paths")
     p_del.add_argument("--host", default=None, help="Target host (e.g. winbox)")
     p_del.add_argument("--runner", default="agy")
-    p_del.add_argument("--runner-model", default=FALLBACK_MODEL)
+    p_del.add_argument("--runner-model", default=None)
     p_del.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args(argv)
