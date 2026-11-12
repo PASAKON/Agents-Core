@@ -179,3 +179,18 @@ def test_agy_pin_on_an_exhausted_bucket_goes_to_the_router(task, pick_runner, mo
     row = _pin_agy(task)
     delegate._route_runner(row, "developer", "test-host")
     assert pick_runner.called is routed
+
+
+@pytest.mark.parametrize("runner,model,fits", [
+    ("codex", "gemini-4-argon-high", False),   # task-c7065d2a, 12 Nov: codex 400 model_not_found
+    ("codex", "gpt-6-luna:high", True),
+    ("codex", "astra", True),
+    ("agy", "gpt-6-sol", False),
+    ("agy", "gemini-4-argon-high", True),
+    ("agy", "claude-sonnet-5-5-high", True),
+    ("claude", "gemini-3.8-flash-high", False),
+    ("claude", "sonnet", True),
+    ("codex", "", True),
+])
+def test_a_model_from_another_runner_is_refused(runner, model, fits):
+    assert delegate._model_fits_runner(runner, model) is fits

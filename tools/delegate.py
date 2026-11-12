@@ -2042,6 +2042,21 @@ def _log_router_off(task: dict, pinned: bool) -> None:
         warn(f"router_off event not logged task={task.get('id')}: {e}")
 
 
+def _model_fits_runner(runner: str, model: str) -> bool:
+    """True when `model` names a model that `runner` can launch (codex: gpt-*/sol/astra/luna;
+    agy: gemini-*/claude-*; claude: claude-*/opus/sonnet/haiku)."""
+    m = (model or "").strip().lower().split(":", 1)[0]
+    if not m:
+        return True
+    if runner == "codex":
+        return m.startswith("gpt-") or m in ("sol", "astra", "luna")
+    if runner == "agy":
+        return m.startswith(("gemini-", "claude-"))
+    if runner == "claude":
+        return m.startswith("claude-") or m in ("opus", "sonnet", "haiku")
+    return True
+
+
 def _pinned_agy_exhausted(task: dict) -> bool:
     """True when the task is pinned to AGY and that bucket has 0 weekly left or a limit hit."""
     if (task.get("runner") or "") != "agy":
@@ -2568,7 +2583,14 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         warn(f"runner rejected task={task_id}: {e}")
         db.update_status(task_id, "failed", delegate_log=f"runner rejected: {e}", actor="cto")
         return db.get_task(task_id)
-    if resolved_runner == "codex" and not (db.get_task(task_id) or {}).get("runner_model"):
+    row_model = (db.get_task(task_id) or {}).get("runner_model")
+    if row_model and not _model_fits_runner(resolved_runner, row_model):
+        # 12 Nov (task-c7065d2a): a re-route to codex kept gemini-4-argon-high, codex died
+        # twice on 400 model_not_found. A model from another runner is dropped here.
+        warn(f"runner_model {row_model!r} does not fit runner {resolved_runner}; dropped task={task_id}")
+        db.set_fields(task_id, runner_model=None, actor="cto")
+        row_model = None
+    if resolved_runner == "codex" and not row_model:
         db.set_fields(task_id, runner_model="gpt-6-astra:default", actor="cto")
 
     # ADDENDUM 3 (CTO 2026-09-07) — CEO rule: one browser_operator, one
