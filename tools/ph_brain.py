@@ -56,6 +56,8 @@ MODEL_CHAIN: tuple[tuple[str, str], ...] = (
 
 MODEL_TO_BUCKET: dict[str, str] = {
     **dict(MODEL_CHAIN),
+    "claude-opus-5-5-medium": "agy-claude",
+    "gemini-3.8-flash-high": "agy-gemini",
     "claude-opus-5-5-high": "agy-claude",
     "claude-opus-5-5-low": "agy-claude",
     "claude-sonnet-5-5-medium": "agy-claude",
@@ -209,6 +211,9 @@ def select_model_chain(
         else (snapshot_path is None and os.environ.get("ORG_SHARED_QUOTA_SYNC") == "1")
     )
     cooled_down = get_shared_cooldown_models() if use_shared else set()
+    # AGY quota is per lane (CEO 12 Nov): one cooled model cools every model in its bucket.
+    cooled_buckets = {MODEL_TO_BUCKET.get(m) for m in cooled_down} - {None}
+    cooled_down = cooled_down | {m for m, b in MODEL_TO_BUCKET.items() if b in cooled_buckets}
     chain: list[str] = []
 
     if force_fallback:
@@ -230,7 +235,7 @@ def select_model_chain(
             chain.append(model)
 
     # Always keep fallback / cooled-down models at the tail so the chain is never empty
-    for model, _ in ordered:
+    for model in ([preferred_model] if preferred_model else []) + [m for m, _ in ordered]:
         if model not in chain:
             chain.append(model)
 
