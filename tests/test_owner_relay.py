@@ -521,3 +521,12 @@ def test_screen_ready_tells_a_running_turn_from_a_held_screen(org):
         assert orl.screen_ready(PH, org.sessions, org.panes) == want
     assert all(r.startswith(orl.NO_TRY) for r in ("busy", "busy: turn running on screen"))
     assert not "screen not ready: prompt not empty".startswith(orl.NO_TRY)
+
+
+def test_a_rate_limited_task_wakes_its_owner(org):
+    # CMO 12 Nov: AGY quota stops sat for hours with nobody woken.
+    org.hub.task("task-0000000a", "rate_limited", log="RESOURCE_EXHAUSTED")
+    org.hub.event("task-0000000a", "status_rate_limited")
+    out, _ = org.tick()
+    assert org.woke == [PH]
+    assert "task-0000000a rate_limited" in org.sent[0][1]

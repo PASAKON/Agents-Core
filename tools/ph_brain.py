@@ -357,7 +357,7 @@ def build_initial_prompt(
         f"You are the Project Head (PH) for project '{project}' in the '{lane}' lane.\n"
         f"Core rules:\n"
         f"1. Plan milestones, keep full continuity across all turns/shots, and delegate hands-on execution to workers.\n"
-        f"2. Never use Claude Code worker quota when Claude is exhausted; route workers to AGY (`gemini-4-argon-high` for code/visual QC, `gemini-3.8-flash-high` for fast browser loops, `claude-sonnet-5-5-high`) or Codex.\n"
+        f"2. Never use Claude Code worker quota when Claude is exhausted; leave a worker's runner empty so the router picks it: it skips an exhausted AGY bucket and falls to Codex. Pin AGY only when its quota is not at 0%.\n"
         f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-3.8-flash-high`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
         f"4. Keep responses concise, structured, and actionable.\n"
         f"5. {PLANNER_RULE}\n"

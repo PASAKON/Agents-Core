@@ -2042,6 +2042,23 @@ def _log_router_off(task: dict, pinned: bool) -> None:
         warn(f"router_off event not logged task={task.get('id')}: {e}")
 
 
+def _pinned_agy_exhausted(task: dict) -> bool:
+    """True when the task is pinned to AGY and that bucket has 0 weekly left or a limit hit."""
+    if (task.get("runner") or "") != "agy":
+        return False
+    try:
+        from tools import route  # noqa: PLC0415
+        cfg = route.load_plans()
+        bucket = route.bucket_for(f"agy:{task.get('runner_model') or ''}", cfg)
+        q = route.cached_quotas(cfg).get(bucket)
+    except Exception:
+        return False
+    if q is None or getattr(q, "error", None):
+        return False
+    weekly = getattr(q, "weekly_remaining", None)
+    return bool(getattr(q, "limit_hit", False)) or (weekly is not None and weekly <= 0)
+
+
 def _route_runner(task: dict, role_name: str, host: str) -> str | None:
     from tools import route  # noqa: PLC0415 — outside try so PermissionError escapes
     refusal = route.check_override(task)
@@ -2059,6 +2076,11 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
             return None
         from lib import portfolio
         tier = portfolio.tier_for(task)
+        if pinned and _pinned_agy_exhausted(task):
+            # An AGY pin on a bucket the snapshot reads as exhausted dies in seconds
+            # as rate_limited (task-75a566a1, task-3334d815, 12 Nov): let the router pick.
+            info(f"router: pinned {task.get('runner')}:{task.get('runner_model')} is exhausted, re-routing")
+            pinned = False
         if pinned:
             # Manual/retry pins keep their old behaviour unless a fresh budget
             # closes this project's gate. A pin must not bypass the tier policy.
