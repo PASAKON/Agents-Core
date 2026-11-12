@@ -1,0 +1,20 @@
+{
+  "md5_manifest": "all entries passed",
+  "duration": 797.3012916666667,
+  "take_count": 22,
+  "cue_count": 7,
+  "unresolved_events": 18,
+  "narration_overlaps": 0,
+  "frame_grid": "24 fps passed",
+  "silence_count": 53,
+  "silence_seconds": 44.550204,
+  "longest_gap": {
+    "start": 793.572,
+    "end": 797.301,
+    "duration": 3.72925
+  },
+  "free_bytes": 10907144192,
+  "intermediate_count": 0,
+  "mix_md5": "24c48eab8c8a691f2904a590ced0972a",
+  "loudness": "Summary:\n\n  Integrated loudness:\n    I:         -14.2 LUFS\n    Threshold: -24.8 LUFS\n\n  Loudness range:\n    LRA:         6.2 LU\n    Threshold: -34.9 LUFS\n    LRA low:   -18.4 LUFS\n    LRA high:  -12.2 LUFS\n\n  True peak:\n    Peak:       -1.3 dBFS\n"
+}
