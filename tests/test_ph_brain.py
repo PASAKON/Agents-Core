@@ -28,6 +28,25 @@ print(json.dumps(dict(type='turn.completed')))
     return log
 
 
+def _fake_bin(tmp_path, name, body):
+    b = tmp_path / name
+    b.write_text(f'#!{sys.executable}\nimport json, sys\n' + body)
+    b.chmod(0o755)
+    return b
+
+
+@pytest.fixture
+def fake_claude(monkeypatch, tmp_path):
+    log = tmp_path / 'claude-calls.jsonl'
+    b = _fake_bin(tmp_path, 'claude', f"""
+with open({str(log)!r}, 'a') as f:
+    f.write(json.dumps(dict(argv=sys.argv[1:], prompt=sys.stdin.read())) + '\\n')
+print(json.dumps(dict(type='result', is_error=False, result='Claude plan', session_id='claude-sess')))
+""")
+    monkeypatch.setenv('CLAUDE_BIN', str(b))
+    return log
+
+
 def test_codex_first_turn_and_resume(tmp_path, fake_codex):
     args = dict(ph_id='codex-test', brain='codex', brains_dir=tmp_path / 'brains',
                 snapshot_path=tmp_path / 'missing.json')
@@ -46,7 +65,7 @@ def test_codex_first_turn_and_resume(tmp_path, fake_codex):
 
 
 @pytest.mark.parametrize('remaining', [0.8, 0.1])
-def test_agy_429_codex_fallback_and_reserve(monkeypatch, tmp_path, fake_codex, remaining):
+def test_agy_429_codex_fallback_and_reserve(monkeypatch, tmp_path, fake_codex, fake_claude, remaining):
     agy = tmp_path / 'agy'
     agy.write_text(f'#!{sys.executable}\nimport sys\nprint("RESOURCE_EXHAUSTED 429 Individual quota reached")\nsys.exit(1)\n')
     agy.chmod(0o755)
@@ -55,9 +74,11 @@ def test_agy_429_codex_fallback_and_reserve(monkeypatch, tmp_path, fake_codex, r
     args = dict(ph_id='fallback', message='Plan', agy_bin=str(agy),
                 brains_dir=tmp_path / 'brains', snapshot_path=snapshot)
     if remaining < 0.2:
-        with pytest.raises(RuntimeError, match='codex brain blocked by router budget reserve'):
-            ph_brain.run_turn(**args)
+        # Codex held for workers' reserve -> the last brain, Claude Sonnet 5.5 high (CEO 12 Nov).
+        result = ph_brain.run_turn(**args)
         assert not fake_codex.exists()
+        assert result['bucket_used'] == 'claude' and result['response'] == 'Claude plan'
+        assert result['attempts'][-2]['limit_hit'] == 'router reserve'
     else:
         result = ph_brain.run_turn(**args)
         assert result['bucket_used'] == 'codex'
@@ -370,19 +391,47 @@ def test_codex_config_maps_label_to_full_model_id():
     assert model.startswith('gpt-6-'), model
 
 
-def test_every_brain_out_wakes_the_lane_clevel(monkeypatch, tmp_path, fake_codex):
-    # CEO Q-20261112-0643-fe07: no Claude brain; every brain out -> PH waits + its C-level is woken.
+def _all_agy_out(tmp_path):
+    return _fake_bin(tmp_path, 'agy', 'print("RESOURCE_EXHAUSTED 429 Individual quota reached")\nsys.exit(1)\n')
+
+
+def test_every_brain_out_wakes_the_lane_clevel(monkeypatch, tmp_path):
+    # Both AGY lanes, Codex (reserve) and Claude (usage limit) out -> PH waits + one letter.
     woke = []
     monkeypatch.setattr(ph_brain, '_wake_lane_clevel', lambda ph, st, models: woke.append((ph, models)))
-    agy = tmp_path / 'agy'
-    agy.write_text(f'#!{sys.executable}\nimport sys\nprint("RESOURCE_EXHAUSTED 429 Individual quota reached")\nsys.exit(1)\n')
-    agy.chmod(0o755)
+    claude = _fake_bin(tmp_path, 'claude', 'print("Claude AI usage limit reached|1762999999")\nsys.exit(1)\n')
+    monkeypatch.setenv('CLAUDE_BIN', str(claude))
     snapshot = tmp_path / 'quota.json'
     snapshot.write_text(json.dumps({'buckets': {'codex': {'weekly_remaining': 0.05}}}))
     with pytest.raises(RuntimeError):
-        ph_brain.run_turn(ph_id='allout', message='Plan', agy_bin=str(agy),
+        ph_brain.run_turn(ph_id='allout', message='Plan', agy_bin=str(_all_agy_out(tmp_path)),
                           brains_dir=tmp_path / 'brains', snapshot_path=snapshot)
-    assert len(woke) == 1 and woke[0][0] == 'allout' and 'codex: reserve' in woke[0][1]
+    assert len(woke) == 1 and woke[0][0] == 'allout'
+    assert woke[0][1][-2:] == ['codex', 'claude-sonnet-5-5']
+
+
+def test_a_non_quota_failure_stops_the_chain(monkeypatch, tmp_path, fake_codex, fake_claude):
+    # A crash is not a quota stop: never spend Codex or Claude on it, never wake the C-level.
+    woke = []
+    monkeypatch.setattr(ph_brain, '_wake_lane_clevel', lambda *a: woke.append(a))
+    agy = _fake_bin(tmp_path, 'agy', 'print("panic: something broke")\nsys.exit(2)\n')
+    with pytest.raises(RuntimeError):
+        ph_brain.run_turn(ph_id='crash', message='Plan', agy_bin=str(agy),
+                          brains_dir=tmp_path / 'brains', snapshot_path=tmp_path / 'missing.json')
+    assert not fake_codex.exists() and not fake_claude.exists() and not woke
+
+
+def test_claude_brain_resumes_its_own_session(tmp_path, fake_claude):
+    args = dict(ph_id='cl', brain='claude', brains_dir=tmp_path / 'brains',
+                snapshot_path=tmp_path / 'missing.json')
+    ph_brain.run_turn(message='Plan', **args)
+    ph_brain.run_turn(message='Next', **args)
+    calls = [json.loads(l) for l in fake_claude.read_text().splitlines()]
+    assert '--resume' not in calls[0]['argv']
+    assert calls[1]['argv'][calls[1]['argv'].index('--resume') + 1] == 'claude-sess'
+    assert calls[0]['argv'][calls[0]['argv'].index('--model') + 1] == 'claude-sonnet-5-5'
+    assert 'plan' in calls[0]['argv'] and 'high' in calls[0]['argv']
+    assert ph_brain.load_brain_state('cl', tmp_path / 'brains')['claude_session_id'] == 'claude-sess'
 
 
 def test_wake_lane_clevel_letters_the_lane_owner(monkeypatch):
@@ -397,4 +446,4 @@ def test_wake_lane_clevel_letters_the_lane_owner(monkeypatch):
 
 def test_ph_brain_chain_is_one_model_per_agy_lane_then_luna():
     assert [m for m, _ in ph_brain.MODEL_CHAIN] == ['claude-sonnet-5-5-high', 'gemini-4-argon-high']
-    assert ph_brain.codex_config() == ('gpt-6-luna', 'medium')
+    assert ph_brain.codex_config() == ('gpt-6-luna', 'high')

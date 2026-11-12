@@ -7,8 +7,10 @@ consuming 0% Claude Code ($20 Pro) usage.
 Architecture:
 - Primary Brain: `claude-sonnet-5-5-high` (AGY lane `agy-claude`)
 - Auto-Fallback 1: `gemini-4-argon-high` (AGY lane `agy-gemini`)
-- Auto-Fallback 2: Codex `gpt-6-luna` medium (`c_level_openai` in config/plans.yaml)
-- All out: the PH waits and its lane C-level is woken; no Claude Code brain.
+- Auto-Fallback 2: Codex `gpt-6-luna` high (`c_level_openai` in config/plans.yaml)
+- Auto-Fallback 3 (last): Claude Code `claude-sonnet-5-5`, effort high, plan mode
+- All out: the PH waits and its lane C-level gets one blocker letter.
+A non-quota failure or a timeout stops the chain (the next runner would fail the same way).
 
 Key property verified on `agy` CLI:
 Passing `--conversation <uuid> --model <new_model>` resumes the exact same
@@ -26,6 +28,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import tempfile
 import sys
 from contextvars import ContextVar
 from typing import Any
@@ -41,7 +44,7 @@ _IN_TURN = ContextVar('ph_brain_turn', default=False)
 QUOTA_SNAPSHOT = ROOT / "state" / "quota-snapshot.json"
 
 # CEO 12 Nov: AGY has two usage lanes (Claude models, Google models); one model per lane,
-# then Codex Luna medium (c_level_openai). Opus/Flash share a lane with Sonnet/Argon, so
+# then Codex Luna high (c_level_openai), then Claude Code Sonnet 5.5 high (invoke_claude). Opus/Flash share a lane with Sonnet/Argon, so
 # trying them after a limit only repeats the same 429.
 PRIMARY_MODEL = "claude-sonnet-5-5-high"
 FALLBACK_MODEL = "gemini-4-argon-high"
@@ -71,6 +74,9 @@ LIMIT_PATTERNS: tuple[str, ...] = (
     "rate_limit_exceeded",
     "model capacity exhausted",
     "individual quota reached",
+    "usage limit reached",
+    "claude ai usage limit",
+    "hit your limit",
 )
 
 # 3 Nov 2026: a brain run with edit rights tried edit_file itself, was refused and sat
@@ -509,7 +515,7 @@ def invoke_agy(
 # common loop below records every adapter before it receives a prompt.
 def codex_config() -> tuple[str, str]:
     from tools.quota import load_plans
-    # CEO 12 Nov: the PH brain's Codex step is Luna medium.
+    # CEO 12 Nov: the PH brain's Codex step is Luna high.
     entries = load_plans()['roles']['c_level_openai']
     entry = next(e for e in entries if e.startswith('codex:'))
     _, model, *effort = entry.split(':')
@@ -571,8 +577,46 @@ def invoke_codex(prompt: str, *, model: str, conversation_id=None,
                 raw_stdout=proc.stdout)
 
 
+# CEO 12 Nov: the very last brain, after both AGY lanes and Codex are out.
+CLAUDE_BRAIN_MODEL = "claude-sonnet-5-5"
+CLAUDE_BRAIN_EFFORT = "high"
+
+
+def invoke_claude(prompt: str, *, model: str = CLAUDE_BRAIN_MODEL, conversation_id=None,
+                  timeout_s=TURN_TIMEOUT_S, **kwargs) -> dict[str, Any]:
+    """One `claude -p` planning turn (plan mode: read-only), resumable by session id.
+    Runs from a neutral cwd so this repo's PH hooks never fire in the nested session."""
+    if not _IN_TURN.get():
+        raise RuntimeError('PH brains must enter through run_turn')
+    cmd = [os.environ.get('CLAUDE_BIN') or shutil.which('claude') or 'claude', '-p',
+           '--output-format', 'json', '--model', model, '--effort', CLAUDE_BRAIN_EFFORT,
+           '--permission-mode', 'plan', '--add-dir', str(ROOT)]
+    if conversation_id:
+        cmd += ['--resume', conversation_id]
+    env = {k: v for k, v in os.environ.items()
+           if k not in ('CXO_SESSION_ID', 'ORG_PH_PROJECT', 'ORG_PH_LANE', 'CLAUDECODE')}
+    try:
+        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+                              timeout=timeout_s, cwd=tempfile.gettempdir(), env=env)
+    except subprocess.TimeoutExpired:
+        return dict(ok=False, returncode=None, conversation_id=conversation_id,
+                    response=f'brain timed out after {timeout_s}s', limit_hit=None, timed_out=True)
+    try:
+        data = json.loads(proc.stdout or '{}')
+    except ValueError:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    response = data.get('result') if isinstance(data.get('result'), str) else ''
+    conversation_id = data.get('session_id') or conversation_id
+    limit = is_quota_limit_text((proc.stderr or '') + (proc.stdout or ''))
+    ok = proc.returncode == 0 and not data.get('is_error') and not limit and bool(response)
+    return dict(ok=ok, returncode=proc.returncode, conversation_id=conversation_id,
+                response=response, limit_hit=limit, raw_stderr=proc.stderr, raw_stdout=proc.stdout)
+
+
 BRAIN_RUNNERS = {'agy': lambda *args, **kwargs: invoke_agy(*args, **kwargs),
-                 'codex': invoke_codex}
+                 'codex': invoke_codex, 'claude': invoke_claude}
 
 _PROJECT_ALIASES: dict[str, str] = {
     "cookie-run": "cookierun-bot",
@@ -668,28 +712,39 @@ def run_turn(
         effective_preferred,
         snapshot_path=snapshot_path,
         force_fallback=force_fallback,
-    ) + ['codex'] if brain == 'agy' else ['codex']
+    ) + ['codex', 'claude'] if brain == 'agy' else [brain]
     attempted: list[dict[str, Any]] = []
     last_res: dict[str, Any] = {}
     telemetry_warning = {}
 
     for idx, model in enumerate(models_to_try):
         runner = brain
-        if model == 'codex':
+        if model in ('codex', 'claude'):
+            # A later runner only after every earlier try hit a quota limit; any other
+            # failure (crash, bad output) stops the chain and is reported as is.
             if brain == 'agy' and not all(a['limit_hit'] for a in attempted):
                 break
-            try:
-                check_codex_budget(snapshot_path)
-            except RuntimeError:
-                if brain == 'agy' and attempted and all(a['limit_hit'] for a in attempted):
-                    _wake_lane_clevel(ph_id, state, [a['model'] for a in attempted] + ['codex: reserve'])
-                raise
-            runner = 'codex'
-            model = (preferred_model if brain == 'codex' else None) or codex_config()[0]
-            conv_id = state.get('codex_session_id')
-            prompt = build_initial_prompt(ph_id=ph_id, project=state['project'],
-                lane=state.get('lane') or 'cto', owner=state.get('owner'),
-                message=f"Previous brain summary: {state.get('last_summary', '')}\n{message}")
+            runner = model
+            if runner == 'codex':
+                try:
+                    check_codex_budget(snapshot_path)
+                except RuntimeError as e:
+                    if brain != 'agy':
+                        raise
+                    # Codex held back for workers' reserve: counts as out, go on to Claude.
+                    attempted.append({"model": "codex", "ok": False, "limit_hit": "router reserve",
+                                      "returncode": None, "error": str(e)[:120]})
+                    continue
+                model = (preferred_model if brain == 'codex' else None) or codex_config()[0]
+            else:
+                model = (preferred_model if brain == 'claude' else None) or CLAUDE_BRAIN_MODEL
+            conv_id = state.get(f'{runner}_session_id')
+            if not conv_id:
+                prompt = build_initial_prompt(ph_id=ph_id, project=state['project'],
+                    lane=state.get('lane') or 'cto', owner=state.get('owner'),
+                    message=f"Previous brain summary: {state.get('last_summary', '')}\n{message}")
+            else:
+                prompt = message
         fallback_triggered = idx > 0 or (force_fallback and model != PRIMARY_MODEL)
         with ph_state.turn(session_id=ph_id, project=state['project'],
                            warning_state=telemetry_warning,
@@ -711,7 +766,7 @@ def run_turn(
         # conv_id only if the next model needs it or let it mint/resume cleanly.
         if res.get("conversation_id") and (res.get("ok") or state.get("turn_count", 0) > 0 or conv_id):
             conv_id = res["conversation_id"]
-            state['codex_session_id' if runner == 'codex' else 'conversation_id'] = conv_id
+            state[f'{runner}_session_id' if runner in ('codex', 'claude') else 'conversation_id'] = conv_id
             save_brain_state(state, brains_dir=brains_dir)
         elif res.get("conversation_id") and runner == 'agy':
             # Still pass the minted conversation_id within this turn if needed, and save on success
@@ -741,7 +796,7 @@ def run_turn(
                 "fallback_triggered": fallback_triggered,
                 "attempts": attempted,
                 "response": res["response"],
-                "claude_code_tokens_used": 0,
+                "claude_code_tokens_used": 0 if runner != 'claude' else None,
             }
         if res["ok"]:
             previous_model = state.get("active_model")
@@ -750,7 +805,7 @@ def run_turn(
                 state.setdefault("fallback_events", []).append({
                     "ts": _now_iso(),
                     "from_model": from_model,
-                    "to_model": 'codex' if runner == 'codex' else model,
+                    "to_model": runner if runner in ('codex', 'claude') else model,
                     "reason": attempted[0].get("limit_hit") or ("forced_fallback" if force_fallback else "quota_gate_or_error"),
                 })
             state["active_model"] = model
@@ -765,12 +820,12 @@ def run_turn(
                 "lane": state["lane"],
                 "conversation_id": conv_id,
                 "model_used": model,
-                "bucket_used": 'codex' if runner == 'codex' else MODEL_TO_BUCKET.get(model, "agy"),
+                "bucket_used": runner if runner in ('codex', 'claude') else MODEL_TO_BUCKET.get(model, "agy"),
                 "turn_count": state["turn_count"],
                 "fallback_triggered": fallback_triggered,
                 "attempts": attempted,
                 "response": res["response"],
-                "claude_code_tokens_used": 0,
+                "claude_code_tokens_used": 0 if runner != 'claude' else None,
             }
 
     summary = '; '.join(f"{a['model']} rc={a['returncode']} limit={a['limit_hit']} err={a['error'][:80]}"
@@ -788,11 +843,11 @@ def run_turn(
 
 def _wake_lane_clevel(ph_id: str, state: dict, models: list) -> None:
     """Every brain is out of quota: the PH waits, and its lane C-level is woken once
-    (CEO Q-20261112-0643-fe07: no Claude brain; "PH รอ + ปลุก C-level")."""
+    (CEO 12 Nov: every brain out -> "PH รอ + ปลุก C-level")."""
     lane = state.get('lane') or 'cto'
     owner = str(state.get('owner') or '').rsplit('-', 1)[-1] or 'fresh'
     msg = (f"PH {ph_id} ({state.get('project')}): every brain is out of quota ({', '.join(models)}). "
-           "The PH waits; no Claude brain by CEO ruling Q-20261112-0643-fe07. "
+           "The PH waits (CEO 12 Nov chain: AGY Sonnet, AGY Argon, Codex Luna, Claude Sonnet). "
            "Take its next step yourself or let it wait for the reset.")
     try:
         from tools import send_to_cto  # noqa: PLC0415

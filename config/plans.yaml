@@ -34,8 +34,8 @@ roles:
   # a model label here would reach the launcher as `-m <label>` (H3, 8db9213f).
   dev_shell:      ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high", "codex:", "claude:claude-sonnet-5-5"]
   c_level:        ["claude:claude-opus-5-5:xhigh"]
-  # PH brain's Codex step (CEO 12 Nov: Sonnet 5.5 High -> Argon High -> Codex Luna medium; no Claude).
-  c_level_openai: ["codex:luna:medium"]
+  # PH brain's Codex step (CEO 12 Nov: Sonnet 5.5 High -> Argon High -> Codex Luna high -> Claude Code Sonnet 5.5 high).
+  c_level_openai: ["codex:luna:high"]
   complex:        ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high", "agy:claude-opus-5-5-high", "codex:astra:xhigh", "claude:claude-fable-5-1"]
   # GH #188: browser_operator tasks whose brief uses tools/agy_browse.py and names a
   # Browser Home CDP URL (tools/route.class_for). Not a role_classes entry on purpose.
