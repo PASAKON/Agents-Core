@@ -1,0 +1,5085 @@
+{
+ "episode": "ghostrules-paper-2",
+ "total_s": 798.04,
+ "intro_s": 1.4,
+ "bumper_s": 1.5,
+ "bumpers": {
+  "c04": "01:15",
+  "c09": "02:25",
+  "c12": "03:00",
+  "c14": "03:35",
+  "c18": "03:45",
+  "c21": "04:30"
+ },
+ "take_offsets": {
+  "c01": 1.4,
+  "c02": 41.02,
+  "c03": 74.32,
+  "c04": 106.5,
+  "c05": 137.92,
+  "c06": 176.7,
+  "c07": 211.3,
+  "c08": 250.54,
+  "c09": 274.58,
+  "c10": 313.12,
+  "c11": 352.26,
+  "c12": 392.48,
+  "c13": 424.56,
+  "c14": 458.08,
+  "c15": 495.7,
+  "c16": 529.4,
+  "c17": 566.4,
+  "c18": 590.48,
+  "c19": 623.38,
+  "c20": 667.46,
+  "c21": 712.88,
+  "c22": 750.76
+ },
+ "take_lengths_asr": {
+  "c01": 38.62,
+  "c02": 32.3,
+  "c03": 29.68,
+  "c04": 30.42,
+  "c05": 37.78,
+  "c06": 33.6,
+  "c07": 38.24,
+  "c08": 21.54,
+  "c09": 37.54,
+  "c10": 38.14,
+  "c11": 37.72,
+  "c12": 31.08,
+  "c13": 31.02,
+  "c14": 36.62,
+  "c15": 32.7,
+  "c16": 36.0,
+  "c17": 21.58,
+  "c18": 31.9,
+  "c19": 43.08,
+  "c20": 42.92,
+  "c21": 36.88,
+  "c22": 46.28
+ },
+ "scenes": [
+  {
+   "chunk": "intro",
+   "a": 0,
+   "b": 1.4,
+   "name": "empty old highway",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s01_plate",
+    "brief": "very wide empty two lane old highway at night, one tiny lit store far away, canal edge and dark field, paper moon NOT red"
+   },
+   "movers": [
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    },
+    {
+     "kind": "insect",
+     "name": "moths near the far store lamp",
+     "reason": "moths gather at the only light"
+    }
+   ],
+   "note": "Opening beat. Dry: the story rain starts at 01:15.",
+   "id": "s01",
+   "t0": 0.0,
+   "t1": 1.4,
+   "snap_gap": 0.0,
+   "la": 0.0,
+   "lb": 1.4,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. very wide empty two lane old highway at night, one tiny lit store far away, canal edge and dark field, paper moon NOT red. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "night insects bed in",
+     "why": "ambient, nothing named; fades in under the first word",
+     "global_t": 0.0
+    }
+   ],
+   "shots": [
+    {
+     "id": "s01_1",
+     "plate_id": "s01_plate",
+     "t0": 0.0,
+     "t1": 1.4,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c01",
+   "a": 0,
+   "b": 12.8,
+   "name": "lonely store, hiring board",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s02_plate",
+    "brief": "front of a lonely roadside convenience store at night from the car park, blank hiring board leaning on the window (scribble lines, no letters), canal behind"
+   },
+   "movers": [
+    {
+     "kind": "insect",
+     "name": "moths at the canopy lamp",
+     "reason": "moths circle the lamp above the entrance"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "lamp",
+     "name": "canopy lamp flicker",
+     "reason": "a cheap canopy lamp buzzes and dips"
+    }
+   ],
+   "note": "'always posting hiring night staff, 3x pay, midnight to 6'",
+   "id": "s02",
+   "la": 0.0,
+   "lb": 13.13,
+   "t0": 1.4,
+   "t1": 14.53,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. front of a lonely roadside convenience store at night from the car park, blank hiring board leaning on the window (scribble lines, no letters), canal behind. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [],
+   "shots": [
+    {
+     "id": "s02_1",
+     "plate_id": "s02_plate",
+     "t0": 1.4,
+     "t1": 7.965,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s02_2",
+     "plate_id": "s02_plate",
+     "t0": 7.965,
+     "t1": 14.53,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c01",
+   "a": 12.8,
+   "b": 23.1,
+   "name": "empty store, clock",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "warm",
+   "plate": {
+    "id": "s03_plate",
+    "brief": "inside the shop, empty bright aisle between snack shelves, round wall clock above the counter, nobody anywhere"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "clock second hand",
+     "reason": "a wall clock second hand ticks"
+    },
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    },
+    {
+     "kind": "insect",
+     "name": "moth circling the light",
+     "reason": "moths really circle a bright tube at night"
+    }
+   ],
+   "note": "'no customer ever walks in'",
+   "id": "s03",
+   "la": 13.13,
+   "lb": 23.1,
+   "t0": 14.53,
+   "t1": 24.5,
+   "snap_gap": 0.62,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. inside the shop, empty bright aisle between snack shelves, round wall clock above the counter, nobody anywhere. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 12.8,
+     "label": "clock tick bed",
+     "why": "story is about the long empty night; tick runs under the line",
+     "global_t": 14.2
+    }
+   ],
+   "shots": [
+    {
+     "id": "s03_1",
+     "plate_id": "s03_plate",
+     "t0": 14.53,
+     "t1": 24.5,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c01",
+   "a": 23.1,
+   "b": 38.6,
+   "name": "counter and monitor",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "warm",
+   "plate": {
+    "id": "s04_plate",
+    "brief": "cash counter with register, small CCTV monitor and a dark back-room door ajar behind it, pen and blank notepad on the counter"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "lamp",
+     "name": "red REC lamp blink",
+     "reason": "recording lamp on the monitor blinks once a second"
+    },
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    }
+   ],
+   "note": "'the pay is for the 7 rules, not for ringing up people'",
+   "id": "s04",
+   "la": 23.1,
+   "lb": 39.62,
+   "t0": 24.5,
+   "t1": 41.02,
+   "snap_gap": 1.08,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. cash counter with register, small CCTV monitor and a dark back-room door ajar behind it, pen and blank notepad on the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 23.1,
+     "label": "back-room door creak",
+     "why": "the 7 iron rules are 'behind the store': a door that is slightly open",
+     "global_t": 24.5
+    }
+   ],
+   "shots": [
+    {
+     "id": "s04_1",
+     "plate_id": "s04_plate",
+     "t0": 24.5,
+     "t1": 32.76,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s04_2",
+     "plate_id": "s04_plate",
+     "t0": 32.76,
+     "t1": 41.02,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c02",
+   "a": 0,
+   "b": 7.6,
+   "name": "canal road, store far",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s05_plate",
+    "brief": "narrow asphalt road between a deep irrigation canal and a black field, the store glowing alone far down the road, no house in view"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "canal surface ripple",
+     "reason": "canal water moves slowly in the dark"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    }
+   ],
+   "note": "'store on the old irrigation canal road, no house within 2 km'",
+   "id": "s05",
+   "la": 0.0,
+   "lb": 7.77,
+   "t0": 41.02,
+   "t1": 48.79,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. narrow asphalt road between a deep irrigation canal and a black field, the store glowing alone far down the road, no house in view. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [],
+   "shots": [
+    {
+     "id": "s05_1",
+     "plate_id": "s05_plate",
+     "t0": 41.02,
+     "t1": 48.79,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c02",
+   "a": 7.6,
+   "b": 15.4,
+   "name": "laid off at the gate",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "FB",
+   "light": "day",
+   "plate": {
+    "id": "s06_plate",
+    "brief": "FLASHBACK: factory gate in daylight, a young Thai man about 24 in a work shirt holding a cardboard box, a guard shed, seen from the road"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "young man walking away from the gate",
+     "reason": "he leaves the job, a walking person"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "tree",
+     "name": "roadside tree leaves",
+     "reason": "leaves move in the daytime wind"
+    }
+   ],
+   "note": "FLASHBACK: 'about 24, suddenly laid off'",
+   "id": "s06",
+   "la": 7.77,
+   "lb": 15.72,
+   "t0": 48.79,
+   "t1": 56.74,
+   "snap_gap": 0.38,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Daylight, grey-white sky, NO moon, NO red sky. factory gate in daylight, a young Thai man about 24 in a work shirt holding a cardboard box, a guard shed, seen from the road Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "FLASHBACK grade: desaturated sepia, lifted blacks, cold shadows, film grain, soft vignette",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 7.6,
+     "label": "FB sting: low tape-warble swell, 0.6 s",
+     "why": "marks the grade change so the flashback reads on the audio too",
+     "global_t": 48.62
+    }
+   ],
+   "shots": [
+    {
+     "id": "s06_1",
+     "plate_id": "s06_plate",
+     "t0": 48.79,
+     "t1": 56.74,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c02",
+   "a": 15.4,
+   "b": 21.9,
+   "name": "mother's weekly visit",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "FB",
+   "light": "day",
+   "plate": {
+    "id": "s07_plate",
+    "brief": "FLASHBACK: hospital ward by day, an older woman in a bed with a curtain, the young man sitting by the bed holding her hand"
+   },
+   "movers": [
+    {
+     "kind": "curtain",
+     "name": "bed curtain sway",
+     "reason": "ward curtain moves in the fan draft"
+    },
+    {
+     "kind": "hand_object",
+     "name": "ward fan blades",
+     "reason": "a ward fan turns"
+    },
+    {
+     "kind": "water",
+     "name": "saline drip drops",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "FLASHBACK: 'mother has to see the doctor every week'",
+   "id": "s07",
+   "la": 15.72,
+   "lb": 22.23,
+   "t0": 56.74,
+   "t1": 63.25,
+   "snap_gap": 0.56,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Daylight, grey-white sky, NO moon, NO red sky. hospital ward by day, an older woman in a bed with a curtain, the young man sitting by the bed holding her hand Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "FLASHBACK grade: desaturated sepia, lifted blacks, cold shadows, film grain, soft vignette",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 15.4,
+     "label": "ward ambience, soft monitor beep",
+     "why": "mother needs a hospital visit every week, said in the take",
+     "global_t": 56.42
+    }
+   ],
+   "shots": [
+    {
+     "id": "s07_1",
+     "plate_id": "s07_plate",
+     "t0": 56.74,
+     "t1": 63.25,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c02",
+   "a": 21.9,
+   "b": 32.3,
+   "name": "walking to the store",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s08_plate",
+    "brief": "the young man walking along the roadside from the near foreground toward the glowing store, canal on his left, dark field on his right, feet on the road with a long horizon"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non walking toward the store",
+     "reason": "walker; scale shrinks with distance (perspective, feet on the road plane)"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    },
+    {
+     "kind": "water",
+     "name": "canal ripple",
+     "reason": "canal water moves"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    }
+   ],
+   "note": "back to the present. 'took the night job, 5,000 baht a night'",
+   "id": "s08",
+   "la": 22.23,
+   "lb": 33.3,
+   "t0": 63.25,
+   "t1": 74.32,
+   "snap_gap": 0.74,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. the young man walking along the roadside from the near foreground toward the glowing store, canal on his left, dark field on his right, feet on the road with a long horizon. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 21.9,
+     "label": "footsteps on asphalt, slow",
+     "why": "he walks to the job",
+     "global_t": 62.92
+    }
+   ],
+   "shots": [
+    {
+     "id": "s08_1",
+     "plate_id": "s08_plate",
+     "t0": 63.25,
+     "t1": 74.32,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c03",
+   "a": 0,
+   "b": 8.4,
+   "name": "manager hands over the paper",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "warm",
+   "plate": {
+    "id": "s09_plate",
+    "brief": "inside the shop, a tired manager with dark under-eye shadows holds a sheet of paper out across the counter to the young man, register untouched between them"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "paper passing across the counter",
+     "reason": "the manager hands the sheet over"
+    },
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    },
+    {
+     "kind": "insect",
+     "name": "moth circling the light",
+     "reason": "moths really circle a bright tube at night"
+    }
+   ],
+   "note": "'did not teach the register, only handed a paper'",
+   "id": "s09",
+   "la": 0.0,
+   "lb": 8.65,
+   "t0": 74.32,
+   "t1": 82.97,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. inside the shop, a tired manager with dark under-eye shadows holds a sheet of paper out across the counter to the young man, register untouched between them. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 2.0,
+     "label": "paper rustle",
+     "why": "the sheet changes hands",
+     "global_t": 76.32
+    }
+   ],
+   "shots": [
+    {
+     "id": "s09_1",
+     "plate_id": "s09_plate",
+     "t0": 74.32,
+     "t1": 82.97,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c03",
+   "a": 8.4,
+   "b": 20.1,
+   "name": "paper beside the monitor",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "warm",
+   "plate": {
+    "id": "s10_plate",
+    "brief": "close view of a paper sheet taped beside the CCTV monitor, red tape on its edges, rows of scribble lines (no legible letters)"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "lamp",
+     "name": "red REC lamp blink",
+     "reason": "recording lamp on the monitor blinks once a second"
+    },
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    }
+   ],
+   "note": "'red tape next to the CCTV monitor; do not leave the counter'",
+   "id": "s10",
+   "la": 8.65,
+   "lb": 20.5,
+   "t0": 82.97,
+   "t1": 94.82,
+   "snap_gap": 0.5,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. close view of a paper sheet taped beside the CCTV monitor, red tape on its edges, rows of scribble lines (no legible letters). normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [],
+   "shots": [
+    {
+     "id": "s10_1",
+     "plate_id": "s10_plate",
+     "t0": 82.97,
+     "t1": 94.82,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c03",
+   "a": 20.1,
+   "b": 29.7,
+   "name": "manager leaves",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "warm",
+   "plate": {
+    "id": "s11_plate",
+    "brief": "shop interior from behind the counter toward the glass door, the manager walking out into the dark, the young man alone at the counter"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "manager walking out",
+     "reason": "he leaves for the night, a walking person"
+    },
+    {
+     "kind": "story_event",
+     "name": "glass door slides open then shut",
+     "reason": "automatic door follows the walker"
+    },
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    }
+   ],
+   "note": "'at 6 a.m. someone will come to take over'",
+   "id": "s11",
+   "la": 20.5,
+   "lb": 30.68,
+   "t0": 94.82,
+   "t1": 105.0,
+   "snap_gap": 0.76,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. shop interior from behind the counter toward the glass door, the manager walking out into the dark, the young man alone at the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (before 01:15)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 20.9,
+     "label": "manager footsteps, door chime, auto door slide",
+     "why": "story: he walks out, 'someone will come at 6'",
+     "global_t": 95.22
+    }
+   ],
+   "shots": [
+    {
+     "id": "s11_1",
+     "plate_id": "s11_plate",
+     "t0": 94.82,
+     "t1": 105.0,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c04",
+   "a": 0,
+   "b": 7.9,
+   "name": "first rain on the glass",
+   "io": "outdoor",
+   "rain": "outdoor",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s12_plate",
+    "brief": "the shopfront from the car park, rain just starting, drops on the wet asphalt and on the glass, canopy lamp over the entrance, open sky above"
+   },
+   "movers": [
+    {
+     "kind": "rain",
+     "name": "rain, two depths",
+     "reason": "story: rain begins at 01:15"
+    },
+    {
+     "kind": "water",
+     "name": "puddle ripples",
+     "reason": "raindrops ring the puddles"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "lamp",
+     "name": "canopy lamp flicker",
+     "reason": "wet cheap lamp dips in the storm"
+    }
+   ],
+   "note": "RAIN SCENE, OUTDOOR. 'past midnight, 01:15, rain began tapping the glass'",
+   "id": "s12",
+   "la": 0.0,
+   "lb": 8.22,
+   "t0": 106.5,
+   "t1": 114.72,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. the shopfront from the car park, rain just starting, drops on the wet asphalt and on the glass, canopy lamp over the entrance, open sky above. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off until 2.0 s then fades in 3 s (story: rain begins)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 2.0,
+     "label": "rain bed fades in (3 s)",
+     "why": "story: rain begins; bed starts here and never drops out again until the dawn scene",
+     "global_t": 108.5
+    }
+   ],
+   "shots": [
+    {
+     "id": "s12_1",
+     "plate_id": "s12_plate",
+     "t0": 106.5,
+     "t1": 114.72,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c04",
+   "a": 7.9,
+   "b": 17.0,
+   "name": "tube lights turn teal",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s13_plate",
+    "brief": "inside the shop, ceiling tubes dipping twice then turning cold green-blue, the young man looking up at the ceiling"
+   },
+   "movers": [
+    {
+     "kind": "lamp",
+     "name": "tube light flicker",
+     "reason": "faulty ballast, the light dips and buzzes as the story says it flickers"
+    },
+    {
+     "kind": "person",
+     "name": "Non looks up",
+     "reason": "he turns his head to the ceiling at the flicker"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "insect",
+     "name": "moth circling the light",
+     "reason": "moths really circle a bright tube at night"
+    }
+   ],
+   "note": "INDOOR rain period: audio muffled only. 'tubes flicker out twice then turn blue-green'",
+   "id": "s13",
+   "la": 8.22,
+   "lb": 17.37,
+   "t0": 114.72,
+   "t1": 123.87,
+   "snap_gap": 0.72,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. inside the shop, ceiling tubes dipping twice then turning cold green-blue, the young man looking up at the ceiling. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 8.0,
+     "label": "fluorescent buzz and click x2",
+     "why": "story: lights flicker twice",
+     "global_t": 114.5
+    },
+    {
+     "local_t": 14.5,
+     "label": "hum shifts lower and colder",
+     "why": "light turns teal",
+     "global_t": 121.0
+    }
+   ],
+   "shots": [
+    {
+     "id": "s13_1",
+     "plate_id": "s13_plate",
+     "t0": 114.72,
+     "t1": 123.87,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c04",
+   "a": 17.0,
+   "b": 22.5,
+   "name": "the door opens by itself",
+   "io": "outdoor",
+   "rain": "outdoor",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s14_plate",
+    "brief": "low view across the wet car park toward the glass door sliding open by itself, cold teal light spilling onto the puddles, nobody there"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "glass door slides open",
+     "reason": "story: it opens on its own"
+    },
+    {
+     "kind": "rain",
+     "name": "rain, two depths",
+     "reason": "continuing storm outside"
+    },
+    {
+     "kind": "water",
+     "name": "puddle ripples in the spill light",
+     "reason": "rain hits the puddles"
+    }
+   ],
+   "note": "RAIN SCENE, OUTDOOR. 'door chime, glass door slides open by itself'",
+   "id": "s14",
+   "la": 17.37,
+   "lb": 22.5,
+   "t0": 123.87,
+   "t1": 129.0,
+   "snap_gap": 0.66,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. low view across the wet car park toward the glass door sliding open by itself, cold teal light spilling onto the puddles, nobody there. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "FULL bed (outdoor rain scene)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 17.0,
+     "label": "door chime two tone",
+     "why": "story: the door chime rings",
+     "global_t": 123.5
+    },
+    {
+     "local_t": 18.5,
+     "label": "auto door slide open",
+     "why": "story: the glass door slides open",
+     "global_t": 125.0
+    }
+   ],
+   "shots": [
+    {
+     "id": "s14_1",
+     "plate_id": "s14_plate",
+     "t0": 123.87,
+     "t1": 129.0,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c04",
+   "a": 22.5,
+   "b": 30.4,
+   "name": "nobody in the doorway",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s15_plate",
+    "brief": "from behind the counter toward the open glass door, dark beyond, no one, the young man's hand frozen on the counter"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non turns toward the door",
+     "reason": "he reacts to the chime"
+    },
+    {
+     "kind": "story_event",
+     "name": "glass door slides shut again",
+     "reason": "auto door closes after the empty pass"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "INDOOR rain period: audio muffled only.",
+   "id": "s15",
+   "la": 22.5,
+   "lb": 31.42,
+   "t0": 129.0,
+   "t1": 137.92,
+   "snap_gap": 1.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. from behind the counter toward the open glass door, dark beyond, no one, the young man's hand frozen on the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 26.8,
+     "label": "door slide closed",
+     "why": "after the silence at the end of the take",
+     "global_t": 133.3
+    }
+   ],
+   "shots": [
+    {
+     "id": "s15_1",
+     "plate_id": "s15_plate",
+     "t0": 129.0,
+     "t1": 137.92,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c05",
+   "a": 0,
+   "b": 9.6,
+   "name": "wet footprints at the door",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s16_plate",
+    "brief": "tile floor just inside the glass door, black canal-water footprints appearing one by one across the threshold, nothing visible above them"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "footprints appear one at a time",
+     "reason": "story: wet steps walk in"
+    },
+    {
+     "kind": "water",
+     "name": "water drips off the invisible feet",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'footprints soaked in black canal water walk in slowly'",
+   "id": "s16",
+   "la": 0.0,
+   "lb": 9.83,
+   "t0": 137.92,
+   "t1": 147.75,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. tile floor just inside the glass door, black canal-water footprints appearing one by one across the threshold, nothing visible above them. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 2.8,
+     "label": "wet bare steps, slow, x6",
+     "why": "story: footsteps with canal water, one step at a time",
+     "global_t": 140.72
+    },
+    {
+     "local_t": 4.0,
+     "label": "canal smell: low wet drone",
+     "why": "story names the smell of canal water",
+     "global_t": 141.92
+    }
+   ],
+   "shots": [
+    {
+     "id": "s16_1",
+     "plate_id": "s16_plate",
+     "t0": 137.92,
+     "t1": 147.75,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c05",
+   "a": 9.6,
+   "b": 19.3,
+   "name": "Non frozen",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s17_plate",
+    "brief": "the young man behind the counter seen from the front, hands flat, jaw set, eyes fixed on the floor trail, teal light"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non's hand trembles",
+     "reason": "fear, a person shaking"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "",
+   "id": "s17",
+   "la": 9.83,
+   "lb": 19.3,
+   "t0": 147.75,
+   "t1": 157.22,
+   "snap_gap": 0.38,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man behind the counter seen from the front, hands flat, jaw set, eyes fixed on the floor trail, teal light. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 10.8,
+     "label": "wet steps continue",
+     "why": "trail keeps coming",
+     "global_t": 148.72
+    }
+   ],
+   "shots": [
+    {
+     "id": "s17_1",
+     "plate_id": "s17_plate",
+     "t0": 147.75,
+     "t1": 157.22,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c05",
+   "a": 19.3,
+   "b": 29.8,
+   "name": "steps cross the aisle",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s18_plate",
+    "brief": "view along the snack aisle floor, a trail of wet black footprints crossing toward the counter, nothing visible"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "footprints appear one at a time",
+     "reason": "story: the steps come closer"
+    },
+    {
+     "kind": "water",
+     "name": "drips off the unseen body",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "",
+   "id": "s18",
+   "la": 19.3,
+   "lb": 34.51,
+   "t0": 157.22,
+   "t1": 172.43,
+   "snap_gap": 10.46,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. view along the snack aisle floor, a trail of wet black footprints crossing toward the counter, nothing visible. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 19.3,
+     "label": "wet steps, slower, close",
+     "why": "10 s of narration silence in the take: the steps carry the beat",
+     "global_t": 157.22
+    }
+   ],
+   "shots": [
+    {
+     "id": "s18_1",
+     "plate_id": "s18_plate",
+     "t0": 157.22,
+     "t1": 164.825,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s18_2",
+     "plate_id": "s18_plate",
+     "t0": 164.825,
+     "t1": 172.43,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c05",
+   "a": 29.8,
+   "b": 37.8,
+   "name": "bare wet feet",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s19_plate",
+    "brief": "low floor level, bare feet streaming black water stepping onto the tile in front of the counter"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "feet step forward",
+     "reason": "story: she walks in one step at a time"
+    },
+    {
+     "kind": "water",
+     "name": "black water streams off the feet",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "",
+   "id": "s19",
+   "la": 34.51,
+   "lb": 38.78,
+   "t0": 172.43,
+   "t1": 176.7,
+   "snap_gap": 0.26,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. low floor level, bare feet streaming black water stepping onto the tile in front of the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 29.8,
+     "label": "last step stops at the counter",
+     "why": "story: she is now inside",
+     "global_t": 167.72
+    }
+   ],
+   "shots": [
+    {
+     "id": "s19_1",
+     "plate_id": "s19_plate",
+     "t0": 172.43,
+     "t1": 176.7,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c06",
+   "a": 0,
+   "b": 13.0,
+   "name": "woman in red",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s20_plate",
+    "brief": "a woman in a red Thai dress in the shop doorway, long wet hair over one side of her face, one pale eye visible through the hair, held wilted dark jasmine garland, black water pooling under her"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "water drips off the hem and hair",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "cloth",
+     "name": "jasmine garland swings",
+     "reason": "she holds it, it swings with her steps"
+    },
+    {
+     "kind": "person",
+     "name": "woman walking in",
+     "reason": "story: she walks in"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'woman in red, hair over half her face, one white eye, wilted jasmine'",
+   "id": "s20",
+   "la": 0.0,
+   "lb": 13.27,
+   "t0": 176.7,
+   "t1": 189.97,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. a woman in a red Thai dress in the shop doorway, long wet hair over one side of her face, one pale eye visible through the hair, held wilted dark jasmine garland, black water pooling under her. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "wet steps, canal smell drone",
+     "why": "story names the canal smell",
+     "global_t": 176.7
+    },
+    {
+     "local_t": 5.4,
+     "label": "sharp breath in, cold",
+     "why": "her entrance",
+     "global_t": 182.1
+    }
+   ],
+   "shots": [
+    {
+     "id": "s20_1",
+     "plate_id": "s20_plate",
+     "t0": 176.7,
+     "t1": 183.335,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s20_2",
+     "plate_id": "s20_plate",
+     "t0": 183.335,
+     "t1": 189.97,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c06",
+   "a": 13.0,
+   "b": 23.3,
+   "name": "bag of ice from the freezer",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s21_plate",
+    "brief": "freezer chest at the end of the aisle, her pale wet hand lifting the lid and taking out a plastic bag of ice, cold mist rolling out"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "freezer lid lifts",
+     "reason": "her hand opens the freezer"
+    },
+    {
+     "kind": "smoke",
+     "name": "cold mist from the freezer",
+     "reason": "cold air meets warm air and fogs"
+    },
+    {
+     "kind": "water",
+     "name": "water drips off her hand",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'she takes a bag of ice from the freezer'",
+   "id": "s21",
+   "la": 13.27,
+   "lb": 23.66,
+   "t0": 189.97,
+   "t1": 200.36,
+   "snap_gap": 0.46,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. freezer chest at the end of the aisle, her pale wet hand lifting the lid and taking out a plastic bag of ice, cold mist rolling out. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 13.0,
+     "label": "freezer lid open, ice bag rustle",
+     "why": "story: she takes a bag of ice from the freezer",
+     "global_t": 189.7
+    }
+   ],
+   "shots": [
+    {
+     "id": "s21_1",
+     "plate_id": "s21_plate",
+     "t0": 189.97,
+     "t1": 200.36,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c06",
+   "a": 23.3,
+   "b": 33.6,
+   "name": "ice on the counter",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s22_plate",
+    "brief": "counter close view, the bag of ice set down on the counter with a wet hand, jasmine petals dropping, a black puddle spreading"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "ice bag set down",
+     "reason": "story: she puts it on the counter"
+    },
+    {
+     "kind": "water",
+     "name": "puddle spreads",
+     "reason": "water leaks from the bag and her hand"
+    },
+    {
+     "kind": "cloth",
+     "name": "jasmine petals fall",
+     "reason": "dead petals drop from the garland"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'places the bag of ice on the counter in front of him'",
+   "id": "s22",
+   "la": 23.66,
+   "lb": 34.6,
+   "t0": 200.36,
+   "t1": 211.3,
+   "snap_gap": 0.76,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. counter close view, the bag of ice set down on the counter with a wet hand, jasmine petals dropping, a black puddle spreading. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 24.5,
+     "label": "ice bag thump on counter",
+     "why": "story: she places the ice on the counter",
+     "global_t": 201.2
+    }
+   ],
+   "shots": [
+    {
+     "id": "s22_1",
+     "plate_id": "s22_plate",
+     "t0": 200.36,
+     "t1": 211.3,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c07",
+   "a": 0,
+   "b": 15.0,
+   "name": "eyes down, ring it up",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s23_plate",
+    "brief": "first person view from behind the counter, the register keypad under the young man's shaking hand, a strip of red dress at the edge of frame, eyes kept low"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "hand pressing keys",
+     "reason": "he rings up the ice, hand trembling"
+    },
+    {
+     "kind": "screen",
+     "name": "register display blink",
+     "reason": "a register display updates"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'rule 2: ring her up normally, never look at her face, never meet her eyes'",
+   "id": "s23",
+   "la": 0.0,
+   "lb": 15.62,
+   "t0": 211.3,
+   "t1": 226.92,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. first person view from behind the counter, the register keypad under the young man's shaking hand, a strip of red dress at the edge of frame, eyes kept low. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 8.0,
+     "label": "register beep x2",
+     "why": "he rings up the ice",
+     "global_t": 219.3
+    }
+   ],
+   "shots": [
+    {
+     "id": "s23_1",
+     "plate_id": "s23_plate",
+     "t0": 211.3,
+     "t1": 219.11,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s23_2",
+     "plate_id": "s23_plate",
+     "t0": 219.11,
+     "t1": 226.92,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c07",
+   "a": 15.0,
+   "b": 23.5,
+   "name": "monitor shows her at the counter",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "CCTV",
+   "light": "teal",
+   "plate": {
+    "id": "s24_plate",
+    "brief": "close on the CCTV monitor, mono green-grey, the woman in the red dress at the counter from above, the clerk small beside her"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "screen",
+     "name": "monitor picture tear",
+     "reason": "analog rolling tear"
+    },
+    {
+     "kind": "lamp",
+     "name": "red REC lamp blink",
+     "reason": "recording lamp on the monitor blinks once a second"
+    }
+   ],
+   "note": "'what he sees on the monitor makes him stop breathing'",
+   "id": "s24",
+   "la": 15.62,
+   "lb": 23.85,
+   "t0": 226.92,
+   "t1": 235.15,
+   "snap_gap": 1.2,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the CCTV monitor, mono green-grey, the woman in the red dress at the counter from above, the clerk small beside her. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 15.0,
+     "label": "monitor hum, tape hiss",
+     "why": "what he sees on the screen stops his breath",
+     "global_t": 226.3
+    }
+   ],
+   "shots": [
+    {
+     "id": "s24_1",
+     "plate_id": "s24_plate",
+     "t0": 226.92,
+     "t1": 235.15,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c07",
+   "a": 23.5,
+   "b": 38.2,
+   "name": "feet above the tile",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s25_plate",
+    "brief": "low shot through the gap under the counter, her wet feet hovering a hand's width above the tile, a clean shadow gap, water drops falling through it"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "feet sway in the air",
+     "reason": "story: her feet float above the floor"
+    },
+    {
+     "kind": "water",
+     "name": "water drips fall through the gap",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'her feet do not touch the floor tiles, they float'",
+   "id": "s25",
+   "la": 23.85,
+   "lb": 39.24,
+   "t0": 235.15,
+   "t1": 250.54,
+   "snap_gap": 0.74,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. low shot through the gap under the counter, her wet feet hovering a hand's width above the tile, a clean shadow gap, water drops falling through it. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 23.5,
+     "label": "held breath: air drops out, sub bass",
+     "why": "story: he stops breathing",
+     "global_t": 234.8
+    },
+    {
+     "local_t": 28.3,
+     "label": "single drip echo",
+     "why": "feet do not touch the tile",
+     "global_t": 239.6
+    }
+   ],
+   "shots": [
+    {
+     "id": "s25_1",
+     "plate_id": "s25_plate",
+     "t0": 235.15,
+     "t1": 242.845,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s25_2",
+     "plate_id": "s25_plate",
+     "t0": 242.845,
+     "t1": 250.54,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c08",
+   "a": 0,
+   "b": 10.5,
+   "name": "she walks through the glass",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s26_plate",
+    "brief": "the woman in red turning from the counter and walking straight into the closed glass door, her back passing into the glass, the door panel stays shut, a wet banknote left on the counter"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "woman walking away",
+     "reason": "story: she walks out"
+    },
+    {
+     "kind": "water",
+     "name": "water drips off the hem",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "hand_object",
+     "name": "banknote edge curls as it dries",
+     "reason": "a wet paper note curls on the counter"
+    }
+   ],
+   "note": "'puts down a wet banknote, walks through the glass door without it opening'",
+   "id": "s26",
+   "la": 0.0,
+   "lb": 10.85,
+   "t0": 250.54,
+   "t1": 261.39,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the woman in red turning from the counter and walking straight into the closed glass door, her back passing into the glass, the door panel stays shut, a wet banknote left on the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.5,
+     "label": "wet banknote slap on the counter",
+     "why": "story: she puts down the note",
+     "global_t": 251.04
+    },
+    {
+     "local_t": 4.0,
+     "label": "wet steps to the door",
+     "why": "",
+     "global_t": 254.54
+    },
+    {
+     "local_t": 7.0,
+     "label": "no door slide at all; low cold whoosh",
+     "why": "story: the door does not open",
+     "global_t": 257.54
+    }
+   ],
+   "shots": [
+    {
+     "id": "s26_1",
+     "plate_id": "s26_plate",
+     "t0": 250.54,
+     "t1": 261.39,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c08",
+   "a": 10.5,
+   "b": 21.5,
+   "name": "old banknote",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s27_plate",
+    "brief": "open cash drawer, the wet banknote lying in it, an old series note 20 years out of date, brown canal stain and a smell haze rising"
+   },
+   "movers": [
+    {
+     "kind": "smoke",
+     "name": "smell haze rises from the note",
+     "reason": "visual stand-in for the canal stench named in the take"
+    },
+    {
+     "kind": "water",
+     "name": "note drips into the drawer",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'an old note from 20 years ago that stinks of canal'",
+   "id": "s27",
+   "la": 10.85,
+   "lb": 22.54,
+   "t0": 261.39,
+   "t1": 273.08,
+   "snap_gap": 0.62,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. open cash drawer, the wet banknote lying in it, an old series note 20 years out of date, brown canal stain and a smell haze rising. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 10.5,
+     "label": "cash drawer open ding",
+     "why": "he checks the drawer",
+     "global_t": 261.04
+    }
+   ],
+   "shots": [
+    {
+     "id": "s27_1",
+     "plate_id": "s27_plate",
+     "t0": 261.39,
+     "t1": 273.08,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c09",
+   "a": 0,
+   "b": 10.6,
+   "name": "the girl at the counter",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s28_plate",
+    "brief": "only the head and one hand of a small girl rising above the counter edge, skin violet-blue like a drowned child, black canal water dripping off her fingertips onto the counter, face turned down, hair wet"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "water drips off her fingertips",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "person",
+     "name": "girl sways slightly",
+     "reason": "small child standing in a draft of cold air"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "bumper 02:25 before. 'a small girl, violet skin like a drowned child, black water dripping'",
+   "id": "s28",
+   "la": 0.0,
+   "lb": 12.23,
+   "t0": 274.58,
+   "t1": 286.81,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. only the head and one hand of a small girl rising above the counter edge, skin violet-blue like a drowned child, black canal water dripping off her fingertips onto the counter, face turned down, hair wet. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "door chime two tone",
+     "why": "story: the door chime rings again",
+     "global_t": 274.58
+    },
+    {
+     "local_t": 3.5,
+     "label": "water drip on the counter, close",
+     "why": "story: black water falls from her fingertips",
+     "global_t": 278.08
+    }
+   ],
+   "shots": [
+    {
+     "id": "s28_1",
+     "plate_id": "s28_plate",
+     "t0": 274.58,
+     "t1": 280.695,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s28_2",
+     "plate_id": "s28_plate",
+     "t0": 280.695,
+     "t1": 286.81,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c09",
+   "a": 10.6,
+   "b": 20.1,
+   "name": "her small voice",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s29_plate",
+    "brief": "the girl's side profile as a paper cut-out against the cold light, mouth a thin line, wet hair strands dripping"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "hair drips",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "cloth",
+     "name": "wet hair strands sway",
+     "reason": "air moves the wet hair"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'calls his real name in a small trembling voice'",
+   "id": "s29",
+   "la": 12.23,
+   "lb": 20.42,
+   "t0": 286.81,
+   "t1": 295.0,
+   "snap_gap": 3.18,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the girl's side profile as a paper cut-out against the cold light, mouth a thin line, wet hair strands dripping. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 11.0,
+     "label": "small child voice, trembling, dry (no reverb)",
+     "why": "story: she calls his real name softly",
+     "global_t": 285.58
+    }
+   ],
+   "shots": [
+    {
+     "id": "s29_1",
+     "plate_id": "s29_plate",
+     "t0": 286.81,
+     "t1": 295.0,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c09",
+   "a": 20.1,
+   "b": 29.6,
+   "name": "snack shelf",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s30_plate",
+    "brief": "the snack shelf, a small gap in the row where a bag was taken, a child's wet handprint on the shelf edge"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "water drips off the shelf edge",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "insect",
+     "name": "moth circling the light",
+     "reason": "moths really circle a bright tube at night"
+    }
+   ],
+   "note": "'big brother Non, buy snacks please'",
+   "id": "s30",
+   "la": 20.42,
+   "lb": 30.36,
+   "t0": 295.0,
+   "t1": 304.94,
+   "snap_gap": 0.6,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the snack shelf, a small gap in the row where a bag was taken, a child's wet handprint on the shelf edge. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 24.0,
+     "label": "plastic snack bag crinkle",
+     "why": "'buy snacks, please'",
+     "global_t": 298.58
+    }
+   ],
+   "shots": [
+    {
+     "id": "s30_1",
+     "plate_id": "s30_plate",
+     "t0": 295.0,
+     "t1": 304.94,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c09",
+   "a": 29.6,
+   "b": 37.5,
+   "name": "begging",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s31_plate",
+    "brief": "the young man seen over the counter, mouth shut, eyes wide, a small wet hand at the counter edge in the foreground"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non's eyes track and breath shakes",
+     "reason": "fear, a person trembling"
+    },
+    {
+     "kind": "water",
+     "name": "drips on the counter",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "",
+   "id": "s31",
+   "la": 30.36,
+   "lb": 38.54,
+   "t0": 304.94,
+   "t1": 313.12,
+   "snap_gap": 0.28,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man seen over the counter, mouth shut, eyes wide, a small wet hand at the counter edge in the foreground. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [],
+   "shots": [
+    {
+     "id": "s31_1",
+     "plate_id": "s31_plate",
+     "t0": 304.94,
+     "t1": 313.12,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c10",
+   "a": 0,
+   "b": 13.5,
+   "name": "do not answer",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s32_plate",
+    "brief": "close on the young man's face, one hand pressed over his own mouth, sweat on the temple, teal tube light above"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "sweat drop slides",
+     "reason": "a drop of sweat runs down the temple"
+    },
+    {
+     "kind": "person",
+     "name": "hand trembles at the mouth",
+     "reason": "fear"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'rule 3: never answer when called by name; never give change in wet coins'",
+   "id": "s32",
+   "la": 0.0,
+   "lb": 13.86,
+   "t0": 313.12,
+   "t1": 326.98,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the young man's face, one hand pressed over his own mouth, sweat on the temple, teal tube light above. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 2.2,
+     "label": "breath held, ear ring tone, very low",
+     "why": "rule 3: never answer when called by name",
+     "global_t": 315.32
+    }
+   ],
+   "shots": [
+    {
+     "id": "s32_1",
+     "plate_id": "s32_plate",
+     "t0": 313.12,
+     "t1": 320.05,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s32_2",
+     "plate_id": "s32_plate",
+     "t0": 320.05,
+     "t1": 326.98,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c10",
+   "a": 13.5,
+   "b": 30.0,
+   "name": "three mud coins",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s33_plate",
+    "brief": "top view of the counter, three ten baht coins side by side with canal mud and a strand of black hair stuck to them, a small wet hand pulling away"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "small hand pulls back",
+     "reason": "she sets the coins down and withdraws"
+    },
+    {
+     "kind": "water",
+     "name": "mud water seeps from the coins",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'three ten baht coins with canal mud and hair: spirit money'",
+   "id": "s33",
+   "la": 13.86,
+   "lb": 30.35,
+   "t0": 326.98,
+   "t1": 343.47,
+   "snap_gap": 0.76,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. top view of the counter, three ten baht coins side by side with canal mud and a strand of black hair stuck to them, a small wet hand pulling away. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 15.0,
+     "label": "coin clink x3, each on its own word",
+     "why": "story: three coins on the counter",
+     "global_t": 328.12
+    }
+   ],
+   "shots": [
+    {
+     "id": "s33_1",
+     "plate_id": "s33_plate",
+     "t0": 326.98,
+     "t1": 335.225,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s33_2",
+     "plate_id": "s33_plate",
+     "t0": 335.225,
+     "t1": 343.47,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c10",
+   "a": 30.0,
+   "b": 38.1,
+   "name": "change means a trade",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s34_plate",
+    "brief": "the young man's hand hovering over the till drawer above the coins, not touching"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "hand hovers and shakes",
+     "reason": "he almost gives change, the hand trembles"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "water",
+     "name": "drips on the counter",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "",
+   "id": "s34",
+   "la": 30.35,
+   "lb": 39.14,
+   "t0": 343.47,
+   "t1": 352.26,
+   "snap_gap": 0.62,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man's hand hovering over the till drawer above the coins, not touching. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 30.0,
+     "label": "low sub bass swell",
+     "why": "if he gives change it is a trade of souls",
+     "global_t": 343.12
+    }
+   ],
+   "shots": [
+    {
+     "id": "s34_1",
+     "plate_id": "s34_plate",
+     "t0": 343.47,
+     "t1": 352.26,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c11",
+   "a": 0,
+   "b": 10.4,
+   "name": "snack slid across",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s35_plate",
+    "brief": "counter close view, a snack bag sliding across the counter and the three muddy coins pushed back, the young man's hand and the small hand"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "snack slides to her",
+     "reason": "story: he slides the snack over"
+    },
+    {
+     "kind": "hand_object",
+     "name": "coins pushed back",
+     "reason": "story: he pushes the three coins back"
+    },
+    {
+     "kind": "water",
+     "name": "drips on the counter",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'slides the snack over and pushes all three coins back, no word'",
+   "id": "s35",
+   "la": 0.0,
+   "lb": 10.96,
+   "t0": 352.26,
+   "t1": 363.22,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. counter close view, a snack bag sliding across the counter and the three muddy coins pushed back, the young man's hand and the small hand. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 1.4,
+     "label": "snack slide on the counter",
+     "why": "story",
+     "global_t": 353.66
+    },
+    {
+     "local_t": 4.5,
+     "label": "coins scrape back, clink x3",
+     "why": "story: coins pushed back",
+     "global_t": 356.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s35_1",
+     "plate_id": "s35_plate",
+     "t0": 352.26,
+     "t1": 363.22,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c11",
+   "a": 10.4,
+   "b": 21.6,
+   "name": "wide smile",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s36_plate",
+    "brief": "the girl's face as a paper cut-out in profile against the light, mouth stretched in a wide smile up to her ears, eyes dark"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "hair drips",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "cloth",
+     "name": "wet hair stirs",
+     "reason": "cold air"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'smiles wide up to the ears and whispers'",
+   "id": "s36",
+   "la": 10.96,
+   "lb": 21.84,
+   "t0": 363.22,
+   "t1": 374.1,
+   "snap_gap": 1.08,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the girl's face as a paper cut-out in profile against the light, mouth stretched in a wide smile up to her ears, eyes dark. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 13.0,
+     "label": "wet slow smile: low cloth stretch, soft",
+     "why": "",
+     "global_t": 365.26
+    },
+    {
+     "local_t": 14.5,
+     "label": "cold whisper, very close",
+     "why": "story: she whispers",
+     "global_t": 366.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s36_1",
+     "plate_id": "s36_plate",
+     "t0": 363.22,
+     "t1": 374.1,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c11",
+   "a": 21.6,
+   "b": 29.6,
+   "name": "freezer behind the store",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s37_plate",
+    "brief": "the glass freezer doors at the back of the shop, the end door frosted white, a dark shape pressed deep inside"
+   },
+   "movers": [
+    {
+     "kind": "smoke",
+     "name": "cold mist at the door seams",
+     "reason": "cold air leaks out"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "water",
+     "name": "frost melt drips",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "'the one before you is still in the freezer behind the store'",
+   "id": "s37",
+   "la": 21.84,
+   "lb": 29.6,
+   "t0": 374.1,
+   "t1": 381.86,
+   "snap_gap": 0.44,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the glass freezer doors at the back of the shop, the end door frosted white, a dark shape pressed deep inside. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 22.0,
+     "label": "freezer compressor hum rises",
+     "why": "'the previous brother is in the freezer behind the store'",
+     "global_t": 374.26
+    }
+   ],
+   "shots": [
+    {
+     "id": "s37_1",
+     "plate_id": "s37_plate",
+     "t0": 374.1,
+     "t1": 381.86,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c11",
+   "a": 29.6,
+   "b": 37.7,
+   "name": "she is gone",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s38_plate",
+    "brief": "the counter with a snack gone, only a black canal puddle on the tile where the girl stood"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "puddle settles in ripples",
+     "reason": "last drops fall into it"
+    },
+    {
+     "kind": "water",
+     "name": "a final drip",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'blink, she vanishes, only a puddle'",
+   "id": "s38",
+   "la": 29.6,
+   "lb": 38.72,
+   "t0": 381.86,
+   "t1": 390.98,
+   "snap_gap": 1.1,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the counter with a snack gone, only a black canal puddle on the tile where the girl stood. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 29.6,
+     "label": "blink: tiny cloth snap",
+     "why": "",
+     "global_t": 381.86
+    },
+    {
+     "local_t": 31.0,
+     "label": "silence then single drip",
+     "why": "story: she is gone",
+     "global_t": 383.26
+    }
+   ],
+   "shots": [
+    {
+     "id": "s38_1",
+     "plate_id": "s38_plate",
+     "t0": 381.86,
+     "t1": 390.98,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c12",
+   "a": 0,
+   "b": 10.3,
+   "name": "03:00 flip the paper",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s39_plate",
+    "brief": "the young man's hands turning the rule sheet over on the counter, the clock face above showing three, pressure in the posture"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "sheet flips",
+     "reason": "he turns the paper over"
+    },
+    {
+     "kind": "hand_object",
+     "name": "clock second hand",
+     "reason": "clock above ticks"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "bumper 03:00 before. 'pressure peaks at 3, he turns the paper over'",
+   "id": "s39",
+   "la": 0.0,
+   "lb": 11.07,
+   "t0": 392.48,
+   "t1": 403.55,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man's hands turning the rule sheet over on the counter, the clock face above showing three, pressure in the posture. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 2.3,
+     "label": "paper flip",
+     "why": "story: he turns the paper over",
+     "global_t": 394.78
+    }
+   ],
+   "shots": [
+    {
+     "id": "s39_1",
+     "plate_id": "s39_plate",
+     "t0": 392.48,
+     "t1": 403.55,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c12",
+   "a": 10.3,
+   "b": 20.0,
+   "name": "the previous clerk wrote it",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "FB",
+   "light": "warm",
+   "plate": {
+    "id": "s40_plate",
+    "brief": "FLASHBACK: the same counter, a thin clerk in the same uniform hunched writing in pencil on the back of a sheet, hand shaking, glancing at the monitor"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "pencil hand writing",
+     "reason": "he writes the warning, the hand shaking"
+    },
+    {
+     "kind": "lamp",
+     "name": "old tube light flicker",
+     "reason": "the same faulty tube in the past"
+    },
+    {
+     "kind": "person",
+     "name": "clerk glances at the monitor",
+     "reason": "he is afraid of what he saw"
+    }
+   ],
+   "note": "FLASHBACK: 'in pencil, shaky, the one before who vanished'",
+   "id": "s40",
+   "la": 11.07,
+   "lb": 20.29,
+   "t0": 403.55,
+   "t1": 412.77,
+   "snap_gap": 1.5,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, bright white fluorescent tubes. the same counter, a thin clerk in the same uniform hunched writing in pencil on the back of a sheet, hand shaking, glancing at the monitor Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "FLASHBACK grade: desaturated sepia, lifted blacks, cold shadows, film grain, soft vignette",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 10.3,
+     "label": "FB sting: low tape-warble swell, 0.6 s",
+     "why": "grade change marker",
+     "global_t": 402.78
+    },
+    {
+     "local_t": 11.0,
+     "label": "pencil scratching on paper",
+     "why": "story: pencil writing",
+     "global_t": 403.48
+    }
+   ],
+   "shots": [
+    {
+     "id": "s40_1",
+     "plate_id": "s40_plate",
+     "t0": 403.55,
+     "t1": 412.77,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c12",
+   "a": 20.0,
+   "b": 31.1,
+   "name": "do not trust the red ink",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s41_plate",
+    "brief": "close on the pencil scribble lines on the back of the sheet, the young man's finger tracing under them (no legible letters)"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "finger traces the line",
+     "reason": "he reads it"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'do not believe the rule in red ink, the store wrote it to lure us off the counter'",
+   "id": "s41",
+   "la": 20.29,
+   "lb": 32.08,
+   "t0": 412.77,
+   "t1": 424.56,
+   "snap_gap": 0.58,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the pencil scribble lines on the back of the sheet, the young man's finger tracing under them (no legible letters). normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 20.0,
+     "label": "back to present: tape-warble stops, hum returns",
+     "why": "grade returns to normal",
+     "global_t": 412.48
+    }
+   ],
+   "shots": [
+    {
+     "id": "s41_1",
+     "plate_id": "s41_plate",
+     "t0": 412.77,
+     "t1": 424.56,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c13",
+   "a": 0,
+   "b": 15.0,
+   "name": "all blue except rule 5",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s42_plate",
+    "brief": "the front of the rule sheet, rows of blue scribble lines with only one row in red, his finger under the red row"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "finger moves to the red row",
+     "reason": "he finds rule 5"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "lamp",
+     "name": "red REC lamp blink",
+     "reason": "recording lamp on the monitor blinks once a second"
+    }
+   ],
+   "note": "'all rules in blue except rule 5, in red'",
+   "id": "s42",
+   "la": 0.0,
+   "lb": 13.37,
+   "t0": 424.56,
+   "t1": 437.93,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the front of the rule sheet, rows of blue scribble lines with only one row in red, his finger under the red row. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 3.0,
+     "label": "paper rustle",
+     "why": "he flips back to the front",
+     "global_t": 427.56
+    }
+   ],
+   "shots": [
+    {
+     "id": "s42_1",
+     "plate_id": "s42_plate",
+     "t0": 424.56,
+     "t1": 431.245,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s42_2",
+     "plate_id": "s42_plate",
+     "t0": 431.245,
+     "t1": 437.93,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c13",
+   "a": 15.0,
+   "b": 31.0,
+   "name": "more people than he can see",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "CCTV",
+   "light": "teal",
+   "plate": {
+    "id": "s43_plate",
+    "brief": "CCTV monitor view of the shop interior with a small pictogram figure count in the corner (one stick figure), the counter empty-looking"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "screen",
+     "name": "monitor roll bar",
+     "reason": "analog roll bar"
+    },
+    {
+     "kind": "lamp",
+     "name": "red REC lamp blink",
+     "reason": "recording lamp on the monitor blinks once a second"
+    }
+   ],
+   "note": "'if the camera shows more people than your eyes do, leave the counter at once'",
+   "id": "s43",
+   "la": 13.37,
+   "lb": 32.02,
+   "t0": 437.93,
+   "t1": 456.58,
+   "snap_gap": 0.18,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. CCTV monitor view of the shop interior with a small pictogram figure count in the corner (one stick figure), the counter empty-looking. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 15.0,
+     "label": "monitor hum rises",
+     "why": "rule 5: if the camera shows more people than you see, leave the counter",
+     "global_t": 439.56
+    }
+   ],
+   "shots": [
+    {
+     "id": "s43_1",
+     "plate_id": "s43_plate",
+     "t0": 437.93,
+     "t1": 447.255,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s43_2",
+     "plate_id": "s43_plate",
+     "t0": 447.255,
+     "t1": 456.58,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c14",
+   "a": 0,
+   "b": 9.3,
+   "name": "the count goes to two",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "CCTV",
+   "light": "teal",
+   "plate": {
+    "id": "s44_plate",
+    "brief": "CCTV monitor channel 3 close view, the stick figure count in the corner flicks from one figure to two, picture tearing"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "count pictogram changes",
+     "reason": "story: the number of people goes from 1 to 2"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "screen",
+     "name": "picture tear",
+     "reason": "signal glitch"
+    }
+   ],
+   "note": "bumper 03:35 before. 'camera 3, the count jumps from 1 to 2'",
+   "id": "s44",
+   "la": 0.0,
+   "lb": 9.64,
+   "t0": 458.08,
+   "t1": 467.72,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. CCTV monitor channel 3 close view, the stick figure count in the corner flicks from one figure to two, picture tearing. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.5,
+     "label": "digital glitch burst, 0.4 s",
+     "why": "story: the image glitches while the count changes",
+     "global_t": 458.58
+    },
+    {
+     "local_t": 2.6,
+     "label": "sub bass hit",
+     "why": "",
+     "global_t": 460.68
+    }
+   ],
+   "shots": [
+    {
+     "id": "s44_1",
+     "plate_id": "s44_plate",
+     "t0": 458.08,
+     "t1": 467.72,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c14",
+   "a": 9.3,
+   "b": 14.5,
+   "name": "the alley behind",
+   "io": "outdoor",
+   "rain": "outdoor",
+   "grade": "CCTV",
+   "light": "night-open",
+   "plate": {
+    "id": "s45_plate",
+    "brief": "mono CCTV view of the back alley behind the shop, wet ground, a far lamp, rain falling, a very tall long limbed figure in a staff uniform standing still at the end"
+   },
+   "movers": [
+    {
+     "kind": "rain",
+     "name": "rain, two depths",
+     "reason": "the same storm behind the shop"
+    },
+    {
+     "kind": "water",
+     "name": "puddle ripples",
+     "reason": "rain hits puddles"
+    },
+    {
+     "kind": "lamp",
+     "name": "alley lamp flicker",
+     "reason": "wet lamp dips"
+    }
+   ],
+   "note": "RAIN SCENE, OUTDOOR (shown through the monitor). 'tall unnatural figure in a staff uniform at the end of the alley'",
+   "id": "s45",
+   "la": 9.64,
+   "lb": 14.5,
+   "t0": 467.72,
+   "t1": 472.58,
+   "snap_gap": 0.64,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. mono CCTV view of the back alley behind the shop, wet ground, a far lamp, rain falling, a very tall long limbed figure in a staff uniform standing still at the end. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "FULL bed (outdoor rain scene)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 9.3,
+     "label": "rain louder, camera mic (full rain bed)",
+     "why": "outdoor shot, bed at full",
+     "global_t": 467.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s45_1",
+     "plate_id": "s45_plate",
+     "t0": 467.72,
+     "t1": 472.58,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c14",
+   "a": 14.5,
+   "b": 27.6,
+   "name": "bent ninety degrees",
+   "io": "outdoor",
+   "rain": "outdoor",
+   "grade": "CCTV",
+   "light": "night-open",
+   "plate": {
+    "id": "s46_plate",
+    "brief": "same mono alley camera but tighter, the tall figure folded over ninety degrees at the waist, two white eyes staring up into the lens, rain streaking"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "figure folds over ninety degrees",
+     "reason": "story: it bends over"
+    },
+    {
+     "kind": "rain",
+     "name": "rain, two depths",
+     "reason": "storm"
+    },
+    {
+     "kind": "lamp",
+     "name": "alley lamp flicker",
+     "reason": "wet lamp dips"
+    }
+   ],
+   "note": "RAIN SCENE, OUTDOOR. 'bends 90 degrees, white eyes staring into the camera, not blinking'",
+   "id": "s46",
+   "la": 14.5,
+   "lb": 28.23,
+   "t0": 472.58,
+   "t1": 486.31,
+   "snap_gap": 1.3,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. same mono alley camera but tighter, the tall figure folded over ninety degrees at the waist, two white eyes staring up into the lens, rain streaking. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "FULL bed (outdoor rain scene)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 16.0,
+     "label": "bones crack, slow, x3",
+     "why": "story: unnatural limbs folding",
+     "global_t": 474.08
+    },
+    {
+     "local_t": 22.6,
+     "label": "held low drone",
+     "why": "it does not blink",
+     "global_t": 480.68
+    }
+   ],
+   "shots": [
+    {
+     "id": "s46_1",
+     "plate_id": "s46_plate",
+     "t0": 472.58,
+     "t1": 479.445,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s46_2",
+     "plate_id": "s46_plate",
+     "t0": 479.445,
+     "t1": 486.31,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c14",
+   "a": 27.6,
+   "b": 36.6,
+   "name": "Non in the monitor glow",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s47_plate",
+    "brief": "the young man's face lit by the monitor, still, sweat on his lip, eyes locked on the screen"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "sweat drop slides",
+     "reason": "fear"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "person",
+     "name": "his breath shakes",
+     "reason": "a person holding down fear"
+    }
+   ],
+   "note": "",
+   "id": "s47",
+   "la": 28.23,
+   "lb": 37.62,
+   "t0": 486.31,
+   "t1": 495.7,
+   "snap_gap": 1.22,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man's face lit by the monitor, still, sweat on his lip, eyes locked on the screen. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 27.6,
+     "label": "monitor hum",
+     "why": "",
+     "global_t": 485.68
+    }
+   ],
+   "shots": [
+    {
+     "id": "s47_1",
+     "plate_id": "s47_plate",
+     "t0": 486.31,
+     "t1": 495.7,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c15",
+   "a": 0,
+   "b": 13.3,
+   "name": "microwave runs behind the counter",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s48_plate",
+    "brief": "the microwave on its shelf behind the counter, the glass door lit, turntable and a cup turning slowly, glass shows a faint reflection of the dark aisle"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "turntable turns",
+     "reason": "microwave turntable rotates"
+    },
+    {
+     "kind": "lamp",
+     "name": "microwave lamp glow flicker",
+     "reason": "interior bulb"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'rule 6: while the microwave is on, face it, back to the shopfront, until it beeps'",
+   "id": "s48",
+   "la": 0.0,
+   "lb": 13.53,
+   "t0": 495.7,
+   "t1": 509.23,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the microwave on its shelf behind the counter, the glass door lit, turntable and a cup turning slowly, glass shows a faint reflection of the dark aisle. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "microwave hum, constant until the ding",
+     "why": "story names the microwave running",
+     "global_t": 495.7
+    },
+    {
+     "local_t": 5.0,
+     "label": "turntable low motor",
+     "why": "",
+     "global_t": 500.7
+    }
+   ],
+   "shots": [
+    {
+     "id": "s48_1",
+     "plate_id": "s48_plate",
+     "t0": 495.7,
+     "t1": 502.465,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s48_2",
+     "plate_id": "s48_plate",
+     "t0": 502.465,
+     "t1": 509.23,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c15",
+   "a": 13.3,
+   "b": 20.2,
+   "name": "back to the shopfront",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s49_plate",
+    "brief": "the young man from behind facing the microwave, the dark shopfront behind him unseen, the shelves on both sides"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non turns to face the microwave",
+     "reason": "he turns his back to the store as the rule says"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "hand_object",
+     "name": "turntable turns",
+     "reason": "microwave runs"
+    }
+   ],
+   "note": "",
+   "id": "s49",
+   "la": 13.53,
+   "lb": 20.52,
+   "t0": 509.23,
+   "t1": 516.22,
+   "snap_gap": 0.54,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man from behind facing the microwave, the dark shopfront behind him unseen, the shelves on both sides. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 14.5,
+     "label": "turn: shoe on tile squeak",
+     "why": "he turns around",
+     "global_t": 510.2
+    }
+   ],
+   "shots": [
+    {
+     "id": "s49_1",
+     "plate_id": "s49_plate",
+     "t0": 509.23,
+     "t1": 516.22,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c15",
+   "a": 20.2,
+   "b": 32.7,
+   "name": "reflection in the glass",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s50_plate",
+    "brief": "close on the microwave glass door, warped reflection of the shop and counter behind him, the cup turning"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "turntable turns",
+     "reason": "microwave runs"
+    },
+    {
+     "kind": "lamp",
+     "name": "microwave lamp glow flicker",
+     "reason": "interior bulb"
+    },
+    {
+     "kind": "screen",
+     "name": "reflection shimmer",
+     "reason": "curved glass wobbles the reflection"
+    }
+   ],
+   "note": "",
+   "id": "s50",
+   "la": 20.52,
+   "lb": 33.7,
+   "t0": 516.22,
+   "t1": 529.4,
+   "snap_gap": 0.56,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the microwave glass door, warped reflection of the shop and counter behind him, the cup turning. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 20.2,
+     "label": "hum rises half a tone",
+     "why": "tension",
+     "global_t": 515.9
+    }
+   ],
+   "shots": [
+    {
+     "id": "s50_1",
+     "plate_id": "s50_plate",
+     "t0": 516.22,
+     "t1": 522.81,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s50_2",
+     "plate_id": "s50_plate",
+     "t0": 522.81,
+     "t1": 529.4,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c16",
+   "a": 0,
+   "b": 14.0,
+   "name": "it moves one aisle at a time",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "CCTV",
+   "light": "teal",
+   "plate": {
+    "id": "s51_plate",
+    "brief": "side CCTV monitor beside the microwave, mono image of the shop, the tall figure twitching along the aisle toward the counter, neck broken to one side"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "tall figure advances in twitching steps",
+     "reason": "story: it moves toward the counter one aisle at a time"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "hand_object",
+     "name": "turntable turns",
+     "reason": "microwave runs"
+    }
+   ],
+   "note": "'neck twisted, jerking toward the counter, one aisle at a time'",
+   "id": "s51",
+   "la": 0.0,
+   "lb": 14.0,
+   "t0": 529.4,
+   "t1": 543.4,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. side CCTV monitor beside the microwave, mono image of the shop, the tall figure twitching along the aisle toward the counter, neck broken to one side. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "bones crack, irregular, x4",
+     "why": "story: neck cracks",
+     "global_t": 529.4
+    },
+    {
+     "local_t": 8.0,
+     "label": "wet steps, approaching, slow",
+     "why": "story: wet steps",
+     "global_t": 537.4
+    }
+   ],
+   "shots": [
+    {
+     "id": "s51_1",
+     "plate_id": "s51_plate",
+     "t0": 529.4,
+     "t1": 536.4,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s51_2",
+     "plate_id": "s51_plate",
+     "t0": 536.4,
+     "t1": 543.4,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c16",
+   "a": 14.0,
+   "b": 26.6,
+   "name": "it stops behind him",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s52_plate",
+    "brief": "the young man from behind, a huge tall shadow rising up the wall behind him from the tube light, cold mist curling at his neck"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "shadow rises up the wall",
+     "reason": "story: it stops right behind him"
+    },
+    {
+     "kind": "smoke",
+     "name": "cold breath mist",
+     "reason": "story: cold breath"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'stops right behind him, cold breath, canal stench'",
+   "id": "s52",
+   "la": 14.0,
+   "lb": 26.92,
+   "t0": 543.4,
+   "t1": 556.32,
+   "snap_gap": 2.26,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man from behind, a huge tall shadow rising up the wall behind him from the tube light, cold mist curling at his neck. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 14.0,
+     "label": "wet footsteps stop, 1 beat of silence",
+     "why": "story: stops right behind",
+     "global_t": 543.4
+    },
+    {
+     "local_t": 18.0,
+     "label": "cold slow breath, close",
+     "why": "story",
+     "global_t": 547.4
+    },
+    {
+     "local_t": 22.0,
+     "label": "rotten canal smell drone",
+     "why": "story names the smell",
+     "global_t": 551.4
+    }
+   ],
+   "shots": [
+    {
+     "id": "s52_1",
+     "plate_id": "s52_plate",
+     "t0": 543.4,
+     "t1": 549.86,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s52_2",
+     "plate_id": "s52_plate",
+     "t0": 549.86,
+     "t1": 556.32,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c16",
+   "a": 26.6,
+   "b": 36.0,
+   "name": "bones by the ear",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s53_plate",
+    "brief": "tight on the young man's ear and jaw, wet hair strands stirring, a faint pale shape at the edge of frame"
+   },
+   "movers": [
+    {
+     "kind": "cloth",
+     "name": "wet hair strands stir",
+     "reason": "cold breath moves them"
+    },
+    {
+     "kind": "smoke",
+     "name": "cold breath mist",
+     "reason": "story: cold breath"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'bones crackling by his ear, whispering: turn around, look'",
+   "id": "s53",
+   "la": 26.92,
+   "lb": 37.0,
+   "t0": 556.32,
+   "t1": 566.4,
+   "snap_gap": 0.68,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. tight on the young man's ear and jaw, wet hair strands stirring, a faint pale shape at the edge of frame. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 26.6,
+     "label": "bone crackling beside the ear",
+     "why": "story: bones clicking next to the ear",
+     "global_t": 556.0
+    },
+    {
+     "local_t": 31.3,
+     "label": "whisper close, breathy, dry",
+     "why": "'turn around, look'",
+     "global_t": 560.7
+    }
+   ],
+   "shots": [
+    {
+     "id": "s53_1",
+     "plate_id": "s53_plate",
+     "t0": 556.32,
+     "t1": 566.4,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c17",
+   "a": 0,
+   "b": 10.6,
+   "name": "eyes shut",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s54_plate",
+    "brief": "close on the young man's shut eyes and clenched jaw, a tape line on the floor visible under his toes, his heel not moving"
+   },
+   "movers": [
+    {
+     "kind": "water",
+     "name": "sweat drop slides",
+     "reason": "fear"
+    },
+    {
+     "kind": "person",
+     "name": "jaw and shoulders tremble",
+     "reason": "fear"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'does not turn, does not step half a step'",
+   "id": "s54",
+   "la": 0.0,
+   "lb": 10.95,
+   "t0": 566.4,
+   "t1": 577.35,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the young man's shut eyes and clenched jaw, a tape line on the floor visible under his toes, his heel not moving. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "held breath, heartbeat low",
+     "why": "story: he grits his teeth",
+     "global_t": 566.4
+    }
+   ],
+   "shots": [
+    {
+     "id": "s54_1",
+     "plate_id": "s54_plate",
+     "t0": 566.4,
+     "t1": 577.35,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c17",
+   "a": 10.6,
+   "b": 21.6,
+   "name": "ding",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s55_plate",
+    "brief": "the microwave lamp going dark as the timer ends, the monitor beside it dropping back to one stick figure, cold air lifting off him"
+   },
+   "movers": [
+    {
+     "kind": "lamp",
+     "name": "microwave lamp goes out",
+     "reason": "story: the timer ends"
+    },
+    {
+     "kind": "screen",
+     "name": "pictogram count returns to one",
+     "reason": "story: the count drops back"
+    },
+    {
+     "kind": "smoke",
+     "name": "cold air lifts away",
+     "reason": "story: the cold behind him vanishes"
+    }
+   ],
+   "note": "'ding, the cold behind him disappears, the count returns to one'",
+   "id": "s55",
+   "la": 10.95,
+   "lb": 22.58,
+   "t0": 577.35,
+   "t1": 588.98,
+   "snap_gap": 0.62,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the microwave lamp going dark as the timer ends, the monitor beside it dropping back to one stick figure, cold air lifting off him. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 10.6,
+     "label": "microwave DING",
+     "why": "story: the microwave beeps",
+     "global_t": 577.0
+    },
+    {
+     "local_t": 11.4,
+     "label": "cold air release, soft whoosh",
+     "why": "story: the cold leaves",
+     "global_t": 577.8
+    }
+   ],
+   "shots": [
+    {
+     "id": "s55_1",
+     "plate_id": "s55_plate",
+     "t0": 577.35,
+     "t1": 588.98,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c18",
+   "a": 0,
+   "b": 8.7,
+   "name": "03:45",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s56_plate",
+    "brief": "the shop wide from the entrance, the young man small at the counter, teal light, the back freezer wall dark at the end"
+   },
+   "movers": [
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "water",
+     "name": "condensation drips off a freezer door",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "bumper 03:45 before. 'a cry for help'",
+   "id": "s56",
+   "la": 0.0,
+   "lb": 10.24,
+   "t0": 590.48,
+   "t1": 600.72,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the shop wide from the entrance, the young man small at the counter, teal light, the back freezer wall dark at the end. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "exhale, shaky breath",
+     "why": "story: he can breathe again",
+     "global_t": 590.48
+    }
+   ],
+   "shots": [
+    {
+     "id": "s56_1",
+     "plate_id": "s56_plate",
+     "t0": 590.48,
+     "t1": 600.72,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c18",
+   "a": 8.7,
+   "b": 22.8,
+   "name": "a voice from the back",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s57_plate",
+    "brief": "low view down the aisle to the freezer wall, the end door frosted, frost spreading, shadows between shelves"
+   },
+   "movers": [
+    {
+     "kind": "smoke",
+     "name": "frost mist at the door seams",
+     "reason": "cold air leaks out"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "water",
+     "name": "meltwater drips",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "'a voice begging for help'",
+   "id": "s57",
+   "la": 10.24,
+   "lb": 22.8,
+   "t0": 600.72,
+   "t1": 613.28,
+   "snap_gap": 3.04,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. low view down the aisle to the freezer wall, the end door frosted, frost spreading, shadows between shelves. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 8.7,
+     "label": "muffled cry for help from far inside the freezer",
+     "why": "story: a voice calling for help (stock muffled voice, no paid TTS)",
+     "global_t": 599.18
+    },
+    {
+     "local_t": 18.5,
+     "label": "cry repeats, weaker",
+     "why": "",
+     "global_t": 608.98
+    }
+   ],
+   "shots": [
+    {
+     "id": "s57_1",
+     "plate_id": "s57_plate",
+     "t0": 600.72,
+     "t1": 607.0,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s57_2",
+     "plate_id": "s57_plate",
+     "t0": 607.0,
+     "t1": 613.28,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c18",
+   "a": 22.8,
+   "b": 31.9,
+   "name": "half a step",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s58_plate",
+    "brief": "the young man's feet at the edge of the counter zone, one toe lifting then settling"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "foot lifts and settles",
+     "reason": "he nearly steps out and stops"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "water",
+     "name": "sweat drip on the floor",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "",
+   "id": "s58",
+   "la": 22.8,
+   "lb": 32.9,
+   "t0": 613.28,
+   "t1": 623.38,
+   "snap_gap": 4.04,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the young man's feet at the edge of the counter zone, one toe lifting then settling. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 22.8,
+     "label": "shoe sole scuff",
+     "why": "",
+     "global_t": 613.28
+    }
+   ],
+   "shots": [
+    {
+     "id": "s58_1",
+     "plate_id": "s58_plate",
+     "t0": 613.28,
+     "t1": 623.38,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c19",
+   "a": 0,
+   "b": 9.6,
+   "name": "frosted glass",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "CCTV",
+   "light": "teal",
+   "plate": {
+    "id": "s59_plate",
+    "brief": "CCTV view of the farthest freezer door fogging white with frost far faster than the others"
+   },
+   "movers": [
+    {
+     "kind": "smoke",
+     "name": "frost spreads on the glass",
+     "reason": "ice crystals form"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "screen",
+     "name": "picture tear",
+     "reason": "signal glitch"
+    }
+   ],
+   "note": "'the last freezer door fogs abnormally'",
+   "id": "s59",
+   "la": 0.0,
+   "lb": 9.82,
+   "t0": 623.38,
+   "t1": 633.2,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. CCTV view of the farthest freezer door fogging white with frost far faster than the others. monitor grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "monitor grade: mono green-grey, scanlines (not a flashback)",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "ice crackle rising",
+     "why": "frost spreading",
+     "global_t": 623.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s59_1",
+     "plate_id": "s59_plate",
+     "t0": 623.38,
+     "t1": 633.2,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c19",
+   "a": 9.6,
+   "b": 19.4,
+   "name": "palms on the glass",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s60_plate",
+    "brief": "inside shot of the frosted freezer glass, two violet-blue palms slamming against it from the inside, frost cracking around them"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "palms slam on the glass",
+     "reason": "story: hands slam from inside"
+    },
+    {
+     "kind": "smoke",
+     "name": "breath fog",
+     "reason": "cold breath on the glass"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'two hands slam the freezer glass'",
+   "id": "s60",
+   "la": 9.82,
+   "lb": 19.78,
+   "t0": 633.2,
+   "t1": 643.16,
+   "snap_gap": 0.48,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. inside shot of the frosted freezer glass, two violet-blue palms slamming against it from the inside, frost cracking around them. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 9.6,
+     "label": "palm slap on glass x3 hard",
+     "why": "story: both hands slam the glass",
+     "global_t": 632.98
+    },
+    {
+     "local_t": 13.0,
+     "label": "ice crack",
+     "why": "",
+     "global_t": 636.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s60_1",
+     "plate_id": "s60_plate",
+     "t0": 633.2,
+     "t1": 643.16,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c19",
+   "a": 19.4,
+   "b": 30.0,
+   "name": "face in the glass",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s61_plate",
+    "brief": "close on the freezer glass, a pale thin face of a man in a staff uniform pressed against the frost, eyes huge, breath fog"
+   },
+   "movers": [
+    {
+     "kind": "smoke",
+     "name": "breath fog",
+     "reason": "story: face on the glass"
+    },
+    {
+     "kind": "hand_object",
+     "name": "fingers slide down the glass",
+     "reason": "story: fingers drag"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'a face in uniform, the previous clerk'",
+   "id": "s61",
+   "la": 19.78,
+   "lb": 30.35,
+   "t0": 643.16,
+   "t1": 653.73,
+   "snap_gap": 0.8,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the freezer glass, a pale thin face of a man in a staff uniform pressed against the frost, eyes huge, breath fog. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 19.4,
+     "label": "face squeak on glass",
+     "why": "",
+     "global_t": 642.78
+    },
+    {
+     "local_t": 24.0,
+     "label": "fingernails drag on glass",
+     "why": "story: fingers dragging",
+     "global_t": 647.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s61_1",
+     "plate_id": "s61_plate",
+     "t0": 643.16,
+     "t1": 653.73,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c19",
+   "a": 30.0,
+   "b": 43.1,
+   "name": "fingers write on the ice",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s62_plate",
+    "brief": "close on the frost, fingertips scratching reversed marks in the ice (no legible letters), ice dust falling"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "fingers scratch the frost",
+     "reason": "story: he writes on the glass"
+    },
+    {
+     "kind": "cloth",
+     "name": "ice dust falls",
+     "reason": "scratched ice falls"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'writes in reverse: help me, it is too cold in here'",
+   "id": "s62",
+   "la": 30.35,
+   "lb": 44.08,
+   "t0": 653.73,
+   "t1": 667.46,
+   "snap_gap": 0.66,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the frost, fingertips scratching reversed marks in the ice (no legible letters), ice dust falling. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 30.0,
+     "label": "finger scratch on ice, slow, 6 s",
+     "why": "story: writes 'help, it is cold inside'",
+     "global_t": 653.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s62_1",
+     "plate_id": "s62_plate",
+     "t0": 653.73,
+     "t1": 660.595,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s62_2",
+     "plate_id": "s62_plate",
+     "t0": 660.595,
+     "t1": 667.46,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c20",
+   "a": 0,
+   "b": 12.9,
+   "name": "not a drink room",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s63_plate",
+    "brief": "the freezer door opened a crack onto an endless frozen corridor, rows of staff uniforms hanging in the cold, frost haze"
+   },
+   "movers": [
+    {
+     "kind": "cloth",
+     "name": "hanging uniforms sway",
+     "reason": "cold draft pushes the cloth"
+    },
+    {
+     "kind": "smoke",
+     "name": "frost haze drifts",
+     "reason": "cold air flows out"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    }
+   ],
+   "note": "'it is not a drink room, it is a dimension that swallowed every clerk for 20 years'",
+   "id": "s63",
+   "la": 0.0,
+   "lb": 13.25,
+   "t0": 667.46,
+   "t1": 680.71,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the freezer door opened a crack onto an endless frozen corridor, rows of staff uniforms hanging in the cold, frost haze. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "deep sub drone, cold wind",
+     "why": "reveal: the back room is another dimension that swallowed clerks for 20 years",
+     "global_t": 667.46
+    }
+   ],
+   "shots": [
+    {
+     "id": "s63_1",
+     "plate_id": "s63_plate",
+     "t0": 667.46,
+     "t1": 674.085,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s63_2",
+     "plate_id": "s63_plate",
+     "t0": 674.085,
+     "t1": 680.71,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c20",
+   "a": 12.9,
+   "b": 22.0,
+   "name": "peel the black tape",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s64_plate",
+    "brief": "close on the bottom of the sheet, black tape over rule 7, his fingernail lifting its edge"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "tape peels off",
+     "reason": "he peels the tape"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'black tape covers rule 7, he peels it'",
+   "id": "s64",
+   "la": 13.25,
+   "lb": 22.77,
+   "t0": 680.71,
+   "t1": 690.23,
+   "snap_gap": 0.74,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the bottom of the sheet, black tape over rule 7, his fingernail lifting its edge. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 12.9,
+     "label": "tape peel, slow, adhesive crackle",
+     "why": "story: he peels the black tape",
+     "global_t": 680.36
+    }
+   ],
+   "shots": [
+    {
+     "id": "s64_1",
+     "plate_id": "s64_plate",
+     "t0": 680.71,
+     "t1": 690.23,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c20",
+   "a": 22.0,
+   "b": 31.8,
+   "name": "rule 7 text",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s65_plate",
+    "brief": "the sheet with rule 7 uncovered in blue scribble lines, three tiny paper pictograms beside it: a switch lever, a shutter door, a bowed head"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "finger moves along the line",
+     "reason": "he reads"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'if the shop lights go out after 4 a.m.: pull the breaker down, pull the small front door shut, sit head down behind the counter until 6; never open to a call'",
+   "id": "s65",
+   "la": 22.77,
+   "lb": 32.02,
+   "t0": 690.23,
+   "t1": 699.48,
+   "snap_gap": 0.22,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. the sheet with rule 7 uncovered in blue scribble lines, three tiny paper pictograms beside it: a switch lever, a shutter door, a bowed head. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [],
+   "shots": [
+    {
+     "id": "s65_1",
+     "plate_id": "s65_plate",
+     "t0": 690.23,
+     "t1": 699.48,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c20",
+   "a": 31.8,
+   "b": 42.9,
+   "name": "pictograms",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "teal",
+   "plate": {
+    "id": "s66_plate",
+    "brief": "close on the breaker box on the back wall, an old switch lever, dust and a dead moth"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "hand rests on the switch",
+     "reason": "he looks at it, fingers twitch"
+    },
+    {
+     "kind": "lamp",
+     "name": "teal tube light flicker",
+     "reason": "same fluorescent tube after it turned cold teal, still unstable"
+    },
+    {
+     "kind": "insect",
+     "name": "moth circling the light",
+     "reason": "moths really circle a bright tube at night"
+    }
+   ],
+   "note": "",
+   "id": "s66",
+   "la": 32.02,
+   "lb": 43.92,
+   "t0": 699.48,
+   "t1": 711.38,
+   "snap_gap": 0.44,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior, cold green-blue fluorescent tubes. close on the breaker box on the back wall, an old switch lever, dust and a dead moth. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 31.8,
+     "label": "breaker box hum",
+     "why": "",
+     "global_t": 699.26
+    }
+   ],
+   "shots": [
+    {
+     "id": "s66_1",
+     "plate_id": "s66_plate",
+     "t0": 699.48,
+     "t1": 711.38,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c21",
+   "a": 0,
+   "b": 4.3,
+   "name": "all lights go out",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "dark",
+   "plate": {
+    "id": "s67_plate",
+    "brief": "wide shop interior, all the tubes cutting out at once, only the CCTV monitor still glowing, the young man a silhouette at the counter"
+   },
+   "movers": [
+    {
+     "kind": "lamp",
+     "name": "tube lights cut out together",
+     "reason": "story: every light goes out"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "person",
+     "name": "Non turns his head",
+     "reason": "he reacts"
+    }
+   ],
+   "note": "bumper 04:30 before. 'lights go out all at once'",
+   "id": "s67",
+   "la": 0.0,
+   "lb": 4.68,
+   "t0": 712.88,
+   "t1": 717.56,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior almost dark, only a CCTV monitor glow. wide shop interior, all the tubes cutting out at once, only the CCTV monitor still glowing, the young man a silhouette at the counter. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.6,
+     "label": "breaker clunk, lights die, big sub drop",
+     "why": "story: lights go out at 04:30",
+     "global_t": 713.48
+    }
+   ],
+   "shots": [
+    {
+     "id": "s67_1",
+     "plate_id": "s67_plate",
+     "t0": 712.88,
+     "t1": 717.56,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c21",
+   "a": 4.3,
+   "b": 11.0,
+   "name": "pull the shutter down",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "dark",
+   "plate": {
+    "id": "s68_plate",
+    "brief": "dark shop, the young man running to the small front door and dragging its shutter all the way down, monitor glow only"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non runs to the door and back",
+     "reason": "he runs"
+    },
+    {
+     "kind": "story_event",
+     "name": "small front door shutter rolls down",
+     "reason": "story: he pulls it down"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'pull the small front door all the way down, run back and crouch behind the counter'",
+   "id": "s68",
+   "la": 4.68,
+   "lb": 11.28,
+   "t0": 717.56,
+   "t1": 724.16,
+   "snap_gap": 0.76,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior almost dark, only a CCTV monitor glow. dark shop, the young man running to the small front door and dragging its shutter all the way down, monitor glow only. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 4.3,
+     "label": "running steps",
+     "why": "story: he runs",
+     "global_t": 717.18
+    },
+    {
+     "local_t": 6.0,
+     "label": "shutter rattles down to the floor",
+     "why": "story: pulls the door to the bottom",
+     "global_t": 718.88
+    },
+    {
+     "local_t": 9.5,
+     "label": "running steps back, sliding behind the counter",
+     "why": "story: runs back to hide",
+     "global_t": 722.38
+    }
+   ],
+   "shots": [
+    {
+     "id": "s68_1",
+     "plate_id": "s68_plate",
+     "t0": 717.56,
+     "t1": 724.16,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c21",
+   "a": 11.0,
+   "b": 21.5,
+   "name": "pounding",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "dark",
+   "plate": {
+    "id": "s69_plate",
+    "brief": "dark, the young man crouched behind the counter head down, the shutter shaking in its frame, monitor glow"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "shutter shakes in its frame",
+     "reason": "story: the door is pounded until it shakes"
+    },
+    {
+     "kind": "person",
+     "name": "Non shivers",
+     "reason": "fear"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "'all night the small front door is pounded until it shakes'",
+   "id": "s69",
+   "la": 11.28,
+   "lb": 21.79,
+   "t0": 724.16,
+   "t1": 734.67,
+   "snap_gap": 0.56,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior almost dark, only a CCTV monitor glow. dark, the young man crouched behind the counter head down, the shutter shaking in its frame, monitor glow. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 11.0,
+     "label": "pounding on the shutter, heavy, irregular",
+     "why": "story: the small door is hammered",
+     "global_t": 723.88
+    },
+    {
+     "local_t": 17.8,
+     "label": "pounding keeps going, dry",
+     "why": "",
+     "global_t": 730.68
+    }
+   ],
+   "shots": [
+    {
+     "id": "s69_1",
+     "plate_id": "s69_plate",
+     "t0": 724.16,
+     "t1": 734.67,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c21",
+   "a": 21.5,
+   "b": 29.0,
+   "name": "mother's voice outside",
+   "io": "outdoor",
+   "rain": "outdoor",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s70_plate",
+    "brief": "outside the dark shop front in the rain, a woman's silhouette from behind at the foot of the shutter, hand raised to knock, nothing else, shop lights off"
+   },
+   "movers": [
+    {
+     "kind": "rain",
+     "name": "rain, two depths",
+     "reason": "storm outside"
+    },
+    {
+     "kind": "water",
+     "name": "puddle ripples",
+     "reason": "raindrops ring the puddles"
+    },
+    {
+     "kind": "person",
+     "name": "woman raises her hand and knocks",
+     "reason": "story: she calls and pounds"
+    },
+    {
+     "kind": "story_event",
+     "name": "shutter rattles",
+     "reason": "she shakes it"
+    }
+   ],
+   "note": "RAIN SCENE, OUTDOOR. 'a woman outside, in his mother's voice: Non, my son, open up'",
+   "id": "s70",
+   "la": 21.79,
+   "lb": 31.82,
+   "t0": 734.67,
+   "t1": 744.7,
+   "snap_gap": 0.58,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. outside the dark shop front in the rain, a woman's silhouette from behind at the foot of the shutter, hand raised to knock, nothing else, shop lights off. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "FULL bed (outdoor rain scene)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 21.5,
+     "label": "rain full again (outdoor)",
+     "why": "",
+     "global_t": 734.38
+    },
+    {
+     "local_t": 22.0,
+     "label": "woman's voice calling, his mother's voice, muffled (stock voice, no paid TTS)",
+     "why": "story: 'Non, my son, open the door for mom'",
+     "global_t": 734.88
+    }
+   ],
+   "shots": [
+    {
+     "id": "s70_1",
+     "plate_id": "s70_plate",
+     "t0": 734.67,
+     "t1": 744.7,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c21",
+   "a": 29.0,
+   "b": 36.9,
+   "name": "mother is in the hospital",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "dark",
+   "plate": {
+    "id": "s71_plate",
+    "brief": "night ward 30 km away, his mother asleep in her bed under a dim lamp, curtain around the bed, a monitor line"
+   },
+   "movers": [
+    {
+     "kind": "screen",
+     "name": "ward monitor line",
+     "reason": "a heart monitor beeps"
+    },
+    {
+     "kind": "curtain",
+     "name": "bed curtain sway",
+     "reason": "ward curtain moves in the air"
+    },
+    {
+     "kind": "water",
+     "name": "saline drip drops",
+     "reason": "canal water runs off wet cloth and skin, drops fall under gravity"
+    }
+   ],
+   "note": "cutaway (simultaneous, not a flashback; normal grade). 'but she is in a hospital 30 km away'",
+   "id": "s71",
+   "la": 31.82,
+   "lb": 37.88,
+   "t0": 744.7,
+   "t1": 750.76,
+   "snap_gap": 0.32,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior almost dark, only a CCTV monitor glow. night ward 30 km away, his mother asleep in her bed under a dim lamp, curtain around the bed, a monitor line. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 29.0,
+     "label": "ward monitor beep, soft",
+     "why": "he knows she is in the hospital",
+     "global_t": 741.88
+    }
+   ],
+   "shots": [
+    {
+     "id": "s71_1",
+     "plate_id": "s71_plate",
+     "t0": 744.7,
+     "t1": 750.76,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 0,
+   "b": 6.9,
+   "name": "ears covered",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "dark",
+   "plate": {
+    "id": "s72_plate",
+    "brief": "dark, the young man curled behind the counter, hands over his ears, eyes shut, praying, monitor glow"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non rocks and mouths a prayer",
+     "reason": "he prays"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    },
+    {
+     "kind": "story_event",
+     "name": "shutter trembles lightly",
+     "reason": "the pounding goes on"
+    }
+   ],
+   "note": "no bumper here: the dawn arrives inside this take (see next scene)",
+   "id": "s72",
+   "la": 0.0,
+   "lb": 7.29,
+   "t0": 750.76,
+   "t1": 758.05,
+   "snap_gap": 0.0,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Interior almost dark, only a CCTV monitor glow. dark, the young man curled behind the counter, hands over his ears, eyes shut, praying, monitor glow. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "continuous muffled bed, low pass ~1 kHz, -12 dB vs full; >=1.5 s state crossfade",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 0.0,
+     "label": "pounding and whispers, muffled",
+     "why": "story: whispers and knocks",
+     "global_t": 750.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s72_1",
+     "plate_id": "s72_plate",
+     "t0": 750.76,
+     "t1": 758.05,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 6.9,
+   "b": 16.6,
+   "name": "first sun ray",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "D",
+   "light": "dawn",
+   "plate": {
+    "id": "s73_plate",
+    "brief": "the first golden sun ray through the gap under the small shutter lying across the floor and the counter, dust in the beam"
+   },
+   "movers": [
+    {
+     "kind": "story_event",
+     "name": "sun beam widens across the floor",
+     "reason": "story: the first ray comes in, sun rising"
+    },
+    {
+     "kind": "person",
+     "name": "Non lowers his hands and looks up",
+     "reason": "he hears the knocking stop"
+    },
+    {
+     "kind": "cloth",
+     "name": "dust in the beam",
+     "reason": "dust moves in the light"
+    },
+    {
+     "kind": "screen",
+     "name": "CCTV monitor static",
+     "reason": "a CCTV monitor is a live screen, it rolls and crackles"
+    }
+   ],
+   "note": "dawn wipe: 0.4 s warm light bloom on the cut, no gap (the take has no pause long enough for a bumper). 'at 6 the first ray of sun enters, all the pounding and whispers stop at once'",
+   "id": "s73",
+   "la": 7.29,
+   "lb": 16.6,
+   "t0": 758.05,
+   "t1": 767.36,
+   "snap_gap": 0.78,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Dawn, warm gold light after the storm. the first golden sun ray through the gap under the small shutter lying across the floor and the counter, dust in the beam. dawn grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "dawn grade: warm gold after the storm",
+   "rain_audio": "bed crossfades out over the first 2.5 s, then off",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 6.9,
+     "label": "rain bed crossfades out (>=2 s)",
+     "why": "storm over by dawn (story silent, flagged)",
+     "global_t": 757.66
+    },
+    {
+     "local_t": 8.0,
+     "label": "pounding and whispers cut to silence",
+     "why": "story: they vanish at once",
+     "global_t": 758.76
+    },
+    {
+     "local_t": 11.0,
+     "label": "first birds",
+     "why": "dawn",
+     "global_t": 761.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s73_1",
+     "plate_id": "s73_plate",
+     "t0": 758.05,
+     "t1": 767.36,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 16.6,
+   "b": 20.8,
+   "name": "keys on the counter",
+   "io": "indoor",
+   "rain": "none",
+   "grade": "D",
+   "light": "dawn",
+   "plate": {
+    "id": "s74_plate",
+    "brief": "counter close view in warm dawn light, a key ring set down on the counter, dust in the beam"
+   },
+   "movers": [
+    {
+     "kind": "hand_object",
+     "name": "keys set down",
+     "reason": "story: he puts the keys down"
+    },
+    {
+     "kind": "cloth",
+     "name": "dust in the beam",
+     "reason": "dust moves in the light"
+    },
+    {
+     "kind": "smoke",
+     "name": "steam from the dry-wet tile",
+     "reason": "the wet floor warms in the sun"
+    }
+   ],
+   "note": "'puts the shop keys on the counter'",
+   "id": "s74",
+   "la": 16.6,
+   "lb": 22.03,
+   "t0": 767.36,
+   "t1": 772.79,
+   "snap_gap": 1.1,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Dawn, warm gold light after the storm. counter close view in warm dawn light, a key ring set down on the counter, dust in the beam. dawn grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "dawn grade: warm gold after the storm",
+   "rain_audio": "off (storm over; bed already crossfaded out, >=2 s)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 17.0,
+     "label": "keys jingle and settle",
+     "why": "story: leaves the keys on the counter",
+     "global_t": 767.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s74_1",
+     "plate_id": "s74_plate",
+     "t0": 767.36,
+     "t1": 772.79,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 20.8,
+   "b": 26.3,
+   "name": "walks out",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "D",
+   "light": "dawn",
+   "plate": {
+    "id": "s75_plate",
+    "brief": "the shop front at dawn, the small door up, the young man walking away along the wet road into the pale sky, long shadow, puddles"
+   },
+   "movers": [
+    {
+     "kind": "person",
+     "name": "Non walking away",
+     "reason": "walker; shrinks with distance on the road plane"
+    },
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "water",
+     "name": "puddle drips and ripples",
+     "reason": "last drips from the canopy"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    }
+   ],
+   "note": "OUTDOOR, no rain (storm over, flagged). 'leaves without looking back'",
+   "id": "s75",
+   "la": 22.03,
+   "lb": 26.67,
+   "t0": 772.79,
+   "t1": 777.43,
+   "snap_gap": 2.38,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Dawn, warm gold light after the storm. the shop front at dawn, the small door up, the young man walking away along the wet road into the pale sky, long shadow, puddles. dawn grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "dawn grade: warm gold after the storm",
+   "rain_audio": "off (storm over; bed already crossfaded out, >=2 s)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 20.8,
+     "label": "footsteps on wet asphalt, away",
+     "why": "story: leaves without looking back",
+     "global_t": 771.56
+    },
+    {
+     "local_t": 22.0,
+     "label": "birds",
+     "why": "",
+     "global_t": 772.76
+    }
+   ],
+   "shots": [
+    {
+     "id": "s75_1",
+     "plate_id": "s75_plate",
+     "t0": 772.79,
+     "t1": 777.43,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 26.3,
+   "b": 39.7,
+   "name": "another lonely store",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s76_plate",
+    "brief": "a different lonely roadside shop at dusk on another road, hiring board blank on the wall, one lit window, seen from the car park"
+   },
+   "movers": [
+    {
+     "kind": "cloud",
+     "name": "clouds drift",
+     "reason": "night clouds move with the wind over the road"
+    },
+    {
+     "kind": "insect",
+     "name": "moths at the lamp",
+     "reason": "moths gather at the only light"
+    },
+    {
+     "kind": "lamp",
+     "name": "porch lamp flicker",
+     "reason": "a cheap lamp buzzes"
+    },
+    {
+     "kind": "grass",
+     "name": "roadside grass sway",
+     "reason": "open field grass moves in the night wind"
+    }
+   ],
+   "note": "'remember: a store on a lonely road hiring night staff at triple pay'",
+   "id": "s76",
+   "la": 26.67,
+   "lb": 39.7,
+   "t0": 777.43,
+   "t1": 790.46,
+   "snap_gap": 0.66,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. a different lonely roadside shop at dusk on another road, hiring board blank on the wall, one lit window, seen from the car park. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (night insects bed)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 26.3,
+     "label": "night insects bed returns",
+     "why": "closing message to the viewer",
+     "global_t": 777.06
+    }
+   ],
+   "shots": [
+    {
+     "id": "s76_1",
+     "plate_id": "s76_plate",
+     "t0": 777.43,
+     "t1": 783.945,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    },
+    {
+     "id": "s76_2",
+     "plate_id": "s76_plate",
+     "t0": 783.945,
+     "t1": 790.46,
+     "camera": "detail crop",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  },
+  {
+   "chunk": "c22",
+   "a": 39.7,
+   "b": 46.3,
+   "name": "the one hiring",
+   "io": "outdoor",
+   "rain": "none",
+   "grade": "N",
+   "light": "night-open",
+   "plate": {
+    "id": "s77_plate",
+    "brief": "tight on a lit shop window at night from the car park, an empty chair behind the glass and nobody behind the counter, door closed"
+   },
+   "movers": [
+    {
+     "kind": "insect",
+     "name": "moths hit the glass",
+     "reason": "moths against the lit window"
+    },
+    {
+     "kind": "lamp",
+     "name": "window lamp flicker",
+     "reason": "cheap tube dips"
+    },
+    {
+     "kind": "cloud",
+     "name": "thin cloud crosses the moon",
+     "reason": "clouds move"
+    }
+   ],
+   "note": "'the one who asks might not be human' (last line; ASR garbled, final words to be confirmed against the clean take)",
+   "id": "s77",
+   "la": 39.7,
+   "lb": 47.28,
+   "t0": 790.46,
+   "t1": 798.04,
+   "snap_gap": 1.42,
+   "scene_prompt": "Use the attached image as the exact style reference: layered cut-paper diorama, real paper fibre texture, crisp cut edges, quilled swirl details, charcoal and slate paper, amber lights. No text, no letters, no numbers, no watermark. 16:9 wide frame. Modern rural Thai highway convenience store, NO apartment block, NO city skyline. Night sky, dark slate clouds, NO red sky, NO red moon. tight on a lit shop window at night from the car park, an empty chair behind the glass and nobody behind the counter, door closed. normal grade. Adults only (18+) if adults appear. No blushing, no red face, no red ears. No gore, no blood.",
+   "grade_note": "normal grade",
+   "rain_audio": "off (night insects bed)",
+   "sfx_cues": [],
+   "sfx_candidates_unverified": [
+    {
+     "local_t": 39.7,
+     "label": "single low note, then silence",
+     "why": "story ends in the episode, no outro beat",
+     "global_t": 790.46
+    }
+   ],
+   "shots": [
+    {
+     "id": "s77_1",
+     "plate_id": "s77_plate",
+     "t0": 790.46,
+     "t1": 798.04,
+     "camera": "wide",
+     "cut_note": "visual reframe only; narration remains uncut"
+    }
+   ]
+  }
+ ],
+ "checks": {
+  "errors": [],
+  "notes": [],
+  "flashback_scenes": [
+   "s06",
+   "s07",
+   "s40"
+  ],
+  "outdoor_rain_scenes": [
+   "s12",
+   "s14",
+   "s45",
+   "s46",
+   "s70"
+  ]
+ },
+ "audio_policy": {
+  "rain_continuous": true,
+  "minimum_crossfade_s": 1.5,
+  "indoor_lowpass_hz": 1000,
+  "indoor_relative_db": -12,
+  "thunder": "Optional low distant rumble, outdoor rain shots only, max 3; entire cue including tails outside dialogue; omit if no safe window",
+  "other_sfx": "Only events explicitly named by the clean take, aligned to verified word times; candidates are NOT approved",
+  "character": "Non (provisional fallback; clean script unavailable)",
+  "status": "M2 blocked: clean narration, clean script and approved SFX assets required"
+ }
+}
