@@ -1,0 +1,2024 @@
+{
+  "task": "task-a60387aa",
+  "milestone": "M1 planning only",
+  "format": "1920x1080 16:9 paper cut",
+  "duration": 769.612,
+  "counts": {
+    "scenes": 22,
+    "story_shots": 89,
+    "unique_planned_story_plates": 89,
+    "graphic_cards": 6,
+    "existing_reference_files": 34
+  },
+  "thunder_cues": 0,
+  "scenes": [
+    {
+      "id": "S01",
+      "source_scene": "1.1",
+      "take": "c01",
+      "start": 2.4,
+      "end": 44.293,
+      "transcript": "คุณเคยสงสัยไหมครับ ว่าทำไมหอพักเก่าแก่หลายแห่งในกรุงเทพฯ ถึงมักจะมีห้องมุมสุดชั้นสี่ ที่ปล่อยเช่าในราคาถูกกว่าห้องอื่นเกือบสามเท่า ทั้งที่ห้องกว้างกว่า มีเฟอร์นิเจอร์ครบ และรวมค่าน้ำค่าไฟไว้หมดแล้ว... แต่กลับมีคนย้ายออกแทบทุกเดือน บางคนทิ้งเสื้อผ้าและข้าวของทุกอย่างไว้ในห้องแล้วหนีออกไปตั้งแต่ยังไม่สว่าง เพราะความจริงแล้ว ค่าเช่าเดือนละพันห้าร้อยบาทนั้น ไม่ได้ลดราคาเพราะห้องเก่า... แต่ลดราคาเพื่อให้มีคนมานอนเฝ้าห้อง แทนผู้เช่าคนก่อนที่ยังไม่ได้ย้ายออกไปไหน",
+      "movers": [
+        {
+          "reason": "Departing tenant legs: carry the narrated escape"
+        },
+        {
+          "reason": "Tenant arm: leaves possessions behind"
+        },
+        {
+          "reason": "Loose clothing on departing tenant: follows the exit"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "none"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S01-01",
+          "plate_id": "P001",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 2.4,
+          "end": 10.779,
+          "beat": "Old dormitory corner room",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S01-02",
+          "plate_id": "P002",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 10.779,
+          "end": 19.157,
+          "beat": "Cheap furnished room",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S01-03",
+          "plate_id": "P003",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 19.157,
+          "end": 27.536,
+          "beat": "Abandoned clothes and luggage",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S01-04",
+          "plate_id": "P004",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 27.536,
+          "end": 35.914,
+          "beat": "Former tenant departing before dawn",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S01-05",
+          "plate_id": "P005",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 35.914,
+          "end": 44.293,
+          "beat": "Room awaiting replacement",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "source_scene": "1.1",
+      "take": "c02",
+      "start": 44.293,
+      "end": 84.609,
+      "transcript": "แฟ้มคดีที่สามของเรามาจากหอพักเก่าห้าชั้นท้ายซอยลึกย่านชานเมือง เมื่อหลายปีก่อน ชายหนุ่มวัยยี่สิบหกปีชื่อ กานต์ เพิ่งย้ายเข้ามาทำงานโรงงานกะเช้าด้วยเงินติดตัวไม่ถึงสามพันบาท เขาเดินหาห้องเช่าท่ามกลางสายฝนจนมาพบป้ายกระดาษเขียนมือหน้าหอพักแห่งหนึ่งว่า ว่างห้องเดียว ห้องสี่ศูนย์สี่ เดือนละพันห้าร้อยบาท เข้าอยู่ได้ทันที กานต์ตกลงวางเงินประกันกับป้าเจ้าของหอพักวัยเจ็ดสิบปีที่นั่งนับลูกประคำอยู่หลังโต๊ะไม้เก่าโดยไม่ถามรายละเอียดแม้แต่คำเดียว",
+      "movers": [
+        {
+          "reason": "Karn legs: walk while searching"
+        },
+        {
+          "reason": "Rain drops: fall in exposed alley only"
+        },
+        {
+          "reason": "Landlady fingers and beads: count the beads named in the take"
+        }
+      ],
+      "grade": "flashback_desaturated_sepia",
+      "rain": {
+        "camera": "mixed_outdoor_indoor",
+        "visual": "exposed exterior only",
+        "bed": "outdoor full then indoor muffled at deposit"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S02-01",
+          "plate_id": "P006",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 44.293,
+          "end": 52.356,
+          "beat": "Five-storey dormitory in the past",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "outdoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S02-02",
+          "plate_id": "P007",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 52.356,
+          "end": 60.419,
+          "beat": "Karn searching in rain",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "outdoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S02-03",
+          "plate_id": "P008",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 60.419,
+          "end": 68.483,
+          "beat": "Handwritten vacancy sign",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "outdoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S02-04",
+          "plate_id": "P009",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 68.483,
+          "end": 76.546,
+          "beat": "Landlady counting beads",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S02-05",
+          "plate_id": "P010",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 76.546,
+          "end": 84.609,
+          "beat": "Deposit accepted indoors",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "source_scene": "1.2",
+      "take": "c03",
+      "start": 84.609,
+      "end": 120.97,
+      "transcript": "ป้าเจ้าของหอยื่นพวงกุญแจทองเหลืองที่ผูกด้วยด้ายแดงซีดๆ ให้กานต์ แล้วพูดด้วยน้ำเสียงแหบพร่าโดยไม่เงยหน้าสบตาว่า ห้องสี่ศูนย์สี่อยู่สุดทางเดินชั้นสี่ ในห้องมีตู้เสื้อผ้าไม้สักใบใหญ่อยู่แล้ว ห้ามย้ายตู้ใบนั้นออกจากมุมห้อง และเมื่อเปิดประตูตู้เสื้อผ้าออก จะมีกระดาษกฎห้าข้อแปะอยู่ด้านใน อ่านให้ขึ้นใจแล้วทำตามทุกข้อ... ถ้าอยู่ครบเดือน ป้าจะคืนเงินประกันให้สองเท่า",
+      "movers": [
+        {
+          "reason": "Landlady hand: passes the key"
+        },
+        {
+          "reason": "Key and thread: swing only during handover"
+        },
+        {
+          "reason": "Landlady mouth: delivers the quoted warning"
+        }
+      ],
+      "grade": "flashback_desaturated_sepia",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "none"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S03-01",
+          "plate_id": "P011",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 84.609,
+          "end": 93.699,
+          "beat": "Brass key with faded red thread",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S03-02",
+          "plate_id": "P012",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 93.699,
+          "end": 102.789,
+          "beat": "Landlady warning",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S03-03",
+          "plate_id": "P013",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 102.789,
+          "end": 111.88,
+          "beat": "Fourth-floor corridor",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S03-04",
+          "plate_id": "P014",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 111.88,
+          "end": 120.97,
+          "beat": "Wardrobe rule sheet",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "source_scene": "2.1",
+      "take": "c04",
+      "start": 123.37,
+      "end": 158.002,
+      "transcript": "เมื่อกานต์เปิดประตูห้องสี่ศูนย์สี่เข้าไป กลิ่นอับชื้นของปูนเก่าผสมกลิ่นธูปจางๆ ก็ลอยมาปะทะจมูก ที่มุมห้องมีตู้เสื้อผ้าไม้สักสีดำทะมึนตั้งหันหน้าเข้าหาเตียงนอน และที่กระจกห้องน้ำมีถุงพลาสติกสีดำแปะทับไว้ด้วยเทปกาวกับสายสิญจน์เก่าๆ กานต์เปิดบานประตูตู้เสื้อผ้าออกดู ก็พบกระดาษสมุดฉีกขาดแผ่นหนึ่งแปะทับด้วยตราประทับสีแดงอยู่ด้านในบานประตูจริงๆ",
+      "movers": [
+        {
+          "reason": "Karn arm: opens the room door"
+        },
+        {
+          "reason": "Room door leaf: follows the narrated opening"
+        },
+        {
+          "reason": "Wardrobe leaf: opens to reveal the rules"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "none"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S04-01",
+          "plate_id": "P015",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 123.37,
+          "end": 132.028,
+          "beat": "Karn opens room",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S04-02",
+          "plate_id": "P016",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 132.028,
+          "end": 140.686,
+          "beat": "Wardrobe facing bed",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S04-03",
+          "plate_id": "P017",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 140.686,
+          "end": 149.344,
+          "beat": "Black bag covering mirror",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S04-04",
+          "plate_id": "P018",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 149.344,
+          "end": 158.002,
+          "beat": "Wardrobe opens to rule sheet",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "source_scene": "2.1",
+      "take": "c05",
+      "start": 158.002,
+      "end": 195.467,
+      "transcript": "กฎข้อที่หนึ่งเขียนไว้ว่า... หลังเที่ยงคืน หากได้ยินเสียงลูกบิดประตูหน้าห้องถูกบิดจากข้างนอก ห้ามส่องตาแมวดูเป็นอันขาด ให้ดับไฟในห้องทั้งหมดแล้วนอนคลุมโปงนิ่งๆ จนกว่าเสียงจะเงียบไป... คืนแรกผ่านไปจนถึงเวลาตีหนึ่งครึ่ง ท่ามกลางเสียงฝนที่สาดกระทบระเบียง จู่ๆ ลูกบิดประตูเหล็กหน้าห้องก็ถูกบิดไปมาอย่างแรง... แกร๊ก... แกร๊ก... แกร๊ก... เหมือนมีคนพยายามจะพังประตูเข้ามาจากทางเดินหน้าห้อง",
+      "movers": [
+        {
+          "reason": "Rain drops: fall beyond balcony glass only"
+        },
+        {
+          "reason": "Entry knob: twists at the named event"
+        },
+        {
+          "reason": "Karn torso: wakes at the disturbance"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "exposed exterior only",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "ลูกบิด",
+          "event": "knob rattles three times",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S05-01",
+          "plate_id": "P019",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 158.002,
+          "end": 167.368,
+          "beat": "Rule one on paper",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S05-02",
+          "plate_id": "P020",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 167.368,
+          "end": 176.735,
+          "beat": "01:30 waking in bed",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S05-03",
+          "plate_id": "P021",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 176.735,
+          "end": 186.101,
+          "beat": "Rain beyond balcony glass",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S05-04",
+          "plate_id": "P022",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 186.101,
+          "end": 195.467,
+          "beat": "Outside hand turns knob",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "source_scene": "2.2",
+      "take": "c06",
+      "start": 195.467,
+      "end": 237.086,
+      "transcript": "กานต์ลืมกฎข้อแรกไปชั่วขณะด้วยความตกใจ คิดว่าเป็นขโมยหรือคนเมาเดินผิดห้อง เขาจึงย่องไปที่ประตูแล้วแนบตาขวาเข้ากับช่องตาแมวทองเหลือง... แต่แทนที่จะเห็นทางเดินชั้นสี่อันว่างเปล่า สิ่งที่อัดแน่นอยู่ในเลนส์ตาแมวกลับเป็นลูกตาขาวขุ่นที่มีเส้นเลือดแดงแตกซ่านขนาดมหึมา แนบชิดอยู่กับกระจกตาแมวด้านนอกในระยะไม่ถึงหนึ่งมิลลิเมตร! พร้อมเสียงผู้หญิงกระซิบลอดรูรูกุญแจด้านล่างขึ้นมาว่า... เห็นแล้วนะ... ในห้องยังมีคนตื่นอยู่...",
+      "movers": [
+        {
+          "reason": "Karn legs: approach the peephole"
+        },
+        {
+          "reason": "Karn head: leans to the viewer"
+        },
+        {
+          "reason": "Karn eye: focuses on the revealed eye"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "กระซิบ",
+          "event": "female whisper; retain narrator, do not add invented words",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S06-01",
+          "plate_id": "P023",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 195.467,
+          "end": 205.872,
+          "beat": "Karn approaches peephole",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S06-02",
+          "plate_id": "P024",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 205.872,
+          "end": 216.276,
+          "beat": "Eye against brass viewer",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S06-03",
+          "plate_id": "P025",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 216.276,
+          "end": 226.681,
+          "beat": "Milky giant eye outside",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S06-04",
+          "plate_id": "P026",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 226.681,
+          "end": 237.086,
+          "beat": "Whisper through keyhole",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "source_scene": "2.2",
+      "take": "c07",
+      "start": 237.086,
+      "end": 271.723,
+      "transcript": "กานต์ผงะถอยหลังล้มลงกับพื้น หัวใจเต้นรัวแทบทะลุอก เขารีบเอื้อมมือไปตบสวิตช์ดับไฟเพดานตามกฎข้อที่หนึ่ง แล้วคลานขึ้นเตียงดึงผ้าห่มคลุมโปงทั้งตัวในเสี้ยววินาทีที่เงาดำใต้ช่องว่างประตูหน้าห้องค่อยๆ เลือนหายไป... แต่ยังไม่ทันที่เขาจะหายใจทั่วท้อง เวลาตีสองสิบห้านาที เสียงฝีเท้าคนเดินลากส้นเท้าก็ดังขึ้นจากเพดานปูนเหนือเตียงนอนของเขา... ตึง... ตึง... ตึง...",
+      "movers": [
+        {
+          "reason": "Karn body: recoils and crawls"
+        },
+        {
+          "reason": "Karn arm: reaches the switch"
+        },
+        {
+          "reason": "Blanket: rises as he covers himself"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "หัวใจเต้นรัว",
+          "event": "fast heartbeat",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงฝีเท้า",
+          "event": "ceiling heel drags and three thuds",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S07-01",
+          "plate_id": "P027",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 237.086,
+          "end": 245.745,
+          "beat": "Karn recoils and falls",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S07-02",
+          "plate_id": "P028",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 245.745,
+          "end": 254.405,
+          "beat": "Hand slaps light switch",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S07-03",
+          "plate_id": "P029",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 254.405,
+          "end": 263.064,
+          "beat": "Blanket pulled over body",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S07-04",
+          "plate_id": "P030",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 263.064,
+          "end": 271.723,
+          "beat": "Shadow recedes and ceiling footsteps",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "source_scene": "2.3",
+      "take": "c08",
+      "start": 271.723,
+      "end": 305.21,
+      "transcript": "มันเป็นเสียงเหมือนคนกำลังกระโดดเชือกและลากของหนักๆ ไปมาอยู่บนพื้นห้องชั้นห้าตรงหัวเตียงพอดี กานต์นึกถึงกฎข้อที่สองบนกระดาษได้ทันที... กฎข้อที่สองระบุว่า หอพักนี้มีคนอาศัยอยู่แค่สี่ชั้น ชั้นห้าคือดาดฟ้าที่ถูกก่ออิฐปิดตายมาสิบปีแล้ว หากได้ยินเสียงคนเดินหรือเสียงของตกจากเพดานชั้นบนหลังตีสอง ห้ามเงยหน้ามองเพดาน และห้ามเอาไม้ไปกระทุ้งเพดานโต้ตอบโดยเด็ดขาด",
+      "movers": [
+        {
+          "reason": "Recalled walker feet: enact named ceiling steps, only as recollection"
+        },
+        {
+          "reason": "Dragged object: follows the named dragging, only in recollection"
+        },
+        {
+          "reason": "Karn eyes: stay lowered as he recalls the warning"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "กระโดดเชือก",
+          "event": "jumping impacts",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "ลากของหนัก",
+          "event": "heavy dragging",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S08-01",
+          "plate_id": "P031",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 271.723,
+          "end": 280.095,
+          "beat": "Heavy dragging above bed",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S08-02",
+          "plate_id": "P032",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 280.095,
+          "end": 288.466,
+          "beat": "Rule two recalled",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S08-03",
+          "plate_id": "P033",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 288.466,
+          "end": 296.838,
+          "beat": "Bricked fifth-floor access",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S08-04",
+          "plate_id": "P034",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 296.838,
+          "end": 305.21,
+          "beat": "Karn keeps gaze down",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "source_scene": "2.4",
+      "take": "c09",
+      "start": 305.21,
+      "end": 344.737,
+      "transcript": "กานต์นอนตะแคงจ้องกำแพงข้างเตียง ไม่กล้าเงยหน้าขึ้นมองเพดานแม้แต่น้อย แต่จากหางตาที่สะท้อนเงาบนพื้นกระเบื้องเปียกชื้น เขาเห็นหยดน้ำสีดำคล้ำกลิ่นเหม็นเน่าหยดลงมาจากรอยร้าวบนเพดานทีละหยด... แหมะ... แหมะ... เฉียดหมอนของเขาไปเพียงไม่กี่นิ้ว พร้อมกับเงาสะท้อนบนพื้นห้องที่เผยให้เห็นว่า บนเพดานปูนเหนือหัวเตียง ไม่ใช่รอยน้ำรั่วธรรมดา แต่เป็นร่างของผู้หญิงผมยาวที่เกาะห้อยหัวลงมาจากเพดาน โดยที่ใบหน้าของเธอห่างจากใบหน้าของกานต์ไม่ถึงสองคืบ!",
+      "movers": [
+        {
+          "reason": "Black drops: fall from the crack"
+        },
+        {
+          "reason": "Wet-floor rings: respond to the named drops"
+        },
+        {
+          "reason": "Karn eyes: track the reflection without looking up"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "แหมะ",
+          "event": "black drips",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S09-01",
+          "plate_id": "P035",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 305.21,
+          "end": 315.092,
+          "beat": "Karn lies facing wall",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S09-02",
+          "plate_id": "P036",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 315.092,
+          "end": 324.974,
+          "beat": "Black drop at ceiling crack",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S09-03",
+          "plate_id": "P037",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 324.974,
+          "end": 334.855,
+          "beat": "Drop lands beside pillow",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S09-04",
+          "plate_id": "P038",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 334.855,
+          "end": 344.737,
+          "beat": "Reflection reveals hanging woman",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "source_scene": "2.4",
+      "take": "c10",
+      "start": 344.737,
+      "end": 375.032,
+      "transcript": "กานต์กัดริมฝีปากตัวเองจนห้อเลือด แกล้งหลับตาทำเป็นไม่รับรู้ตามกฎข้อที่สองอยู่นานเกือบยี่สิบนาที จนกระทั่งเสียงหยดน้ำและไอเย็นยะเยือกเหนือหัวเตียงค่อยๆ ถอยกลับขึ้นไปในรอยร้าวบนเพดาน... แต่ความหลอนของห้องสี่ศูนย์สี่เพิ่งจะเริ่มต้นขึ้นเท่านั้น เพราะเมื่อเข็มนาฬิกาเดินมาถึงเวลาตีสามตรง เสียงผ้าเปียกน้ำสะบัดแรงๆ ก็ดังมาจากนอกระเบียงหลังห้อง",
+      "movers": [
+        {
+          "reason": "Karn lip: tightens in the named bite"
+        },
+        {
+          "reason": "Karn eyelids: close to feign sleep"
+        },
+        {
+          "reason": "Wet hanging fabric: snaps outside at the named sound"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "เสียงหยดน้ำ",
+          "event": "drips recede",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงผ้าเปียกน้ำสะบัด",
+          "event": "wet fabric snap",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S10-01",
+          "plate_id": "P039",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 344.737,
+          "end": 352.311,
+          "beat": "Karn bites lip and closes eyes",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S10-02",
+          "plate_id": "P040",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 352.311,
+          "end": 359.885,
+          "beat": "Black drops retreat",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S10-03",
+          "plate_id": "P041",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 359.885,
+          "end": 367.458,
+          "beat": "03:00 clock",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S10-04",
+          "plate_id": "P042",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 367.458,
+          "end": 375.032,
+          "beat": "Wet fabric snapping outside",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "source_scene": "2.4",
+      "take": "c11",
+      "start": 375.032,
+      "end": 411.294,
+      "transcript": "กฎข้อที่สามเตือนไว้ว่า... หลังตีสาม หากเห็นเงาคนยืนปะปนอยู่กับเสื้อผ้าที่ตากไว้ริมระเบียง ห้ามเปิดม่านออกไปเก็บผ้าจนกว่าจะเช้า... ผ่านผ้าม่านบางๆ ที่ปลิวไสว กานต์เห็นเงาเสื้อเชิ้ตสีขาวสี่ตัวที่เขาตากไว้เมื่อเย็น บัดนี้กลับมีเงาร่างที่ห้า ยืนนิ่งอยู่ตรงกลางราวตากผ้า โดยที่ศีรษะของเงาตนนั้นเอียงหักพับลงมาเก้าสิบองศา และค่อยๆ ขยับเข้ามาแนบชิดบานกระจกระเบียง",
+      "movers": [
+        {
+          "reason": "Curtain: flutters as explicitly described"
+        },
+        {
+          "reason": "Shirt hems: move with the preceding wet-fabric event"
+        },
+        {
+          "reason": "Fifth figure: approaches the balcony glass"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S11-01",
+          "plate_id": "P043",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 375.032,
+          "end": 384.097,
+          "beat": "Rule three recalled",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S11-02",
+          "plate_id": "P044",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 384.097,
+          "end": 393.163,
+          "beat": "Thin curtain moving",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S11-03",
+          "plate_id": "P045",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 393.163,
+          "end": 402.228,
+          "beat": "Four shirts and fifth figure",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S11-04",
+          "plate_id": "P046",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 402.228,
+          "end": 411.294,
+          "beat": "Bent head approaches glass",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "source_scene": "3.1",
+      "take": "c12",
+      "start": 413.694,
+      "end": 443.201,
+      "transcript": "ด้วยความหวาดกลัวสุดขีด กานต์รีบลุกไปเปิดไฟตั้งโต๊ะแล้วกลับไปอ่านกระดาษกฎในตู้เสื้อผ้าอีกครั้งเพื่อให้แน่ใจว่ายังมีทางรอด และคราวนี้เขาสังเกตเห็นว่าที่ขอบล่างของกระดาษ มีรอยเล็บขูดเป็นข้อความเล็กๆ ซ่อนอยู่ใต้ตราประทับสีแดงว่า... อย่าทำตามกฎข้อที่เขียนด้วยหมึกสีแดง มันคือกับดักของคนในตู้เสื้อผ้า!",
+      "movers": [
+        {
+          "reason": "Karn legs: rise and return to wardrobe"
+        },
+        {
+          "reason": "Karn hand: switches desk lamp on"
+        },
+        {
+          "reason": "Karn eyes: scan the warning"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S12-01",
+          "plate_id": "P047",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 413.694,
+          "end": 423.53,
+          "beat": "Karn rises to desk lamp",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S12-02",
+          "plate_id": "P048",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 423.53,
+          "end": 433.365,
+          "beat": "Returns to rule sheet",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S12-03",
+          "plate_id": "P049",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 433.365,
+          "end": 443.201,
+          "beat": "Scratched warning under seal",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "source_scene": "3.1",
+      "take": "c13",
+      "start": 443.201,
+      "end": 474.629,
+      "transcript": "กานต์รีบกวาดสายตาขึ้นไปอ่านกฎข้อที่สี่ ซึ่งเขียนด้วยหมึกสีแดงสดเพียงข้อเดียวบนกระดาษว่า... หากได้ยินเสียงเคาะจากด้านในตู้เสื้อผ้าตอนตีสามสิบเจ็ดนาที ให้รีบเปิดประตูตู้เสื้อผ้าออกแล้วเข้าไปหลบข้างในตู้ทันทีเพื่อซ่อนตัวจากผีที่ระเบียง... ซึ่งขัดแย้งกับข้อความเตือนใต้ตราประทับอย่างสิ้นเชิง เพราะตู้เสื้อผ้าใบนี้ไม่ได้มีไว้ให้คนเป็นเข้าไปซ่อน!",
+      "movers": [
+        {
+          "reason": "Karn eyes: scan the fourth rule"
+        },
+        {
+          "reason": "Karn head: shifts from red rule to warning"
+        },
+        {
+          "reason": "Karn lips: silently register the contradiction, restrained performance inference"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S13-01",
+          "plate_id": "P050",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 443.201,
+          "end": 453.677,
+          "beat": "Red-ink fourth rule",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S13-02",
+          "plate_id": "P051",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 453.677,
+          "end": 464.153,
+          "beat": "False invitation to hide",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S13-03",
+          "plate_id": "P052",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 464.153,
+          "end": 474.629,
+          "beat": "Warning contradicts the rule",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "source_scene": "3.2",
+      "take": "c14",
+      "start": 474.629,
+      "end": 513.332,
+      "transcript": "และทันทีที่นาฬิกาบอกเวลาตีสามสิบเจ็ดนาที เสียงเคาะไม้หนักๆ ก็ดังขึ้นสามครั้งจากด้านในของตู้เสื้อผ้าไม้สักที่ปิดสนิท... ปัง... ปัง... ปัง... บานประตูตู้สั่นสะเทือนพร้อมกับค่อยๆ แง้มออกเองประมาณหนึ่งนิ้ว ในช่องว่างมืดสนิทระหว่างบานประตูตู้ กานต์เห็นนิ้วมือซีดม่วงที่เล็บฉีกขาดสอดออกมาเกาะขอบประตูตู้จากด้านใน พร้อมดวงตาเบิกโพลงคู่หนึ่งที่จ้องทะลุช่องแคบๆ ออกมาหาเขา",
+      "movers": [
+        {
+          "reason": "Clock hands: reach the named time"
+        },
+        {
+          "reason": "Wardrobe door: shakes and opens as explicitly narrated"
+        },
+        {
+          "reason": "Pale fingers: emerge and grip the door edge"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "ปัง",
+          "event": "exactly three wardrobe knocks",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S14-01",
+          "plate_id": "P053",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 474.629,
+          "end": 484.305,
+          "beat": "03:17 clock",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S14-02",
+          "plate_id": "P054",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 484.305,
+          "end": 493.981,
+          "beat": "Three knocks inside closed wardrobe",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S14-03",
+          "plate_id": "P055",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 493.981,
+          "end": 503.656,
+          "beat": "Door opens one inch",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S14-04",
+          "plate_id": "P056",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 503.656,
+          "end": 513.332,
+          "beat": "Torn fingernails and staring eyes",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "source_scene": "3.2",
+      "take": "c15",
+      "start": 513.332,
+      "end": 543.167,
+      "transcript": "เสียงผู้ชายแหบแห้งดังลอดออกมาจากในตู้เสื้อผ้าว่า... เข้ามาซ่อนในนี้เร็ว ข้างนอกมันกำลังจะเข้ามาแล้ว... กานต์รู้ทันทีว่านั่นคือเสียงของผู้เช่าห้องคนก่อนที่หลงเชื่อกฎหมึกสีแดงแล้วเปิดตู้เข้าไปซ่อนจนถูกขังอยู่ในนั้นแทน! กานต์ตัดสินใจไม่เปิดตู้ แต่กลับคว้าเก้าอี้ไม้ไปขัดด้ามจับประตูตู้เสื้อผ้าไว้แน่น แล้วหยิบกุญแจทองเหลืองหมุนล็อกตู้จากด้านนอกทันที",
+      "movers": [
+        {
+          "reason": "Karn arms: position chair"
+        },
+        {
+          "reason": "Chair: moves only while being placed"
+        },
+        {
+          "reason": "Key: turns in the narrated lock"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "เสียงผู้ชาย",
+          "event": "male invitation retained in narration",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "หมุนล็อก",
+          "event": "lock turn",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S15-01",
+          "plate_id": "P057",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 513.332,
+          "end": 520.791,
+          "beat": "Male voice inside wardrobe",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S15-02",
+          "plate_id": "P058",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 520.791,
+          "end": 528.25,
+          "beat": "Karn rejects invitation",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S15-03",
+          "plate_id": "P059",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 528.25,
+          "end": 535.708,
+          "beat": "Chair braces handles",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S15-04",
+          "plate_id": "P060",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 535.708,
+          "end": 543.167,
+          "beat": "Brass key locks wardrobe",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "source_scene": "3.3",
+      "take": "c16",
+      "start": 543.167,
+      "end": 572.563,
+      "transcript": "เสียงกรีดร้องด้วยความโกรธเกรี้ยวดังลั่นมาจากในตู้เสื้อผ้า บานประตูตู้ถูกกระแทกจากด้านในจนเก้าอี้ไม้สั่นสะเทือน... แปะ... แปะ... น้ำเหลืองและเลือดสีดำค่อยๆ ซึมไหลออกมาจากใต้ฐานตู้เสื้อผ้าเจิ่งนองไปทั่วพื้นห้อง ในเวลาเดียวกัน ถุงพลาสติกสีดำที่แปะทับกระจกห้องน้ำก็หลุดร่วงลงมาครึ่งแผ่นตามแรงสั่นสะเทือน",
+      "movers": [
+        {
+          "reason": "Wardrobe door and braced chair: shake from explicit impacts"
+        },
+        {
+          "reason": "Black fluid: seeps across floor"
+        },
+        {
+          "reason": "Mirror bag: falls halfway as narrated"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "เสียงกรีดร้อง",
+          "event": "angry scream",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "กระแทก",
+          "event": "wardrobe impacts",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "แปะ",
+          "event": "fluid drops",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S16-01",
+          "plate_id": "P061",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 543.167,
+          "end": 550.516,
+          "beat": "Angry scream inside wardrobe",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S16-02",
+          "plate_id": "P062",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 550.516,
+          "end": 557.865,
+          "beat": "Door impacts shake chair",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S16-03",
+          "plate_id": "P063",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 557.865,
+          "end": 565.214,
+          "beat": "Black fluid seeps out",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S16-04",
+          "plate_id": "P064",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 565.214,
+          "end": 572.563,
+          "beat": "Mirror bag slips halfway",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S17",
+      "source_scene": "3.3",
+      "take": "c17",
+      "start": 572.563,
+      "end": 605.551,
+      "transcript": "กานต์จำกฎข้อที่ห้า ซึ่งเป็นข้อสุดท้ายที่เขียนด้วยหมึกสีน้ำเงินได้แม่นยำ... กฎข้อที่ห้าสั่งไว้ว่า หากถุงดำที่ปิดกระจกห้องน้ำหลุดออก ห้ามเดินเข้าไปส่องกระจกเด็ดขาด ให้ดึงประตูห้องน้ำปิดแล้วเอาสายสิญจน์ผูกคล้องลูกบิดไว้ทันที... กานต์เบือนหน้าหนีจากเงาดำซีดเผือดที่กำลังคลานออกมาจากในกระจกห้องน้ำ แล้วกระชากประตูปิดล็อกพร้อมพันสายสิญจน์ทับลูกบิดด้วยมือที่สั่นเทา",
+      "movers": [
+        {
+          "reason": "Pale entity: crawls out of mirror"
+        },
+        {
+          "reason": "Bathroom door: is pulled closed"
+        },
+        {
+          "reason": "Karn hands and sacred thread: tremble while binding knob"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "กระชากประตูปิดล็อก",
+          "event": "bathroom close and lock",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S17-01",
+          "plate_id": "P065",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 572.563,
+          "end": 580.81,
+          "beat": "Blue-ink fifth rule",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S17-02",
+          "plate_id": "P066",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 580.81,
+          "end": 589.057,
+          "beat": "Pale shadow crawls from mirror",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S17-03",
+          "plate_id": "P067",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 589.057,
+          "end": 597.304,
+          "beat": "Karn turns away and closes door",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S17-04",
+          "plate_id": "P068",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 597.304,
+          "end": 605.551,
+          "beat": "Trembling hands tie sacred thread",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "source_scene": "4.1",
+      "take": "c18",
+      "start": 607.951,
+      "end": 637.889,
+      "transcript": "เวลาตีสี่ครึ่ง ไฟทั้งชั้นสี่ดับพรึ่บลงพร้อมกัน ห้องสี่ศูนย์สี่ตกอยู่ในความมืดมิด มีเพียงแสงฟ้าแลบจากพายุฝนที่ส่องลอดผ้าม่านระเบียงเข้ามาเป็นระยะ... และในความเงียบสงัดนั้น เสียงเคาะก็ดังขึ้นพร้อมกันจากทั้งสามทิศทาง! เสียงเคาะจากด้านในตู้เสื้อผ้า... เสียงทุบจากด้านในประตูห้องน้ำ... และเสียงบิดลูกบิดจากหน้าห้อง!",
+      "movers": [
+        {
+          "reason": "Wardrobe door: responds to named knocks"
+        },
+        {
+          "reason": "Bathroom door: responds to pounding"
+        },
+        {
+          "reason": "Entry knob: twists as explicitly named"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "exposed exterior only",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "เสียงเคาะ",
+          "event": "wardrobe knocks",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงทุบ",
+          "event": "bathroom pounding",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงบิดลูกบิด",
+          "event": "entry knob",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S18-01",
+          "plate_id": "P069",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 607.951,
+          "end": 615.436,
+          "beat": "04:30 lights go out",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S18-02",
+          "plate_id": "P070",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 615.436,
+          "end": 622.92,
+          "beat": "Lightning through balcony curtain",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S18-03",
+          "plate_id": "P071",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 622.92,
+          "end": 630.404,
+          "beat": "Wardrobe knocks",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S18-04",
+          "plate_id": "P072",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 630.404,
+          "end": 637.889,
+          "beat": "Bathroom pounding and entry knob",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "source_scene": "4.1",
+      "take": "c19",
+      "start": 637.889,
+      "end": 670.092,
+      "transcript": "กานต์ค้นพบความจริงอันน่าสยดสยองในวินาทีนั้นเองว่า ห้องสี่ศูนย์สี่ไม่ได้มีผีเพียงตนเดียว แต่ผู้เช่าทุกคนที่เคยทำผิดกฎในห้องนี้ ไม่ว่าจะส่องตาแมว เปิดตู้เสื้อผ้า หรือส่องกระจกห้องน้ำ ล้วนถูกขังซ้อนทับกันอยู่ในทุกมุมของห้องใบนี้มาตลอดสิบปี! และพวกมันกำลังพยายามหลอกให้ผู้เช่าคนใหม่ทำผิดกฎ เพื่อหาคนมาเฝ้าจุดนั้นแทนตัวเอง",
+      "movers": [
+        {
+          "reason": "Past tenant head: leans into peephole in reconstruction"
+        },
+        {
+          "reason": "Past tenant body: enters wardrobe in reconstruction"
+        },
+        {
+          "reason": "Past tenant head: turns toward mirror in reconstruction"
+        }
+      ],
+      "grade": "flashback_desaturated_sepia",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [],
+      "shots": [
+        {
+          "id": "S19-01",
+          "plate_id": "P073",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 637.889,
+          "end": 645.94,
+          "beat": "Realization of layered trapped tenants",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S19-02",
+          "plate_id": "P074",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 645.94,
+          "end": 653.99,
+          "beat": "Past peephole victim",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S19-03",
+          "plate_id": "P075",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 653.99,
+          "end": 662.041,
+          "beat": "Past wardrobe victim",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        },
+        {
+          "id": "S19-04",
+          "plate_id": "P076",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 662.041,
+          "end": 670.092,
+          "beat": "Past mirror victim",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "flashback_desaturated_sepia"
+        }
+      ]
+    },
+    {
+      "id": "S20",
+      "source_scene": "5.1",
+      "take": "c20",
+      "start": 672.492,
+      "end": 698.526,
+      "transcript": "กานต์ถอยกลับมานั่งกอดเข่าอยู่กลางเตียงนอนซึ่งเป็นจุดเดียวที่มีผ้ายันต์เก่าเย็บติดไว้ใต้ฟูกที่นอน เขาหลับตาแน่น อุดหูทั้งสองข้างด้วยฝ่ามือ และท่องบทสวดมนต์ซ้ำไปซ้ำมาโดยไม่ยอมขยับตัวออกจากเขตเตียงนอนแม้แต่ครึ่งนิ้ว แม้จะมีเสียงกระซิบเรียกชื่อเขาอยู่ชิดขอบเตียงทั้งสี่ด้านก็ตาม",
+      "movers": [
+        {
+          "reason": "Karn body: retreats and folds onto bed"
+        },
+        {
+          "reason": "Karn hands: cover both ears"
+        },
+        {
+          "reason": "Karn lips: repeat the named prayer"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "muffled exterior rain behind walls; continuity assumption"
+      },
+      "sfx": [
+        {
+          "anchor": "ท่องบทสวดมนต์",
+          "event": "prayer retained in narration",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงกระซิบ",
+          "event": "bedside whispers",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S20-01",
+          "plate_id": "P077",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 672.492,
+          "end": 679.0,
+          "beat": "Karn retreats to bed talisman",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S20-02",
+          "plate_id": "P078",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 679.0,
+          "end": 685.509,
+          "beat": "Knees hugged and eyes closed",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S20-03",
+          "plate_id": "P079",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 685.509,
+          "end": 692.017,
+          "beat": "Hands cover ears during prayer",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S20-04",
+          "plate_id": "P080",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 692.017,
+          "end": 698.526,
+          "beat": "Whispers at four bed edges",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S21",
+      "source_scene": "5.1",
+      "take": "c21",
+      "start": 698.526,
+      "end": 727.429,
+      "transcript": "หนึ่งชั่วโมงครึ่งผ่านไปเหมือนชั่วนิรันดร์ ตู้เสื้อผ้าและประตูห้องน้ำสั่นสะเทือนอย่างบ้าคลั่งราวกับจะพังทลายลงมา จนกระทั่งเข็มนาฬิกาแตะเวลาหกโมงเช้าตรง... แสงแดดสีทองลำแรกส่องทะลุหน้าต่างทางเดินและผ้าม่านระเบียงเข้ามาในห้อง เสียงทุบประตู เสียงขูดไม้ และเสียงกระซิบทั้งหมดหยุดชะงักลงพร้อมกันในพริบตา",
+      "movers": [
+        {
+          "reason": "Wardrobe door: shakes as explicitly narrated"
+        },
+        {
+          "reason": "Bathroom door: shakes as explicitly narrated"
+        },
+        {
+          "reason": "Clock hands: reach six and trigger sound stop"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "none"
+      },
+      "sfx": [
+        {
+          "anchor": "เสียงทุบประตู",
+          "event": "pounding stops",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงขูดไม้",
+          "event": "wood scrape stops",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        },
+        {
+          "anchor": "เสียงกระซิบ",
+          "event": "whispers stop",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S21-01",
+          "plate_id": "P081",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 698.526,
+          "end": 705.752,
+          "beat": "Wardrobe and bathroom door shake",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S21-02",
+          "plate_id": "P082",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 705.752,
+          "end": 712.977,
+          "beat": "Clock reaches 06:00",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S21-03",
+          "plate_id": "P083",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 712.977,
+          "end": 720.203,
+          "beat": "Golden light through curtain",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S21-04",
+          "plate_id": "P084",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 720.203,
+          "end": 727.429,
+          "beat": "All named sounds stop",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    },
+    {
+      "id": "S22",
+      "source_scene": "5.2",
+      "take": "c22",
+      "start": 727.429,
+      "end": 766.412,
+      "transcript": "เช้าวันนั้นกานต์ไม่แม้แต่จะเก็บกระเป๋าเสื้อผ้า เขาวางกุญแจห้องสี่ศูนย์สี่และธนบัตรพันห้าร้อยบาททิ้งไว้บนโต๊ะไม้หน้าประตู แล้ววิ่งลงบันไดหนีออกจากหอพักโดยไม่หันกลับไปมองอีกเลย... จำเรื่องนี้ไว้ให้ดีนะครับ หากวันไหนที่คุณไปหาเช่าหอพักราคาถูกผิดปกติ แล้วเห็นห้องมุมสุดชั้นสี่ที่เจ้าของหอห้ามขยับตู้เสื้อผ้าและแปะถุงดำปิดกระจกห้องน้ำไว้... อย่ารับกุญแจห้องนั้นเด็ดขาด เพราะคนที่อยู่ในตู้เสื้อผ้า กำลังรอให้คุณมาเปลี่ยนเวร",
+      "movers": [
+        {
+          "reason": "Karn hand: deposits keys and money"
+        },
+        {
+          "reason": "Karn legs: run down stairs and out"
+        },
+        {
+          "reason": "Karn jacket hem: follows the escape movement"
+        }
+      ],
+      "grade": "present_cool_paper",
+      "rain": {
+        "camera": "indoor",
+        "visual": "none",
+        "bed": "none"
+      },
+      "sfx": [
+        {
+          "anchor": "วิ่งลงบันได",
+          "event": "running stair footsteps",
+          "time": null,
+          "status": "align to actual trimmed take before mix"
+        }
+      ],
+      "shots": [
+        {
+          "id": "S22-01",
+          "plate_id": "P085",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 727.429,
+          "end": 735.226,
+          "beat": "Keys and money left on table",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S22-02",
+          "plate_id": "P086",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 735.226,
+          "end": 743.022,
+          "beat": "Karn runs down stairs",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S22-03",
+          "plate_id": "P087",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 743.022,
+          "end": 750.819,
+          "beat": "Karn exits at dawn",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "outdoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S22-04",
+          "plate_id": "P088",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 750.819,
+          "end": 758.615,
+          "beat": "Warning about sealed mirror",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        },
+        {
+          "id": "S22-05",
+          "plate_id": "P089",
+          "plate_status": "planned_unique_paper_plate_not_created",
+          "start": 758.615,
+          "end": 766.412,
+          "beat": "Wardrobe awaits replacement; story closed",
+          "timing_status": "provisional clause allocation; replace with heard phrase boundary <=12s",
+          "camera": "indoor",
+          "grade": "present_cool_paper"
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "kind": "act_card",
+      "act": 1,
+      "roman": "I",
+      "clock": "00:00 AM",
+      "start": 0.0,
+      "duration": 2.4,
+      "end": 2.4,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-1"
+    },
+    {
+      "kind": "act_card",
+      "act": 2,
+      "roman": "II",
+      "clock": "01:30 AM",
+      "start": 120.97,
+      "duration": 2.4,
+      "end": 123.37,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-2"
+    },
+    {
+      "kind": "act_card",
+      "act": 3,
+      "roman": "III",
+      "clock": "03:17 AM",
+      "start": 411.294,
+      "duration": 2.4,
+      "end": 413.694,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-3"
+    },
+    {
+      "kind": "act_card",
+      "act": 4,
+      "roman": "IV",
+      "clock": "04:30 AM",
+      "start": 605.551,
+      "duration": 2.4,
+      "end": 607.951,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-4"
+    },
+    {
+      "kind": "act_card",
+      "act": 5,
+      "roman": "V",
+      "clock": "05:00 AM",
+      "start": 670.092,
+      "duration": 2.4,
+      "end": 672.492,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-5"
+    },
+    {
+      "kind": "outro_card",
+      "start": 766.412,
+      "duration": 3.2,
+      "end": 769.612,
+      "animation": "paper numeral/clock reveal and settle; unique graphic, no SFX",
+      "plate_id": "CARD-6"
+    }
+  ],
+  "reference_inventory": [
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_a_corridor_1794214929023.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_a_corridor_1794214929023_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_a_corridor_1794214929023_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_b_rules_wardrobe_1794214950929.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_b_rules_wardrobe_1794214950929_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_b_rules_wardrobe_1794214950929_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_c_peephole_1794214977280.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_c_peephole_1794214977280_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_c_peephole_1794214977280_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_d_ceiling_stain_1794214999227.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_d_ceiling_stain_1794214999227_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_d_ceiling_stain_1794214999227_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_e_wardrobe_gap_1794214938964.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_e_wardrobe_gap_1794214938964_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_e_wardrobe_gap_1794214938964_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_f_bathroom_mirror_1794214971137.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_f_bathroom_mirror_1794214971137_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_f_bathroom_mirror_1794214971137_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_g_balcony_rain_1794215001458.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_g_balcony_rain_1794215001458_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_g_balcony_rain_1794215001458_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_plate_h_door_dawn_1794215041191.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_h_door_dawn_1794215041191_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_plate_h_door_dawn_1794215041191_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s01_bldg_rain_ext_1794217479313.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s01_bldg_rain_ext_1794217479313_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s01_bldg_rain_ext_1794217479313_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s02_abandoned_luggage_1794217497503.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s02_abandoned_luggage_1794217497503_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s02_abandoned_luggage_1794217497503_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s03_karn_rain_sign_1794217517681.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s03_karn_rain_sign_1794217517681_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s03_karn_rain_sign_1794217517681_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s04_landlady_beads_1794217542754.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s04_landlady_beads_1794217542754_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s04_landlady_beads_1794217542754_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s05_key_red_thread_1794217573651.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s05_key_red_thread_1794217573651_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s05_key_red_thread_1794217573651_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s06_karn_stairs_4f_1794217596105.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s06_karn_stairs_4f_1794217596105_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s06_karn_stairs_4f_1794217596105_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s07_karn_enters_404_1794217622094.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s07_karn_enters_404_1794217622094_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s07_karn_enters_404_1794217622094_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s08_karn_reads_rules_1794217651683.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s08_karn_reads_rules_1794217651683_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s08_karn_reads_rules_1794217651683_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s09_karn_wakes_0130_1794217487840.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s09_karn_wakes_0130_1794217487840_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s09_karn_wakes_0130_1794217487840_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s10_karn_at_peephole_1794217507519.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s10_karn_at_peephole_1794217507519_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s10_karn_at_peephole_1794217507519_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s11_karn_slaps_switch_1794217523951.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s11_karn_slaps_switch_1794217523951_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s11_karn_slaps_switch_1794217523951_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s12_karn_under_blanket_1794217546289.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s12_karn_under_blanket_1794217546289_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s12_karn_under_blanket_1794217546289_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s13_bricked_5th_floor_1794217569913.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s13_bricked_5th_floor_1794217569913_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s13_bricked_5th_floor_1794217569913_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s14_karn_side_black_drip_1794217592539.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s14_karn_side_black_drip_1794217592539_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s14_karn_side_black_drip_1794217592539_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s15_karn_bites_lip_1794217617485.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s15_karn_bites_lip_1794217617485_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s15_karn_bites_lip_1794217617485_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s16_curtain_four_shirts_1794217641079.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s16_curtain_four_shirts_1794217641079_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s16_curtain_four_shirts_1794217641079_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s16_curtain_four_shirts_v2_1794217663776.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s16_curtain_four_shirts_v2_1794217663776_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s16_curtain_four_shirts_v2_1794217663776_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s17_nail_scratches_seal_1794217488519.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s17_nail_scratches_seal_1794217488519_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s17_nail_scratches_seal_1794217488519_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s18_karn_chair_lock_wardrobe_1794217505911.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s18_karn_chair_lock_wardrobe_1794217505911_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s18_karn_chair_lock_wardrobe_1794217505911_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s19_wardrobe_black_blood_1794217523211.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s19_wardrobe_black_blood_1794217523211_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s19_wardrobe_black_blood_1794217523211_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s20_karn_sacred_thread_door_1794217542626.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s20_karn_sacred_thread_door_1794217542626_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s20_karn_sacred_thread_door_1794217542626_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s21_three_way_siege_0430_1794217561531.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s21_three_way_siege_0430_1794217561531_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s21_three_way_siege_0430_1794217561531_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s22_trapped_souls_room404_1794217581052.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s22_trapped_souls_room404_1794217581052_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s22_trapped_souls_room404_1794217581052_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s22_trapped_souls_room404_1794217599310.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s22_trapped_souls_room404_1794217599310_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s22_trapped_souls_room404_1794217599310_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s23_karn_praying_talisman_bed_1794217619743.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s23_karn_praying_talisman_bed_1794217619743_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s23_karn_praying_talisman_bed_1794217619743_bg.jpg"
+    },
+    {
+      "plate": "/opt/MoonieXHQ/Work/ghost-pilot/ep03/plates/ep03_s24_karn_runs_stairs_dawn_1794217640650.jpg",
+      "fg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s24_karn_runs_stairs_dawn_1794217640650_fg.png",
+      "bg": "/opt/MoonieXHQ/Work/ghostrules-full/ep03/cutouts/ep03_s24_karn_runs_stairs_dawn_1794217640650_bg.jpg"
+    }
+  ],
+  "not_checked_risk": [
+    "Shot times are provisional clause allocations, not listened/word-locked cuts. Reconcile voice takes against trimmed audio and snap each boundary to its spoken beat; split with another unique plate if any revised shot exceeds 12 s.",
+    "Only seven words files exist versus 22 takes. They contain fragmented Thai tokens; correspondence and trim offsets have not been verified. SFX times remain null deliberately.",
+    "Existing plates and paired foreground/background cutouts are inventoried references only; no image inspection or layer quality check was performed. All planned paper plates require unique scene-action framing and clean separate movers; none is claimed production-ready.",
+    "Three justified movers are listed per scene across its shots, not three arbitrary motions in every close-up. S13 lip motion is a performance inference; replace with a grounded action or obtain review if rejected. Still rule/architecture inserts must not be made to wobble to meet a quota.",
+    "Rain continuity from c05 through c20 is a storm-continuity inference, not a new spoken rain event per take. Indoor bed means muffled exterior sound only; no indoor/roof rain particles. c02 changes to indoor at the deposit shot. No thunder is authorized: lightning in c18 does not name thunder.",
+    "Flashback treatment: c02-c03 backstory sepia, reset at c04; c19 reconstructed earlier victims sepia, reset at c20. Entire tale also occurs in the past; these are editorial marked recalls, subject to M1 review.",
+    "No listening, render, contact sheet, alpha/occlusion, lip sync, loudness, rain gap/click scan, subtitle or final-frame QC performed. M2 must use >=1.5 s rain loop crossfades and scan final mix for gaps/clicks.",
+    "c02 says แฟ้มคดีที่สาม. Remove the ordinal case-number wording at a verified phrase boundary before production to obey no episode numbering. Source timeline act clocks also conflict with narrated time in c04 and c20; use Roman chapter numerals only, remove source clock labels.",
+    "No paid calls, source edits, media copies, uploads or deletion. Disk was 11 GiB available (rounded df), close to 10 GB floor; recheck exact free bytes before any later media work.",
+    "CMO report delivery blocked: required live-session lookup failed with DNS resolution error. One ready-to-send letter is saved locally; not sent, no duplicate attempted."
+  ]
+}
