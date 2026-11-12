@@ -91,10 +91,11 @@ for a, b in rain_iv:
     k0, k1, r3 = ramp(b - 2.0, b, True); env[k0:k1] = r3
 # jump-scare calm: bed out before, back in after the tail
 cs = c06["start"]
-i0, i1, r = ramp(cs + BED_FADE[0], cs + BED_FADE[1], False); env[i0:i1] *= r; env[i1:S(STING + 1.1)] = 0
-i0, i1, r = ramp(STING + 1.1, STING + 3.6, True); env[i0:i1] *= r
+i0, i1, r = ramp(cs + BED_FADE[0], cs + BED_FADE[1], False); env[i0:i1] *= r; env[i1:S(STING + 0.4)] = 0
+i0, i1, r = ramp(STING + 0.4, STING + 2.4, True); env[i0:i1] *= r
 bed_g = 10 ** ((vrms_active + BED_REL_DB - rms_db(bedl)) / 20)
-mix = voice + bedl * env * bed_g
+bedst = (bedl * env * bed_g).astype(np.float32)   # bed stem (before the final gain)
+mix = voice.copy()
 # rain (outdoor only), from the approved pack
 rain = rd(PACK + "rain_metal_roof_13.wav")
 rain = loop(rain, N) if len(rain) < N else rain[:N]
@@ -119,16 +120,21 @@ creak_t = c06["start"] + A_END + CREAK_AFTER_A
 put("wood_floor_creak_06.wav", creak_t, 0, peak=0.30)
 put("hard_horror_hit_drum_21.wav", STING, 0, dur=TAIL, fade_out=0.6, off=0.04, peak=0.50)
 
-# ---- write pre-norm, loudnorm 2-pass (linear), 16-bit 48k stereo
-mix = mix.astype(np.float32); st = np.stack([mix, mix], 1)
+# ---- stems: ONE linear gain g puts voice+cues+rain+bed at -14 LUFS (stereo); stems are mono float32 with g applied.
+# final = alimiter(nobed + bed). Swap the bed later: ffmpeg -i ep03_nobed.wav -i NEWBED.wav ... (see remux_audio.sh)
+mix = mix.astype(np.float32)
 pre = f"{OUT}/_pre.wav"
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", "-", "-c:a", "pcm_f32le", pre], input=st.tobytes(), check=True)
-print("pre peak dBFS", 20 * np.log10(np.abs(mix).max()))
-r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", pre, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"], capture_output=True, text=True)
-j = json.loads(r.stderr[r.stderr.rindex("{"):])
-ln = f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}:measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true"
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "-", "-c:a", "pcm_f32le", pre], input=(mix + bedst).tobytes(), check=True)
+r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", pre, "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True)
+import re
+I_mono = float(re.findall(r"I:\s+(-?[\d.]+) LUFS", r.stderr)[-1]); I_st = I_mono + 3.0103   # dual-mono stereo
+g = 10 ** ((-14.0 - I_st) / 20); print("pre I (stereo)", I_st, "gain dB", 20 * np.log10(g))
+for nm, arr in (("ep03_nobed.wav", mix * g), ("ep03_bed.wav", bedst * g)):
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "-", "-c:a", "pcm_f32le", f"{OUT}/{nm}"], input=arr.astype(np.float32).tobytes(), check=True)
 final = f"{OUT}/ep03_m2b_mix.wav"
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", pre, "-af", ln, "-ar", str(SR), "-c:a", "pcm_s16le", final], check=True)
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{OUT}/ep03_nobed.wav", "-i", f"{OUT}/ep03_bed.wav", "-filter_complex",
+                "[0][1]amix=inputs=2:normalize=0:duration=longest,pan=stereo|c0=c0|c1=c0,alimiter=limit=0.72:attack=5:release=60:level=0", "-ar", str(SR), "-c:a", "pcm_s16le", final], check=True)
+j = dict(I_pre_stereo=I_st, gain_db=float(20 * np.log10(g)), method="linear gain + alimiter 0.72 (-2.9 dBFS)")
 json.dump(dict(pass1=j, bed=BED, bed_rel_db=BED_REL_DB, bed_gain=float(bed_g), voice_active_rms_db=float(vrms_active)), open(f"{OUT}/mix_metrics.json", "w"), indent=1)
 
 # ---- ledgers
@@ -145,5 +151,8 @@ led2["jump_scare"] = dict(
     picture="HARD CUT to the close eye plate (S06-03 / P025) on exactly sting_time_s; S06-02 holds through the calm; no dissolve",
     timeline_shift_after_hole_s=SHIFT)
 led2["bed"] = dict(file=BED, loop_crossfade_s=2.0, rain_only_in=rain_iv, rain_source="rain_metal_roof_13.wav")
+led2["bed"]["flow_music"] = dict(status="FAILED_NO_SPEND", credits_spent=0, reason="flow_music.py on winbox: connect_over_cdp to 127.0.0.1:9226 timed out (30 s) on 2 dry runs; no Generate click; CMO: 9226 is the YouTube Studio Chrome, CMO will make the Flow bed")
+led2["bed"]["fallback"] = "creepy_tomb_ambience_19.wav (approved pack, 41.2 s) looped with 2 s equal-power crossfades, -24 dB under voice; NOT rain (CEO rule 2)"
+led2["stems"] = dict(nobed="ep03_nobed.wav", bed="ep03_bed.wav", final="ep03_m2b_mix.wav", recipe="final = alimiter(amix(nobed,bed), 0.8414); one linear gain g applied to both stems")
 json.dump(led2, open(f"{OUT}/cue_ledger.json", "w"), indent=1, ensure_ascii=False)
 print("done", final)

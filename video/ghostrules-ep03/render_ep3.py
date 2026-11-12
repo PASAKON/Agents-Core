@@ -16,7 +16,7 @@ W, H, FPS = 1920, 1080, 30
 FLASHBACK = {"S02", "S03", "S19"}
 RAIN_PLATES = {"P006", "P007", "P008"}      # outdoors in the rain (S02-01..03); audio rain = same window
 LIGHTNING_PLATES = {"P070"}                 # S18-02 "Lightning through balcony curtain" (no thunder authorised)
-CARD_TXT = {"CARD-1": ("I", (0.49, 0.47)), "CARD-2": ("II", (0.46, 0.42)), "CARD-3": ("III", (0.50, 0.46)),
+CARD_TXT = {"CARD-1": ("I", (0.49, 0.47)), "CARD-2": ("II", (0.53, 0.44)), "CARD-3": ("III", (0.50, 0.46)),
             "CARD-4": ("IV", (0.45, 0.46)), "CARD-5": ("V", (0.50, 0.47)), "CARD-6": ("GHOST RULES", (0.50, 0.50))}
 
 def plan_shots():
