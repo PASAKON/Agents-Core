@@ -245,7 +245,7 @@ def test_fetch_codex_skips_newest_rollout_without_usage(tmp_path):
     now = _time.time()
     _os.utime(old, (now - 600, now - 600))
     _os.utime(new, (now, now))
-    cfg = {"quota_sources": {"codex": {"ssh": "", "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
+    cfg = {"quota_sources": {"codex": {"ssh": "", "feed_path": str(tmp_path / "missing-feed.json"), "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
     q = fetch_codex(cfg)
     assert q.error is None
     assert q.weekly_remaining == 0.96
@@ -259,6 +259,6 @@ def test_fetch_codex_reports_newest_error_when_no_file_has_usage(tmp_path):
     day = tmp_path / "2026" / "11" / "11"
     day.mkdir(parents=True)
     (day / "rollout-a.jsonl").write_text(_json.dumps({"payload": {"type": "user_message"}}) + "\n")
-    cfg = {"quota_sources": {"codex": {"ssh": "", "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
+    cfg = {"quota_sources": {"codex": {"ssh": "", "feed_path": str(tmp_path / "missing-feed.json"), "sessions_glob": str(tmp_path / "*/*/*/rollout-*.jsonl")}}}
     q = fetch_codex(cfg)
     assert q.error and "rate_limits" in q.error

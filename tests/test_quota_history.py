@@ -26,6 +26,7 @@ if str(ROOT) not in sys.path:
 from tools.quota import DEFAULT_HISTORY, Quota, record_snapshot
 
 EXPECTED_FIELDS = {
+    "plan_type",
     "ts",
     "provider",
     "weekly_remaining",
