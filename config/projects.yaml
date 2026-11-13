@@ -476,3 +476,16 @@ projects:
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock
       contabo: /opt/MoonieXHQ/Projects/MoonieX/Bedrock   # worker clone only (codex lane), CEO 2026-10-05 'ส่ง Worker ... Codex AGY'
+
+  - key: dungeonrunner
+    name: DungeonRunner (MoonieX-Game, CEO's 2D dungeon action game)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Game
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Game
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Game   # worker clone; created on first delegate
+      winbox: 'C:\Users\passg\mooniex\repo\MoonieX-Game'   # PH#d384bcb5 home, CEO Q-20261113-0926-870d
+    remote: https://github.com/PASAKON/MoonieX-Game.git
+    default_branch: main
+    stack: [html5-canvas, javascript]
+    agents_allowed: *default_workers
+    # Folder + repo approved by the CEO, Q-20261113-0835-1281. Original art only; plan in docs/PLAN.md.
