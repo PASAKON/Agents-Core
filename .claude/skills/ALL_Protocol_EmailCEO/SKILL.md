@@ -25,6 +25,7 @@ next one, and then the ACTION that mattered is missed. So the channel is narrow 
 | `alert` | Something is breaking **money, a customer or security** right now (leak, outage, a charge, a refund storm). | know now | buzzes, any hour |
 | `done` | An order **he gave** is finished and there is a result to open (merged, posted, deployed, file on Drive). | open it later | silent |
 | `deadline` | One of **his** to-dos falls due within 24 h. Usually sent by the timer, not by you. | see it at 08:00 | no mail (digest) |
+| `quota_reset` | Codex / AGY reset (CEO 13 Nov); exempt from session cap, counts toward org 20; dedupe forever by bucket + resets_at. | see new quota | silent |
 
 For `done`, the 07:50 feed sends the daily merged-PR line (ref `merge-digest-<date>`), so a merger sends no merge mail.
 

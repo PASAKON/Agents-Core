@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Mail the CEO: the only way a session emails him (CEO 2026-10-02, skill ALL_Protocol_EmailCEO).
 
-Four kinds and nothing else; the hub (Console POST /api/notify/ceo) refuses the rest:
+Five kinds and nothing else; the hub (Console POST /api/notify/ceo) refuses the rest:
     action    a decision only he can make, and it blocks work       → mail, phone buzzes
     alert     money, a customer or security is being hurt now       → mail, phone buzzes
     done      an order he gave is finished; link to the result      → mail, silent
     deadline  one of his to-dos falls due within 24 h               → no mail; the 08:00 digest
+    quota_reset a Codex or AGY quota reset (CEO 13 Nov)             → mail, silent
 Run cards and relay login requests already mail by themselves: never send one of those here.
 
 Verbs:
@@ -53,7 +54,7 @@ if str(ROOT) not in sys.path:
 
 from tools import ask_run  # noqa: E402
 
-KINDS = ("action", "alert", "done", "deadline")
+KINDS = ("action", "alert", "done", "deadline", "quota_reset")
 FIELDS = ("title", "need", "why", "if_not", "link", "ref", "due")
 CEO_READS = ("title", "need", "why", "if_not", "link", "due")   # ≤5 lines together, title = line 1
 PATH = "/api/notify/ceo"
@@ -298,7 +299,7 @@ def feed_merged(*, dry_run: bool = False, now: datetime | None = None,
 def _parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="verb", required=True)
-    s = sub.add_parser("send", help="mail the CEO one action / alert / done / deadline")
+    s = sub.add_parser("send", help="mail the CEO one action / alert / done / deadline / quota_reset")
     s.add_argument("--kind", required=True, choices=KINDS)
     s.add_argument("--title", required=True, help="one line, ≤90 chars: what this is about")
     s.add_argument("--need", default="", help="the ONE thing he must do (action: required)")

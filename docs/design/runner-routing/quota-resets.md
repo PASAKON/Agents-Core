@@ -1,7 +1,9 @@
 # Quota sources and reset notifications
 
 The existing quota snapshot timer runs `tools/quota.py --snapshot`. No new timer,
-model call, or email is required.
+model call is required.
+
+New hub events for codex, agy-gemini and agy-claude send a best-effort silent `quota_reset` email via `email_ceo`; Claude keeps its monitor email, and failures are logged without stopping snapshots (requires Console kind/cap/dedupe support).
 
 | Bucket | Preferred source | Fallback |
 | --- | --- | --- |
