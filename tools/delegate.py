@@ -2121,7 +2121,7 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         brief = task.get("description")
 
         choice = route.pick_runner(role_name, host, touches=touches, brief=brief,
-                                   tier=tier)
+                                   tier=tier, project=task.get("project"))
         if pinned and tier == "normal" and (choice is None or choice.runner == "claude"):
             return "defer"
         if choice is None:
