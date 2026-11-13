@@ -52,6 +52,7 @@ class Quota:
     limit_hit: bool = False
     limit_until: str | None = None
     weekly_raw: float | None = None
+    plan_type: str | None = None
 
 
 def load_plans(path: Path | str | None = None) -> dict:
@@ -119,6 +120,7 @@ def parse_claude(obj: dict | str, *, source: str = "claude") -> Quota:
             daily_resets_at=daily_resets_at,
             source=source,
             error=None,
+            plan_type=obj.get("plan_type"),
         )
     except Exception as e:
         return Quota(
@@ -247,6 +249,7 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
             error=None,
             limit_hit=limit_hit,
             limit_until=limit_until,
+            plan_type=last_rate_limits.get("plan_type"),
         )
     except Exception as e:
         return Quota(
@@ -338,6 +341,7 @@ def parse_agy(
 
         return Quota(
             provider=provider_name,
+            plan_type=data.get("plan_type"),
             weekly_remaining=weekly_remaining,
             daily_remaining=daily_remaining,
             weekly_resets_at=weekly_resets_at,
@@ -594,6 +598,30 @@ def fetch_codex(cfg: dict | None = None) -> Quota:
     glob_pat = source_cfg.get("sessions_glob", "/root/.codex/sessions/*/*/*/rollout-*.jsonl")
     src_label = f"{ssh}:{glob_pat}" if ssh else str(glob_pat)
 
+    feed_path = source_cfg.get("feed_path", "/opt/usage/codex-usage.json")
+    try:
+        if ssh:
+            res = subprocess.run(["ssh", ssh, f"cat {shlex.quote(str(feed_path))}"],
+                                 capture_output=True, text=True, timeout=15)
+            res.check_returncode()
+            raw = res.stdout
+        else:
+            raw = Path(feed_path).read_text()
+        data = json.loads(raw)
+        observed = _parse_bonus_time(data.get("observed_at"))
+        if observed and 0 <= (datetime.now(timezone.utc) - observed).total_seconds() < 1800:
+            limits = {"plan_type": data.get("plan_type")}
+            for key in ("primary", "secondary"):
+                window = data.get(key)
+                if isinstance(window, dict):
+                    limits[key] = dict(window, used_percent=window.get("utilization"))
+            q = parse_codex([json.dumps({"payload": {"rate_limits": limits}})],
+                            source=f"{ssh}:{feed_path}" if ssh else str(feed_path))
+            if not q.error:
+                return q
+    except (OSError, ValueError, TypeError, AttributeError, subprocess.SubprocessError):
+        pass  # Missing, stale or invalid feed: retain rollout behavior below.
+
     try:
         if ssh:
             # The newest rollout files that carry usage data, newest first (see CODEX_LOOKBACK).
@@ -713,6 +741,7 @@ def record_snapshot(quotas: dict[str, Quota], path: Path | str, now: datetime | 
                 "daily_resets_at": q.daily_resets_at,
                 "source": q.source,
                 "error": q.error,
+                "plan_type": q.plan_type,
             }
             f.write(json.dumps(line_data, ensure_ascii=False, sort_keys=True) + "\n")
             lines_written += 1
@@ -848,6 +877,8 @@ def main() -> None:
     if args.snapshot:
         now_dt = datetime.now(timezone.utc)
         snap_path = write_snapshot(quotas, now=now_dt)
+        from tools import quota_reset
+        quota_reset.process(quotas, history=DEFAULT_HISTORY, now=now_dt)
         record_snapshot(quotas, DEFAULT_HISTORY, now=now_dt)
         ts = now_dt.isoformat(timespec="seconds")
         print(f"snapshot: {snap_path} {len(quotas)} buckets {ts}")
