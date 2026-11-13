@@ -41,8 +41,9 @@ agy_skip:
   # the allow-list does allow is ignored, so allowing one later needs no edit here.
   commands: [npm, npx, pnpm, yarn, node, ssh, scp, rsync, curl, wget, docker, ffmpeg]
   # A project whose tests run on node (test_command starts with a `commands` word; else a package.json at its
-  # checkout root; else one of these `stack` words in config/projects.yaml) needs npm/node whatever the brief says.
-  stack: [node, pnpm, yarn, npm]
+  # checkout root; else one of these `stack` words in config/projects.yaml, so a Next.js project is skipped on a host that has
+  # no checkout; `typescript` is not one, comfy-runpod-worker is python) needs npm/node whatever the brief says.
+  stack: [node, pnpm, yarn, npm, next.js, electron]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
   # 2026-11-08 CEO: AGY Opus 5.5 Medium first -> auto-swap to Argon High when Opus hits limit.

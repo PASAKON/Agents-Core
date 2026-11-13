@@ -168,6 +168,10 @@ def test_the_real_registry_marks_node_projects_and_not_agents_core(cfg):
     assert reason("mooniex-console") == "needs npm (project mooniex-console)"
     assert reason("mooniex-claudeflow") == "needs npm (project mooniex-claudeflow)"   # test_command npm
     assert reason("mooniex-webapp") == "needs npx (project mooniex-webapp)"           # test_command npx
+    assert reason("mooniex-option") == "needs node (project mooniex-option)"          # test_command node
+    # Next.js projects with no test_command: the stack word decides on a host with no checkout.
+    assert reason("lungnote-webapp") == "needs npm (project lungnote-webapp)"
+    assert reason("warpclip-webapp") == "needs npm (project warpclip-webapp)"
     assert reason("mooniex-agents") is None
 
 
