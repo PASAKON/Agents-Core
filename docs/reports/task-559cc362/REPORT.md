@@ -35,6 +35,8 @@ The router now drops every agy candidate for a task that needs a command outside
 - MISSING [roles/_worker_remote.md AGY contract | no owner] : tests/test_route*.py as a glob also matches test_router.py, test_router_hub_only.py and test_route_guards.py, which import `fcntl` and cannot run on a Windows worker · evidence: task-559cc362
 
 ## Notes for Reviewer
+PR: https://github.com/PASAKON/Agents-Core/pull/731 (opened, not merged, as asked).
+
 Reach, listed before the first edit:
 - `pick_runner` callers: `tools/delegate.py::_route_runner` (updated), the `--pick` CLI in route.py (no project, unchanged). Tests that pin its call: `tests/test_delegate_router.py` (3 asserts, updated).
 - `plan()` callers: `pick_runner`; `lib/router.py::role_runners` and `runners/coo_worker.py::candidates` call it without `worker_role`/`project`. Effect: the brief-command check applies to both (it only needs `brief`); the role and project checks do not. So the host router's `role_runners` can still list agy for a video_editor / node-project task that `pick_runner` then drops. I left lib/router.py alone (outside the brief); passing `worker_role=task["role"], project=task.get("project")` there is a two-kwarg follow-up, and its test stub `plan(cls, **kw)` already accepts them. coo_worker's research workers (agy in a no-command box) would lose agy if a research brief names e.g. `curl` or `ssh`; rare, noted.
