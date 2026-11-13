@@ -397,8 +397,13 @@ def plan(
     needs_shell: bool | None = None,
     needs_claude_tool: bool | None = None,
     tier: str | None = None,
+    worker_role: str | None = None,
+    project: str | None = None,
 ) -> list[Plan]:
-    """Plan candidate runners for role with quota forecasts and verdicts."""
+    """Plan candidate runners for role with quota forecasts and verdicts.
+
+    `worker_role` (the tasks.role behind a router class) and `project` feed agy_skip_reason; when `role`
+    is itself a worker role it stands in for `worker_role`."""
     try:
         if cfg is None:
             cfg = load_plans()
@@ -411,6 +416,8 @@ def plan(
             role_cls = role
         else:
             return []
+        agy_skip = agy_skip_reason(worker_role or (role if role in role_classes else None),
+                                   role_cls, brief, project, cfg)
 
         if size is None:
             size = forecast.infer_size(touches, brief)
@@ -500,6 +507,9 @@ def plan(
             if needs_claude_tool and not is_claude:
                 v = "cannot"
                 why = f"needs a Claude-only tool; {c.runner} has none"
+            if agy_skip and c.runner == "agy":
+                v = "cannot"
+                why = f"{AGY_SKIP_WHY} {agy_skip}"
             plans.append(
                 Plan(
                     choice=c,
@@ -641,6 +651,102 @@ def class_for(role: str, brief: str | None, cfg: dict) -> str | None:
     return None
 
 
+# Headless agy runs only the commands on config/agy-settings.json (permissions.allow); one outside it ends
+# the run with no output (13 Nov: task-74363c69, task-79bcc8af, task-502a032c). The router reads that same
+# file, so it never keeps a second copy of the list. plans.yaml `agy_skip` says which jobs need more.
+AGY_SETTINGS = ROOT / "config" / "agy-settings.json"
+AGY_SKIP_WHY = "agy skipped:"
+
+
+def _agy_rule_matches(rule: str, cmdline: str) -> bool:
+    """One `command(...)` rule against a command line: `command(ls)` takes `ls` and `ls <args>`,
+    `command(regex:<re>)` must match the whole line (Python's re stands in for agy's matcher)."""
+    if not (rule.startswith("command(") and rule.endswith(")")):
+        return False
+    inner = rule[len("command("):-1]
+    if inner.startswith("regex:"):
+        try:
+            return re.fullmatch(inner[len("regex:"):], cmdline) is not None
+        except re.error:
+            return False
+    return cmdline == inner or cmdline.startswith(inner + " ")
+
+
+def agy_allows(cmdline: str, settings: Path | str | None = None) -> bool:
+    """True when headless agy may run `cmdline`: some allow rule matches and no deny rule does.
+    An unreadable settings file allows nothing."""
+    import json
+
+    try:
+        perms = json.loads(Path(settings or AGY_SETTINGS).read_text(encoding="utf-8")).get("permissions") or {}
+    except (OSError, ValueError, AttributeError):
+        return False
+    if any(_agy_rule_matches(r, cmdline) for r in perms.get("deny") or []):
+        return False
+    return any(_agy_rule_matches(r, cmdline) for r in perms.get("allow") or [])
+
+
+def _names_command(brief: str, cmd: str) -> bool:
+    """The brief runs `cmd` (a command word followed by an argument), not just says the word.
+    Case-sensitive: a command is typed in lower case, a heading says "SSH". `node` also needs a flag
+    or a script path: prose says "a node"."""
+    if cmd == "node":
+        tail = r"node[ \t]+(?:--?\w|[\w./-]+\.[cm]?js\b)"
+    else:
+        tail = re.escape(cmd) + r"[ \t]+\S"
+    return re.search(r"(?<![\w/.-])" + tail, brief) is not None
+
+
+def _project_node_command(project: str, commands: list, stack: list) -> str | None:
+    """The command a node project's tests run on, or None for any other project.
+    test_command decides when the project has one; otherwise a package.json at the root of any checkout
+    this machine has, then the `stack` words in config/projects.yaml."""
+    from lib import config as lib_config
+
+    try:
+        proj = lib_config.get_project(project)
+    except Exception:
+        return None
+    test_cmd = str(proj.get("test_command") or "").split()
+    if test_cmd:
+        return test_cmd[0] if test_cmd[0] in commands else None
+    paths = [proj.get("path"), *(proj.get("paths") or {}).values()]
+    if any(p and (Path(p) / "package.json").is_file() for p in paths):
+        return "npm"
+    return "npm" if set(proj.get("stack") or []) & set(stack) else None
+
+
+def agy_skip_reason(
+    worker_role: str | None,
+    cls: str | None,
+    brief: str | None,
+    project: str | None,
+    cfg: dict,
+) -> str | None:
+    """Why headless agy cannot take this task ("needs npm"), or None when it may.
+
+    plans.yaml `agy_skip`: a role that is shell tooling by nature; a brief that runs a command
+    config/agy-settings.json does not allow; a project whose tests run on node. An `edit-only:`
+    header line lifts the last two (files only, the reviewer runs the checks). The browser_agy
+    class is the GH #188 lane that runs agy_browse on purpose and is never skipped."""
+    rules = cfg.get("agy_skip") or {}
+    if not rules or cls == BROWSER_AGY_CLASS:
+        return None
+    if worker_role in (rules.get("roles") or []):
+        return f"{worker_role} needs commands outside the agy list"
+    if brief and forecast._EDIT_ONLY_RE.search(_description_header(brief)):
+        return None
+    blocked = [c for c in rules.get("commands") or [] if not agy_allows(c)]
+    for cmd in blocked:
+        if brief and _names_command(brief, cmd):
+            return f"needs {cmd}"
+    if project:
+        cmd = _project_node_command(project, blocked, rules.get("stack") or [])
+        if cmd:
+            return f"needs {cmd} (project {project})"
+    return None
+
+
 def pick_runner(
     role: str,
     host: str,
@@ -657,6 +763,7 @@ def pick_runner(
     needs_shell: bool | None = None,
     needs_claude_tool: bool | None = None,
     tier: str | None = None,
+    project: str | None = None,
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
@@ -689,10 +796,20 @@ def pick_runner(
             needs_shell=needs_shell,
             needs_claude_tool=needs_claude_tool,
             tier=tier,
+            worker_role=role,
+            project=project,
         )
 
         if plans and plans[0].choice.defer:
             return plans[0].choice
+
+        # The delegate log keeps why agy was passed over ("agy skipped: needs npm") next to who got the job.
+        agy_note = next((p.why for p in plans if p.why.startswith(AGY_SKIP_WHY)), "")
+
+        def picked(p: Plan) -> Choice:
+            if agy_note:
+                p.choice.reason = f"{p.choice.reason} · {agy_note}"
+            return p.choice
 
         claude_plans = [p for p in plans if _is_claude(p, cfg)]
         every_claude_will_hit = (
@@ -707,18 +824,18 @@ def pick_runner(
                         p.choice.reason = plan_line(p)
                     else:
                         p.choice.reason = f"no ok candidate, fallback: {p.choice.reason}"
-                    return p.choice
+                    return picked(p)
             return None
 
         for p in plans:
             if p.verdict == "ok":
                 p.choice.reason = plan_line(p)
-                return p.choice
+                return picked(p)
 
         for p in plans:
             if p.verdict != "cannot" and "exhausted" not in p.choice.reason:
                 p.choice.reason = f"no ok candidate, fallback: {p.choice.reason}"
-                return p.choice
+                return picked(p)
         return None
     except Exception:
         return None

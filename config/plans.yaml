@@ -24,8 +24,26 @@ buckets:              # one limit that runs out; a candidate "runner:model" belo
   codex:      {provider: openai,    match: ["codex:"]}
   agy-gemini: {provider: google,    match: ["agy:gemini-"]}
   agy-claude: {provider: google,    match: ["agy:claude-", "agy:gpt-"]}
-# Runners that can run arbitrary shell commands headless.
+# Runners that can run arbitrary shell commands headless. (agy is listed, but only for the narrow allow-list
+# in config/agy-settings.json: see agy_skip below for the jobs that need a command outside it.)
 shell_runners: [claude, codex, agy]
+# Headless agy runs ONLY the commands on config/agy-settings.json (permissions.allow). One outside it ends the
+# run with "jetski: no output produced" and the launcher marks it dead (13 Nov: task-74363c69 and task-79bcc8af,
+# developer on MoonieX-Console, needed npm/node; task-502a032c, video_editor, needed ssh + a python script).
+# tools/route.agy_skip_reason turns every agy candidate "cannot" (the router line says "agy skipped: needs npm")
+# when ANY of these holds. An `edit-only: <why>` line in the brief header lifts the commands and stack checks
+# (the job is files only, the reviewer runs the checks); `roles` has no such escape. The browser_agy class is never skipped (GH #188).
+# tests/test_route_agy_skip.py keeps `commands` in step with the real allow-list.
+agy_skip:
+  # Worker roles whose work is shell/media tooling by nature (ffmpeg, ssh to winbox, image scripts).
+  roles: [video_editor, browser_operator]
+  # A brief that names one of these (e.g. `npm test`, `ssh winbox ...`) needs a command agy may not run. A command
+  # the allow-list does allow is ignored, so allowing one later needs no edit here.
+  commands: [npm, npx, pnpm, yarn, node, ssh, scp, rsync, curl, wget, docker, ffmpeg]
+  # A project whose tests run on node (test_command starts with a `commands` word; else a package.json at its
+  # checkout root; else one of these `stack` words in config/projects.yaml, so a Next.js project is skipped on a host that has
+  # no checkout; `typescript` is not one, comfy-runpod-worker is python) needs npm/node whatever the brief says.
+  stack: [node, pnpm, yarn, npm, next.js, electron]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
   # 2026-11-08 CEO: AGY Opus 5.5 Medium first -> auto-swap to Argon High when Opus hits limit.
