@@ -9,6 +9,13 @@ NOW = datetime(2026, 11, 13, tzinfo=timezone.utc)
 END = "2026-11-20T00:00:00Z"
 
 
+@pytest.fixture(autouse=True)
+def sender(monkeypatch):
+    send = Mock()
+    monkeypatch.setattr(reset.email_ceo, "send", send)
+    return send
+
+
 @pytest.fixture
 def hub(monkeypatch):
     conn = Mock()
@@ -30,7 +37,7 @@ def q(pct, **kwargs):
 
 
 @pytest.mark.parametrize("before,after,count", [(100, 0, 1), (52, 1, 1), (30, 15, 0), (30, 10, 1)])
-def test_drops_and_dedupe(tmp_path, hub, before, after, count):
+def test_drops_and_dedupe(tmp_path, hub, sender, before, after, count):
     history = tmp_path / "quota-history.jsonl"
     quota.record_snapshot({"codex": q(before)}, history, NOW)
     events = reset.process({"codex": q(after)}, history=history, now=NOW)
@@ -38,12 +45,13 @@ def test_drops_and_dedupe(tmp_path, hub, before, after, count):
     assert reset.process({"codex": q(after)}, history=history, now=NOW) == []
     log, drain, _ = hub
     assert log.call_count == drain.call_count == count
+    assert sender.call_count == count
     if count:
         assert log.call_args.args[1:4] == (None, "quota_reset", "quota_reset")
         assert list(reset.rows(history.with_name("quota-resets.jsonl"))) == events
 
 
-def test_plan_change_multiple_buckets_drains_once(tmp_path, hub):
+def test_plan_change_multiple_buckets_drains_once(tmp_path, hub, sender):
     history = tmp_path / "quota-history.jsonl"
     quota.record_snapshot({b: q(10, plan_type="plus") for b in reset.BUCKETS}, history, NOW)
     events = reset.process({b: q(10, plan_type="pro") for b in reset.BUCKETS}, history=history, now=NOW)
@@ -51,6 +59,9 @@ def test_plan_change_multiple_buckets_drains_once(tmp_path, hub):
     assert all(e["reason"] == "plan_changed" for e in events)
     assert hub[0].call_count == 4
     hub[1].assert_called_once()
+    assert sender.call_count == 3
+    assert {c.args[0]["ref"] for c in sender.call_args_list} == {
+        f"{b}:{END}" for b in reset.MAIL_BUCKETS}
 
 
 @pytest.mark.parametrize("old_reset,expected", [
@@ -70,12 +81,53 @@ def test_bonus_and_errors_not_resets():
     assert reset.reset_event("codex", old, new, NOW) is None
 
 
-def test_hub_dedupe_repairs_missing_local_journal(tmp_path, hub):
+def test_hub_dedupe_repairs_missing_local_journal(tmp_path, hub, sender):
     history = tmp_path / "quota-history.jsonl"
     quota.record_snapshot({"codex": q(100)}, history, NOW)
     hub[2].execute.return_value.fetchone.return_value = {"id": 1}
     assert len(reset.process({"codex": q(0)}, history=history, now=NOW)) == 1
     hub[0].assert_not_called()
+    sender.assert_not_called()
+
+
+def test_mail_failure_preserves_publication_and_history(tmp_path, hub, sender, caplog):
+    history = tmp_path / "quota-history.jsonl"
+    quota.record_snapshot({"codex": q(100)}, history, NOW)
+    sender.side_effect = RuntimeError("private response must not be logged")
+    events = reset.process({"codex": q(0)}, history=history, now=NOW)
+    quota.record_snapshot({"codex": q(0)}, history, NOW)
+    assert len(events) == 1
+    assert len(list(reset.rows(history))) == 2
+    assert list(reset.rows(history.with_name("quota-resets.jsonl"))) == events
+    hub[0].assert_called_once()
+    hub[1].assert_called_once()
+    assert "quota reset mail failed for codex (RuntimeError)" in caplog.text
+    assert "private response" not in caplog.text
+
+
+@pytest.mark.parametrize("bucket", sorted(reset.MAIL_BUCKETS))
+@pytest.mark.parametrize("reason,label", [
+    ("utilization_drop", "รีเซ็ตด้วยตนเอง"), ("reset_extended", "โบนัส"),
+    ("plan_changed", "เปลี่ยนแผน")])
+def test_mail_content(bucket, reason, label, sender):
+    event = {"bucket": bucket, "resets_at": END, "from_pct": 100,
+             "to_pct": 0, "reason": reason}
+    reset.mail_reset(event)
+    fields = sender.call_args.args[0]
+    assert fields["title"] == f"🎉 {reset.MAIL_BUCKETS[bucket]} รีเซ็ตแล้ว — โควต้าก้อนใหม่"
+    assert "100% -> 0%" in fields["why"]
+    assert label in fields["why"]
+    assert "20/11/2026 07:00 น." in fields["why"]
+    assert fields["ref"] == f"{bucket}:{END}"
+    assert sender.call_args.kwargs["kind"] == "quota_reset"
+    reset.email_ceo.build_payload(fields, kind="quota_reset", env={"CXO_ROLE": "cto", "CXO_SESSION_ID": "quota-reset"})
+
+
+@pytest.mark.parametrize("deadline", [None, "invalid"])
+def test_mail_unknown_deadline_and_usage(deadline):
+    fields = reset.mail_fields({"bucket": "codex", "resets_at": deadline,
+                               "from_pct": None, "to_pct": None, "reason": "plan_changed"})
+    assert "รีเซ็ตถัดไป: ไม่ทราบ" in fields["why"]
 
 
 def test_async_drain(monkeypatch):

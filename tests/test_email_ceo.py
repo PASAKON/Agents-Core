@@ -1,6 +1,6 @@
 """tools/email_ceo.py — the only way a session emails the CEO (CEO 2026-10-02, skill ALL_Protocol_EmailCEO).
 
-What must hold: only a C-level session can send, only the four kinds, a secret never leaves the box,
+What must hold: only a C-level session can send, only the five kinds, a secret never leaves the box,
 the hub's refusals (caps, duplicates) come back as a refusal the agent can read, and the deadline
 feeder turns his LungNote to-dos into kind=deadline rows. A local fake stands in for the hub; nothing
 here reaches the Console, LungNote or Google.
@@ -35,6 +35,16 @@ ACTION = {"title": "อนุมัติเครดิต Flow 300 สำห�
 def test_payload_takes_role_session_machine_from_env_and_drops_empty_fields():
     body = email_ceo.build_payload({**ACTION, "if_not": "", "due": None}, kind="ACTION", env=CTO_ENV)
     assert body == {"kind": "action", "role": "cto", "session": "cto-e106b78b", "machine": "contabo", **ACTION}
+
+
+def test_quota_reset_uses_existing_sender(monkeypatch):
+    posted = []
+    monkeypatch.setattr(email_ceo, "_post", lambda body, **kw: posted.append(body))
+    fields = {"title": "🎉 Codex รีเซ็ตแล้ว — โควต้าก้อนใหม่", "ref": "codex:2026-11-20T00:00:00Z"}
+    email_ceo.send(fields, kind="quota_reset", env=CTO_ENV)
+    assert posted[0]["kind"] == "quota_reset"
+    assert posted[0]["ref"] == fields["ref"]
+    assert email_ceo._parser().parse_args(["send", "--kind", "quota_reset", "--title", "reset"]).kind == "quota_reset"
 
 
 @pytest.mark.parametrize("kind, env, match", [

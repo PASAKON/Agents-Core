@@ -8,18 +8,50 @@ from datetime import timedelta
 import fcntl
 import inspect
 import json
+import logging
 from pathlib import Path
 import sys
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import db
+from tools import email_ceo
 from tools.quota import DEFAULT_HISTORY, _as_utc, _parse_bonus_time
 
 RESETS = ROOT / "state/reports/quota-resets.jsonl"
 BUCKETS = {"claude", "codex", "agy-gemini", "agy-claude"}
+MAIL_BUCKETS = {"codex": "Codex", "agy-gemini": "AGY Argon/Gemini", "agy-claude": "AGY Claude"}
+LOGGER = logging.getLogger(__name__)
+
+
+def mail_fields(event):
+    """Reuse the CEO mail format and a stable bucket + reset deadline reference."""
+    try:
+        deadline = _parse_bonus_time(event["resets_at"])
+        when = deadline.astimezone(ZoneInfo("Asia/Bangkok")).strftime("%d/%m/%Y %H:%M น.") if deadline else "ไม่ทราบ"
+    except (ValueError, TypeError, OverflowError):
+        when = "ไม่ทราบ"
+    def pct(value):
+        return f"{value:g}%" if value is not None else "ไม่ทราบ"
+    reason = {"utilization_drop": "รีเซ็ตด้วยตนเอง / ได้โควต้าใหม่",
+              "reset_extended": "โบนัส", "plan_changed": "เปลี่ยนแผน"}[event["reason"]]
+    return {"title": f"🎉 {MAIL_BUCKETS[event['bucket']]} รีเซ็ตแล้ว — โควต้าก้อนใหม่",
+            "why": f"ใช้ไป: {pct(event['from_pct'])} -> {pct(event['to_pct'])}\n"
+                   f"เหตุผล: {reason}\nรีเซ็ตถัดไป: {when} (เวลาไทย)",
+            "ref": f"{event['bucket']}:{event['resets_at']}"}
+
+
+def mail_reset(event):
+    if event["bucket"] not in MAIL_BUCKETS:
+        return
+    try:
+        email_ceo.send(mail_fields(event), kind="quota_reset", session="cto-quota-reset", role="cto")
+    except Exception as exc:
+        # Delivery must never prevent snapshot advancement; don't log response secrets.
+        LOGGER.warning("quota reset mail failed for %s (%s)", event["bucket"], type(exc).__name__)
 
 
 def rows(path):
@@ -112,6 +144,8 @@ def process(quotas, *, history=DEFAULT_HISTORY, resets=None, now=None):
             stream.flush()
             seen.add(key)
             published.append(event)
+            if not existing:
+                mail_reset(event)
     if published:
         drain_waiting()
     return published
