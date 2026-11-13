@@ -13,7 +13,8 @@ The router now drops every agy candidate for a task that needs a command outside
 
 ## Commits
 - 8cf3c711 — router: skip agy for jobs that need a command outside its allow-list
-- (report commit follows; sha in the push)
+- 36646cbb — router: next.js/electron stack words mark a node project; report (this file)
+- (a last commit only fixes this list; `git log origin/agent/developer-task-559cc362` has its sha)
 
 ## Tests
 - ran: `PYTHONUTF8=1 python -m pytest tests/test_route_agy_skip.py tests/test_route_pick.py tests/test_route_browser_agy.py tests/test_route_plan.py tests/test_route_budget.py tests/test_route_ceo_order.py tests/test_route_claude_last.py tests/test_route_override.py tests/test_delegate_router.py` (Windows box, scratch venv Python 3.11.9 + pytest 8.4.2; the Contabo interpreter does not exist here)
