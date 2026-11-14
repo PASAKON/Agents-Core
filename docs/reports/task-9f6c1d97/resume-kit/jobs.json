@@ -1,0 +1,1215 @@
+[
+ {
+  "name": "EP04-S001",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At Fang pawnshop doorway, Black Cloud Envoy turns toward Luo Yi as the last lantern dies; open on his eyes, then reveal their distance. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S002",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi shifts sideways to shield the pawnshop door; Black Cloud Envoy looks past his shoulder toward the dark interior. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S003",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy raises one finger toward Luo Yi's covered chest; slow low-angle approach, keeping both figures separate. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S004",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Close on Luo Yi gripping the closed fabric pouch beneath his robe; rack focus to Black Cloud Envoy's motionless hand. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S005",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Empty wet stone threshold at Fang pawnshop, a single isolated boot impression beneath a motionless dark cloak hem; no face. Freeze this composition with no subject movement. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave space for later mist overlay and slow 5% push-in; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S006",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy places a plain spirit stone on the threshold while Luo Yi keeps his hands away; downward dolly. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S007",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy crushes the spirit stone beneath one boot; Luo Yi recoils half a step, tracking down to fragments. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S008",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi scans tightly shuttered neighboring windows while Black Cloud Envoy blocks the doorway; lateral street tracking. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S009",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi knocks three times on the wooden door; tilt down toward an unexplained scrape at floor level. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S010",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Low insert of a fresh drag groove through dust beneath the pawnshop door, a displaced straw bristle beside it. Freeze this composition with no subject movement. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave space for later rain overlay and slow left-to-right slide, 3% frame width; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S011",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy tilts his head toward the sealed door; Luo Yi braces one hand against its frame. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S012",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi backs against the door as the closed abacus pouch trembles once under his robe; push toward his listening face. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S013",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi presses the wrapped abacus still; Black Cloud Envoy watches from beyond focus, no spirit apparition. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S014",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Close on Black Cloud Envoy's left wrist revealing an old circular scar; slow tilt from the sleeve edge. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S015",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Detail of Black Cloud Envoy's scarred wrist held still against layered black fabric, cropped to exclude his face. Freeze this composition with no subject movement. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave space for later falling ash overlay and slow 4% pullback; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S016",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi forces a casual shrug; Black Cloud Envoy leans nearer without crossing the threshold line, shallow focus. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S017",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy taps the door once; Luo Yi's gaze drops sharply toward the suddenly quiet floor gap. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S018",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy offers an open palm between himself and Luo Yi; camera circles slightly around the empty hand. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S019",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Close on Luo Yi listening in dread, both hands visibly away from the covered beads; subtle pullback. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S020",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy's open hand approaches Luo Yi's covered chest; hard focus shift onto Luo Yi's shocked eyes. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S021",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi gives a strained half-smile then steadies himself against the door; Black Cloud Envoy waits in distant focus. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S022",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Broken spirit-stone fragments beside Luo Yi's planted boot at the pawnshop threshold; tight ground-level composition. Freeze this composition with no subject movement. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave space for later glow motes overlay and slow upward drift, 3% frame height; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S023",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi loosens his grip on the covered pouch and turns abruptly toward a sound behind the door. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S024",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi slowly reaches for the pouch knot as Black Cloud Envoy holds his open palm steady; end before any bead moves. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S025",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi loosens the cloth knot to expose the cracked jade frame; Black Cloud Envoy watches without moving. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S026",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi brings his fingertip near one jade bead; Black Cloud Envoy withdraws his offered palm with a small smile. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S027",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Macro of the cracked abacus frame and Luo Yi's poised fingertip, bead still in its original position. Freeze this composition with no subject movement. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave space for later jade dust overlay and slow 5% push-in; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S028",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus glow). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi flicks exactly one bead; a cold pulse runs up his arm and his knees buckle, one continuous shot. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__glow.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S029",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Abstract black currents overwhelm a jade-lit void, absolutely no numerals or glyphs; rapid forward drift into opaque layers. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S030",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi clamps the abacus against his chest and binds its beads with cloth, staggering back against the door. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S031",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy leans toward Luo Yi's right temple; Luo Yi shields the now wrapped and dull abacus. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S032",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. A fresh white strand appears at Luo Yi's right temple as he drops to one knee; Black Cloud Envoy remains upright. Show only the starting pose immediately before the described movement, with objects intact before any transformation. Keep the pre-cost hair state; for S032 the new strand appears later in the Flow clip. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_before_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S033",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi coughs out a tired laugh and pushes himself upright, abacus bound closed; small handheld-style settling move. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S034",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Insert of a loose pale hair against the dark wrap around the inert abacus on Luo Yi's lap. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later embers overlay and slow left-to-right slide, 3% frame width; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S035",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi shoves the pawnshop door open while Black Cloud Envoy steps aside; dust rolls out into the street. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S036",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Black Cloud Envoy. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Through the open door, overturned shelves appear; Black Cloud Envoy raises a finger to his lips as mist surrounds him. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S037",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn front night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Black Cloud Envoy; (4) prop reference (token ep04 blackcloud). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black Cloud Envoy dissolves into fog; Luo Yi reaches through empty air as a black iron token drops onto the threshold. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__front_night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\envoy__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\token__ep04_blackcloud.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S038",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Inside the ransacked pawnshop, Luo Yi lifts a fallen shelf and Old Fang crawls free, pointing toward the rear room. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S039",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Luo Mei. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Family backroom only: Luo Yi kneels beside Luo Mei wrapped safely in a blanket, checking her hands; warm modest framing. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luomei__ep04_family.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S040",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Luo Mei. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Family backroom: Luo Mei points toward an empty egg cushion while Luo Yi turns to look; medicine vial remains untouched. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luomei__ep04_family.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S041",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom night). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Empty egg cushion and intact medicine vial in the backroom, a clean oval impression surrounded by undisturbed dust; no people. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later mist overlay and slow 4% pullback; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__night.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S042",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Luo Mei. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Family backroom: Luo Yi checks beneath the bed; Luo Mei gently catches his sleeve and indicates the rear exit. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luomei__ep04_family.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S043",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi alone in the ruined main shop, turning from the rear doorway toward the open front entrance; slow orbit. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S044",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi; (3) prop reference (token ep04 blackcloud). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi picks up the black iron token using a cloth at the threshold, avoiding bare contact; close tracking. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\token__ep04_blackcloud.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S045",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang returns carrying a wooden brace; Luo Yi checks an untouched coin pouch in an open drawer. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S046",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Black iron token with three abstract raised cloud ridges on plain cloth, no writing, faint lantern reflection. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later rain overlay and slow upward drift, 3% frame height; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S047",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang stops Luo Yi from pocketing the exposed token, folding its cloth shut as footsteps arrive outside. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S048",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (pawn ep04 ransacked); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. An adult grain runner leaves a sack at Old Fang's counter and extends an empty palm; Luo Yi listens behind Fang. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\pawn__ep04_ransacked.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S049",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Morning market: an adult Zhao retainer speaks to an adult shopkeeper who closes a shutter as Old Fang approaches. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S050",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang reaches for a wrapped parcel on a counter; an adult shopkeeper draws it back toward the shutter. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S051",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi offers a plain bracelet at another stall; the adult merchant notices Old Fang and slides it back abruptly. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S052",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi follows a merchant's gesture toward two distinct adult retainers watching the street entrance; slow focus pull. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S053",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Empty receiving basket outside Fang pawnshop beside a plain wooden board resting face down; morning light, no people. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later falling ash overlay and slow 5% push-in; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S054",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang; (4) identity/costume reference for officer. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. An adult warehouse officer places a sealed plain document on Old Fang's counter while Luo Yi listens; seal is abstract. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\officer__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S055",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Old Fang; (3) identity/costume reference for officer. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang pushes the closed document back; the warehouse officer places a heavy key beside it, medium table-level shot. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\officer__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S056",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang; (4) identity/costume reference for officer. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Outside the warehouse, an adult Zhao-aligned officer locks a thick chain while Old Fang and Luo Yi watch helplessly. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\officer__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S057",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang sits stubbornly beside the chained warehouse door; Luo Yi offers a folded cloth as a cushion, brief dry humor. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S058",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Unused brass weighing scale in Fang pawnshop, empty pans level beneath a narrow shaft of morning light. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later glow motes overlay and slow left-to-right slide, 3% frame width; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S059",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi gestures toward the distant auction hall; Old Fang closes an empty cash box with a weary shake of his head. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S060",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (market morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi rests his hand over the tightly bound dull abacus, then removes it and faces Old Fang across the counter. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\market__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S061",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At the pawnshop counter, Old Fang sets a separate plain reserve pouch apart from the medicine box; Luo Yi watches. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S062",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang holds back the reserve pouch until Luo Yi acknowledges the condition, then opens his palm, tight two-shot. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S063",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang taps a loose floorboard as Luo Yi looks from the street shutters down to his hand; camera lowers. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S064",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi unfolds a plain dark market cloak on the counter while Old Fang points toward the back exit. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S065",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Bound inert abacus beside a closed reserve pouch on the counter; no hands, no counting marks or writing. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later jade dust overlay and slow 4% pullback; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S066",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backroom morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang hands Luo Yi a small plain testing rod; Luo Yi weighs it in his hand, close-up to medium pullback. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backroom__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S067",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backgate morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) identity/costume reference for Ahu. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At the back gate, adult Abao proudly raises a finger while adult Ahu lowers his hand; Luo Yi waits with a small pouch. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backgate__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S068",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backgate morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) identity/costume reference for Ahu. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Ahu admits their inexperience; Abao hides his personal purse behind his sleeve as Luo Yi checks the back lane. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backgate__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S069",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backgate morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang; (4) identity/costume reference for Abao; (5) identity/costume reference for Ahu. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang passes a plain entry cord to Luo Yi at the back gate; Abao and Ahu stand apart behind them. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backgate__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S070",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backgate morning); (2) prop reference (token ep04 blackcloud). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Folded cloth bundle concealing the black token beside a plain entry cord, on a back-gate ledge, no people. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later embers overlay and slow upward drift, 3% frame height; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backgate__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\token__ep04_blackcloud.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S071",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (backgate morning); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Old Fang; (4) identity/costume reference for Abao; (5) identity/costume reference for Ahu. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Old Fang holds the back door open; Luo Yi, Abao and Ahu leave in a single file toward the alley. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\backgate__morning.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\fang__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S072",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At the ghost-market underbridge entrance, an adult guard accepts Luo Yi's plain entry cord and points toward a junk stall. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S073",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for vendor; (4) prop reference (bowl ep04 closed). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At a ghost-market junk stall, Luo Yi taps a cracked clay bowl with his testing rod; an adult vendor reaches for a cover. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\vendor__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_closed.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S074",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for vendor; (4) prop reference (bowl ep04 closed). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi pays the adult junk vendor and lifts the cracked bowl onto a separate plain mat; close on exchanged pouch and bowl. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\vendor__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_closed.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S075",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) prop reference (abacus glow); (4) prop reference (bowl ep04 closed). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi flicks exactly one bead beside the purchased bowl, recoils with a visible tremor and immediately wraps the abacus shut. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__glow.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_closed.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S076",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for vendor; (4) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi prises open the already cracked bowl base with the testing rod, revealing one small curved beast bone; adult vendor recoils. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\vendor__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S077",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Abao; (3) identity/costume reference for Ahu; (4) identity/costume reference for vendor; (5) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Abao reaches eagerly toward stacked broken bowls; Ahu gently catches his wrist while the adult vendor hugs the stack. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\vendor__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S078",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Exposed small beast bone nestled in two clay bowl fragments on a plain mat, old clay embedded in its pores. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later mist overlay and slow 5% push-in; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S079",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for medicine buyer; (4) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. An adult medicine buyer scrapes a tiny sample from the bone with an ordinary needle as Luo Yi watches closely. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S080",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for medicine buyer; (4) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi points to matching powder on the adult medicine buyer's vial rim, keeping his wrapped abacus untouched. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S081",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for medicine buyer; (4) identity/costume reference for vendor; (5) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi places the bone between the adult medicine buyer and original vendor, inviting a witnessed ordinary test. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\vendor__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S082",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. A plain sample dish with a small darkened reagent droplet beside clay crumbs and bone powder; no people, no magical symbols. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave space for later rain overlay and slow left-to-right slide, 3% frame width; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S083",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for medicine buyer; (4) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult medicine buyer offers a payment pouch while Luo Yi nods and slides the bone forward on its cloth. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S084",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi receives the sale pouch and returns unused reserve money to a separate compartment; adult buyer leaves with the wrapped bone. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the post-cost right-temple white strand. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S085",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser; (4) identity/costume reference for medicine buyer; (5) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At the adjacent ghost-market stall, Rival Appraiser intercepts the adult medicine buyer and points toward Luo Yi's bowl fragments. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S086",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Rival Appraiser addresses adult nearby merchants with a sweeping hand; Luo Yi stands beside his cleared mat. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S087",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Ahu; (4) identity/costume reference for Rival Appraiser. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Ahu discreetly alerts Luo Yi to a purple tassel beneath Rival Appraiser's sleeve; close lateral reveal. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S088",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser; (4) prop reference (bowl ep04 open). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi aligns the clay fragments beside the buyer's bone as Rival Appraiser gestures toward a curtained alcove. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\bowl__ep04_open.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S089",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Rival Appraiser. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Closed curtain behind the rival stall, untouched testing tray in foreground, empty stool angled toward concealment. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave space for later falling ash overlay and slow 4% pullback; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S090",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Abao; (3) identity/costume reference for Ahu; (4) identity/costume reference for Rival Appraiser; (5) setting/lighting reference only (stone mossy). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Rival Appraiser grandly indicates a mossy stone; Abao eagerly draws his personal purse while Ahu reaches too late. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\stone__mossy.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S091",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser; (4) identity/costume reference for medicine buyer; (5) setting/lighting reference only (stone mossy). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi points from the mossy stone to a nearby water bucket and Rival Appraiser's test vial; adult medicine buyer smiles. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\stone__mossy.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S092",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser; (4) identity/costume reference for medicine buyer; (5) prop reference (abacus dull). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult medicine buyer firmly pockets the purchased bone and walks past Rival Appraiser; Luo Yi remains with hands clear of the abacus. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\buyer__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abacus__dull.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S093",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Abao; (3) identity/costume reference for Ahu; (4) setting/lighting reference only (stone mossy). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Ahu rinses Abao's purchased stone, stripping away moss; Abao solemnly uses the ordinary stone to weigh down his own robe hem. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\stone__mossy.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S094",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) setting/lighting reference only (stone mossy). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Ordinary wet stone resting beside Abao's flattened personal purse, separate from Luo Yi's closed reserve pouch; no people. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave space for later glow motes overlay and slow upward drift, 3% frame height; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\stone__mossy.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S095",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Rival Appraiser. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Rival Appraiser retreats behind his curtain as an adult assistant carries out an empty padded transport box; Luo Yi watches. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\rival__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S096",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Ahu. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi starts toward the oval dust mark inside the empty transport box; Ahu steadies his arm before he speaks. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S097",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for porter. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi casually gestures to the empty padded box held by an adult auction porter, pretending to inspect its hinges. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\porter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S098",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for porter. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult auction porter tightens his hold on the box; Luo Yi steps aside and lets him pass, restrained tracking. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\porter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S099",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi stops Abao from following the porter and turns toward an adult gate broker seated beneath a green lantern. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S100",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult gate broker holds up one finger toward tomorrow's closed auction stair while Luo Yi listens without revealing his token. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S101",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Closed underground auction stair with a fresh plain rope barrier and an empty padded box beside it; no people. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave space for later jade dust overlay and slow 5% push-in; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S102",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi questions the adult gate broker at the rope barrier; the broker describes a small oval shape with his hands. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S103",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult gate broker glances toward the watching stalls and leans nearer to Luo Yi, keeping the auction rope between them. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S104",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Close on Luo Yi's closed sleeve around the concealed token, then rack focus to the adult gate broker. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S105",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult gate broker traces three curved layers in empty air without creating visible graphics; Luo Yi watches intently. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S106",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi places his empty hands on the broker's plain table and asks calmly; adult gate broker keeps the barrier closed. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S107",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker; (4) identity/costume reference for receiver. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult auction receiver demonstrates a dried wrapping cloth to Luo Yi while the adult gate broker listens; no egg shown. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\receiver__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S108",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (auctiongate ep04); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for broker. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Adult gate broker shuts the underground gate before Luo Yi; camera pushes toward the narrowing dark gap, ending on the closed latch. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\auctiongate__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\broker__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S109",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (ghost night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) identity/costume reference for Ahu; (5) setting/lighting reference only (stone mossy). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Abao hefts his ordinary stone awkwardly beside Ahu as Luo Yi leads them out of the ghost-market alley. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\ghost__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\stone__mossy.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S110",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for courier; (4) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. At the alley exit, adult Lin Courier offers Luo Yi a sealed plain envelope beneath a lantern; medium two-shot. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\courier__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S111",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for courier; (4) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi pauses before taking the letter and questions Lin Courier, who indicates a distant courtyard direction. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\courier__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S112",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi tilts the sealed letter toward lantern light, inspecting an abstract floral relief seal and intact folds. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S113",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Macro of the sealed letter's corner showing a small dark stain through paper fibers; floral abstract seal partly visible, no writing. Freeze this composition with no subject movement. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave space for later embers overlay and slow left-to-right slide, 3% frame width; particles are composited later.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "still+fx plate"
+ },
+ {
+  "name": "EP04-S114",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for courier; (4) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi points at the letter corner; Lin Courier studies it with genuine uncertainty, hands open and empty. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\courier__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S115",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Ahu; (4) identity/costume reference for courier; (5) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Lin Courier walks away down the alley; Ahu waits beside Luo Yi, who keeps his eyes on the unopened envelope. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\ahu__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\courier__ep04.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S116",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi breaks the abstract wax seal by hand and draws out the letter with its message surface facing only himself. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S117",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Close on Luo Yi reading the letter; only the blank reverse faces the camera, his expression hardening as he reaches the end. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S118",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) identity/costume reference for Abao; (4) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi lowers the letter just below his eyes as Abao quietly waits behind him; keep all message text hidden. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\abao__base.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S119",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi; (3) prop reference (letter ep04). Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi holds the letter by its clean edge, exposing only the blank reverse and stained corner; slow tense push toward his eyes. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png",
+   "C:\\mooniex\\ep04-shots\\refs\\letter__ep04.png"
+  ],
+  "kind": "first-frame"
+ },
+ {
+  "name": "EP04-S120",
+  "prompt": "Attached reference images, in order: (1) setting/lighting reference only (alley night); (2) identity/costume reference for Luo Yi. Use each only for what it is labelled; do not copy any text, mark or composition from them. Stylized high-quality 3D CG Chinese cultivation animation, clearly animated and never photoreal, cinematic 16:9. Match referenced face, costume, materials and lighting continuity. Each named person appears at most once in frame; no clones, mirrors, split screens or face-bearing reflections. Only the described cast is visible. All people are adults 18+ except Luo Mei, who appears only in family-bedroom shots. All paper, seals, signs, clothing and props contain no readable text, hanzi, letters, numerals or glyphs. No captions, UI, logos or watermark. Any emblem is abstract relief only. Luo Yi raises the blood-marked corner into lantern light; rack focus from the stain to his eyes and cut to black, no message visible. Show only the starting pose immediately before the described movement, with objects intact before any transformation. If Luo Yi is visible, preserve the right-temple strand with the slight fading from the S084 profit recovery; it remains visible. No further change in age or hair. Leave safe margins for the specified Flow camera movement.",
+  "attach": [
+   "C:\\mooniex\\ep04-shots\\refs\\alley__night.png",
+   "C:\\mooniex\\ep04-shots\\refs\\luoyi__ep04_after_cost.png"
+  ],
+  "kind": "first-frame"
+ }
+]

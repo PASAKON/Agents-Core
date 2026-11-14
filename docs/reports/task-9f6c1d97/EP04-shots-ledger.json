@@ -1,0 +1,1210 @@
+{
+ "EP04-S001": {
+  "shot": "EP04-S001",
+  "status": "ok",
+  "tries": 1,
+  "md5": "0eb9d97144e97702e6f99d6de557096c",
+  "bytes": 2234124,
+  "chat_url": "https://chatgpt.com/c/6af7e36a-72fc-83ec-8f82-28ae8e202923",
+  "note": "envoy foreground, Luo Yi once far down the street, lantern still lit",
+  "rejected": []
+ },
+ "EP04-S002": {
+  "shot": "EP04-S002",
+  "status": "ok",
+  "tries": 1,
+  "md5": "64732743f3d848b4373ea82b26aedeee",
+  "bytes": 2286949,
+  "chat_url": "https://chatgpt.com/c/6af7e424-545c-83ec-be4d-e5d88c2a0b15",
+  "note": "Luo Yi shields door, envoy looks past him",
+  "rejected": []
+ },
+ "EP04-S003": {
+  "shot": "EP04-S003",
+  "status": "ok",
+  "tries": 1,
+  "md5": "676ce5aa933f32990a4ef088e992f402",
+  "bytes": 2231050,
+  "chat_url": "https://chatgpt.com/c/6af7e4e0-d348-83ec-9f60-f18b3058c379",
+  "note": "envoy finger toward chest, both separate",
+  "rejected": []
+ },
+ "EP04-S004": {
+  "shot": "EP04-S004",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9abf2d8cff6eb10c417a6bab0f2a6f85",
+  "bytes": 2331532,
+  "chat_url": "https://chatgpt.com/c/6af7e52c-c614-83ec-a148-51e4d48534b7",
+  "note": "Luo Yi grips pouch, envoy hand motionless but not the focus",
+  "rejected": []
+ },
+ "EP04-S005": {
+  "shot": "EP04-S005",
+  "status": "ok",
+  "tries": 1,
+  "md5": "0ec0e22a098faa98cf2f813b9b275ad2",
+  "bytes": 2369488,
+  "chat_url": "https://chatgpt.com/c/6af7e588-3320-83ec-b9e0-baa36adb9ccd",
+  "note": "empty threshold, hem, two overlapping boot prints (brief says one); no face",
+  "rejected": []
+ },
+ "EP04-S006": {
+  "shot": "EP04-S006",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6716460c99c5deb50b4ef24f44983259",
+  "bytes": 2442444,
+  "chat_url": "https://chatgpt.com/c/6af7e5c8-1dc0-83ec-9f73-3e130a8d0ca3",
+  "note": "envoy already crouched with stone touching the threshold (placing begun, not a pure pre-pose)",
+  "rejected": []
+ },
+ "EP04-S007": {
+  "shot": "EP04-S007",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9fb42d3ae551be2601347e317a3fa46f",
+  "bytes": 2377891,
+  "chat_url": "https://chatgpt.com/c/6af7e624-38b4-83ec-a5df-cbe33c128d51",
+  "note": "boot already over the intact stone (contact moment, stone intact)",
+  "rejected": []
+ },
+ "EP04-S008": {
+  "shot": "EP04-S008",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9469e1124f31b3e61e260c0831077902",
+  "bytes": 2392007,
+  "chat_url": "https://chatgpt.com/c/6af7e680-4c20-83ec-b69e-8afb69f38c68",
+  "note": "Luo Yi scans window lattice, envoy at doorway; one each",
+  "rejected": []
+ },
+ "EP04-S009": {
+  "shot": "EP04-S009",
+  "status": "ok",
+  "tries": 1,
+  "md5": "cf22b6a44dfccf54c947704a82b94c60",
+  "bytes": 2413271,
+  "chat_url": "https://chatgpt.com/c/6af7e6d4-09f4-83ec-9db9-b9b714bf099b",
+  "note": "Luo Yi knocks, tea tray in other hand (teaboy detail), no scrape visible at floor yet",
+  "rejected": []
+ },
+ "EP04-S010": {
+  "shot": "EP04-S010",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5eae31c3374ddc87020d6f04096b31e3",
+  "bytes": 2531523,
+  "chat_url": "https://chatgpt.com/c/6af7e725-93e4-83ec-8e49-8a2b84a467b5",
+  "note": "still+fx: drag groove + straw bristle under door, no people",
+  "rejected": []
+ },
+ "EP04-S011": {
+  "shot": "EP04-S011",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c52694f38a15965ca9926b2ae809107e",
+  "bytes": 2491245,
+  "chat_url": "https://chatgpt.com/c/6af7e765-5794-83ec-bfea-0136d8b9709b",
+  "note": "envoy head tilted at door, Luo Yi braces hand",
+  "rejected": []
+ },
+ "EP04-S012": {
+  "shot": "EP04-S012",
+  "status": "ok",
+  "tries": 1,
+  "md5": "31c82af2be456d3b9b54ff61dcef1a19",
+  "bytes": 2279606,
+  "chat_url": "https://chatgpt.com/c/6af7e7bc-6b28-83ec-9586-c49bcb91de39",
+  "note": "tight close on listening face, pouch hand at chest",
+  "rejected": []
+ },
+ "EP04-S013": {
+  "shot": "EP04-S013",
+  "status": "ok",
+  "tries": 1,
+  "md5": "079b7f322b6a0bce5f7bdc816a12d692",
+  "bytes": 2292471,
+  "chat_url": "https://chatgpt.com/c/6af7e7fd-be80-83ec-b2f8-b2efd4f555e9",
+  "note": "Luo Yi presses wrapped abacus on a table, envoy out of focus behind",
+  "rejected": []
+ },
+ "EP04-S014": {
+  "shot": "EP04-S014",
+  "status": "ok",
+  "tries": 1,
+  "md5": "aab45a98ced78ae105b543239a3c3368",
+  "bytes": 2285619,
+  "chat_url": "https://chatgpt.com/c/6af7e85b-8840-83ec-9b90-4acdc5675c33",
+  "note": "envoy wrist scar visible (thin arc), face lower half only",
+  "rejected": []
+ },
+ "EP04-S015": {
+  "shot": "EP04-S015",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e3c5d95b33999ab3c49b8bd4486d1e75",
+  "bytes": 2324936,
+  "chat_url": "https://chatgpt.com/c/6af7e89d-9204-83ec-b028-ff0bb92655d3",
+  "note": "still+fx: scarred wrist against black fabric, no face",
+  "rejected": []
+ },
+ "EP04-S016": {
+  "shot": "EP04-S016",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3deaa03ce10544f2fbe7ccb5701a5cac",
+  "bytes": 2428828,
+  "chat_url": "https://chatgpt.com/c/6af7e8de-fc30-83ec-8150-f4f75e0f9ea9",
+  "note": "Luo Yi shrug, envoy leans in",
+  "rejected": []
+ },
+ "EP04-S017": {
+  "shot": "EP04-S017",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d70ca6121ce126ab35460546667df0f7",
+  "bytes": 2343386,
+  "chat_url": "https://chatgpt.com/c/6af7e93c-305c-83ec-a0c8-5b8856e830ba",
+  "note": "envoy taps door, Luo Yi crouched at floor gap",
+  "rejected": []
+ },
+ "EP04-S018": {
+  "shot": "EP04-S018",
+  "status": "ok",
+  "tries": 1,
+  "md5": "60f034c39c54e930afa9d3b484295a5f",
+  "bytes": 2368438,
+  "chat_url": "https://chatgpt.com/c/6af7e98a-27e0-83ec-b5ac-bb947e3f7d60",
+  "note": "envoy open palm, Luo Yi opposite",
+  "rejected": []
+ },
+ "EP04-S019": {
+  "shot": "EP04-S019",
+  "status": "ok_retry_pending",
+  "tries": 1,
+  "md5": "ba232c52267ae22dee72be222cda7581",
+  "bytes": 2326982,
+  "chat_url": "https://chatgpt.com/c/6af7e9dd-3cdc-83ec-a41a-9bee3001b4a6",
+  "note": "NOTE brief says covered beads; abacus is uncovered on table, corner cracked. retry candidate",
+  "rejected": [],
+  "retry_reason": "brief says covered beads, abacus uncovered"
+ },
+ "EP04-S020": {
+  "shot": "EP04-S020",
+  "status": "ok",
+  "tries": 1,
+  "md5": "881cd0016b337e580d8202417ad2ed9d",
+  "bytes": 2331166,
+  "chat_url": "https://chatgpt.com/c/6af7ea20-9190-83ec-87f5-d9d015620174",
+  "note": "envoy hand toward chest, Luo Yi holds tea tray (teaboy detail)",
+  "rejected": []
+ },
+ "EP04-S021": {
+  "shot": "EP04-S021",
+  "status": "ok",
+  "tries": 1,
+  "md5": "14bb01492e828e723fc8b384fac3cb2f",
+  "bytes": 2264814,
+  "chat_url": "https://chatgpt.com/c/6af7ea7d-224c-83ec-96bb-0c13b8463041",
+  "note": "Luo Yi half-smile against door, envoy distant",
+  "rejected": []
+ },
+ "EP04-S022": {
+  "shot": "EP04-S022",
+  "status": "ok",
+  "tries": 1,
+  "md5": "da36822f5b3707b8d39763c411d61487",
+  "bytes": 2378514,
+  "chat_url": "https://chatgpt.com/c/6af7eb00-5774-83ec-b9bb-cd8c96158ad2",
+  "note": "still+fx: shattered stone fragments + planted boot, no face",
+  "rejected": []
+ },
+ "EP04-S023": {
+  "shot": "EP04-S023",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7329c1662a0b5632a443d00a47bdcd14",
+  "bytes": 2358605,
+  "chat_url": "https://chatgpt.com/c/6af7eb72-7370-83ec-8a8c-0d0881f1ee8c",
+  "note": "Luo Yi holds pouch facing camera (not yet turned to the door sound)",
+  "rejected": []
+ },
+ "EP04-S024": {
+  "shot": "EP04-S024",
+  "status": "ok",
+  "tries": 1,
+  "md5": "62dd2c8dc486e6e12188602759aa8d81",
+  "bytes": 2364360,
+  "chat_url": "https://chatgpt.com/c/6af7ebc5-7180-83ec-940b-adf6a6ec72a9",
+  "note": "Luo Yi reaches for pouch sitting on envoy palm; palm steady",
+  "rejected": []
+ },
+ "EP04-S025": {
+  "shot": "EP04-S025",
+  "status": "ok",
+  "tries": 1,
+  "md5": "064342558649f17321205370c951925f",
+  "bytes": 2322024,
+  "chat_url": "https://chatgpt.com/c/6af7ec23-23d4-83ec-9e1f-c17b7bc07528",
+  "note": "purple wrapped bundle being untied, envoy watches",
+  "rejected": []
+ },
+ "EP04-S026": {
+  "shot": "EP04-S026",
+  "status": "ok",
+  "tries": 1,
+  "md5": "64e74755eb6a02e7d710792f96369e9a",
+  "bytes": 2519134,
+  "chat_url": "https://chatgpt.com/c/6af7ec67-1cd0-83ec-9a1b-cc0950de559a",
+  "note": "fingertip near bead, envoy palm out, small smile hidden by hood shadow",
+  "rejected": []
+ },
+ "EP04-S027": {
+  "shot": "EP04-S027",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9bfd31b11634bd535c10252ba6485e6f",
+  "bytes": 2255425,
+  "chat_url": "https://chatgpt.com/c/6af7ecc4-6394-83ec-8b53-3fb363bfb67a",
+  "note": "still+fx: macro cracked frame + fingertip, Luo Yi face partly in frame (brief: macro of frame and fingertip)",
+  "rejected": []
+ },
+ "EP04-S028": {
+  "shot": "EP04-S028",
+  "status": "ok_retry_pending",
+  "tries": 1,
+  "md5": "f8208752080084567d5d6f2ee95db4c3",
+  "bytes": 2360586,
+  "chat_url": "https://chatgpt.com/c/6af7ed08-0e4c-83ec-b1eb-933faaf323bc",
+  "note": "abacus ALREADY glowing green before the flick (brief wants intact/dull first). retry candidate",
+  "rejected": [],
+  "retry_reason": "abacus glows before the flick"
+ },
+ "EP04-S029": {
+  "shot": "EP04-S029",
+  "status": "retry_pending",
+  "tries": 1,
+  "md5": null,
+  "bytes": null,
+  "chat_url": "https://chatgpt.com/c/6af7ed63-92f8-83ec-a3f6-875ac15a1aa9",
+  "note": "try1: ignored abstract void, drew Luo Yi in street with apron (only ref was street plate)",
+  "rejected": [
+   "EP04-S029_try1.png"
+  ]
+ },
+ "EP04-S030": {
+  "shot": "EP04-S030",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2c64f1534474371653ccb5d0746bec22",
+  "bytes": 2378666,
+  "chat_url": "https://chatgpt.com/c/6af7ed9b-5e18-83ec-ad52-a01ff8d3c0ff",
+  "note": "Luo Yi clamps bound abacus to chest against door; no white strand (pre-cost)",
+  "rejected": []
+ },
+ "EP04-S031": {
+  "shot": "EP04-S031",
+  "status": "ok",
+  "tries": 1,
+  "md5": "82040c1d08aeed03aabca3ca43007f15",
+  "bytes": 2350133,
+  "chat_url": "https://chatgpt.com/c/6af7edf8-41b8-83ec-9899-c57cc420ba43",
+  "note": "envoy leans to temple, Luo Yi shields wrapped abacus; no strand",
+  "rejected": []
+ },
+ "EP04-S032": {
+  "shot": "EP04-S032",
+  "status": "ok",
+  "tries": 1,
+  "md5": "59a9e89016edd278f6ccbf2a670f1678",
+  "bytes": 2432799,
+  "chat_url": "https://chatgpt.com/c/6af7ee45-e06c-83ec-b9e3-a5a8a5d6eee6",
+  "note": "both standing, pre-strand state",
+  "rejected": []
+ },
+ "EP04-S033": {
+  "shot": "EP04-S033",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7a4812f9f1451882a4e50821c286ee9e",
+  "bytes": 2269268,
+  "chat_url": "https://chatgpt.com/c/6af7ee99-2e74-83ec-83ac-6d075b28c08b",
+  "note": "after_cost white strand visible, tired; small reddish scrape on right cheek (scratch, not a blush) - CMO look",
+  "rejected": []
+ },
+ "EP04-S034": {
+  "shot": "EP04-S034",
+  "status": "ok",
+  "tries": 1,
+  "md5": "adbf0f04d39d70d80f113a3b6b570e10",
+  "bytes": 2237600,
+  "chat_url": "https://chatgpt.com/c/6af7eef5-d65c-83ec-ab08-559ac2d46e53",
+  "note": "still+fx: Luo Yi lap, wrapped abacus, pale strand visible; face in frame (brief: loose pale hair on wrap, not cropped)",
+  "rejected": []
+ },
+ "EP04-S035": {
+  "shot": "EP04-S035",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2f2860e2793b35ac53528a4acc85fec9",
+  "bytes": 2536978,
+  "chat_url": "https://chatgpt.com/c/6af7ef38-ef68-83ec-93f2-afaebbf0e040",
+  "note": "Luo Yi shoves door, envoy steps aside; no dust visible yet",
+  "rejected": []
+ },
+ "EP04-S036": {
+  "shot": "EP04-S036",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6a8241e63e2c6cbcb94d1aa758b7d915",
+  "bytes": 2210882,
+  "chat_url": "https://chatgpt.com/c/6af7ef95-43fc-83ec-835a-d73fbb7648ee",
+  "note": "open door, overturned shelves, envoy finger to lips, mist; one person",
+  "rejected": []
+ },
+ "EP04-S037": {
+  "shot": "EP04-S037",
+  "status": "ok",
+  "tries": 1,
+  "md5": "90d1b757e00644a088812e0a43a38e51",
+  "bytes": 2358740,
+  "chat_url": "https://chatgpt.com/c/6af7efd8-085c-83ec-8cf9-0613297edd28",
+  "note": "envoy holds token (not yet dropped), Luo Yi reaching on ground",
+  "rejected": []
+ },
+ "EP04-S038": {
+  "shot": "EP04-S038",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3120f51a2fb3417a0b4e8342a197004d",
+  "bytes": 2330504,
+  "chat_url": "https://chatgpt.com/c/6af7f035-bc20-83ec-b5f8-fcc85b5820e7",
+  "note": "Luo Yi lifts shelf, Old Fang (round glasses) crawls and points; one each, coins on floor, no text",
+  "rejected": []
+ },
+ "EP04-S039": {
+  "shot": "EP04-S039",
+  "status": "retry_pending",
+  "tries": 1,
+  "md5": null,
+  "bytes": null,
+  "chat_url": "https://chatgpt.com/c/6af7f089-6914-83ec-839a-3d47aa3a2dc7",
+  "note": "Luo Yi kneels, Luo Mei in blanket, hands held; Luo Mei faint cheek warmth inherited from plate 05 ref (not a deliberate blush) - CMO look | try1: Luo Mei cheeks read pink (CMO)",
+  "rejected": [
+   "EP04-S039_try1.png"
+  ]
+ },
+ "EP04-S040": {
+  "shot": "EP04-S040",
+  "status": "retry_pending",
+  "tries": 1,
+  "md5": null,
+  "bytes": null,
+  "chat_url": "https://chatgpt.com/c/6af7f0e5-c6b8-83ec-8662-1535071e56a8",
+  "note": "Luo Mei points at empty cushion, Luo Yi turns; vial present; same faint cheek warmth as plate 05 - CMO look | try1: Luo Mei cheeks read pink (CMO)",
+  "rejected": [
+   "EP04-S040_try1.png"
+  ]
+ },
+ "EP04-S041": {
+  "shot": "EP04-S041",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5f9ca8fe4eca3cfb1d7756daf169223a",
+  "bytes": 2151766,
+  "chat_url": "https://chatgpt.com/c/6af7f156-0c30-83ec-b588-bb81cf08fe0a",
+  "note": "still+fx: empty cushion, intact vial, dust, no people",
+  "rejected": []
+ },
+ "EP04-S042": {
+  "shot": "EP04-S042",
+  "status": "ok",
+  "tries": 1,
+  "md5": "de465648e106b62d00a17ba60f5ef913",
+  "bytes": 2394266,
+  "chat_url": "https://chatgpt.com/c/6af7f1a3-4664-83ec-969e-dcc575ff80c1",
+  "note": "Luo Yi under bed, Luo Mei catches sleeve and points to rear exit; Luo Mei cheeks slightly warm like plate 05 (same risk as S039/S040)",
+  "rejected": []
+ },
+ "EP04-S043": {
+  "shot": "EP04-S043",
+  "status": "ok",
+  "tries": 1,
+  "md5": "edfcf9be8466f25ec9f99132202bc427",
+  "bytes": 2392983,
+  "chat_url": "https://chatgpt.com/c/6af7f1f8-1048-83ec-a630-8a085ed94712",
+  "note": "Luo Yi alone in ruined shop, white strand present",
+  "rejected": []
+ },
+ "EP04-S044": {
+  "shot": "EP04-S044",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ca520ef70f676765a5f8b9950352f069",
+  "bytes": 2383929,
+  "chat_url": "https://chatgpt.com/c/6af7f445-2be4-83ec-b93d-39eb70b47012",
+  "note": "Luo Yi lifts token with cloth, token on threshold board, blue tassel",
+  "rejected": []
+ },
+ "EP04-S045": {
+  "shot": "EP04-S045",
+  "status": "ok",
+  "tries": 1,
+  "md5": "91d221fccfa9a9b0848e3ed17636c2b6",
+  "bytes": 2377733,
+  "chat_url": "https://chatgpt.com/c/6af7f563-7380-83ec-bd88-bb859a9366f5",
+  "note": "Fang with cane + key ring, Luo Yi at open drawer with pouch",
+  "rejected": []
+ },
+ "EP04-S046": {
+  "shot": "EP04-S046",
+  "status": "ok",
+  "tries": 1,
+  "md5": "12655bb2091434fbec2e5cdcf55c1176",
+  "bytes": 2301126,
+  "chat_url": "https://chatgpt.com/c/6af7f8f1-d6e0-83ec-afb5-c5a1fc511d0c",
+  "note": "still+fx: black token three cloud ridges on cloth, no writing",
+  "rejected": []
+ },
+ "EP04-S047": {
+  "shot": "EP04-S047",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b5764fad9559931c6e69ccdac2ab2a30",
+  "bytes": 2475720,
+  "chat_url": "https://chatgpt.com/c/6af7f95f-62d0-83ec-95f1-a783a6bf873d",
+  "note": "Fang stops Luo Yi, token on cloth; Fang closing cloth is not yet visible",
+  "rejected": []
+ },
+ "EP04-S048": {
+  "shot": "EP04-S048",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e5f00a3a6c6a1d55458a8adc7f19af33",
+  "bytes": 2471782,
+  "chat_url": "https://chatgpt.com/c/6af7f9e7-e7f8-83ec-b631-00fe7341aa8d",
+  "note": "grain runner back to camera at counter, Fang + Luo Yi behind; runner palm not clearly empty-open",
+  "rejected": []
+ },
+ "EP04-S049": {
+  "shot": "EP04-S049",
+  "status": "ok",
+  "tries": 1,
+  "md5": "be9f43ca921b89f628ecbf3efb382062",
+  "bytes": 2785734,
+  "chat_url": "https://chatgpt.com/c/6af7fa76-a890-83ec-bc08-882cc59e2587",
+  "note": "Zhao retainer, shopkeeper, Fang; small background market extras (brief says only described cast); daylight reads closer to photoreal",
+  "rejected": []
+ },
+ "EP04-S050": {
+  "shot": "EP04-S050",
+  "status": "ok",
+  "tries": 1,
+  "md5": "932a9a8728f3cf90354d30366a98cf5e",
+  "bytes": 2595383,
+  "chat_url": "https://chatgpt.com/c/6af7fad1-dfbc-83ec-9e0b-46e1dce354b3",
+  "note": "Fang reaches, shopkeeper draws parcel back",
+  "rejected": []
+ },
+ "EP04-S051": {
+  "shot": "EP04-S051",
+  "status": "ok",
+  "tries": 1,
+  "md5": "bc48935930bdb9eb9da960b0d27a107b",
+  "bytes": 2639094,
+  "chat_url": "https://chatgpt.com/c/6af7fb2e-ea30-83ec-975e-47b95a0b6467",
+  "note": "Luo Yi offers bracelet, merchant, Fang between; background extras",
+  "rejected": []
+ },
+ "EP04-S052": {
+  "shot": "EP04-S052",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3750c1de950732ef9704ab906f55826c",
+  "bytes": 2653143,
+  "chat_url": "https://chatgpt.com/c/6af7fb8c-efb4-83ec-b43c-1346d65f83ae",
+  "note": "two retainers at street entrance, merchant gestures; background extras",
+  "rejected": []
+ },
+ "EP04-S053": {
+  "shot": "EP04-S053",
+  "status": "ok",
+  "tries": 1,
+  "md5": "31eff273ebd7a1413f6d28f5f7819169",
+  "bytes": 2782719,
+  "chat_url": "https://chatgpt.com/c/6af7fbe7-5888-83ec-99d7-99d46d0f950b",
+  "note": "still+fx: empty basket, board leaning (not face down), no people",
+  "rejected": []
+ },
+ "EP04-S054": {
+  "shot": "EP04-S054",
+  "status": "ok",
+  "tries": 1,
+  "md5": "37285ecf948c5211a19336c963f7ace9",
+  "bytes": 2582708,
+  "chat_url": "https://chatgpt.com/c/6af7fc3a-7eec-83ec-9654-29ab747d42ef",
+  "note": "officer with key and chain, sealed envelope (seal abstract), Luo Yi + Fang",
+  "rejected": []
+ },
+ "EP04-S055": {
+  "shot": "EP04-S055",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9305fd55f135f17a65e664c65e23f6e8",
+  "bytes": 2593325,
+  "chat_url": "https://chatgpt.com/c/6af7fca0-affc-83ec-bf5c-8c495230f29c",
+  "note": "closed document + key on table, Fang and officer",
+  "rejected": []
+ },
+ "EP04-S056": {
+  "shot": "EP04-S056",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9b7a2cbbba20a5b44a00bce699530c55",
+  "bytes": 2795625,
+  "chat_url": "https://chatgpt.com/c/6af7fcfe-f00c-83ec-b5f8-881674bca78d",
+  "note": "officer locks chain on door, Fang + Luo Yi watch",
+  "rejected": []
+ },
+ "EP04-S057": {
+  "shot": "EP04-S057",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d891311db8f9d0638c3ce3844ed669b8",
+  "bytes": 2907716,
+  "chat_url": "https://chatgpt.com/c/6af7fd5e-ad30-83ec-bd99-8c95b8a5e2ce",
+  "note": "Fang sits arms crossed, Luo Yi offers folded cloth, chained door",
+  "rejected": []
+ },
+ "EP04-S058": {
+  "shot": "EP04-S058",
+  "status": "ok",
+  "tries": 1,
+  "md5": "786edc665148f5ac06bc0f1bb0603238",
+  "bytes": 2067753,
+  "chat_url": "https://chatgpt.com/c/6af7fdbc-1bd0-83ec-b53e-83f610bbc60f",
+  "note": "still+fx: brass scale, empty pans, light shaft, no people",
+  "rejected": []
+ },
+ "EP04-S059": {
+  "shot": "EP04-S059",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2180952a176c6744d3c999667c0e08f9",
+  "bytes": 2741289,
+  "chat_url": "https://chatgpt.com/c/6af7fdfd-64a0-83ec-8a45-c8788a14e896",
+  "note": "Luo Yi gestures at auction hall, Fang closing cash box",
+  "rejected": []
+ },
+ "EP04-S060": {
+  "shot": "EP04-S060",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9d4c9e9cfd00e52c6e55e6e1e73d2d7d",
+  "bytes": 2409163,
+  "chat_url": "https://chatgpt.com/c/6af7fe64-a904-83ec-9609-46a03f68fcb9",
+  "note": "Luo Yi hand on bound abacus, Fang back to camera",
+  "rejected": []
+ },
+ "EP04-S061": {
+  "shot": "EP04-S061",
+  "status": "ok",
+  "tries": 1,
+  "md5": "67248b262ccfc2581407e910201b9bee",
+  "bytes": 2471090,
+  "chat_url": "https://chatgpt.com/c/6af7fec5-0a44-83ec-b774-6421668e3cb5",
+  "note": "Fang sets reserve pouch apart from box, Luo Yi watches",
+  "rejected": []
+ },
+ "EP04-S062": {
+  "shot": "EP04-S062",
+  "status": "stopped_quota",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "ChatGPT image quota hit, reset 22:30 (winbox clock)",
+  "rejected": []
+ },
+ "EP04-S063": {
+  "shot": "EP04-S063",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S064": {
+  "shot": "EP04-S064",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S065": {
+  "shot": "EP04-S065",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S066": {
+  "shot": "EP04-S066",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S067": {
+  "shot": "EP04-S067",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S068": {
+  "shot": "EP04-S068",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S069": {
+  "shot": "EP04-S069",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S070": {
+  "shot": "EP04-S070",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S071": {
+  "shot": "EP04-S071",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S072": {
+  "shot": "EP04-S072",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S073": {
+  "shot": "EP04-S073",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S074": {
+  "shot": "EP04-S074",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S075": {
+  "shot": "EP04-S075",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S076": {
+  "shot": "EP04-S076",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S077": {
+  "shot": "EP04-S077",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S078": {
+  "shot": "EP04-S078",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S079": {
+  "shot": "EP04-S079",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S080": {
+  "shot": "EP04-S080",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S081": {
+  "shot": "EP04-S081",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S082": {
+  "shot": "EP04-S082",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S083": {
+  "shot": "EP04-S083",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S084": {
+  "shot": "EP04-S084",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S085": {
+  "shot": "EP04-S085",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S086": {
+  "shot": "EP04-S086",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S087": {
+  "shot": "EP04-S087",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S088": {
+  "shot": "EP04-S088",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S089": {
+  "shot": "EP04-S089",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S090": {
+  "shot": "EP04-S090",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S091": {
+  "shot": "EP04-S091",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S092": {
+  "shot": "EP04-S092",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S093": {
+  "shot": "EP04-S093",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S094": {
+  "shot": "EP04-S094",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S095": {
+  "shot": "EP04-S095",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S096": {
+  "shot": "EP04-S096",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S097": {
+  "shot": "EP04-S097",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S098": {
+  "shot": "EP04-S098",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S099": {
+  "shot": "EP04-S099",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S100": {
+  "shot": "EP04-S100",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S101": {
+  "shot": "EP04-S101",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S102": {
+  "shot": "EP04-S102",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S103": {
+  "shot": "EP04-S103",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S104": {
+  "shot": "EP04-S104",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S105": {
+  "shot": "EP04-S105",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S106": {
+  "shot": "EP04-S106",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S107": {
+  "shot": "EP04-S107",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S108": {
+  "shot": "EP04-S108",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S109": {
+  "shot": "EP04-S109",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S110": {
+  "shot": "EP04-S110",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S111": {
+  "shot": "EP04-S111",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S112": {
+  "shot": "EP04-S112",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S113": {
+  "shot": "EP04-S113",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S114": {
+  "shot": "EP04-S114",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S115": {
+  "shot": "EP04-S115",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S116": {
+  "shot": "EP04-S116",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S117": {
+  "shot": "EP04-S117",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S118": {
+  "shot": "EP04-S118",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S119": {
+  "shot": "EP04-S119",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ },
+ "EP04-S120": {
+  "shot": "EP04-S120",
+  "status": "not_started",
+  "tries": 0,
+  "md5": null,
+  "bytes": null,
+  "chat_url": null,
+  "note": "",
+  "rejected": []
+ }
+}
