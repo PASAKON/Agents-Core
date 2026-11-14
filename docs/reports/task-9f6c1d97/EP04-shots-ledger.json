@@ -1,0 +1,1214 @@
+{
+ "EP04-S001": {
+  "shot": "EP04-S001",
+  "status": "ok",
+  "tries": 1,
+  "md5": "0eb9d97144e97702e6f99d6de557096c",
+  "bytes": 2234124,
+  "chat_url": "https://chatgpt.com/c/6af7e36a-72fc-83ec-8f82-28ae8e202923",
+  "note": "envoy foreground, Luo Yi once far down the street, lantern still lit",
+  "rejected": []
+ },
+ "EP04-S002": {
+  "shot": "EP04-S002",
+  "status": "ok",
+  "tries": 1,
+  "md5": "64732743f3d848b4373ea82b26aedeee",
+  "bytes": 2286949,
+  "chat_url": "https://chatgpt.com/c/6af7e424-545c-83ec-be4d-e5d88c2a0b15",
+  "note": "Luo Yi shields door, envoy looks past him",
+  "rejected": []
+ },
+ "EP04-S003": {
+  "shot": "EP04-S003",
+  "status": "ok",
+  "tries": 1,
+  "md5": "676ce5aa933f32990a4ef088e992f402",
+  "bytes": 2231050,
+  "chat_url": "https://chatgpt.com/c/6af7e4e0-d348-83ec-9f60-f18b3058c379",
+  "note": "envoy finger toward chest, both separate",
+  "rejected": []
+ },
+ "EP04-S004": {
+  "shot": "EP04-S004",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9abf2d8cff6eb10c417a6bab0f2a6f85",
+  "bytes": 2331532,
+  "chat_url": "https://chatgpt.com/c/6af7e52c-c614-83ec-a148-51e4d48534b7",
+  "note": "Luo Yi grips pouch, envoy hand motionless but not the focus",
+  "rejected": []
+ },
+ "EP04-S005": {
+  "shot": "EP04-S005",
+  "status": "ok",
+  "tries": 1,
+  "md5": "0ec0e22a098faa98cf2f813b9b275ad2",
+  "bytes": 2369488,
+  "chat_url": "https://chatgpt.com/c/6af7e588-3320-83ec-b9e0-baa36adb9ccd",
+  "note": "empty threshold, hem, two overlapping boot prints (brief says one); no face",
+  "rejected": []
+ },
+ "EP04-S006": {
+  "shot": "EP04-S006",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6716460c99c5deb50b4ef24f44983259",
+  "bytes": 2442444,
+  "chat_url": "https://chatgpt.com/c/6af7e5c8-1dc0-83ec-9f73-3e130a8d0ca3",
+  "note": "envoy already crouched with stone touching the threshold (placing begun, not a pure pre-pose)",
+  "rejected": []
+ },
+ "EP04-S007": {
+  "shot": "EP04-S007",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9fb42d3ae551be2601347e317a3fa46f",
+  "bytes": 2377891,
+  "chat_url": "https://chatgpt.com/c/6af7e624-38b4-83ec-a5df-cbe33c128d51",
+  "note": "boot already over the intact stone (contact moment, stone intact)",
+  "rejected": []
+ },
+ "EP04-S008": {
+  "shot": "EP04-S008",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9469e1124f31b3e61e260c0831077902",
+  "bytes": 2392007,
+  "chat_url": "https://chatgpt.com/c/6af7e680-4c20-83ec-b69e-8afb69f38c68",
+  "note": "Luo Yi scans window lattice, envoy at doorway; one each",
+  "rejected": []
+ },
+ "EP04-S009": {
+  "shot": "EP04-S009",
+  "status": "ok",
+  "tries": 1,
+  "md5": "cf22b6a44dfccf54c947704a82b94c60",
+  "bytes": 2413271,
+  "chat_url": "https://chatgpt.com/c/6af7e6d4-09f4-83ec-9db9-b9b714bf099b",
+  "note": "Luo Yi knocks, tea tray in other hand (teaboy detail), no scrape visible at floor yet",
+  "rejected": []
+ },
+ "EP04-S010": {
+  "shot": "EP04-S010",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5eae31c3374ddc87020d6f04096b31e3",
+  "bytes": 2531523,
+  "chat_url": "https://chatgpt.com/c/6af7e725-93e4-83ec-8e49-8a2b84a467b5",
+  "note": "still+fx: drag groove + straw bristle under door, no people",
+  "rejected": []
+ },
+ "EP04-S011": {
+  "shot": "EP04-S011",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c52694f38a15965ca9926b2ae809107e",
+  "bytes": 2491245,
+  "chat_url": "https://chatgpt.com/c/6af7e765-5794-83ec-bfea-0136d8b9709b",
+  "note": "envoy head tilted at door, Luo Yi braces hand",
+  "rejected": []
+ },
+ "EP04-S012": {
+  "shot": "EP04-S012",
+  "status": "ok",
+  "tries": 1,
+  "md5": "31c82af2be456d3b9b54ff61dcef1a19",
+  "bytes": 2279606,
+  "chat_url": "https://chatgpt.com/c/6af7e7bc-6b28-83ec-9586-c49bcb91de39",
+  "note": "tight close on listening face, pouch hand at chest",
+  "rejected": []
+ },
+ "EP04-S013": {
+  "shot": "EP04-S013",
+  "status": "ok",
+  "tries": 1,
+  "md5": "079b7f322b6a0bce5f7bdc816a12d692",
+  "bytes": 2292471,
+  "chat_url": "https://chatgpt.com/c/6af7e7fd-be80-83ec-b2f8-b2efd4f555e9",
+  "note": "Luo Yi presses wrapped abacus on a table, envoy out of focus behind",
+  "rejected": []
+ },
+ "EP04-S014": {
+  "shot": "EP04-S014",
+  "status": "ok",
+  "tries": 1,
+  "md5": "aab45a98ced78ae105b543239a3c3368",
+  "bytes": 2285619,
+  "chat_url": "https://chatgpt.com/c/6af7e85b-8840-83ec-9b90-4acdc5675c33",
+  "note": "envoy wrist scar visible (thin arc), face lower half only",
+  "rejected": []
+ },
+ "EP04-S015": {
+  "shot": "EP04-S015",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e3c5d95b33999ab3c49b8bd4486d1e75",
+  "bytes": 2324936,
+  "chat_url": "https://chatgpt.com/c/6af7e89d-9204-83ec-b028-ff0bb92655d3",
+  "note": "still+fx: scarred wrist against black fabric, no face",
+  "rejected": []
+ },
+ "EP04-S016": {
+  "shot": "EP04-S016",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3deaa03ce10544f2fbe7ccb5701a5cac",
+  "bytes": 2428828,
+  "chat_url": "https://chatgpt.com/c/6af7e8de-fc30-83ec-8150-f4f75e0f9ea9",
+  "note": "Luo Yi shrug, envoy leans in",
+  "rejected": []
+ },
+ "EP04-S017": {
+  "shot": "EP04-S017",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d70ca6121ce126ab35460546667df0f7",
+  "bytes": 2343386,
+  "chat_url": "https://chatgpt.com/c/6af7e93c-305c-83ec-a0c8-5b8856e830ba",
+  "note": "envoy taps door, Luo Yi crouched at floor gap",
+  "rejected": []
+ },
+ "EP04-S018": {
+  "shot": "EP04-S018",
+  "status": "ok",
+  "tries": 1,
+  "md5": "60f034c39c54e930afa9d3b484295a5f",
+  "bytes": 2368438,
+  "chat_url": "https://chatgpt.com/c/6af7e98a-27e0-83ec-b5ac-bb947e3f7d60",
+  "note": "envoy open palm, Luo Yi opposite",
+  "rejected": []
+ },
+ "EP04-S019": {
+  "shot": "EP04-S019",
+  "status": "ok_retry_pending",
+  "tries": 1,
+  "md5": "ba232c52267ae22dee72be222cda7581",
+  "bytes": 2326982,
+  "chat_url": "https://chatgpt.com/c/6af7e9dd-3cdc-83ec-a41a-9bee3001b4a6",
+  "note": "NOTE brief says covered beads; abacus is uncovered on table, corner cracked. retry candidate",
+  "rejected": [],
+  "retry_reason": "brief says covered beads, abacus uncovered"
+ },
+ "EP04-S020": {
+  "shot": "EP04-S020",
+  "status": "ok",
+  "tries": 1,
+  "md5": "881cd0016b337e580d8202417ad2ed9d",
+  "bytes": 2331166,
+  "chat_url": "https://chatgpt.com/c/6af7ea20-9190-83ec-87f5-d9d015620174",
+  "note": "envoy hand toward chest, Luo Yi holds tea tray (teaboy detail)",
+  "rejected": []
+ },
+ "EP04-S021": {
+  "shot": "EP04-S021",
+  "status": "ok",
+  "tries": 1,
+  "md5": "14bb01492e828e723fc8b384fac3cb2f",
+  "bytes": 2264814,
+  "chat_url": "https://chatgpt.com/c/6af7ea7d-224c-83ec-96bb-0c13b8463041",
+  "note": "Luo Yi half-smile against door, envoy distant",
+  "rejected": []
+ },
+ "EP04-S022": {
+  "shot": "EP04-S022",
+  "status": "ok",
+  "tries": 1,
+  "md5": "da36822f5b3707b8d39763c411d61487",
+  "bytes": 2378514,
+  "chat_url": "https://chatgpt.com/c/6af7eb00-5774-83ec-b9bb-cd8c96158ad2",
+  "note": "still+fx: shattered stone fragments + planted boot, no face",
+  "rejected": []
+ },
+ "EP04-S023": {
+  "shot": "EP04-S023",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7329c1662a0b5632a443d00a47bdcd14",
+  "bytes": 2358605,
+  "chat_url": "https://chatgpt.com/c/6af7eb72-7370-83ec-8a8c-0d0881f1ee8c",
+  "note": "Luo Yi holds pouch facing camera (not yet turned to the door sound)",
+  "rejected": []
+ },
+ "EP04-S024": {
+  "shot": "EP04-S024",
+  "status": "ok",
+  "tries": 1,
+  "md5": "62dd2c8dc486e6e12188602759aa8d81",
+  "bytes": 2364360,
+  "chat_url": "https://chatgpt.com/c/6af7ebc5-7180-83ec-940b-adf6a6ec72a9",
+  "note": "Luo Yi reaches for pouch sitting on envoy palm; palm steady",
+  "rejected": []
+ },
+ "EP04-S025": {
+  "shot": "EP04-S025",
+  "status": "ok",
+  "tries": 1,
+  "md5": "064342558649f17321205370c951925f",
+  "bytes": 2322024,
+  "chat_url": "https://chatgpt.com/c/6af7ec23-23d4-83ec-9e1f-c17b7bc07528",
+  "note": "purple wrapped bundle being untied, envoy watches",
+  "rejected": []
+ },
+ "EP04-S026": {
+  "shot": "EP04-S026",
+  "status": "ok",
+  "tries": 1,
+  "md5": "64e74755eb6a02e7d710792f96369e9a",
+  "bytes": 2519134,
+  "chat_url": "https://chatgpt.com/c/6af7ec67-1cd0-83ec-9a1b-cc0950de559a",
+  "note": "fingertip near bead, envoy palm out, small smile hidden by hood shadow",
+  "rejected": []
+ },
+ "EP04-S027": {
+  "shot": "EP04-S027",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9bfd31b11634bd535c10252ba6485e6f",
+  "bytes": 2255425,
+  "chat_url": "https://chatgpt.com/c/6af7ecc4-6394-83ec-8b53-3fb363bfb67a",
+  "note": "still+fx: macro cracked frame + fingertip, Luo Yi face partly in frame (brief: macro of frame and fingertip)",
+  "rejected": []
+ },
+ "EP04-S028": {
+  "shot": "EP04-S028",
+  "status": "ok_retry_pending",
+  "tries": 1,
+  "md5": "f8208752080084567d5d6f2ee95db4c3",
+  "bytes": 2360586,
+  "chat_url": "https://chatgpt.com/c/6af7ed08-0e4c-83ec-b1eb-933faaf323bc",
+  "note": "abacus ALREADY glowing green before the flick (brief wants intact/dull first). retry candidate",
+  "rejected": [],
+  "retry_reason": "abacus glows before the flick"
+ },
+ "EP04-S029": {
+  "shot": "EP04-S029",
+  "status": "marked_fail",
+  "tries": 3,
+  "md5": null,
+  "bytes": null,
+  "chat_url": "https://chatgpt.com/c/6af7ed63-92f8-83ec-a3f6-875ac15a1aa9",
+  "note": "try1 rejected (drew a street scene); retry 1 and retry 2 (no refs, abstract-void prompt) both timed out at 360 s with no image in the chat; cap reached, marked and moved on",
+  "rejected": [
+   "EP04-S029_try1.png"
+  ],
+  "chat_urls_failed": [
+   "https://chatgpt.com/c/6af89ecf-5e80-83ec-b794-4997cedd1b2d"
+  ]
+ },
+ "EP04-S030": {
+  "shot": "EP04-S030",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2c64f1534474371653ccb5d0746bec22",
+  "bytes": 2378666,
+  "chat_url": "https://chatgpt.com/c/6af7ed9b-5e18-83ec-ad52-a01ff8d3c0ff",
+  "note": "Luo Yi clamps bound abacus to chest against door; no white strand (pre-cost)",
+  "rejected": []
+ },
+ "EP04-S031": {
+  "shot": "EP04-S031",
+  "status": "ok",
+  "tries": 1,
+  "md5": "82040c1d08aeed03aabca3ca43007f15",
+  "bytes": 2350133,
+  "chat_url": "https://chatgpt.com/c/6af7edf8-41b8-83ec-9899-c57cc420ba43",
+  "note": "envoy leans to temple, Luo Yi shields wrapped abacus; no strand",
+  "rejected": []
+ },
+ "EP04-S032": {
+  "shot": "EP04-S032",
+  "status": "ok",
+  "tries": 1,
+  "md5": "59a9e89016edd278f6ccbf2a670f1678",
+  "bytes": 2432799,
+  "chat_url": "https://chatgpt.com/c/6af7ee45-e06c-83ec-b9e3-a5a8a5d6eee6",
+  "note": "both standing, pre-strand state",
+  "rejected": []
+ },
+ "EP04-S033": {
+  "shot": "EP04-S033",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7a4812f9f1451882a4e50821c286ee9e",
+  "bytes": 2269268,
+  "chat_url": "https://chatgpt.com/c/6af7ee99-2e74-83ec-83ac-6d075b28c08b",
+  "note": "after_cost white strand visible, tired; small reddish scrape on right cheek (scratch, not a blush) - CMO look",
+  "rejected": []
+ },
+ "EP04-S034": {
+  "shot": "EP04-S034",
+  "status": "ok",
+  "tries": 1,
+  "md5": "adbf0f04d39d70d80f113a3b6b570e10",
+  "bytes": 2237600,
+  "chat_url": "https://chatgpt.com/c/6af7eef5-d65c-83ec-ab08-559ac2d46e53",
+  "note": "still+fx: Luo Yi lap, wrapped abacus, pale strand visible; face in frame (brief: loose pale hair on wrap, not cropped)",
+  "rejected": []
+ },
+ "EP04-S035": {
+  "shot": "EP04-S035",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2f2860e2793b35ac53528a4acc85fec9",
+  "bytes": 2536978,
+  "chat_url": "https://chatgpt.com/c/6af7ef38-ef68-83ec-93f2-afaebbf0e040",
+  "note": "Luo Yi shoves door, envoy steps aside; no dust visible yet",
+  "rejected": []
+ },
+ "EP04-S036": {
+  "shot": "EP04-S036",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6a8241e63e2c6cbcb94d1aa758b7d915",
+  "bytes": 2210882,
+  "chat_url": "https://chatgpt.com/c/6af7ef95-43fc-83ec-835a-d73fbb7648ee",
+  "note": "open door, overturned shelves, envoy finger to lips, mist; one person",
+  "rejected": []
+ },
+ "EP04-S037": {
+  "shot": "EP04-S037",
+  "status": "ok",
+  "tries": 1,
+  "md5": "90d1b757e00644a088812e0a43a38e51",
+  "bytes": 2358740,
+  "chat_url": "https://chatgpt.com/c/6af7efd8-085c-83ec-8cf9-0613297edd28",
+  "note": "envoy holds token (not yet dropped), Luo Yi reaching on ground",
+  "rejected": []
+ },
+ "EP04-S038": {
+  "shot": "EP04-S038",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3120f51a2fb3417a0b4e8342a197004d",
+  "bytes": 2330504,
+  "chat_url": "https://chatgpt.com/c/6af7f035-bc20-83ec-b5f8-fcc85b5820e7",
+  "note": "Luo Yi lifts shelf, Old Fang (round glasses) crawls and points; one each, coins on floor, no text",
+  "rejected": []
+ },
+ "EP04-S039": {
+  "shot": "EP04-S039",
+  "status": "ok",
+  "tries": 2,
+  "md5": "8d6f04dc0e7d1f2a9e929136315f94af",
+  "bytes": 2320742,
+  "chat_url": "https://chatgpt.com/c/6af8a052-b1cc-83ec-949a-3d65269431c4",
+  "note": "Luo Yi sits by the bed, Luo Mei in the blanket, skin even and natural, no pink cheeks (retry with ref skin colour ignored)",
+  "rejected": [
+   "EP04-S039_try1.png"
+  ]
+ },
+ "EP04-S040": {
+  "shot": "EP04-S040",
+  "status": "ok",
+  "tries": 2,
+  "md5": "3b07ca707b570baa9875ab644fbf99e6",
+  "bytes": 2447900,
+  "chat_url": "https://chatgpt.com/c/6af8a0da-50d4-83ec-996d-d42fff09a120",
+  "note": "Luo Mei kneels on the bed pointing at the empty round cushion, vial and bowl on the table, skin even, no pink cheeks; Luo Yi faces camera, not turned (retry)",
+  "rejected": [
+   "EP04-S040_try1.png"
+  ]
+ },
+ "EP04-S041": {
+  "shot": "EP04-S041",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5f9ca8fe4eca3cfb1d7756daf169223a",
+  "bytes": 2151766,
+  "chat_url": "https://chatgpt.com/c/6af7f156-0c30-83ec-b588-bb81cf08fe0a",
+  "note": "still+fx: empty cushion, intact vial, dust, no people",
+  "rejected": []
+ },
+ "EP04-S042": {
+  "shot": "EP04-S042",
+  "status": "ok",
+  "tries": 1,
+  "md5": "de465648e106b62d00a17ba60f5ef913",
+  "bytes": 2394266,
+  "chat_url": "https://chatgpt.com/c/6af7f1a3-4664-83ec-969e-dcc575ff80c1",
+  "note": "Luo Yi under bed, Luo Mei catches sleeve and points to rear exit; Luo Mei cheeks slightly warm like plate 05 (same risk as S039/S040)",
+  "rejected": []
+ },
+ "EP04-S043": {
+  "shot": "EP04-S043",
+  "status": "ok",
+  "tries": 1,
+  "md5": "edfcf9be8466f25ec9f99132202bc427",
+  "bytes": 2392983,
+  "chat_url": "https://chatgpt.com/c/6af7f1f8-1048-83ec-a630-8a085ed94712",
+  "note": "Luo Yi alone in ruined shop, white strand present",
+  "rejected": []
+ },
+ "EP04-S044": {
+  "shot": "EP04-S044",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ca520ef70f676765a5f8b9950352f069",
+  "bytes": 2383929,
+  "chat_url": "https://chatgpt.com/c/6af7f445-2be4-83ec-b93d-39eb70b47012",
+  "note": "Luo Yi lifts token with cloth, token on threshold board, blue tassel",
+  "rejected": []
+ },
+ "EP04-S045": {
+  "shot": "EP04-S045",
+  "status": "ok",
+  "tries": 1,
+  "md5": "91d221fccfa9a9b0848e3ed17636c2b6",
+  "bytes": 2377733,
+  "chat_url": "https://chatgpt.com/c/6af7f563-7380-83ec-bd88-bb859a9366f5",
+  "note": "Fang with cane + key ring, Luo Yi at open drawer with pouch",
+  "rejected": []
+ },
+ "EP04-S046": {
+  "shot": "EP04-S046",
+  "status": "ok",
+  "tries": 1,
+  "md5": "12655bb2091434fbec2e5cdcf55c1176",
+  "bytes": 2301126,
+  "chat_url": "https://chatgpt.com/c/6af7f8f1-d6e0-83ec-afb5-c5a1fc511d0c",
+  "note": "still+fx: black token three cloud ridges on cloth, no writing",
+  "rejected": []
+ },
+ "EP04-S047": {
+  "shot": "EP04-S047",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b5764fad9559931c6e69ccdac2ab2a30",
+  "bytes": 2475720,
+  "chat_url": "https://chatgpt.com/c/6af7f95f-62d0-83ec-95f1-a783a6bf873d",
+  "note": "Fang stops Luo Yi, token on cloth; Fang closing cloth is not yet visible",
+  "rejected": []
+ },
+ "EP04-S048": {
+  "shot": "EP04-S048",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e5f00a3a6c6a1d55458a8adc7f19af33",
+  "bytes": 2471782,
+  "chat_url": "https://chatgpt.com/c/6af7f9e7-e7f8-83ec-b631-00fe7341aa8d",
+  "note": "grain runner back to camera at counter, Fang + Luo Yi behind; runner palm not clearly empty-open",
+  "rejected": []
+ },
+ "EP04-S049": {
+  "shot": "EP04-S049",
+  "status": "ok",
+  "tries": 1,
+  "md5": "be9f43ca921b89f628ecbf3efb382062",
+  "bytes": 2785734,
+  "chat_url": "https://chatgpt.com/c/6af7fa76-a890-83ec-bc08-882cc59e2587",
+  "note": "Zhao retainer, shopkeeper, Fang; small background market extras (brief says only described cast); daylight reads closer to photoreal",
+  "rejected": []
+ },
+ "EP04-S050": {
+  "shot": "EP04-S050",
+  "status": "ok",
+  "tries": 1,
+  "md5": "932a9a8728f3cf90354d30366a98cf5e",
+  "bytes": 2595383,
+  "chat_url": "https://chatgpt.com/c/6af7fad1-dfbc-83ec-9e0b-46e1dce354b3",
+  "note": "Fang reaches, shopkeeper draws parcel back",
+  "rejected": []
+ },
+ "EP04-S051": {
+  "shot": "EP04-S051",
+  "status": "ok",
+  "tries": 1,
+  "md5": "bc48935930bdb9eb9da960b0d27a107b",
+  "bytes": 2639094,
+  "chat_url": "https://chatgpt.com/c/6af7fb2e-ea30-83ec-975e-47b95a0b6467",
+  "note": "Luo Yi offers bracelet, merchant, Fang between; background extras",
+  "rejected": []
+ },
+ "EP04-S052": {
+  "shot": "EP04-S052",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3750c1de950732ef9704ab906f55826c",
+  "bytes": 2653143,
+  "chat_url": "https://chatgpt.com/c/6af7fb8c-efb4-83ec-b43c-1346d65f83ae",
+  "note": "two retainers at street entrance, merchant gestures; background extras",
+  "rejected": []
+ },
+ "EP04-S053": {
+  "shot": "EP04-S053",
+  "status": "ok",
+  "tries": 1,
+  "md5": "31eff273ebd7a1413f6d28f5f7819169",
+  "bytes": 2782719,
+  "chat_url": "https://chatgpt.com/c/6af7fbe7-5888-83ec-99d7-99d46d0f950b",
+  "note": "still+fx: empty basket, board leaning (not face down), no people",
+  "rejected": []
+ },
+ "EP04-S054": {
+  "shot": "EP04-S054",
+  "status": "ok",
+  "tries": 1,
+  "md5": "37285ecf948c5211a19336c963f7ace9",
+  "bytes": 2582708,
+  "chat_url": "https://chatgpt.com/c/6af7fc3a-7eec-83ec-9654-29ab747d42ef",
+  "note": "officer with key and chain, sealed envelope (seal abstract), Luo Yi + Fang",
+  "rejected": []
+ },
+ "EP04-S055": {
+  "shot": "EP04-S055",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9305fd55f135f17a65e664c65e23f6e8",
+  "bytes": 2593325,
+  "chat_url": "https://chatgpt.com/c/6af7fca0-affc-83ec-bf5c-8c495230f29c",
+  "note": "closed document + key on table, Fang and officer",
+  "rejected": []
+ },
+ "EP04-S056": {
+  "shot": "EP04-S056",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9b7a2cbbba20a5b44a00bce699530c55",
+  "bytes": 2795625,
+  "chat_url": "https://chatgpt.com/c/6af7fcfe-f00c-83ec-b5f8-881674bca78d",
+  "note": "officer locks chain on door, Fang + Luo Yi watch",
+  "rejected": []
+ },
+ "EP04-S057": {
+  "shot": "EP04-S057",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d891311db8f9d0638c3ce3844ed669b8",
+  "bytes": 2907716,
+  "chat_url": "https://chatgpt.com/c/6af7fd5e-ad30-83ec-bd99-8c95b8a5e2ce",
+  "note": "Fang sits arms crossed, Luo Yi offers folded cloth, chained door",
+  "rejected": []
+ },
+ "EP04-S058": {
+  "shot": "EP04-S058",
+  "status": "ok",
+  "tries": 1,
+  "md5": "786edc665148f5ac06bc0f1bb0603238",
+  "bytes": 2067753,
+  "chat_url": "https://chatgpt.com/c/6af7fdbc-1bd0-83ec-b53e-83f610bbc60f",
+  "note": "still+fx: brass scale, empty pans, light shaft, no people",
+  "rejected": []
+ },
+ "EP04-S059": {
+  "shot": "EP04-S059",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2180952a176c6744d3c999667c0e08f9",
+  "bytes": 2741289,
+  "chat_url": "https://chatgpt.com/c/6af7fdfd-64a0-83ec-8a45-c8788a14e896",
+  "note": "Luo Yi gestures at auction hall, Fang closing cash box",
+  "rejected": []
+ },
+ "EP04-S060": {
+  "shot": "EP04-S060",
+  "status": "ok",
+  "tries": 1,
+  "md5": "9d4c9e9cfd00e52c6e55e6e1e73d2d7d",
+  "bytes": 2409163,
+  "chat_url": "https://chatgpt.com/c/6af7fe64-a904-83ec-9609-46a03f68fcb9",
+  "note": "Luo Yi hand on bound abacus, Fang back to camera",
+  "rejected": []
+ },
+ "EP04-S061": {
+  "shot": "EP04-S061",
+  "status": "ok",
+  "tries": 1,
+  "md5": "67248b262ccfc2581407e910201b9bee",
+  "bytes": 2471090,
+  "chat_url": "https://chatgpt.com/c/6af7fec5-0a44-83ec-b774-6421668e3cb5",
+  "note": "Fang sets reserve pouch apart from box, Luo Yi watches",
+  "rejected": []
+ },
+ "EP04-S062": {
+  "shot": "EP04-S062",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7f090061c6faa7d72f40981d5b2d1f97",
+  "bytes": 2550816,
+  "chat_url": "https://chatgpt.com/c/6af88439-bcf4-83ec-995f-0acfe504ee88",
+  "note": "Luo Yi half-smile, Fang holds the pouch up",
+  "rejected": []
+ },
+ "EP04-S063": {
+  "shot": "EP04-S063",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e12e754a685e530bd8be0bf70a40b97a",
+  "bytes": 2466712,
+  "chat_url": "https://chatgpt.com/c/6af884c0-0514-83ec-9a95-5fbfa6805e91",
+  "note": "Luo Yi standing, Fang points at the floor with cane",
+  "rejected": []
+ },
+ "EP04-S064": {
+  "shot": "EP04-S064",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2bc859faa751d627dc519629ba8acf6e",
+  "bytes": 2497041,
+  "chat_url": "https://chatgpt.com/c/6af8853b-83dc-83ec-b790-c8297e670d1a",
+  "note": "Fang points out the door, Luo Yi smooths dark cloth on table",
+  "rejected": []
+ },
+ "EP04-S065": {
+  "shot": "EP04-S065",
+  "status": "ok",
+  "tries": 1,
+  "md5": "8678c84f8975d07128608bb44ab15d2f",
+  "bytes": 2267921,
+  "chat_url": "https://chatgpt.com/c/6af8859a-10b0-83ec-ace8-164c7c672005",
+  "note": "still+fx: cracked green abacus + pouch, no people",
+  "rejected": []
+ },
+ "EP04-S066": {
+  "shot": "EP04-S066",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b09504f646422e2937e342cee58854ca",
+  "bytes": 2387631,
+  "chat_url": "https://chatgpt.com/c/6af885df-1098-83ec-aac3-0e2acdd7d0dd",
+  "note": "Fang offers a rod, Luo Yi open palm",
+  "rejected": []
+ },
+ "EP04-S067": {
+  "shot": "EP04-S067",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2a31224367a20700f9706711ffe59a3e",
+  "bytes": 2627778,
+  "chat_url": "https://chatgpt.com/c/6af88634-2784-83ec-a61e-1d7848e06b31",
+  "note": "Zhao retainers (2) and Luo Yi at the red gate, pouch held",
+  "rejected": []
+ },
+ "EP04-S068": {
+  "shot": "EP04-S068",
+  "status": "ok",
+  "tries": 1,
+  "md5": "75f5170c32f8d06202139797b9c406ae",
+  "bytes": 2650288,
+  "chat_url": "https://chatgpt.com/c/6af88692-4b58-83ec-bae9-0c69132bd167",
+  "note": "retainers and Luo Yi crouched at the gate",
+  "rejected": []
+ },
+ "EP04-S069": {
+  "shot": "EP04-S069",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c53edf4ebdf239fd334f2ce23b929ad2",
+  "bytes": 2739742,
+  "chat_url": "https://chatgpt.com/c/6af886e8-caec-83ec-9780-b2417a121d58",
+  "note": "Fang holds a bead cord, retainers behind",
+  "rejected": []
+ },
+ "EP04-S070": {
+  "shot": "EP04-S070",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ae3eedefb7dcc162b01bcdb23e8bd48d",
+  "bytes": 2525537,
+  "chat_url": "https://chatgpt.com/c/6af88747-8c10-83ec-be5b-082d2270fe90",
+  "note": "still+fx: blue wrapped bundle + cord on stone, no people",
+  "rejected": []
+ },
+ "EP04-S071": {
+  "shot": "EP04-S071",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ee3134b26de61ad123cc07fc477dc6a6",
+  "bytes": 2631408,
+  "chat_url": "https://chatgpt.com/c/6af88790-ca20-83ec-94f5-48c0b2785a73",
+  "note": "Fang at the door, retainers and Luo Yi with a shoulder bundle",
+  "rejected": []
+ },
+ "EP04-S072": {
+  "shot": "EP04-S072",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6ed3654cbc8b95fe2eb497003d1cb423",
+  "bytes": 2331754,
+  "chat_url": "https://chatgpt.com/c/6af889ef-4b7c-83ec-b689-92e38b93a06f",
+  "note": "night market: Luo Yi holds cord, armored vendor points",
+  "rejected": []
+ },
+ "EP04-S073": {
+  "shot": "EP04-S073",
+  "status": "ok",
+  "tries": 1,
+  "md5": "fc9a8524c0f2ee6593bef6c9b4f06a0a",
+  "bytes": 2708369,
+  "chat_url": "https://chatgpt.com/c/6af88b22-2380-83ec-84a9-5ed38d8250c7",
+  "note": "Luo Yi with a rod over a cracked bowl, stall keeper",
+  "rejected": []
+ },
+ "EP04-S074": {
+  "shot": "EP04-S074",
+  "status": "ok",
+  "tries": 1,
+  "md5": "8e61575d4d16bf70c141a3a297e467ca",
+  "bytes": 2621890,
+  "chat_url": "https://chatgpt.com/c/6af88bf6-9348-83ec-846e-e83b52f71caa",
+  "note": "Luo Yi hands pouch, keeper palm up, bowl on table",
+  "rejected": []
+ },
+ "EP04-S075": {
+  "shot": "EP04-S075",
+  "status": "ok_retry_pending",
+  "tries": 1,
+  "md5": "bf857f141695579b32fce7c8b70f3433",
+  "bytes": 2313931,
+  "chat_url": "https://chatgpt.com/c/6af88c82-3794-83ec-9e4f-f0bc14bf9d5b",
+  "note": "abacus already glowing green (brief wording of glow not checked against first frame)",
+  "rejected": [],
+  "retry_reason": "abacus already glowing green before the flick (brief: objects intact before transformation)"
+ },
+ "EP04-S076": {
+  "shot": "EP04-S076",
+  "status": "ok",
+  "tries": 1,
+  "md5": "cd30a204b2e377859718dfe39f6307ef",
+  "bytes": 2529918,
+  "chat_url": "https://chatgpt.com/c/6af88cde-7724-83ec-8f48-b78045e78b52",
+  "note": "keeper raises both hands, Luo Yi taps bowl",
+  "rejected": []
+ },
+ "EP04-S077": {
+  "shot": "EP04-S077",
+  "status": "ok",
+  "tries": 1,
+  "md5": "3c58787309313e4d58880ad7a1b2f4fb",
+  "bytes": 2501278,
+  "chat_url": "https://chatgpt.com/c/6af88d41-d2e4-83ec-ab89-40336716868c",
+  "note": "retainers reach for keeper holding stacked bowls",
+  "rejected": []
+ },
+ "EP04-S078": {
+  "shot": "EP04-S078",
+  "status": "ok",
+  "tries": 1,
+  "md5": "1665e64eb2a45246200512dc3572cac5",
+  "bytes": 2244266,
+  "chat_url": "https://chatgpt.com/c/6af88d9d-db30-83ec-9842-5d974721310f",
+  "note": "still+fx: cracked bowl with bone sliver, no people",
+  "rejected": []
+ },
+ "EP04-S079": {
+  "shot": "EP04-S079",
+  "status": "ok",
+  "tries": 1,
+  "md5": "1a36cfea966ddd4a4ee07f44ae83f64b",
+  "bytes": 2627255,
+  "chat_url": "https://chatgpt.com/c/6af88df4-8d08-83ec-b5f7-8222c7de9ce0",
+  "note": "inspector (scholar) probes the bowl, Luo Yi leans in; distant small figures on the bridge",
+  "rejected": []
+ },
+ "EP04-S080": {
+  "shot": "EP04-S080",
+  "status": "ok",
+  "tries": 1,
+  "md5": "45446b90e1762b8cf2da1d2579bc7c9e",
+  "bytes": 2680585,
+  "chat_url": "https://chatgpt.com/c/6af88e57-def8-83ec-a87d-9612828a69c9",
+  "note": "Luo Yi points at vial held by the scholar, abacus in a wrap",
+  "rejected": []
+ },
+ "EP04-S081": {
+  "shot": "EP04-S081",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c0503898d4c232808ee3d247d99cf19a",
+  "bytes": 2646150,
+  "chat_url": "https://chatgpt.com/c/6af88ec4-b644-83ec-be3c-4bd0b4eabdc2",
+  "note": "Luo Yi, scholar and keeper around the bowl; Luo Yi holds a bone sliver",
+  "rejected": []
+ },
+ "EP04-S082": {
+  "shot": "EP04-S082",
+  "status": "ok",
+  "tries": 1,
+  "md5": "8e0f8afc8f8ed13c54ce4af9a1b9f7ad",
+  "bytes": 2417697,
+  "chat_url": "https://chatgpt.com/c/6af88f38-cdb0-83ec-824b-9ae19513d48b",
+  "note": "still+fx: bowl, dish with red liquid and powders, no people",
+  "rejected": []
+ },
+ "EP04-S083": {
+  "shot": "EP04-S083",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ff24255aededf02a3c199f09240757f0",
+  "bytes": 2662407,
+  "chat_url": "https://chatgpt.com/c/6af88f91-5c10-83ec-b0c4-ce593ecac6e9",
+  "note": "scholar holds the pouch out, Luo Yi sets a bone on cloth",
+  "rejected": []
+ },
+ "EP04-S084": {
+  "shot": "EP04-S084",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d055a20078435b7a93244589e54267f4",
+  "bytes": 2405364,
+  "chat_url": "https://chatgpt.com/c/6af88ff3-c1f0-83ec-8f61-be8f4cb6250a",
+  "note": "Luo Yi sorts coins, back of the scholar in frame",
+  "rejected": []
+ },
+ "EP04-S085": {
+  "shot": "EP04-S085",
+  "status": "ok",
+  "tries": 1,
+  "md5": "4993fab68acaf688e30869984f81d561",
+  "bytes": 2445164,
+  "chat_url": "https://chatgpt.com/c/6af8904d-4714-83ec-8204-49f0749e5546",
+  "note": "three men: tall robed man points at bowl pieces",
+  "rejected": []
+ },
+ "EP04-S086": {
+  "shot": "EP04-S086",
+  "status": "ok",
+  "tries": 1,
+  "md5": "fb545eb95b863d8edcc05194920b03a1",
+  "bytes": 2335230,
+  "chat_url": "https://chatgpt.com/c/6af890b0-f7a4-83ec-adb3-4e8b84d4c6c6",
+  "note": "tall robed man gestures, Luo Yi stands; backs of two stall heads in foreground",
+  "rejected": []
+ },
+ "EP04-S087": {
+  "shot": "EP04-S087",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2e00c720cb6224e445f2c14db946d98c",
+  "bytes": 2343883,
+  "chat_url": "https://chatgpt.com/c/6af8914c-a988-83ec-b8b8-aaf5c3366e9f",
+  "note": "robed man looks away, retainer leans in beside Luo Yi",
+  "rejected": []
+ },
+ "EP04-S088": {
+  "shot": "EP04-S088",
+  "status": "ok",
+  "tries": 1,
+  "md5": "40267f4033e4da81e0e781d357e76edd",
+  "bytes": 2398053,
+  "chat_url": "https://chatgpt.com/c/6af891a6-f404-83ec-85fc-64c4b7fa1a6f",
+  "note": "robed man gestures, Luo Yi lays out bowl shards",
+  "rejected": []
+ },
+ "EP04-S089": {
+  "shot": "EP04-S089",
+  "status": "ok",
+  "tries": 2,
+  "md5": "6c8e986bd63177eb8d39633d79f29e60",
+  "bytes": 2372112,
+  "chat_url": "https://chatgpt.com/c/6af89e64-6788-83ec-baa6-6106f9d29ac8",
+  "note": "robed man alone behind an empty tray (retry: first attempt lost to a browser close)",
+  "rejected": []
+ },
+ "EP04-S090": {
+  "shot": "EP04-S090",
+  "status": "ok",
+  "tries": 1,
+  "md5": "37357f9fd3e23f765dd01056a55c762e",
+  "bytes": 2587670,
+  "chat_url": "https://chatgpt.com/c/6af89274-d430-83ec-96bd-15fa0014fcdd",
+  "note": "retainers and the robed man around a mossy stone",
+  "rejected": []
+ },
+ "EP04-S091": {
+  "shot": "EP04-S091",
+  "status": "ok",
+  "tries": 1,
+  "md5": "88374a43d0ef6a3a924c9367f38b395e",
+  "bytes": 2715311,
+  "chat_url": "https://chatgpt.com/c/6af8930b-7ce4-83ec-9f82-cd1bb0c89673",
+  "note": "Luo Yi points at the stone, robed man arms crossed, scholar smiles",
+  "rejected": []
+ },
+ "EP04-S092": {
+  "shot": "EP04-S092",
+  "status": "ok",
+  "tries": 1,
+  "md5": "949c58ef7080a0a85bdc26b97d68c939",
+  "bytes": 2441576,
+  "chat_url": "https://chatgpt.com/c/6af89371-43b4-83ec-993a-ee52ba6118f3",
+  "note": "Luo Yi, scholar and robed man; abacus on table",
+  "rejected": []
+ },
+ "EP04-S093": {
+  "shot": "EP04-S093",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2f6895ec258222717d5b6741e202f2fe",
+  "bytes": 2631237,
+  "chat_url": "https://chatgpt.com/c/6af893d5-4c3c-83ec-a55e-f0d82de42578",
+  "note": "retainers wash the stone in a tub",
+  "rejected": []
+ },
+ "EP04-S094": {
+  "shot": "EP04-S094",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ace308fa0809ff9c71fbc6f68464154b",
+  "bytes": 2443489,
+  "chat_url": "https://chatgpt.com/c/6af89438-0954-83ec-b2b8-46fd2c303578",
+  "note": "still+fx: stone, plain bag and blue bag, no people",
+  "rejected": []
+ },
+ "EP04-S095": {
+  "shot": "EP04-S095",
+  "status": "ok",
+  "tries": 1,
+  "md5": "8e27c629b4a727159151870b8a83d274",
+  "bytes": 2407663,
+  "chat_url": "https://chatgpt.com/c/6af8949a-4704-83ec-82b4-f7f9ac82864c",
+  "note": "Luo Yi seen from behind, helper carries an open box, a second man at the curtain",
+  "rejected": []
+ },
+ "EP04-S096": {
+  "shot": "EP04-S096",
+  "status": "ok",
+  "tries": 1,
+  "md5": "07272ff0f34d940460b928134bfc11df",
+  "bytes": 2481798,
+  "chat_url": "https://chatgpt.com/c/6af894f1-a178-83ec-92ad-7fdb97915404",
+  "note": "retainer grips Luo Yi shoulder at an open box with a ring print",
+  "rejected": []
+ },
+ "EP04-S097": {
+  "shot": "EP04-S097",
+  "status": "ok",
+  "tries": 1,
+  "md5": "55791bdc4a58d1e1904118d8bb13e041",
+  "bytes": 2509659,
+  "chat_url": "https://chatgpt.com/c/6af89565-6cdc-83ec-a512-1f7e4914f6f6",
+  "note": "Luo Yi and a helper holding a padded box",
+  "rejected": []
+ },
+ "EP04-S098": {
+  "shot": "EP04-S098",
+  "status": "ok",
+  "tries": 1,
+  "md5": "f65252fd18d84cdc2622411a33f5fd96",
+  "bytes": 2472615,
+  "chat_url": "https://chatgpt.com/c/6af895bd-de3c-83ec-ad32-594aedd42271",
+  "note": "helper shows the empty padded box, Luo Yi standing",
+  "rejected": []
+ },
+ "EP04-S099": {
+  "shot": "EP04-S099",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e2887ca9f05f9ce9509dbf0e08cd1c03",
+  "bytes": 2511389,
+  "chat_url": "https://chatgpt.com/c/6af89615-99cc-83ec-af86-cab17447aa37",
+  "note": "Luo Yi stops a retainer, seated man watches",
+  "rejected": []
+ },
+ "EP04-S100": {
+  "shot": "EP04-S100",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c9c24dd52132c7ead063e795ff81081e",
+  "bytes": 2535878,
+  "chat_url": "https://chatgpt.com/c/6af89677-dba4-83ec-b8c3-414556289180",
+  "note": "Luo Yi and old doorman at a green-lit vault door, finger raised",
+  "rejected": []
+ },
+ "EP04-S101": {
+  "shot": "EP04-S101",
+  "status": "ok",
+  "tries": 1,
+  "md5": "d71c3bc4c76910fdaa29140f228819f6",
+  "bytes": 2457527,
+  "chat_url": "https://chatgpt.com/c/6af896ce-1c58-83ec-8add-be02082bd927",
+  "note": "still+fx: vault door, rope stanchions, red chest, no people",
+  "rejected": []
+ },
+ "EP04-S102": {
+  "shot": "EP04-S102",
+  "status": "ok",
+  "tries": 1,
+  "md5": "53d9a7b93cbfcef721959e56ae5238d8",
+  "bytes": 2355980,
+  "chat_url": "https://chatgpt.com/c/6af89720-2904-83ec-9a54-165facce0f86",
+  "note": "doorman hands in front, rope barrier",
+  "rejected": []
+ },
+ "EP04-S103": {
+  "shot": "EP04-S103",
+  "status": "ok",
+  "tries": 1,
+  "md5": "ea2f6f9243ac0a68183447c8661ac38a",
+  "bytes": 2389952,
+  "chat_url": "https://chatgpt.com/c/6af89778-5308-83ec-a12f-ff0288479f57",
+  "note": "Luo Yi and doorman close, rope in front",
+  "rejected": []
+ },
+ "EP04-S104": {
+  "shot": "EP04-S104",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b20a4af8c8c4de77fb9ae4662efb8720",
+  "bytes": 2165930,
+  "chat_url": "https://chatgpt.com/c/6af897cf-a38c-83ec-9ded-3e72b46ebb12",
+  "note": "Luo Yi looking down at cloth, doorman behind",
+  "rejected": []
+ },
+ "EP04-S105": {
+  "shot": "EP04-S105",
+  "status": "ok",
+  "tries": 1,
+  "md5": "f42a95d18f3f70c92d7a09b249121c48",
+  "bytes": 2409183,
+  "chat_url": "https://chatgpt.com/c/6af89826-44c8-83ec-8b77-d6b34fbd91df",
+  "note": "doorman raises a hand, Luo Yi watches",
+  "rejected": []
+ },
+ "EP04-S106": {
+  "shot": "EP04-S106",
+  "status": "ok",
+  "tries": 1,
+  "md5": "2cf66f83fafa24065a9ff7f9520134bd",
+  "bytes": 2223675,
+  "chat_url": "https://chatgpt.com/c/6af8987b-7d28-83ec-b669-35242166f729",
+  "note": "Luo Yi seated at table with empty tray, doorman back to camera",
+  "rejected": []
+ },
+ "EP04-S107": {
+  "shot": "EP04-S107",
+  "status": "ok",
+  "tries": 1,
+  "md5": "4aeb1d307e6630db92e43881b27abc34",
+  "bytes": 2647965,
+  "chat_url": "https://chatgpt.com/c/6af898d4-82b4-83ec-98dc-850db46c6e85",
+  "note": "official in gold robe holds up a sack cloth, doorman and Luo Yi",
+  "rejected": []
+ },
+ "EP04-S108": {
+  "shot": "EP04-S108",
+  "status": "ok",
+  "tries": 1,
+  "md5": "0920452112ec500206b1fecaaf0148e3",
+  "bytes": 2485659,
+  "chat_url": "https://chatgpt.com/c/6af8992d-7914-83ec-9aaa-69130d868977",
+  "note": "Luo Yi from behind, doorman pulls the vault door",
+  "rejected": []
+ },
+ "EP04-S109": {
+  "shot": "EP04-S109",
+  "status": "ok",
+  "tries": 1,
+  "md5": "cebbf7fe1df4aa906a8485fa2090763d",
+  "bytes": 2572010,
+  "chat_url": "https://chatgpt.com/c/6af899b9-2bf8-83ec-bed8-f7b070eb9046",
+  "note": "two retainers carry the stone, Luo Yi in front",
+  "rejected": []
+ },
+ "EP04-S110": {
+  "shot": "EP04-S110",
+  "status": "ok",
+  "tries": 1,
+  "md5": "e187368757b870bbe49ac0b100c64c20",
+  "bytes": 2481155,
+  "chat_url": "https://chatgpt.com/c/6af89a55-baf8-83ec-b6d5-7efec21ebb6c",
+  "note": "courier offers sealed envelope to Luo Yi",
+  "rejected": []
+ },
+ "EP04-S111": {
+  "shot": "EP04-S111",
+  "status": "ok",
+  "tries": 1,
+  "md5": "6ce953b48a359e57aa685451614c9f48",
+  "bytes": 2609945,
+  "chat_url": "https://chatgpt.com/c/6af89ab0-9f70-83ec-8883-201f1aba3a8a",
+  "note": "courier points down the lane, envelope held low, Luo Yi chin on hand",
+  "rejected": []
+ },
+ "EP04-S112": {
+  "shot": "EP04-S112",
+  "status": "ok",
+  "tries": 1,
+  "md5": "10dfd6da306131d1da63378feb09abce",
+  "bytes": 2226636,
+  "chat_url": "https://chatgpt.com/c/6af89b12-697c-83ec-960c-ee691ef9156b",
+  "note": "Luo Yi holds sealed envelope close, faint dark spot on the corner",
+  "rejected": []
+ },
+ "EP04-S113": {
+  "shot": "EP04-S113",
+  "status": "ok",
+  "tries": 1,
+  "md5": "67b88b3198d33e1b65a6b36d577bf893",
+  "bytes": 2379186,
+  "chat_url": "https://chatgpt.com/c/6af89b61-1df4-83ec-aa00-53e1c7508c1b",
+  "note": "still+fx: envelope macro, wax seal flower relief, no text",
+  "rejected": []
+ },
+ "EP04-S114": {
+  "shot": "EP04-S114",
+  "status": "ok",
+  "tries": 1,
+  "md5": "74cc8ee67fd950f3c7f94edcfc63063d",
+  "bytes": 2495390,
+  "chat_url": "https://chatgpt.com/c/6af89ba8-e1b0-83ec-8912-b059399706e7",
+  "note": "Luo Yi points at envelope on table, courier palms up",
+  "rejected": []
+ },
+ "EP04-S115": {
+  "shot": "EP04-S115",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5628143481a57b601cd8d1395523b0e9",
+  "bytes": 2531304,
+  "chat_url": "https://chatgpt.com/c/6af89c04-a24c-83ec-816e-ece2483ba48c",
+  "note": "Luo Yi reads the envelope, retainer arms crossed; one small walking figure far down the lane",
+  "rejected": []
+ },
+ "EP04-S116": {
+  "shot": "EP04-S116",
+  "status": "ok",
+  "tries": 1,
+  "md5": "7674f229da1574b800232ea36809127f",
+  "bytes": 2305810,
+  "chat_url": "https://chatgpt.com/c/6af89c59-2860-83ec-81d8-030ad2fa653e",
+  "note": "Luo Yi opens the envelope",
+  "rejected": []
+ },
+ "EP04-S117": {
+  "shot": "EP04-S117",
+  "status": "ok",
+  "tries": 1,
+  "md5": "c29ddefd335db58e4ff61246a8f333b6",
+  "bytes": 2367648,
+  "chat_url": "https://chatgpt.com/c/6af89cb1-83ec-83ec-a291-6c3f26698e3f",
+  "note": "Luo Yi close on envelope, red mark at corner",
+  "rejected": []
+ },
+ "EP04-S118": {
+  "shot": "EP04-S118",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b7cc248ba13a190d10f968fbd33fb938",
+  "bytes": 2306541,
+  "chat_url": "https://chatgpt.com/c/6af89d0a-9dfc-83ec-a6d5-e4e58b840b05",
+  "note": "Luo Yi holds envelope, retainer behind",
+  "rejected": []
+ },
+ "EP04-S119": {
+  "shot": "EP04-S119",
+  "status": "ok",
+  "tries": 1,
+  "md5": "b0e084c02255929929f85b0d88b030cf",
+  "bytes": 2251894,
+  "chat_url": "https://chatgpt.com/c/6af89d64-1734-83ec-9293-836be7ba831b",
+  "note": "Luo Yi holds the envelope, red smudge at corner",
+  "rejected": []
+ },
+ "EP04-S120": {
+  "shot": "EP04-S120",
+  "status": "ok",
+  "tries": 1,
+  "md5": "5b6a245074256768623966a670b5b74b",
+  "bytes": 2193967,
+  "chat_url": "https://chatgpt.com/c/6af89db2-ad40-83ec-8b2d-b8247f35cfd5",
+  "note": "Luo Yi holds a cloth with a red stain",
+  "rejected": []
+ }
+}
