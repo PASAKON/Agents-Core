@@ -46,6 +46,70 @@ PROJECT_EVENT_KIND_CHECK = "CHECK (kind IN (" + ", ".join(
     repr(kind) for kind in PROJECT_EVENT_KINDS) + "))"
 
 PG_SCHEMA = """
+CREATE SEQUENCE IF NOT EXISTS lease_fence_seq AS bigint;
+CREATE TABLE IF NOT EXISTS leases (
+  name text PRIMARY KEY,
+  kind text NOT NULL CHECK (kind IN ('mutex','pool','rate')),
+  project text,
+  capacity integer NOT NULL CHECK (capacity > 0),
+  window_s integer CHECK (window_s > 0),
+  heartbeat_s integer NOT NULL CHECK (heartbeat_s > 0),
+  max_hold_s integer NOT NULL,
+  policy_version bigint NOT NULL,
+  policy jsonb NOT NULL,
+  holders jsonb NOT NULL DEFAULT '{}',
+  cooling_until timestamptz NOT NULL DEFAULT '-infinity',
+  quota_epoch bigint NOT NULL DEFAULT 0,
+  next_check_at timestamptz,
+  CHECK (max_hold_s >= 2 * heartbeat_s),
+  CHECK (kind <> 'mutex' OR capacity = 1),
+  CHECK (kind <> 'rate' OR window_s IS NOT NULL)
+);
+CREATE TABLE IF NOT EXISTS lease_waiters (
+  request_id uuid PRIMARY KEY,
+  resource text NOT NULL REFERENCES leases(name),
+  group_id uuid NOT NULL,
+  owner_session text NOT NULL,
+  task_id text,
+  priority integer NOT NULL,
+  enqueue_seq bigint GENERATED ALWAYS AS IDENTITY,
+  enqueued_at timestamptz NOT NULL DEFAULT now(),
+  state text NOT NULL CHECK (state IN
+    ('awaiting_approval','waiting','claimed','acknowledged','cancelled','done')),
+  idempotency_key text NOT NULL,
+  purpose text NOT NULL,
+  payload jsonb NOT NULL,
+  approval jsonb,
+  fence bigint,
+  claim_until timestamptz,
+  UNIQUE(resource, owner_session, idempotency_key)
+);
+CREATE TABLE IF NOT EXISTS lease_events (
+  event_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  resource text NOT NULL REFERENCES leases(name),
+  request_id uuid,
+  event_key text NOT NULL UNIQUE,
+  kind text NOT NULL,
+  at timestamptz NOT NULL DEFAULT now(),
+  fence bigint,
+  quota_epoch bigint,
+  actor text NOT NULL,
+  payload jsonb NOT NULL,
+  deliver_after timestamptz,
+  delivered_at timestamptz,
+  attempts integer NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS lease_due ON leases(next_check_at);
+CREATE INDEX IF NOT EXISTS lease_project ON leases(project);
+CREATE INDEX IF NOT EXISTS waiter_head ON lease_waiters(resource, priority, enqueued_at, enqueue_seq)
+  WHERE state = 'waiting';
+CREATE INDEX IF NOT EXISTS waiter_task ON lease_waiters(task_id, state);
+CREATE INDEX IF NOT EXISTS waiter_claim ON lease_waiters(claim_until) WHERE state = 'claimed';
+CREATE INDEX IF NOT EXISTS waiter_group ON lease_waiters(group_id);
+CREATE INDEX IF NOT EXISTS event_rate ON lease_events(resource, quota_epoch, at) WHERE kind = 'grant';
+CREATE INDEX IF NOT EXISTS event_outbox ON lease_events(deliver_after, event_id)
+  WHERE delivered_at IS NULL AND deliver_after IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     words TEXT NOT NULL,
