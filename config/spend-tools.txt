@@ -47,3 +47,7 @@ tools/colab_batch.py --max-credits
 # that would pass the cap (_submit_or_raise, exit 3). Worst case on SIGKILL of the card:
 # the remote run goes on, up to its own cap.
 tools/flow_shoot_card.py --max-credits
+
+# Image runner checks the exact button price and reserves each attempt before clicking.
+# Stops at the per-run cap or an unexpected balance drop; no automatic retries.
+scripts/champa/champa_image.py --max-credits
