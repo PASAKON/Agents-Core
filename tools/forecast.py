@@ -125,6 +125,10 @@ def needs_shell(brief: str | None) -> bool:
 
 # Phrases that ask the worker itself to drive a browser or a media tool. Bare "browser" or "chrome"
 # are left out on purpose: frontend dev briefs say them about the product, not the worker's tools.
+# Bare "screenshot" / "screen capture" are left out too: "take 844x390 screenshots with the headless
+# e2e script (Playwright/node)" is shell work Codex can do, and it was sent to Claude (task-ae536649,
+# task-084a5227, 14 Nov). A screenshot that really needs the Claude browser says so with one of the
+# phrases below ("in chrome", "claude-in-chrome", "chrome mcp", "mcp__").
 CLAUDE_TOOL_PATTERNS: list[str] = [
     "claude-in-chrome",
     "chrome mcp",
@@ -133,8 +137,6 @@ CLAUDE_TOOL_PATTERNS: list[str] = [
     "open the browser",
     "drive the browser",
     "browser tab",
-    "screenshot",
-    "screen capture",
     "capture the footage",
     "capture footage",
     "footage capture",
