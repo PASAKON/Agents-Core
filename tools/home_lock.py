@@ -33,6 +33,11 @@ RUN_INBOX_TOKEN or ~/.config/mooniex/run-inbox.token). Every call goes through
 _transport() and nowhere else. To move the store to the hub, change that one
 function; no caller changes.
 
+With LEASE_DB_URL set, calls use lib.lease instead. LEASE_OWNER_SESSION is
+the trusted identity; --owner cannot impersonate another session. TTLs are
+bounded by the resource's max_hold_s policy. Console cutover is Phase C3;
+do not enable mixed Console/lease writers for a shared home.
+
 Exit codes: 0 ok · 2 held by another owner, or a bad argument · 3 hub unreachable or refused.
 stdlib only.
 """
@@ -46,6 +51,7 @@ import sys
 import urllib.error
 import urllib.request
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -77,6 +83,8 @@ class HomeLockHeld(Exception):
 def default_owner(env: dict | None = None) -> str:
     """This process's session or task id, or ''."""
     env = os.environ if env is None else env
+    if env.get("LEASE_DB_URL") and env.get("LEASE_OWNER_SESSION"):
+        return env["LEASE_OWNER_SESSION"]
     task = (env.get("WORKER_TASK_ID") or "").strip()
     if task:
         return task
@@ -100,6 +108,8 @@ def _transport(method: str, op: str, body: dict | None = None) -> tuple[int, dic
     """The one place a lock call leaves this process: (HTTP status, JSON body).
     A 409 comes back as data (held / not the front door); other refusals and
     network errors raise HubError. The token goes into the header and nowhere else."""
+    if os.environ.get("LEASE_DB_URL"):
+        return _lease_transport(op, body)
     url = ask_run.base_url() + LOCKS_PATH + (f"/{op}" if op else "")
     headers = {"Authorization": "Bearer " + ask_run.load_token(), "Accept": "application/json",
                "User-Agent": "mooniex-home-lock/1"}
@@ -122,6 +132,45 @@ def _transport(method: str, op: str, body: dict | None = None) -> tuple[int, dic
         raise ask_run._hub_error(e) from None
     except (urllib.error.URLError, OSError) as e:
         raise HubError(f"hub unreachable at {ask_run.base_url()}: {getattr(e, 'reason', e)}", transient=True) from None
+
+
+def _lease_transport(op: str, body: dict | None) -> tuple[int, dict]:
+    from lib import lease as leases
+    try:
+        service, actor = leases.default_service()
+        locks = service.held_resources("home:")
+        def public(lock):
+            return {k: (datetime.fromtimestamp(v, timezone.utc).isoformat() if k == "expiresAt" else v)
+                    for k, v in lock.items() if k not in {"request_id", "token"}}
+        if not op:
+            return 200, {"locks": [public(lk) for lk in locks]}
+        key, owner = body["key"], body["owner"]
+        if owner != actor.session:
+            raise HubError("owner must match trusted LEASE_OWNER_SESSION")
+        held = next((lk for lk in locks if lk["key"] == key), None)
+        if op == "release":
+            return 200, {"released": bool(held and held["owner"] == owner and
+                service.release(held["request_id"], actor, held["token"]))}
+        if held and held["owner"] != owner:
+            return 409, {"holder": public(held)}
+        if not held:
+            result = service.acquire(key, actor, purpose=body.get("purpose") or "browser home")
+            if result.state != "granted":
+                if result.request_id:
+                    service.cancel(result.request_id, actor)
+                if result.state == "waiting":
+                    return 409, {"holder": {}}
+                raise HubError("lease refused: " + (result.reason or result.state))
+            service.acknowledge(result.request_id, actor)
+            held = dict(request_id=result.request_id, token=result.token)
+        if not service.renew(held["request_id"], actor, held["token"], ttl_s=body["ttl"]):
+            raise HubError("home lease expired before renewal")
+        lock = next(lk for lk in service.held_resources("home:") if lk["key"] == key)
+        return 200, {"lock": public(lock)}
+    except HubError:
+        raise
+    except Exception as exc:
+        raise HubError("lease service unavailable or refused") from exc
 
 
 def _not_front_door(body: dict) -> HubError | None:

@@ -80,8 +80,14 @@ import re
 import sys
 import time
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from lib import lease as leases
 
 # Windows defaults stdout to cp1252, and this runner prints text that came
 # from somewhere else — ChatGPT's own reply, a hazard excerpt off the live
@@ -220,8 +226,8 @@ def classify_hazard(body_text: str, composer_present: bool) -> tuple[str, str] |
             return ("signed_out", text[max(0, m.start() - 40):m.end() + 40].strip())
     m = USAGE_LIMIT_RE.search(text)
     if m:
-        reset = re.search(r"\b\d{1,2}:\d{2}\b", text)
-        excerpt = text[max(0, m.start() - 40):m.end() + 80].strip()
+        reset = re.search(r"\b\d{1,2}:\d{2}\s*(?:AM|PM)?", text, re.I)
+        excerpt = text[max(0, m.start() - 40):m.end() + 1000].strip()
         return ("usage_limit", excerpt + (f" · reset {reset.group()}" if reset else ""))
     m = PAYWALL_RE.search(text)
     if m:
@@ -851,7 +857,7 @@ def recover_one(browser: ChatGPTBrowser, name: str, out_dir: Path,
     return new
 
 
-def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s, keep_in_chatgpt=False):
+def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s, keep_in_chatgpt=False, guard=None):
     """Cooperative round-robin: Playwright stays on its owning thread."""
     pending = list(todo)
     busy = {}
@@ -866,6 +872,8 @@ def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s, keep_in_c
         return row
 
     def advance(tab):
+        if guard:
+            guard.assert_valid()
         image, work = busy[tab]
         try:
             tab.bring_to_front()
@@ -957,15 +965,78 @@ def run_scheduler(tabs, todo, out_dir, ledger_path, ledger, timeout_s, keep_in_c
     return (1 if any(row["status"] != "done" for row in completed) else 0), completed
 
 
+def cooling_deadline(text: str, now=None):
+    """Interpret provider reset text in the browser host's local timezone.
+
+    Explicit ISO offsets are preserved; unrecognised/past times use +2h.
+    """
+    now = now or datetime.now().astimezone()
+    iso = re.search(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})", text)
+    if iso:
+        try:
+            value = datetime.fromisoformat(iso.group().replace("Z", "+00:00"))
+            if value > now:
+                return value.timestamp()
+        except ValueError:
+            pass
+    relative = re.search(r"(?:in|after)\s+(\d+)\s*(hours?|hrs?|minutes?|mins?)", text, re.I)
+    if relative:
+        seconds = int(relative[1]) * (3600 if relative[2].lower().startswith("h") else 60)
+        if seconds:
+            return now.timestamp() + seconds
+    clock = re.search(r"(?<![\dT])\b(\d{1,2}):(\d{2})\s*(AM|PM)?", text, re.I)
+    if clock and not iso:
+        hour, minute = int(clock[1]), int(clock[2])
+        if clock[3] and 1 <= hour <= 12:
+            hour = hour % 12 + (12 if clock[3].upper() == "PM" else 0)
+        if hour < 24 and minute < 60:
+            value = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if value <= now or "tomorrow" in text.lower():
+                value += timedelta(days=1)
+            return value.timestamp()
+    return now.timestamp() + 7200
+
+
+def lease_resource(args):
+    endpoint = urlparse(args.cdp_url)
+    host = getattr(args, "lease_host", None) or endpoint.hostname
+    if host in {"localhost", "127.0.0.1", "::1"}:
+        host = os.environ.get("ORG_HOST")
+    if not host or not re.fullmatch(r"[a-z0-9]{1,24}", host):
+        raise ValueError("pass --lease-host with the canonical host for this CDP endpoint")
+    port = endpoint.port or (443 if endpoint.scheme == "https" else 80)
+    return f"chatgpt:{host}:{port}"
+
+
 def cmd_run(args) -> int:
+    if not os.environ.get("LEASE_DB_URL"):
+        print("lease: off (LEASE_DB_URL unset)")
+        return _cmd_run(args)
+    if getattr(args, "dry_run", False):
+        return _cmd_run(args)
+    try:
+        name = lease_resource(args)
+        # Rate grants do not serialize active holders. Reserve the home mutex
+        # atomically too, without nested acquisition or partially spent credits.
+        with leases.lease_many([name, name.replace("chatgpt:", "home:", 1)],
+                               purpose="ChatGPT image run", wait_s=getattr(args, "wait_s", 600)) as guard:
+            return _cmd_run(args, guard=guard, resource=name)
+    except (leases.LeaseError, ValueError) as exc:
+        print(f"lease: {exc}", file=sys.stderr)
+        return 1
+
+
+def _cmd_run(args, guard=None, resource=None) -> int:
     started = time.monotonic()
     if getattr(args, "recover", None):
         out_dir = Path(args.out)
         ledger_path = out_dir / "ledger.json"
         ledger = load_ledger(ledger_path)
         browser = ChatGPTBrowser(cdp_url=args.cdp_url)
-        browser.attach()
         try:
+            if guard:
+                guard.assert_valid()
+            browser.attach()
             row = recover_one(browser, args.recover, out_dir, ledger_path, ledger)
         finally:
             browser.close()
@@ -1014,10 +1085,17 @@ def cmd_run(args) -> int:
     completed = []
     code = 1
     try:
+        if guard:
+            guard.assert_valid()
         browser.attach()
         tabs = [browser] + [browser.new_tab() for _ in range(getattr(args, "parallel", 1) - 1)]
+        options = {"guard": guard} if guard else {}
         code, completed = run_scheduler(tabs, todo, out_dir, ledger_path, ledger, args.timeout_s,
-                                        keep_in_chatgpt=getattr(args, "keep_in_chatgpt", False))
+                                        keep_in_chatgpt=getattr(args, "keep_in_chatgpt", False), **options)
+        if code == 5 and guard:
+            text = " ".join(row.get("note", "") for row in completed if row.get("hazard_kind") == "usage_limit")
+            guard.service.report_cooling(guard.request_id, guard.actor, guard.tokens,
+                                         resource, cooling_deadline(text))
     except Exception as exc:
         print(f"runner failed: {exc}")
     finally:
@@ -1052,6 +1130,8 @@ def build_parser() -> argparse.ArgumentParser:
                     help="keep Library files and chats after saving images locally")
     ap.add_argument("--cdp-url", default=CDP_DEFAULT,
                      help=f"default {CDP_DEFAULT} — the dedicated ChatGPT Chrome")
+    ap.add_argument("--lease-host", help="canonical host (required for loopback CDP unless ORG_HOST is set)")
+    ap.add_argument("--wait-s", type=float, default=600, help="lease wait budget in seconds (default 600)")
     ap.add_argument("--timeout-s", type=int, default=COMPLETION_TIMEOUT_S,
                      help="per-image generation timeout in seconds (default 360)")
     ap.add_argument("--parallel", type=int, choices=range(1, 5), default=1,
