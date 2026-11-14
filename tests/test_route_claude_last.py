@@ -118,6 +118,13 @@ def test_argon_leads_m_and_flash_leads_s(cfg):
     ("Fix the browser compatibility bug in src/app.js", False),  # the product's browser, not the worker's
     ("edit-only: text only\n\nCapture the footage in Chrome", False),
     ("python3 tools/agy_browse.py --cdp http://x screenshot the page", False),
+    # CEO order O-20261114-0950-9f08: a headless screenshot script is shell work, not a Claude browser tool
+    ("Playwright screenshots via node design/e2e-headless.cjs", False),
+    ("Take 844x390 screenshots with the headless e2e script (Playwright/node)", False),
+    ("Grab a screen capture of the page with ffmpeg", False),
+    ("use claude-in-chrome to take a screenshot", True),
+    ("Take a screenshot in Chrome and attach it", True),
+    ("Use the chrome mcp to take a screenshot of the dashboard", True),
 ])
 def test_needs_claude_tool(brief, want):
     assert forecast.needs_claude_tool(brief) is want
