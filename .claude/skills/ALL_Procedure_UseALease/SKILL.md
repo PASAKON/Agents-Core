@@ -16,7 +16,7 @@ Input: resource name, purpose and authenticated session · Output: guarded work 
 
 Source check: 2026-11-15, task-5d88f72b, merged `lib/lease.py`,
 `tools/lease.py`, `config/resources.yaml`, `lib/org_queue.py` and `lib/db.py`.
-The HTTP details below are requirements from the task brief, not verified route code.
+HTTP details: MoonieX-Console `src/relay/leases.js` (PR #72).
 
 ## Steps (numbered; each with the stop condition)
 
@@ -127,15 +127,16 @@ The HTTP details below are requirements from the task brief, not verified route 
    | 4 | Refused, stale, expired or terminal | Stop guarded work |
    | 5 | Hub unavailable | Stop; do not bypass coordination |
 
-4. **Use the Console gateway on hosts without DB credentials.** The task brief
-   specifies HTTP routes `/api/leases/acquire`, `/api/leases/renew`,
-   `/api/leases/release`, `/api/leases/wait`, `/api/leases/status`, off unless
-   `LEASE_CLI` is set. These are HTTP endpoints, not repository paths.
-   The referenced design document and Console implementation are absent from
-   this checkout as of 2026-11-15. Stop integration until the Console owner
-   supplies the verified methods, authentication and payload contract; do not
-   infer them from CLI flags or assume the routes are enabled. Use that
-   authenticated gateway once verified instead of installing DB credentials.
+4. **Use the Console gateway on hosts without DB credentials.** MoonieX-Console
+   (PR #72, merged 2026-11-14, `src/relay/leases.js`) serves `POST /api/leases/acquire`,
+   `/renew`, `/release`, `/wait` (JSON body) and `GET /api/leases/status?request_id=…`, behind
+   the same run-token auth and front door as `/api/relay/locks`. Bodies: acquire
+   `{name, purpose}` (+ optional `Idempotency-Key` header), renew/release `{request_id, token}`,
+   wait `{request_id, wait_s}` (0-60). Any other body field, including an owner, is refused
+   with 400: the owner comes from the authenticated credential, per credential class
+   (`console:org:worker`, `console:org:clevel`), not per launcher. HTTP status maps the CLI
+   exit code: 200=0, 400=2, 202=3, 409=4, 503=5. With `LEASE_CLI` unset on that Console the
+   routes answer 501 `leases_disabled`; stop then, never fall back to a private lock.
 
 5. **Read status before recovery.** Use the status command above with the same
    owner session. Read `state`, `reason`, `position`, `expires_at`, `token` and
@@ -170,7 +171,5 @@ Done means guarded work has stopped, release succeeded and status is terminal
 - 2026-11-15 source check: paid resources must fail closed; `validate_policy`
   rejects paid uncoordinated policies. Hub-down results or exceptions stop work;
   `MemoryStore` is a test fake, never a production fallback (`lib/lease.py`).
-- 2026-11-15 source check: Console HTTP contract cannot be verified in this
-  checkout; the task brief alone is insufficient for executable HTTP examples.
 
 ## Field notes
