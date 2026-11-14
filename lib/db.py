@@ -1362,12 +1362,16 @@ def acquire_lock(key: str, owner: str, ttl_seconds: int = 600) -> bool:
     ts = now_iso()
     expires = (datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)).isoformat(timespec="seconds")
     with get_conn() as conn:
-        existing = conn.execute("SELECT owner,expires_at FROM locks WHERE key=?", (key,)).fetchone()
-        if existing and existing["expires_at"] > ts and existing["owner"] != owner:
-            return False
-        conn.execute("INSERT OR REPLACE INTO locks (key,owner,expires_at) VALUES (?,?,?)",
-                     (key, owner, expires))
-    return True
+        # Check eligibility and grant together so concurrent callers cannot
+        # both observe a free (or expired) lock and overwrite each other.
+        granted = conn.execute(
+            "INSERT INTO locks (key,owner,expires_at) VALUES (?,?,?) "
+            "ON CONFLICT(key) DO UPDATE SET owner=excluded.owner, "
+            "expires_at=excluded.expires_at "
+            "WHERE locks.expires_at <= ? OR locks.owner = excluded.owner",
+            (key, owner, expires, ts),
+        ).rowcount == 1
+    return granted
 
 
 def release_lock(key: str, owner: str):
