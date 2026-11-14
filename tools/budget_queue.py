@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from tools import disk_queue, usage_budget
+from lib import org_queue
 
 try:
     import fcntl
@@ -68,6 +69,8 @@ def _save(entries, path):
 
 
 def all_entries(*, path=None):
+    if org_queue.enabled():
+        return org_queue.load("budget")
     return disk_queue.all_entries(path=path or QUEUE_PATH)
 
 
@@ -79,6 +82,8 @@ def _entry(task_id, owner_cto, tier):
 
 
 def enqueue(task_id, owner_cto, *, tier="normal", path=None):
+    if org_queue.enabled():
+        return org_queue.enqueue("budget", _entry(task_id, owner_cto, tier))
     path = path or QUEUE_PATH
     with _locked(path):
         entries = all_entries(path=path)
@@ -92,6 +97,9 @@ def enqueue(task_id, owner_cto, *, tier="normal", path=None):
 
 def requeue(task_id, owner_cto, *, tier="normal", path=None):
     """Move a task to the tail with a fresh queued_at, in one locked write."""
+    if org_queue.enabled():
+        org_queue.enqueue("budget", _entry(task_id, owner_cto, tier), replace=True)
+        return
     path = path or QUEUE_PATH
     with _locked(path):
         entries = [e for e in all_entries(path=path) if e["task_id"] != task_id]
@@ -100,10 +108,15 @@ def requeue(task_id, owner_cto, *, tier="normal", path=None):
 
 
 def is_queued(task_id, *, path=None):
+    if org_queue.enabled():
+        return any(e["task_id"] == task_id for e in all_entries())
     return disk_queue.is_queued(task_id, path=path or QUEUE_PATH)
 
 
 def pop(task_id, *, path=None):
+    if org_queue.enabled():
+        org_queue.take("budget", task_id)
+        return
     path = path or QUEUE_PATH
     with _locked(path):
         entries = all_entries(path=path)
