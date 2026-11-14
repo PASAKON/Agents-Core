@@ -88,6 +88,16 @@ class HubUnavailable(RuntimeError):
     """
 
 
+ORG_QUEUE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS org_queue (
+    queue TEXT NOT NULL,
+    task_id TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    enqueued_at TEXT NOT NULL,
+    PRIMARY KEY(queue, task_id)
+);
+"""
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS tasks (
     id              TEXT PRIMARY KEY,
@@ -770,7 +780,7 @@ def _pg_schema_current(conn) -> bool:
     this cannot read answers False, so the DDL runs and a new kind of
     statement in a schema script is never skipped by mistake."""
     names = []
-    for script in (db_pg.PG_SCHEMA, JOIN_TOKENS_SCHEMA, NODE_SECRETS_SCHEMA, PH_STATE_SCHEMA):
+    for script in (db_pg.PG_SCHEMA, JOIN_TOKENS_SCHEMA, NODE_SECRETS_SCHEMA, PH_STATE_SCHEMA, ORG_QUEUE_SCHEMA):
         for stmt in db_pg._split_statements(script):
             m = _PG_CREATE_RE.match(stmt)
             if m is None:
@@ -827,6 +837,7 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
             conn.execute(stmt)
     conn.executescript(JOIN_TOKENS_SCHEMA)
     conn.executescript(NODE_SECRETS_SCHEMA)
+    conn.executescript(ORG_QUEUE_SCHEMA)
     existing = {r["name"] for r in conn.execute(
         "PRAGMA table_info(tasks)").fetchall()}
     for col, coltype in _MIGRATION_COLUMNS:

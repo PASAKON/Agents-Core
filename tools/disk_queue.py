@@ -28,13 +28,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from lib import db
+from lib import db, org_queue
 
 ROOT = Path(__file__).resolve().parent.parent
 QUEUE_PATH = ROOT / "state" / "disk_queue.jsonl"
 
 
 def _load(path: Path | None = None) -> list[dict]:
+    if org_queue.enabled():
+        return org_queue.load("disk")
     p = path or QUEUE_PATH
     if not p.exists():
         return []
@@ -65,6 +67,9 @@ def enqueue(task_id: str, owner_cto: str | None, *,
     — a task can hit the disk-floor refusal more than once before the
     watchdog ever pops it, e.g. a caller retrying by hand). Returns its
     0-based position, i.e. how many tasks are ahead of it."""
+    if org_queue.enabled():
+        return org_queue.enqueue("disk", dict(task_id=task_id, owner_cto=owner_cto,
+                                               queued_at=db.now_iso()))
     entries = _load(path)
     for i, e in enumerate(entries):
         if e.get("task_id") == task_id:
@@ -100,6 +105,9 @@ def pop(task_id: str, *, path: Path | None = None) -> None:
     """Remove `task_id` from the queue, wherever it sits — the FIFO head in
     the normal drain path, but also a task cancelled/closed while it waited
     (dropped, never spawned). A no-op if it isn't queued."""
+    if org_queue.enabled():
+        org_queue.take("disk", task_id)
+        return
     entries = _load(path)
     kept = [e for e in entries if e.get("task_id") != task_id]
     if len(kept) != len(entries):

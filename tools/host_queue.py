@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 from datetime import datetime, timedelta, timezone
-from lib import db, safe_file
+from lib import db, safe_file, org_queue
 
 _DEFAULT_QUEUE_PATH = Path(__file__).resolve().parents[1] / "state" / "host_queue.jsonl"
 QUEUE_PATH = _DEFAULT_QUEUE_PATH
@@ -87,6 +87,8 @@ def _locked():
 
 def load() -> list[dict]:
     """The queued entries, oldest first; [] when there is no queue file. An unsafe file raises safe_file.Unsafe."""
+    if org_queue.enabled():
+        return org_queue.load("host")
     try:
         text = safe_file.read_text(QUEUE_PATH, QUEUE_LIMIT)
     except FileNotFoundError:
@@ -108,6 +110,9 @@ def _save(entries: list[dict]) -> None:
 
 
 def enqueue(task_id, owner_cto, *, host=None) -> int:
+    if org_queue.enabled():
+        return org_queue.enqueue("host", dict(task_id=task_id, owner_cto=owner_cto,
+                                               host=host, queued_at=db.now_iso()))
     with _locked():
         entries = load()
         ahead = 0
@@ -131,6 +136,8 @@ def enqueue(task_id, owner_cto, *, host=None) -> int:
 
 def remove(task_id: str) -> bool:
     """Remove `task_id` from the host queue if present. Returns True if removed."""
+    if org_queue.enabled():
+        return org_queue.take("host", task_id) is not None
     with _locked():
         entries = load()
         kept = [e for e in entries if e.get("task_id") != task_id]
@@ -145,6 +152,8 @@ async def drain(max_spawns: int = 3):
     """Scan queued entries in FIFO order and spawn up to `max_spawns` eligible tasks
     in a single pass so a blocked head-of-line entry never stalls tasks behind it."""
     from tools import delegate
+    if org_queue.enabled():
+        return await _drain_hub(max_spawns)
     with _locked():
         local_entries = load()
         seen_ids = {e["task_id"] for e in local_entries}
@@ -184,5 +193,31 @@ async def drain(max_spawns: int = 3):
             enqueue(tid, entry.get("owner_cto"), host=entry.get("host"))
         else:
             _hub_delete(tid)
+            spawned += 1
+    return last_row
+
+
+async def _drain_hub(max_spawns):
+    from tools import delegate
+    last_row = None
+    spawned = 0
+    for candidate in load():
+        if spawned >= max_spawns:
+            break
+        tid = candidate["task_id"]
+        entry = org_queue.take("host", tid)
+        if entry is None:
+            continue
+        try:
+            task = db.get_task(tid)
+            if not task or task["status"] != "pending":
+                continue
+            last_row = await delegate.delegate_task(tid, host=entry.get("host"))
+        except Exception:
+            org_queue.enqueue("host", entry)
+            raise
+        if last_row and last_row.get("status") == "pending":
+            enqueue(tid, entry.get("owner_cto"), host=entry.get("host"))
+        else:
             spawned += 1
     return last_row
