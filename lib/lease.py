@@ -590,17 +590,46 @@ class Service:
     def valid(self,request_id,actor,tokens):
         return self.store.run(lambda s,n,t:bool(self._authorized(s,n,request_id,actor,tokens)),readonly=True)
 
-    def renew(self,request_id,actor,tokens):
+    def renew(self,request_id,actor,tokens,*,ttl_s=None):
         def op(s,now,tx):
             self._reap(s,now)
             rows=self._authorized(s,now,request_id,actor,tokens)
             for w in rows:
                 r=s["resources"][w["resource"]]
                 h=r["holders"][w["request_id"]]
-                h["expires_at"]=min(now+2*r["policy"]["heartbeat_s"],h["started_at"]+r["policy"]["max_hold_s"])
+                duration = 2*r["policy"]["heartbeat_s"] if ttl_s is None else ttl_s
+                if duration <= 0:
+                    raise ValueError("ttl must be positive")
+                h["expires_at"]=min(now+duration,h["started_at"]+r["policy"]["max_hold_s"])
                 w["claim_until"]=h["expires_at"]
             self._schedule(s,now,tx)
             return bool(rows)
+        return self._mutate(op)
+
+    def held_resources(self, prefix):
+        """Read live holders for compatibility clients; never revive expired grants."""
+        def op(s, now, tx):
+            return [dict(key=name, owner=h["owner"], expiresAt=h["expires_at"],
+                         purpose=s["waiters"][rid]["purpose"],
+                         request_id=s["waiters"][rid]["group_id"], token=h["token"])
+                    for name, r in s["resources"].items() if name.startswith(prefix)
+                    for rid, h in r["holders"].items() if h["expires_at"] > now]
+        return self.store.run(op, readonly=True)
+
+    def report_cooling(self, request_id, actor, tokens, name, until=None):
+        """A current holder can only extend its own rate resource's cooling."""
+        def op(s, now, tx):
+            rows = self._authorized(s, now, request_id, actor, tokens)
+            if not any(w["resource"] == name for w in rows):
+                raise LeaseLost("cooling report requires a live grant")
+            r = s["resources"][name]
+            if r["policy"]["kind"] != "rate":
+                raise LeaseError("cooling requires a rate resource")
+            deadline = until if until is not None and until > now else now + 7200
+            r["cooling_until"] = max(r["cooling_until"], deadline)
+            _event(s, name, "cool", actor.session, now, request_id=request_id,
+                   payload={"reason": "provider quota", "until": deadline})
+            return deadline
         return self._mutate(op)
 
     def release(self,request_id,actor,tokens):

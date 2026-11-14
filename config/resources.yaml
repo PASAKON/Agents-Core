@@ -11,7 +11,10 @@ defaults:
   paid: false
   wake: {waiter: owner_session, fallback: owner_cto}
 resources:
-  - {pattern: 'chatgpt:<host>:<port>', alias: 'chrome:<host>:<port>', enabled: false}
+  # No reviewed image grant/window or per-port home policy in plans/hosts yet.
+  # Keep C2 opt-in disabled until C3 reconciles the Console's live holders.
+  - {pattern: 'chatgpt:<host>:<port>', kind: rate, rate_from: 'verified_quotas.chatgpt.<host>.<port>', max_hold_s: 1800, enabled: false}
+  - {pattern: 'home:<host>:<port>', kind: mutex, capacity: 1, max_hold_s: 1800, enabled: false}
   - {pattern: 'chrome:<host>:<port>', kind: mutex, capacity: 1, max_hold_s: 1800, enabled: false}
   - {pattern: 'host:<host>:workers', kind: pool, capacity_from: 'hosts.<host>.max_workers', max_hold_s: 3600}
   - {pattern: 'host:<host>:disk', kind: pool, capacity: 1, admission: fresh_disk_band, max_hold_s: 3600, enabled: false}
