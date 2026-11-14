@@ -749,7 +749,7 @@ def sqlite_connect(path: str | Path, *, row_factory: bool = True,
 # all. The key is the bytes of "org_init" read as a bigint.
 _PG_INIT_LOCK_KEY = int.from_bytes(b"org_init", "big")
 _PG_CREATE_RE = re.compile(
-    r"CREATE\s+(?:TABLE|(?:UNIQUE\s+)?INDEX)\s+IF\s+NOT\s+EXISTS\s+(\w+)",
+    r"CREATE\s+(?:TABLE|SEQUENCE|(?:UNIQUE\s+)?INDEX)\s+IF\s+NOT\s+EXISTS\s+(\w+)",
     re.IGNORECASE)
 
 
