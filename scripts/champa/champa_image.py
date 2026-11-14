@@ -65,15 +65,28 @@ class ImageGuard(QueueGuard):
     def record_submit(self, clip_id, label):
         super().record_submit(clip_id, label)
         # Persist the reservation before the potentially ambiguous browser click.
-        with self.ledger.open("rb") as stream:
+        with self.ledger.open("ab") as stream:
             os.fsync(stream.fileno())
 
 
 @contextmanager
 def ledger_lock(out):
-    import fcntl
     out.mkdir(parents=True, exist_ok=True)
     with (out / ".image_queue.lock").open("a") as stream:
+        if os.name == "nt":
+            import msvcrt
+            stream.seek(0)
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError:
+                raise Refused("another image runner owns this output directory")
+            try:
+                yield
+            finally:
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            return
+        import fcntl
         try:
             fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
@@ -96,12 +109,24 @@ class ImagePage(video.ComposerPage):
             has_text=re.compile(self.patterns[key], re.I)
         ).first
 
+    def dismiss_popups(self):
+        # Champa shows a "Latest Updates" modal that intercepts every click.
+        if not hasattr(self.page, "locator"):
+            return
+        close = self.page.locator('div.fixed.inset-0 button[aria-label="Close"] >> visible=true')
+        if close.count() == 1:
+            close.click()
+            self.page.wait_for_timeout(500)
+
     def configure(self, settings):
-        tab = self.page.get_by_role("tab", name="ภาพ", exact=True)
+        # The mode switch is a pair of plain buttons; the selected one carries a
+        # highlight <span class="absolute ...">, not aria-selected (live page 2026-11-14).
+        tab = self.page.get_by_role("button", name="ภาพ", exact=True).locator("visible=true")
         if tab.count() != 1:
             raise ValueError("image tab missing or ambiguous")
         tab.click()
-        if tab.get_attribute("aria-selected") != "true":
+        self.page.wait_for_timeout(800)
+        if tab.locator("span.absolute").count() < 1:
             raise ValueError("image tab did not read back")
         for key, value in settings.items():
             button = self.setting_button(key)
@@ -113,13 +138,17 @@ class ImagePage(video.ComposerPage):
                 raise ValueError("image setting did not read back")
 
     def submit_button(self):
-        button = self.page.locator('button:has-text("สร้าง") >> visible=true')
+        button = self.page.locator('button[aria-label="สร้าง"] >> visible=true')
         if button.count() != 1:
             raise ValueError("submit button missing or ambiguous")
         return button
 
     def read_label(self):
         return self.submit_button().inner_text().strip()
+
+    def wait(self, ms):
+        if hasattr(self.page, "wait_for_timeout"):
+            self.page.wait_for_timeout(ms)
 
     def click_submit(self):
         self.submit_button().click()
@@ -134,11 +163,17 @@ class ImagePage(video.ComposerPage):
             )
             if card.count() != 1:
                 continue
-            card.locator('button[aria-label="เพิ่มเติม"]').click()
+            more = card.locator('button[aria-label="เพิ่มเติม"]')
+            # The same prompt text also sits outside cards (e.g. a "More info"
+            # panel) whose nearest img+button ancestor is the whole history list.
+            if more.count() != 1:
+                continue
+            more.click()
             try:
                 link = self.page.locator('a[download]:has-text("ดาวน์โหลด") >> visible=true')
                 if link.count() == 1:
-                    return link.get_attribute("href")
+                    from urllib.parse import urljoin
+                    return urljoin(self.page.url, link.get_attribute("href"))
             finally:
                 self.page.keyboard.press("Escape")
         return None
@@ -162,6 +197,7 @@ def connect_over_cdp(endpoint):
         adapter = ImagePage(page, opened_by_script=owned)
         if owned:
             page.goto(video.COMPOSER_URL)
+        adapter.dismiss_popups()
         # Do not expose page URLs, including exception messages containing URLs.
         print(f"tab id={id(page)}")
         return adapter, (pw, browser)
@@ -259,9 +295,18 @@ def main(argv=None, adapter=None):
                 guard.record_submit(name, label)
                 spent += args.expected_credits
                 adapter.click_submit()
+                # Live 2026-11-14: clicks 2 s apart were silently dropped (1 of 6 made).
+                # Wait until the charge shows before the next item; no charge = stop.
                 after = video.parse_balance(adapter.read_balance())
+                for _ in range(getattr(adapter, "confirm_polls", 120)):
+                    if after is None or before - after >= args.expected_credits:
+                        break
+                    getattr(adapter, "wait", lambda ms: None)(1000)
+                    after = video.parse_balance(adapter.read_balance())
                 if after is None or before - after > args.expected_credits:
                     raise Refused("unexpected or unreadable balance after submit")
+                if before - after < args.expected_credits:
+                    raise Refused("submit not confirmed: balance unchanged")
                 adapter.clear_prompt()
             return 0
     except Refused as exc:
@@ -269,6 +314,7 @@ def main(argv=None, adapter=None):
         return 3
     except Exception:
         print("Image page, download, or ledger error; stopped safely", file=sys.stderr)
+        if os.environ.get("CHAMPA_DEBUG"): import traceback; traceback.print_exc(limit=4)
         return 4
     finally:
         video.cleanup_cdp(adapter, resources)

@@ -203,3 +203,11 @@ def test_fake_cdp_cleanup(existing, fail_navigation, monkeypatch, capsys):
     assert tab.closed is (not existing)
     assert stopped == [True]
     assert "https://" not in capsys.readouterr().out
+
+
+def test_unconfirmed_submit_stops(inputs):
+    # Live 2026-11-14: a click that charges nothing must stop the run, not move on.
+    page = FakePage(balances=[1026, 1026, 1026, 1026])
+    page.confirm_polls = 2
+    assert ci.main(inputs + ["--fire", "--max-credits", "6"], adapter=page) == 3
+    assert page.clicks == 1
