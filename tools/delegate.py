@@ -1468,8 +1468,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # The row wins whenever it holds a model: a task first routed to agy, deferred to budget_queue
     # and re-delegated to codex kept the stale agy model in the caller's dict, so codex was launched
     # with `-m gemini-4-argon-high` (task-3c5b39f1, 11 Nov: "model is not supported").
-    if fresh_task and fresh_task.get("runner_model") and fresh_task["runner_model"] != task.get("runner_model"):
-        task = {**task, "runner_model": fresh_task["runner_model"]}
+    if fresh_task:
+        task = _pair_runner_model(task, fresh_task)
 
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
     # means "claude" (every pre-migration row, unchanged). Validated here —
@@ -2057,6 +2057,36 @@ def _model_fits_runner(runner: str, model: str) -> bool:
     return True
 
 
+def _pair_runner_model(task: dict, row: dict) -> dict:
+    """The caller's `task` with a runner_model that belongs to its runner.
+
+    The router writes runner and runner_model to the row together; a caller
+    that kept the old dict holds a fresh runner (assigned from the router's
+    return) and a stale model. 14 Nov (task-4ca6899a): a codex pin with
+    gpt-6-astra:default was re-routed to agy and agy was launched with
+    `--model gpt-6-astra:default` (exit 1, "invalid model selection").
+
+    - Row and dict name the same runner: the row's model wins, empty included
+      (an empty model means the launcher's own default for that runner).
+    - Otherwise the row's model wins when it has one (11 Nov, task-3c5b39f1).
+    - A model left over that the runner cannot launch is dropped."""
+    runner = (task.get("runner") or "claude").strip().lower()
+    row_runner = (row.get("runner") or "").strip().lower()
+    row_model = row.get("runner_model")
+    model = task.get("runner_model")
+    if row_runner and row_runner == runner:
+        model = row_model
+    elif row_model:
+        model = row_model
+    if model and not _model_fits_runner(runner, model):
+        warn(f"runner_model {model!r} does not fit runner {runner}; not launched with it "
+             f"task={task.get('id')}")
+        model = None
+    if model == task.get("runner_model"):
+        return task
+    return {**task, "runner_model": model}
+
+
 def _pinned_agy_exhausted(task: dict) -> bool:
     """True when the task is pinned to AGY and that bucket has 0 weekly left or a limit hit."""
     if (task.get("runner") or "") != "agy":
@@ -2085,6 +2115,9 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         router_off = os.environ.get("ORG_ROUTER", "").strip().lower() == "off"
         pinned = bool(task.get("runner")
                       or (task.get("model_hint") or "").strip().lower() == "claude")
+        # A C-level's hand pin: a runner AND a runner_model on the row.
+        old_runner, old_model = task.get("runner"), task.get("runner_model")
+        manual_pin = bool(old_runner and old_model)
         if router_off:
             _log_router_off(task, pinned)
         if router_off:
@@ -2129,14 +2162,22 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         if choice.defer:
             return "defer"
         line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"
+        new_model = ((choice.model or "gpt-6-astra:default")
+                     if choice.runner == "codex" else choice.model)
         # set_fields, not update_status: the status must not be rewritten
         # from this (possibly stale) dict or logged as a transition.
         db.set_fields(task["id"], runner=choice.runner,
-                      runner_model=(choice.model or "gpt-6-astra:default")
-                      if choice.runner == "codex" else choice.model,
+                      runner_model=new_model,
                       delegate_log=line,
                       actor="cto")
         info(line)
+        if manual_pin and (old_runner, old_model) != (choice.runner, new_model):
+            warn(f"router: manual pin {old_runner}:{old_model} re-routed to "
+                 f"{choice.runner}:{new_model} task={task.get('id')}")
+        # The pair travels together (14 Nov, task-4ca6899a): a caller holding
+        # this dict must never launch the new runner with the old model.
+        task["runner"] = choice.runner
+        task["runner_model"] = new_model
         return choice.runner
     except Exception as e:
         warn(f"router skipped task={task.get('id')}: {e}")
@@ -2567,6 +2608,9 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         return db.get_task(task_id)
     if routed:
         task["runner"] = routed
+        # The router wrote runner and runner_model together; take both, never
+        # a fresh runner with the model the dict held before (task-4ca6899a).
+        task = _pair_runner_model(task, db.get_task(task_id) or {})
     if host_line:
         _keep_host_line(task_id, host_line)
 
@@ -2592,6 +2636,9 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         row_model = None
     if resolved_runner == "codex" and not row_model:
         db.set_fields(task_id, runner_model="gpt-6-astra:default", actor="cto")
+        row_model = "gpt-6-astra:default"
+    if task.get("runner_model") != row_model:
+        task = {**task, "runner_model": row_model}
 
     # ADDENDUM 3 (CTO 2026-09-07) — CEO rule: one browser_operator, one
     # Chrome tab, never a pile-up. Four operators sharing the Mac's Chrome
