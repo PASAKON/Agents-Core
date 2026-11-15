@@ -97,7 +97,7 @@ def _record(status: str = "pending", **extra) -> tuple[int, dict]:
         "options": [{"label": "Tonight", "recommended": True},
                     {"label": "Tomorrow 09:00", "recommended": False}],
         "recommended": 0, "free_text": True,
-        "requester": {"session": "cto-3c1f65ae", "role": "cto", "host": "contabo"},
+        "requester": {"session": "cto-3c1f65ae", "role": "cto", "lane": "cto", "host": "contabo"},
         "created_via": "clevel", "status": status, "sha256": SHA,
         "expires_at": "2026-10-14T11:02:00Z", "created_at": "2026-10-13T11:02:00Z",
         "finished_at": None, "letter_at": None, "answer": None, **extra})
@@ -116,10 +116,10 @@ def test_dry_run_body_is_the_contract_example_and_calls_nothing(hub, monkeypatch
         "question": QUESTION, "why": "one line of context",
         "options": [{"label": "Tonight", "recommended": True}, {"label": "Tomorrow 09:00"}],
         "free_text": True, "expires_in_s": 86400,
-        "requester": {"session": "cto-3c1f65ae", "role": "cto", "host": "contabo"},
+        "requester": {"session": "cto-3c1f65ae", "role": "cto", "lane": "cto", "host": "contabo"},
     }
     assert list(body) == ["question", "why", "options", "free_text", "expires_in_s", "requester"]
-    assert list(body["requester"]) == ["session", "role", "host"]
+    assert list(body["requester"]) == ["session", "role", "lane", "host"]
     assert "nothing sent" in err and "/api/run/questions" in err
     assert hub.requests == []
 
@@ -155,7 +155,7 @@ def test_options_flags_and_limits_shape_the_body(capsys):
 def test_task_comes_from_the_mcp_param_and_sits_last_in_the_requester(srv):
     text = _org(srv, "ask_ceo", {**_mcp_args({"recommended": 1}), "task": "task-4a53167b"})
     assert json.loads(text)["payload"]["requester"] == {
-        "session": "cto-t", "role": "cto", "host": "contabo", "task": "task-4a53167b"}
+        "session": "cto-t", "role": "cto", "lane": "cto", "host": "contabo", "task": "task-4a53167b"}
 
 
 def test_create_posts_the_body_and_prints_id_and_url(hub, capsys):
@@ -168,7 +168,7 @@ def test_create_posts_the_body_and_prints_id_and_url(hub, capsys):
     (req,) = hub.requests
     assert (req["method"], req["path"], req["auth"]) == ("POST", "/api/run/questions", f"Bearer {hub.token}")
     assert req["body"]["options"][0] == {"label": "Tonight", "recommended": True}
-    assert req["body"]["requester"] == {"session": "cto-t", "role": "cto", "host": "contabo"}
+    assert req["body"]["requester"] == {"session": "cto-t", "role": "cto", "lane": "cto", "host": "contabo"}
     assert hub.token not in out + err
     # the body that left the box is the body --dry-run showed
     assert ask_run.main(_argv({"recommended": 1})) == 0
@@ -376,7 +376,7 @@ def test_the_session_env_supplies_the_requester(monkeypatch, capsys):
     assert ask_run.main(["ask", "--dry-run", "--question", QUESTION, "--option", "A", "--option", "B",
                          "--why", "x"]) == 0
     assert json.loads(capsys.readouterr().out)["requester"] == {
-        "session": "cto-6ebacd0e", "role": "cto", "host": "mac"}
+        "session": "cto-6ebacd0e", "role": "cto", "lane": "cto", "host": "mac"}
 
 
 # ------------------------------------------------------------ requester.host
@@ -690,9 +690,9 @@ def test_cancel_of_an_answered_question_reports_the_hubs_409(hub, capsys):
 def test_list_questions_passes_the_filter_and_prints_rows(hub, capsys):
     hub.on("GET", "/api/run/questions", (200, {"questions": [
         {"id": QID, "status": "pending", "question": QUESTION, "expires_at": "2026-10-14T11:02:00Z",
-         "requester": {"session": "cto-3c1f65ae", "role": "cto", "host": "contabo"}},
+         "requester": {"session": "cto-3c1f65ae", "role": "cto", "lane": "cto", "host": "contabo"}},
         {"id": "Q-20261012-0900-0001", "status": "answered", "question": "x" * 100,
-         "requester": {"session": "cto-3c1f65ae", "role": "cto", "host": "contabo"}},
+         "requester": {"session": "cto-3c1f65ae", "role": "cto", "lane": "cto", "host": "contabo"}},
     ]}))
     assert ask_run.main(["list", "--questions", "--status", "pending", "--limit", "5"]) == 0
     out = capsys.readouterr().out.splitlines()
@@ -782,7 +782,7 @@ def test_org_server_exposes_ask_ceo_with_the_one_rule_in_plain_words(srv):
     assert "questions=[{question, why, options, recommended, free_text}, ...] (1-6)" in tool.description
     assert set(tool.inputSchema["properties"]) == {
         "question", "options", "why", "recommended", "free_text", "expires_h", "session", "role",
-        "host", "task", "dry_run", "questions", "media", "pick"}
+        "host", "task", "dry_run", "questions", "media", "pick", "what", "does", "impact"}
     assert "q-" in " ".join(tools["ask_run_wait"].description.lower().split())
     assert "answer" not in " ".join(tools) and "answer" not in tools["ask_ceo"].name
 
@@ -867,7 +867,7 @@ def test_org_ask_ceo_takes_the_requester_from_the_session_env(srv, monkeypatch):
     monkeypatch.setenv("ORG_HOST", "contabo")
     text = _org(srv, "ask_ceo", {"question": QUESTION, "options": OPTIONS, "why": "x", "dry_run": True})
     assert json.loads(text)["payload"]["requester"] == {
-        "session": "cto-6ebacd0e", "role": "cto", "host": "contabo"}
+        "session": "cto-6ebacd0e", "role": "cto", "lane": "cto", "host": "contabo"}
 
 
 def test_org_ask_ceo_posts_and_returns_id_url_expiry(srv, hub, capsys):
@@ -1223,7 +1223,7 @@ def test_batch_dry_run_is_one_group_body_with_each_item_checked_like_a_lone_ask(
              "options": [{"label": "Yes"}, {"label": "No"}], "free_text": False},
         ],
         "expires_in_s": 86400,
-        "requester": {"session": "cto-t", "role": "cto", "host": "contabo"},
+        "requester": {"session": "cto-t", "role": "cto", "lane": "cto", "host": "contabo"},
     }
 
 

@@ -101,7 +101,7 @@ def test_ask_run_env_box_supports_agy_conversation_id():
         None,
         env={"AGY_CONVERSATION_ID": CONV_UUID, "AGY_ROLE": "cmo"},
     )
-    assert req == {"session": "cmo-agy-aced3034", "role": "cmo"}
+    assert req == {"session": "cmo-agy-aced3034", "role": "cmo", "lane": "cmo"}
 
 
 def test_passthrough_create_injects_identity_registers_session_and_spawns_watcher(tmp_path, monkeypatch):
@@ -388,7 +388,7 @@ def test_ask_run_auto_binds_agy_session_from_antigravity_conversation_id(tmp_pat
 
     env = {"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID, "ORG_HOST": "mac"}
     req = ask_run.resolve_requester(None, None, None, env=env)
-    assert req == {"session": "cto-agy-aced3034", "role": "cto"}
+    assert req == {"session": "cto-agy-aced3034", "role": "cto", "lane": "cto"}
 
     ask_run._auto_bind_agy_session({"requester": req}, "RUN-20261108-1700-cafe", env=env)
     saved = agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)

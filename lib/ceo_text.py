@@ -82,3 +82,18 @@ def check_ceo_text(fields: Mapping[str, Any] | Iterable[Any]) -> None:
     if over:
         raise TooLong(f"the CEO reads ≤{MAX_LINES} lines of ≤{MAX_CHARS} chars (got {' and '.join(over)}); "
                       "put the detail in a file and link it")
+
+
+def trim_ceo_text(fields: Mapping[str, Any]) -> dict[str, str]:
+    """Fit legacy detail under a brief; callers must validate the full text first."""
+    result = {}
+    remaining = MAX_LINES
+    for name, text in _pairs(fields):
+        lines = _BREAK.split(text)
+        kept = lines[:remaining]
+        kept = [line if len(line) <= MAX_CHARS else line[:MAX_CHARS - 1] + "…" for line in kept]
+        if len(lines) > remaining and kept:
+            kept[-1] = kept[-1][:MAX_CHARS - 1].rstrip("…") + "…"
+        result[name] = "\n".join(kept)
+        remaining -= len(kept)
+    return result
