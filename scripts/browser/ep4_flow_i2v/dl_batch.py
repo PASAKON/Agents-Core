@@ -18,8 +18,12 @@ d=D(); res={}
 try:
     p=d.page; home="https://flow.google.com/project/fc0fa309-571a-4584-a099-710123b78c80"
     for shot in sys.argv[1:]:
-        if p.url.rstrip("/")!=home: p.goto(home,wait_until="domcontentloaded"); p.wait_for_timeout(3500)
-        r=p.evaluate(MARK,snip(shot)); print(shot,"card:",r,flush=True)
+        p.goto(home,wait_until="domcontentloaded"); p.wait_for_timeout(3500)
+        r=p.evaluate(MARK,snip(shot))
+        for _i in range(12):
+            if r!="nocard": break
+            p.mouse.move(500,300); p.mouse.wheel(0,600); p.wait_for_timeout(700); r=p.evaluate(MARK,snip(shot))
+        print(shot,"card:",r,flush=True)
         if r=="nocard": res[shot]="nocard"; continue
         import json as _j; st=_j.loads(r)
         if st["bad"]: res[shot]="refused"; continue

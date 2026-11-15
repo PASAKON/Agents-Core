@@ -15,11 +15,18 @@ JS=r"""(sn)=>{ const w=document.createTreeWalker(document.body,NodeFilter.SHOW_T
   if(/ล้มเหลว|ละเมิดนโยบาย/.test(t)) return 'refused:'+t.replace(/\s+/g,' ').slice(0,260);
   if(/\d+%/.test(t.slice(0,40))) return 'pending';
   return 'done' }"""
+def find(p,sn):
+    r=p.evaluate(JS,sn)
+    for i in range(10):
+        if r!="nocard": return r
+        p.mouse.move(500,300); p.mouse.wheel(0,600); p.wait_for_timeout(700); r=p.evaluate(JS,sn)
+    p.evaluate("window.scrollTo(0,0)"); p.mouse.wheel(0,-9000); p.wait_for_timeout(500)
+    return r
 d=D()
 try:
     p=d.page; shots=sys.argv[1:]; t0=time.time(); res={}
     while True:
-        res={s:p.evaluate(JS,snip(s)) for s in shots}
+        res={s:find(p,snip(s)) for s in shots}
         if all(not v.startswith("pending") for v in res.values()) or time.time()-t0>540: break
         p.wait_for_timeout(15000)
     print(json.dumps(res,ensure_ascii=False))
