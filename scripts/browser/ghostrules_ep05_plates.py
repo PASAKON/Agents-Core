@@ -36,6 +36,7 @@ GUARD = ("Old suburban Thai hospital, intact building and rooms, no cracks, no c
          "Adults only (18+) if any person appears. Stylised folk-horror paper art, no gore, no blood. "
          "Pale neutral skin tone. No red face. No red ears. No red cheeks.")
 
+DRY = ("DRY ground: dry pale paved road and dry stone steps, matte surfaces, no puddles, no wet or shiny ground, no reflections on the ground, no water anywhere outdoors.")
 NON = ("Non, a slim 28-year-old Thai man with short black hair, pale teal scrub shirt, navy trousers, "
        "white sneakers (he appears exactly once in the picture)")
 CHOD = ("Lung Chod, a thin 62-year-old Thai man with cropped grey hair, olive-brown work jacket, grey "
@@ -181,9 +182,9 @@ B = {
  "S17-06": [f"{SEPIA} Reconstruction: the same former orderly's hands unwinding the iron chain from the ninth locker, links falling slack, his face turned away.",
             f"{SEPIA} Close on hands lifting a loosened chain link off a locker door, the padlock hanging open."],
  "S18-01": [f"Non receiving two plain pale-grey banknotes from {CHOD} across the duty desk, notes blank without printing, his shift ending, morning light (each named person exactly once). {NON}."],
- "S18-02": [f"Non walking out of the old hospital's main entrance into pale grey-white morning, intact building behind him, short stairs, sky flat pale paper, not red, no moon. {NON}.",
-            f"Close on Non's back and shoulders as he walks away down the road beyond the hospital gate, small bag over his shoulder, the intact building edge behind. {NON}.",
-            f"Reverse angle from the gate looking back at the intact hospital entrance with Non descending the stairs toward the camera. {NON}."],
+ "S18-02": [f"Non walking out of the old hospital's main entrance into a dry pale grey-white morning, intact building behind him, short stairs, sky flat pale paper, not red, no moon. {DRY} {NON}.",
+            f"Close on Non's back and shoulders as he walks away down the road beyond the hospital gate, small bag over his shoulder, the intact building edge behind him. {DRY} {NON}.",
+            f"Reverse angle from the gate looking back at the intact hospital entrance with Non descending the stairs toward the camera. {DRY} {NON}."],
  "S18-05": [f"Closing warning vignette: an anonymous hand reaching toward the chained ninth locker and stopping a hand's width from the padlock, the chain still. The hand and cuff only.",
             "Close on a hand held back from the chained locker, fingers open, red talisman strip in the corner, chain still. Hand only."],
 }
