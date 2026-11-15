@@ -1,6 +1,10 @@
 from drv import *
 import sys,re
-shot=sys.argv[1]; CAP=60
+shot=sys.argv[1]; CAP=60  # per-clip hard cap
+# task-255aea73 cap: read from task, not hard-coded. START_BAL = balance before the first shot of this task;
+# TASK_CAP = 5760 (96 x 60); FLOOR = never let the balance drop under 1000. Override via env.
+import os
+TASK_CAP=int(os.environ.get("TASK_CAP","5760")); START_BAL=int(os.environ.get("START_BAL","6810")); FLOOR=int(os.environ.get("BAL_FLOOR","1000"))
 d=D()
 def bal(p):
     p.locator('[aria-label="รายละเอียดบัญชี"]').first.click(force=True); p.wait_for_timeout(1800)
@@ -22,8 +26,10 @@ try:
     p.keyboard.press("Escape"); p.wait_for_timeout(500)
     m=re.search(r"Omni 1\.2 Flash.*ความยาว \| 15 วินาที.*การสร้างจะใช้ (\d+) เครดิต",pn); assert m,"settings: "+pn
     est=int(m.group(1)); assert est<=CAP,f"estimate {est}"
+    bar=p.evaluate("(()=>{let e=document.querySelector('[contenteditable=true]'); for(let i=0;i<8&&e;i++){ if((e.innerText||'').includes('720p')) return e.innerText; e=e.parentElement } return ''})()").replace(chr(10)," ")
+    print("bar:",bar[-120:]); assert "720p" in bar and "15 วินาที" in bar and "x1" in bar, "not 720p/15s/x1: "+bar[-120:]
     b0=bal(p); print("balance before",b0,"estimate",est)
-    assert b0 and b0>=est and (6930-(b0-est))<=180, "total cap"
+    assert b0 and b0>=est and (START_BAL-(b0-est))<=TASK_CAP and (b0-est)>=FLOOR, f"total cap/floor: b0={b0} est={est} start={START_BAL} cap={TASK_CAP} floor={FLOOR}"
     btn=p.locator('button[aria-label="เริ่มสร้าง"]').first
     print("CLICK submit"); btn.click(timeout=8000)
     p.wait_for_timeout(12000)
