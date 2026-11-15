@@ -123,17 +123,17 @@ def _write_snapshot(tmp_path: Path, agy_claude_weekly: float, agy_gemini_weekly:
     return snap
 
 
-def test_select_model_chain_prefers_sonnet_when_agy_claude_available(tmp_path):
+def test_select_model_chain_prefers_argon_when_agy_gemini_available(tmp_path):
     snap = _write_snapshot(tmp_path, agy_claude_weekly=0.94, agy_gemini_weekly=0.96)
     chain = ph_brain.select_model_chain(snapshot_path=snap)
-    assert chain[0] == "claude-sonnet-5-5-high"
-    assert chain[1] == "gemini-4-argon-high"
-
-
-def test_select_model_chain_falls_back_to_argon_when_agy_claude_exhausted(tmp_path):
-    snap = _write_snapshot(tmp_path, agy_claude_weekly=0.0, agy_gemini_weekly=0.96)
-    chain = ph_brain.select_model_chain(snapshot_path=snap)
     assert chain[0] == "gemini-4-argon-high"
+    assert chain[1] == "claude-sonnet-5-5-high"
+
+
+def test_select_model_chain_falls_back_to_sonnet_when_agy_gemini_exhausted(tmp_path):
+    snap = _write_snapshot(tmp_path, agy_claude_weekly=0.94, agy_gemini_weekly=0.0)
+    chain = ph_brain.select_model_chain(snapshot_path=snap)
+    assert chain[0] == "claude-sonnet-5-5-high"
 
 
 def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch, tmp_path):
@@ -154,7 +154,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
                 "raw_stdout": "",
                 "raw_stderr": "",
             }
-        if len(calls) == 2 and model == "claude-sonnet-5-5-high":
+        if len(calls) == 2 and model == "gemini-4-argon-high":
             # Simulate mid-flight quota exhaustion on Sonnet 5.5 High
             return {
                 "ok": False,
@@ -179,7 +179,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
 
     monkeypatch.setattr(ph_brain, "invoke_agy", fake_invoke)
 
-    # Turn 1: starts with claude-sonnet-5-5-high
+    # Turn 1: starts with gemini-4-argon-high
     r1 = ph_brain.run_turn(
         ph_id="7cf12345",
         project="VideoPipeline",
@@ -190,7 +190,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
         snapshot_path=snap,
     )
     assert r1["ok"] is True
-    assert r1["model_used"] == "claude-sonnet-5-5-high"
+    assert r1["model_used"] == "gemini-4-argon-high"
     assert r1["conversation_id"] == "11111111-2222-3333-4444-555555555555"
     assert r1.get("fallback_triggered") is False
     assert r1["claude_code_tokens_used"] == 0
@@ -203,7 +203,7 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
         snapshot_path=snap,
     )
     assert r2["ok"] is True
-    assert r2["model_used"] == "gemini-4-argon-high"
+    assert r2["model_used"] == "claude-sonnet-5-5-high"
     assert r2["conversation_id"] == "11111111-2222-3333-4444-555555555555"
     assert r2.get("fallback_triggered") is True
     assert r2["turn_count"] == 2
@@ -212,15 +212,15 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
     # Verify both Turn 2 attempts passed the exact same conversation_id from Turn 1
     assert calls[1]["conversation_id"] == "11111111-2222-3333-4444-555555555555"
     assert calls[2]["conversation_id"] == "11111111-2222-3333-4444-555555555555"
-    assert calls[2]["model"] == "gemini-4-argon-high"
+    assert calls[2]["model"] == "claude-sonnet-5-5-high"
 
     saved = ph_brain.load_brain_state("7cf12345", brains_dir=brains_dir)
-    assert saved["active_model"] == "gemini-4-argon-high"
+    assert saved["active_model"] == "claude-sonnet-5-5-high"
     assert len(saved["fallback_events"]) == 1
-    assert saved["fallback_events"][0]["from_model"] == "claude-sonnet-5-5-high"
-    assert saved["fallback_events"][0]["to_model"] == "gemini-4-argon-high"
+    assert saved["fallback_events"][0]["from_model"] == "gemini-4-argon-high"
+    assert saved["fallback_events"][0]["to_model"] == "claude-sonnet-5-5-high"
 
-    # Turn 3: since Turn 2 already swapped to gemini-4-argon-high, Turn 3 stays on gemini-4-argon-high directly
+    # Turn 3: since Turn 2 already swapped to claude-sonnet-5-5-high, Turn 3 stays on claude-sonnet-5-5-high directly
     r3 = ph_brain.run_turn(
         ph_id="7cf12345",
         message="Turn 3 follow-up",
@@ -228,8 +228,8 @@ def test_run_turn_persists_conversation_and_auto_falls_back_on_limit(monkeypatch
         snapshot_path=snap,
     )
     assert r3["ok"] is True
-    assert r3["model_used"] == "gemini-4-argon-high"
-    assert calls[3]["model"] == "gemini-4-argon-high"
+    assert r3["model_used"] == "claude-sonnet-5-5-high"
+    assert calls[3]["model"] == "claude-sonnet-5-5-high"
     assert len(calls) == 4
 
 
@@ -251,7 +251,7 @@ def test_ensure_browser_agy_brief_passes_route_class_for():
         dry_run=True,
     )
     assert res["runner"] == "agy"
-    assert res["runner_model"] == "gemini-3.8-flash-high"
+    assert res["runner_model"] == "gemini-4-hydrogen-medium"  # CEO 15 Nov Q-20261115-1304-7ee7
 
 
 
@@ -445,7 +445,7 @@ def test_wake_lane_clevel_letters_the_lane_owner(monkeypatch):
 
 
 def test_ph_brain_chain_is_one_model_per_agy_lane_then_luna():
-    assert [m for m, _ in ph_brain.MODEL_CHAIN] == ['claude-sonnet-5-5-high', 'gemini-4-argon-high']
+    assert [m for m, _ in ph_brain.MODEL_CHAIN] == ['gemini-4-argon-high', 'claude-sonnet-5-5-high']  # CEO 15 Nov Q-20261115-1304-7ee7
     assert ph_brain.codex_config() == ('gpt-6-luna', 'high')
 
 

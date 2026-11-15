@@ -46,12 +46,15 @@ QUOTA_SNAPSHOT = ROOT / "state" / "quota-snapshot.json"
 # CEO 12 Nov: AGY has two usage lanes (Claude models, Google models); one model per lane,
 # then Codex Luna high (c_level_openai), then Claude Code Sonnet 5.5 high (invoke_claude). Opus/Flash share a lane with Sonnet/Argon, so
 # trying them after a limit only repeats the same 429.
-PRIMARY_MODEL = "claude-sonnet-5-5-high"
-FALLBACK_MODEL = "gemini-4-argon-high"
+# CEO 15 Nov Q-20261115-1304-7ee7: Argon High first, AGY Sonnet High second.
+PRIMARY_MODEL = "gemini-4-argon-high"
+FALLBACK_MODEL = "claude-sonnet-5-5-high"
+# A worker a PH sends to agy with no model: Argon High (the Gemini bucket), whatever the brain runs on.
+WORKER_AGY_MODEL = "gemini-4-argon-high"
 
 MODEL_CHAIN: tuple[tuple[str, str], ...] = (
-    ("claude-sonnet-5-5-high", "agy-claude"),
     ("gemini-4-argon-high", "agy-gemini"),
+    ("claude-sonnet-5-5-high", "agy-claude"),
 )
 
 MODEL_TO_BUCKET: dict[str, str] = {
@@ -66,6 +69,8 @@ MODEL_TO_BUCKET: dict[str, str] = {
     "gemini-4-argon-low": "agy-gemini",
     "gemini-3.8-flash-medium": "agy-gemini",
     "gemini-3.8-flash-low": "agy-gemini",
+    **{f"gemini-4-{m}-{e}": "agy-gemini" for m in ("hydrogen", "carbon") for e in ("low", "medium", "high")},
+    "gemini-4-hydrogen-xhigh": "agy-gemini",
 }
 
 LIMIT_PATTERNS: tuple[str, ...] = (
@@ -365,7 +370,7 @@ def build_initial_prompt(
         f"Core rules:\n"
         f"1. Plan milestones, keep full continuity across all turns/shots, and delegate hands-on execution to workers.\n"
         f"2. Never use Claude Code worker quota when Claude is exhausted; leave a worker's runner empty so the router picks it: it skips an exhausted AGY bucket and falls to Codex. Pin AGY only when its quota is not at 0%.\n"
-        f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-3.8-flash-high`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
+        f"3. Browser & Computer Use 80/20 rule: for routine browser jobs (Champa port 9280, Higgsfield port 9281, XM port 9224), always include `tools/agy_browse.py` and `http://127.0.0.1:<port>` in the brief so the router sends `browser_operator` to `agy:gemini-4-hydrogen-medium`; use `gemini-4-argon-high` to inspect screenshots (`shot` + `read_file`).\n"
         f"4. Keep responses concise, structured, and actionable.\n"
         f"5. {PLANNER_RULE}\n"
         f"{continuity_block}\n"
@@ -883,14 +888,14 @@ def delegate_from_ph(
         print(f"warn: runner_model {runner_model!r} does not fit runner {runner}; dropped", file=sys.stderr)
         runner_model = None
     if not runner_model and runner == "agy":
-        runner_model = FALLBACK_MODEL
+        runner_model = WORKER_AGY_MODEL
     state = load_brain_state(ph_id)
     resolved_project = _PROJECT_ALIASES.get((project or "").strip().lower(), project)
     resolved_host = (host or "").strip() or ("winbox" if resolved_project == "cookierun-bot" else None)
     if role == "browser_operator" and runner == "agy":
         brief = ensure_browser_agy_brief(brief)
-        if runner_model == FALLBACK_MODEL:
-            runner_model = "gemini-3.8-flash-high"
+        if runner_model == WORKER_AGY_MODEL:
+            runner_model = "gemini-4-hydrogen-medium"  # CEO 15 Nov Q-20261115-1304-7ee7
     touches_json = json.dumps(touches or [])
     if dry_run:
         return {

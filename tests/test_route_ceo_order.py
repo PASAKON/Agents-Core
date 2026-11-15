@@ -86,5 +86,5 @@ def test_live_plans_yaml_runs_argon_codex_claude():
     assert cfg["router"]["order"] == "budget"  # CEO order + daily target (UsageBudget, 22 Oct)
     for cls in ("tests_edit", "analysis", "doc_text"):
         cands = cfg["roles"][cls]
-        assert cands[0] == ARGON, cls
+        assert cands[0].startswith("agy:gemini-4-argon-"), cls  # tests_edit: Argon Medium (CEO 15 Nov)
         assert cands.index(CODEX) < cands.index(SONNET) == len(cands) - 1, cls
