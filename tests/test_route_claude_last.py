@@ -132,16 +132,18 @@ def test_needs_claude_tool(brief, want):
 
 def test_live_plans_yaml():
     cfg = load_plans()
-    assert cfg["roles"]["dev_general"][:2] == ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high"]
-    assert cfg["roles"]["dev_shell"][:2] == ["agy:claude-opus-5-5-medium", "agy:gemini-4-argon-high"]
+    # CEO 15 Nov Q-20261115-1304-7ee7: Argon leads dev, Opus backs it up; Hydrogen takes small and bulk work.
+    assert cfg["roles"]["dev_general"][:2] == ["agy:gemini-4-argon-high", "agy:claude-opus-5-5-medium"]
+    assert cfg["roles"]["dev_shell"][:2] == ["agy:gemini-4-argon-high", "agy:claude-opus-5-5-medium"]
     assert "agy" in cfg["shell_runners"]
     assert cfg["roles"]["doc_text"][0] == "agy:gemini-4-argon-high"
-    assert cfg["roles"]["browser_agy"][0] == "agy:gemini-3.8-flash-high"
-    assert cfg["small_first"]["dev_general"] == "agy:gemini-3.8-flash-high"
-    assert cfg["role_classes"]["content_strategist"] == "doc_text"
+    assert cfg["roles"]["browser_agy"][0] == "agy:gemini-4-hydrogen-medium"
+    assert cfg["small_first"]["dev_general"] == "agy:gemini-4-hydrogen-high"
+    assert cfg["role_classes"]["content_strategist"] == "content_text"
     assert cfg["role_classes"]["script_writer"] == "doc_text"
+    assert cfg["roles"]["complex"][0] == "agy:gemini-4-carbon-high"
     # CEO 11 Nov (CMO chat): CMO-lane shell roles route AGY -> codex -> Claude.
-    assert cfg["role_classes"]["prompt_engineer"] == "dev_shell"
+    assert cfg["role_classes"]["prompt_engineer"] == "prompt_shell"
     assert cfg["role_classes"]["video_editor"] == "dev_shell"
 
 

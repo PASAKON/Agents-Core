@@ -81,5 +81,5 @@ def test_pick_runner_leaves_a_plain_browser_brief_on_claude(cfg, quotas, monkeyp
 
 def test_real_plans_yaml_has_the_class_and_keeps_browser_roles_out_of_role_classes():
     real = load_plans()
-    assert real["roles"]["browser_agy"] == ["agy:gemini-3.8-flash-high"]
+    assert real["roles"]["browser_agy"] == ["agy:gemini-4-hydrogen-medium", "agy:gemini-3.8-flash-high"]  # CEO 15 Nov Q-20261115-1304-7ee7
     assert "browser_operator" not in (real.get("role_classes") or {})
