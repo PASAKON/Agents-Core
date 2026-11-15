@@ -198,7 +198,7 @@ def test_the_card_is_the_fixed_template_except_the_slug(hub):
     for key in ("host", "kind", "expected", "risk", "timeout_s", "expects_input"):
         assert a[key] == b[key], key
     assert set(a) == set(b) == {"host", "kind", "command", "why", "expected", "risk",
-                                "timeout_s", "expects_input", "requester"}
+                                "timeout_s", "expects_input", "requester", "sha256"}
     assert a["host"] == "contabo" and a["kind"] == "command" and a["risk"] == "amber"
     assert a["timeout_s"] == 600 and a["expects_input"] is False
     assert a["requester"] == {"session": "ph-one", "role": "project_head"}
