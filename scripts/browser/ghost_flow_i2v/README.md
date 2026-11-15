@@ -1,0 +1,7 @@
+Ghost EP5 S03-01 Flow image-to-video test (task-d7732ab5). Run ON winbox: C:/mooniex/pwvenv/Scripts/python.exe, Chrome :9226 signed in. Scratch dir C:/mooniex/ghost_flow (plate S03-01.png, out/).
+Raw-CDP (stdlib only, no Playwright) because Playwright connect_over_cdp hung 120 s: one OTHER session's Flow tab (BCD905C7) was HUNG (tools/flow_tabs_health.py). cdp.py opens its own tab (PUT /json/new), keeps the id in tab.json, never touches other tabs.
+Steps (go2.py): bal | up | prep | probe | set N (slider 0..12 = 3..15 s) | fire. Fire asserts prompt==PROMPT, slots [true,false], Omni 1.2 Flash/720p, estimate <= 20, then ONE trusted click (Input.dispatchMouseEvent).
+Card open + download were run as inline snippets: click the top feed tile (coordinate click), Page.setDownloadBehavior allow, then the `ดาวน์โหลดสื่อ` menu item whose text has 720p and no เครดิต/4K/1080.
+Traps: the picker's `เพิ่มไปยังพรอมต์` is a <button>, not a leaf text node (a text-leaf click missed it and left the slot empty with no error); file chooser = Page.setInterceptFileChooserDialog + DOM.setFileInputFiles(backendNodeId); a cp1252 stdout needs reconfigure(utf-8).
+Fragile: .frame-trigger / button.empty-chip / img.chip-image, flow-prompt-box-settings, flow-duration-slider input, aria-labels เมนูเพิ่มสื่อ / ทริกเกอร์การตั้งค่า / รายละเอียดบัญชี / เริ่มสร้าง / ดาวน์โหลดสื่อ.
+Omni 1.2 Flash 720p price table read 15 Nov 2026: 3 s 9, 4 s 12, 5 s 15, 6 s 18, 7 s 21, 8 s 24, 15 s 60 (3 credits per second).
