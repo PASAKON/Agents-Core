@@ -517,7 +517,7 @@ def _requester_project(session: str) -> dict:
 BRIEF_LIMITS = {"what": 40, "does": 70, "impact": 70}
 # Hosts whose Console verifies the brief-covered hash (MoonieX-Console #76). A peer still on the
 # old code refuses a card that carries brief fields, so they are left off until it is pulled.
-BRIEF_HOSTS = {"contabo"}
+BRIEF_HOSTS = {"contabo", "mac", "winbox"}
 
 
 def brief_fields(args: argparse.Namespace) -> dict:
