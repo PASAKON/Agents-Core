@@ -515,6 +515,9 @@ def _requester_project(session: str) -> dict:
 
 
 BRIEF_LIMITS = {"what": 40, "does": 70, "impact": 70}
+# Hosts whose Console verifies the brief-covered hash (MoonieX-Console #76). A peer still on the
+# old code refuses a card that carries brief fields, so they are left off until it is pulled.
+BRIEF_HOSTS = {"contabo"}
 
 
 def brief_fields(args: argparse.Namespace) -> dict:
@@ -889,7 +892,8 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
             raise Refused(f"--env-key takes a variable NAME, never NAME=value (got {bad[0]!r})")
         payload["env_keys"] = list(dict.fromkeys(args.env_key))
     payload["why"] = _one_line("--why", args.why)
-    payload.update(brief_fields(args))
+    if host in BRIEF_HOSTS:
+        payload.update(brief_fields(args))
     if args.expected is not None:
         payload["expected"] = _one_line("--expected", args.expected)
     if args.timeout <= 0:
