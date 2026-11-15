@@ -1,0 +1,726 @@
+{
+  "model": "fal-ai/gemini-3.8-flash-tts",
+  "out_dir": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/takes",
+  "calls": [
+    {
+      "name": "EP04-S001",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S001.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S002",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S002.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S003",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S003.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S004",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S004.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S005",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S005.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S006",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S006.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S007",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S007.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S008",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S008.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S009",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S009.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S010",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S010.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S011",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S011.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S012",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S012.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S013",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S013.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S014",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S014.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S015",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S015.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S016",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S016.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S017",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S017.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S018",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S018.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S019",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S019.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S020",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S020.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S021",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S021.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S022",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S022.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S023",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S023.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S024",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S024.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S025",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S025.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S026",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S026.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S027",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S027.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S028",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S028.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S029",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S029.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S030",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S030.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S031",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S031.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S032",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S032.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S033",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S033.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S034",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S034.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S035",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S035.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S036",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S036.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S037",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S037.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S038",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S038.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S039",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S039.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S040",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S040.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S041",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S041.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S042",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S042.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S043",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S043.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S044",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S044.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S045",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S045.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S046",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S046.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S047",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S047.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S048",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S048.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S049",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S049.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S050",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S050.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S051",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S051.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S052",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S052.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S053",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S053.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S054",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S054.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S055",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S055.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S056",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S056.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S057",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S057.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S058",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S058.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S059",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S059.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S060",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S060.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S061",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S061.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S062",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S062.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S063",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S063.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S064",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S064.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S065",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S065.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S066",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S066.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S067",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S067.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S068",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S068.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S069",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S069.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S070",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S070.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S071",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S071.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S072",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S072.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S073",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S073.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S074",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S074.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S075",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S075.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S076",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S076.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S077",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S077.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S078",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S078.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S079",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S079.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S080",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S080.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S081",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S081.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S082",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S082.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S083",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S083.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S084",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S084.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S085",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S085.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S086",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S086.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S087",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S087.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S088",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S088.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S089",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S089.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S090",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S090.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S091",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S091.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S092",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S092.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S093",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S093.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S094",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S094.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S095",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S095.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S096",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S096.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S097",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S097.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S098",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S098.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S099",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S099.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S100",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S100.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S101",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S101.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S102",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S102.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S103",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S103.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S104",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S104.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S105",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S105.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S106",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S106.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S107",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S107.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S108",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S108.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S109",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S109.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S110",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S110.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S111",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S111.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S112",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S112.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S113",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S113.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S114",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S114.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S115",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S115.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S116",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S116.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S117",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S117.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S118",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S118.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S119",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S119.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    },
+    {
+      "name": "EP04-S120",
+      "text_file": "/opt/MoonieXHQ/Work/cn-series/voice/ep04/text/EP04-S120.txt",
+      "voice": "Algenib",
+      "style_instructions": "Speak as a Thai grandfather in his sixties telling an old legend at night. Slightly gravelly, deep, warm voice, close to the mic, never bright. Calm low melody. Pick up the pace: tell it fluently and fairly quickly, the way a practiced Thai storyteller reads to a live audience. Do not pause inside a sentence; take only a quick breath between sentences. Native central Thai accent."
+    }
+  ]
+}
