@@ -178,7 +178,7 @@ def test_dry_run_prints_the_contract_body_and_calls_nothing(hub, monkeypatch, ca
         "script": {"repo": "Agents-Core", "sha": "9df4e185", "path": "scripts/contabo_blueprint.sh",
                    "args": ["--quick", "two words"]},
         "why": "weekly capture", "risk": "amber", "timeout_s": 300, "expects_input": False,
-        "requester": {"session": "cto-test", "role": "cto"},
+        "requester": {"session": "cto-test", "role": "cto", "lane": "cto"},
     }
     assert list(body) == ["host", "kind", "script", "why", "risk", "timeout_s", "expects_input", "requester"]
     assert "nothing sent" in err
@@ -213,12 +213,12 @@ def test_create_sends_every_optional_field_in_contract_order(hub, capsys):
     assert rc == 0
     body = hub.requests[0]["body"]
     assert list(body) == ["host", "kind", "command", "shell", "cwd", "env_keys", "why", "expected",
-                          "risk", "timeout_s", "expects_input", "requester"]
+                          "risk", "timeout_s", "expects_input", "requester", "sha256"]
     assert body["host"] == "contabo"
     assert body["command"] == "systemctl restart mooniex-console "  # byte-for-byte, trailing space kept
     assert body["env_keys"] == ["GITHUB_TOKEN"]
     assert (body["risk"], body["timeout_s"], body["expects_input"]) == ("red", 60, True)
-    assert body["requester"] == {"session": "cto-6ebacd0e", "role": "cto", "task": "task-8669cf28"}
+    assert body["requester"] == {"session": "cto-6ebacd0e", "role": "cto", "lane": "cto", "task": "task-8669cf28"}
     assert "risk red" in capsys.readouterr().err
 
 
@@ -308,14 +308,14 @@ def test_worker_env_script_ask_goes_to_the_workers_own_mailbox(hub, monkeypatch)
 
 
 @pytest.mark.parametrize("env, expected", [
-    ({"CXO_ROLE": "cto", "CTO_SESSION_ID": "6ebacd0e"}, {"session": "cto-6ebacd0e", "role": "cto"}),
+    ({"CXO_ROLE": "cto", "CTO_SESSION_ID": "6ebacd0e"}, {"session": "cto-6ebacd0e", "role": "cto", "lane": "cto"}),
     ({"CXO_ROLE": "cfo", "CXO_SESSION_ID": "ab12cd34", "CTO_SESSION_ID": "ab12cd34"},
-     {"session": "cfo-ab12cd34", "role": "cfo"}),
-    ({"CTO_SESSION_ID": "6ebacd0e"}, {"session": "cto-6ebacd0e", "role": "cto"}),
+     {"session": "cfo-ab12cd34", "role": "cfo", "lane": "cfo"}),
+    ({"CTO_SESSION_ID": "6ebacd0e"}, {"session": "cto-6ebacd0e", "role": "cto", "lane": "cto"}),
     ({"WORKER_TASK_ID": "task-1", "WORKER_ROLE": "dev"}, {"session": "dev-task-1", "role": "dev", "task": "task-1"}),
     ({"CXO_ROLE": "cto", "CTO_SESSION_ID": "6ebacd0e", "ORG_SESSION_ID": "cto-override"},
-     {"session": "cto-override", "role": "cto"}),
-    ({"CXO_ROLE": "cto", "ORG_SESSION_ID": "77aa88bb"}, {"session": "cto-77aa88bb", "role": "cto"}),
+     {"session": "cto-override", "role": "cto", "lane": "cto"}),
+    ({"CXO_ROLE": "cto", "ORG_SESSION_ID": "77aa88bb"}, {"session": "cto-77aa88bb", "role": "cto", "lane": "cto"}),
 ])
 def test_requester_session_is_the_mailbox_box_name(env, expected):
     """hook-inbox.py drains state/inbox/<role>-<id>/, so that is what the hub must be told."""
@@ -804,7 +804,7 @@ def test_org_ask_run_takes_requester_from_the_session_env(srv, monkeypatch):
     monkeypatch.setenv("CXO_ROLE", "cto")
     monkeypatch.setenv("CTO_SESSION_ID", "6ebacd0e")
     text = _org(srv, "ask_run", {"host": "contabo", "command": "uptime", "why": "x", "dry_run": True})
-    assert json.loads(text)["payload"]["requester"] == {"session": "cto-6ebacd0e", "role": "cto"}
+    assert json.loads(text)["payload"]["requester"] == {"session": "cto-6ebacd0e", "role": "cto", "lane": "cto"}
 
 
 def test_org_ask_run_posts_and_returns_id_url_risk_expiry(srv, hub, capsys):

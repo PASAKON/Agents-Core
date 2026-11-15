@@ -303,7 +303,8 @@ def _serve() -> None:
                        timeout_s: int = 300, expects_input: bool = False, shell: str = "",
                        cwd: str = "", env_keys: list[str] | None = None, session: str = "",
                        role: str = "", task: str = "", dry_run: bool = False,
-                       spend: dict | None = None, no_spend: str = "") -> str:
+                       spend: dict | None = None, no_spend: str = "",
+                       what: str = "", does: str = "", impact: str = "") -> str:
         """Ask the CEO to run one command on a host via the Run Inbox (a card on his phone, Face
         ID). This is how root work happens (CEO 2026-10-01). The CEO's tap is the only authority.
         Raise it at once when a blocker needs his tap; never ask in chat first. A secret-shaped
@@ -317,7 +318,8 @@ def _serve() -> None:
                                       args=args, expected=expected, risk=risk, timeout_s=timeout_s,
                                       expects_input=expects_input, shell=shell, cwd=cwd,
                                       env_keys=env_keys, session=session, role=role, task=task,
-                                      dry_run=dry_run, spend=spend, no_spend=no_spend)
+                                      dry_run=dry_run, spend=spend, no_spend=no_spend,
+                                      what=what, does=does, impact=impact)
         return json.dumps(out, indent=2, ensure_ascii=False)
 
     @mcp.tool(name="ask_ceo")
@@ -325,7 +327,8 @@ def _serve() -> None:
                        recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
                        session: str = "", role: str = "", host: str = "", task: str = "",
                        dry_run: bool = False, questions: list[dict] | None = None,
-                       media: list[dict] | None = None, pick: str = "") -> str:
+                       media: list[dict] | None = None, pick: str = "",
+                       what: str = "", does: str = "", impact: str = "") -> str:
         """Ask the CEO a question with 2-4 answers he taps on /run (a question card). Never for a
         command, money or a secret (that is ask_run). options: 2-4 one-line labels; recommended:
         1-based, 0 = none; expires_h 24 by default. Several at once: questions=[{question, why,
@@ -339,7 +342,7 @@ def _serve() -> None:
                                       recommended=recommended, free_text=free_text,
                                       expires_h=expires_h, session=session, role=role, host=host,
                                       task=task, dry_run=dry_run, questions=questions,
-                                      media=media, pick=pick)
+                                      media=media, pick=pick, what=what, does=does, impact=impact)
         return json.dumps(out, indent=2, ensure_ascii=False)
 
     @mcp.tool(name="ask_run_wait")

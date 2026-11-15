@@ -127,7 +127,9 @@ On **Contabo**, `tools/mail_wake.py` reads `state/agy-sessions/<box>.json` and s
 **≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
 file).** `--why` + `--expected` together are at most 5 lines of at most 90 chars; an empty line counts,
 a lone link may run to 200, and the command bytes do not count (the CEO approves them as they are).
-`create` and the MCP `ask_run` refuse more (exit 2); no flag skips it (`lib/ceo_text.py`).
+[SUPERSEDED 2026-11-15, CEO Q-20261115-1420-81a2] `create` and the MCP `ask_run` refuse more (exit 2); no flag skips it (`lib/ceo_text.py`).
+
+**HARD — Every new card passes `what` (≤40 chars), `does` (≤70) and `impact` (≤70): that is what the CEO reads. Risk, money and who are filled in by the system. Why hard: CEO ruling Q-20261115-1420-81a2 (2026-11-15).** With a brief, oversized `why`/`expected` are trimmed with “…”; without a brief the 5×90 refusal remains. Hidden characters and secret-shaped values are always refused.
 
 `create` prints the id and the phone URL — put both in one chat line so the CEO knows a card is
 waiting. Other verbs: `list` (own cards), `cancel <id>` (own, pending only), `tail <id>` (live
@@ -230,7 +232,7 @@ card red).
 
 **≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
 file).** The question + `why` together are at most 5 lines of at most 90 chars, for a lone card and for
-each item of a group. Option labels are buttons and keep their own limit. `ask` / `ask_ceo` refuse more.
+each item of a group. Option labels are buttons and keep their own limit. [SUPERSEDED 2026-11-15, CEO Q-20261115-1420-81a2] `ask` / `ask_ceo` refuse more. With a brief, oversized `why` is trimmed; question and option limits remain.
 
 A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** at once, **even
 when he is typing in your chat** (CEO 2026-10-30, every C-level and every PH). Never ask it in chat, do not

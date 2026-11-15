@@ -173,7 +173,7 @@ GROUPS_PATH = "/api/run/question-groups"   # QUESTIONS.md §10
 MEDIA_PATH = "/api/run/question-media"     # QUESTIONS.md §11: one raw upload per file
 GROUP_MAX = 6                              # questions in one group (§10)
 GROUP_TERMINAL_STATES = ("done",)          # a group is done when none of its questions is pending
-GROUP_ITEM_KEYS = ("question", "why", "options", "recommended", "free_text")
+GROUP_ITEM_KEYS = ("question", "why", "options", "recommended", "free_text", "what", "does", "impact")
 BATCH_FILE_MAX = 64 * 1024
 
 DEFAULT_RISK = "amber"          # DESIGN §6 signature: risk="amber"
@@ -483,12 +483,84 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     if not _NAME_RE.match(session):
         raise Refused(f"--session must be a mailbox name like cto-6ebacd0e (got {session!r})")
     requester = {"session": session, "role": role}
+    if role in {"cto", "cmo", "coo", "cfo", "cgo"}:
+        requester["lane"] = role
+    elif role == "project_head":
+        requester.update(_requester_project(session))
     task = (task or worker or "").strip()
     if task:
         if not _NAME_RE.match(task):
             raise Refused(f"--task must be a task id like task-8669cf28 (got {task!r})")
         requester["task"] = task
     return requester
+
+
+def _requester_project(session: str) -> dict:
+    """Optional hub labels; unavailable or ambiguous metadata never blocks a card."""
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.append(str(ROOT))
+        from lib import portfolio
+        with portfolio._tx() as conn:
+            rows = conn.execute(
+                "SELECT name, lane FROM projects WHERE ph_session IN (?, ?)",
+                (session, session.removeprefix("project_head-"))).fetchall()
+        if len(rows) == 1:
+            name, lane = rows[0]["name"], rows[0]["lane"]
+            if lane in {"cto", "cmo", "coo", "cfo", "cgo"} and re.fullmatch(r"[A-Z][A-Za-z0-9]{0,39}", name or ""):
+                return {"lane": lane, "project": name}
+    except Exception:
+        pass
+    return {}
+
+
+BRIEF_LIMITS = {"what": 40, "does": 70, "impact": 70}
+
+
+def brief_fields(args: argparse.Namespace) -> dict:
+    fields = {}
+    for key in BRIEF_LIMITS:
+        value = getattr(args, key, None)
+        if value is None or value == "":
+            continue
+        if not isinstance(value, str) or _has_hidden_char(value) or any(unicodedata.category(c) in {"Co", "Cn"} for c in value):
+            raise Refused(f"invalid_{key}: hidden or invalid character")
+        fields[key] = value
+    return fields
+
+
+def normalize_brief(body: dict) -> None:
+    for key, limit in BRIEF_LIMITS.items():
+        if key in body:
+            value = body.pop(key).strip()
+            if value:
+                body[key] = value if len(value) <= limit else value[:limit - 1] + "…"
+
+
+def command_canonical(body: dict) -> str:
+    fields = {k: body[k] for k in BRIEF_LIMITS if body.get(k)}
+    return (json.dumps({"command": body["command"], **fields}, ensure_ascii=False,
+                       separators=(',', ':')) if fields else body["command"])
+
+
+def card_text(body: dict, names: tuple[str, ...]) -> None:
+    if str(ROOT) not in sys.path:
+        sys.path.append(str(ROOT))
+    from lib import ceo_text
+    for name in names:
+        if _has_hidden_char(body.get(name) or "", newline_ok=True):
+            raise Refused(f"invalid_{name}: hidden character")
+    normalize_brief(body)
+    fields = {name: body.get(name) for name in names}
+    if any(body.get(key) for key in BRIEF_LIMITS):
+        if "question" in fields:
+            check_ceo_text({"question": fields["question"]})
+        trimmed = ceo_text.trim_ceo_text(fields)
+        if "question" in fields:
+            trimmed["question"] = fields["question"]
+        body.update(trimmed)
+    else:
+        check_ceo_text(fields)
 
 
 def _one_line(flag: str, value: str) -> str:
@@ -817,6 +889,7 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
             raise Refused(f"--env-key takes a variable NAME, never NAME=value (got {bad[0]!r})")
         payload["env_keys"] = list(dict.fromkeys(args.env_key))
     payload["why"] = _one_line("--why", args.why)
+    payload.update(brief_fields(args))
     if args.expected is not None:
         payload["expected"] = _one_line("--expected", args.expected)
     if args.timeout <= 0:
@@ -952,8 +1025,8 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
     ever set: there is no field here that could carry an answer (§1.2), and
     `--recommended N` (1-based) becomes `recommended: true` on that option."""
     who = resolve_requester(args.session, args.role, getattr(args, "task", None), env)
-    requester: dict[str, Any] = {"session": who["session"], "role": who["role"],
-                                 "host": resolve_host(args.host, env)}
+    requester: dict[str, Any] = {k: v for k, v in who.items() if k != "task"}
+    requester["host"] = resolve_host(args.host, env)
     if "task" in who:
         requester["task"] = who["task"]
     options = []
@@ -970,6 +1043,7 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
         "expires_in_s": _expires_s(args.expires_h),
         "requester": requester,
     }
+    body.update(brief_fields(args))
     paths, captions = list(getattr(args, "media", None) or []), list(getattr(args, "caption", None) or [])
     if paths:        # QUESTIONS.md §11: ids are filled in once the files are uploaded
         if not options:
@@ -1007,7 +1081,7 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
                       f"(got {len(question)})")
     if not why:
         raise Refused("why_required: --why is empty (the CEO reads it before tapping)")
-    if len(why) > WHY_MAX:
+    if len(why) > WHY_MAX and not any(body.get(k) for k in BRIEF_LIMITS):
         raise Refused(f"invalid_why: at most {WHY_MAX} characters (got {len(why)})")
     if "media" in body:
         check_media(body, args)      # a set has no options; one item may bring its own 2 to 4
@@ -1078,7 +1152,7 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
                       + ". A question carries no secret, ever (DESIGN §6).")
     check_question_role_gate(body)
     check_question(body, args)
-    check_ceo_text([("question", body["question"]), ("why", body["why"])])
+    card_text(body, ("question", "why"))
     return body
 
 
@@ -1925,7 +1999,9 @@ def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | No
                       + "\nReference an env var by name ($NAME, --env-key NAME) or an Infisical path "
                         "instead (DESIGN §6).")
     check_role_gate(payload)
-    check_ceo_text([("why", payload["why"]), ("expected", payload.get("expected"))])
+    card_text(payload, ("why", "expected"))
+    if payload.get("kind") == "command":
+        payload["sha256"] = hashlib.sha256(command_canonical(payload).encode("utf-8")).hexdigest()
     return payload
 
 
@@ -2038,13 +2114,16 @@ def prepare_question_group(items: Any, args: argparse.Namespace, env: dict | Non
                           f"{', '.join(GROUP_ITEM_KEYS)} (requester, host and expiry are the group's)")
         shared = {"session": args.session, "role": args.role, "host": args.host,
                   "task": getattr(args, "task", None), "expires_h": args.expires_h}
+        for key in BRIEF_LIMITS:
+            if key not in item:
+                shared[key] = getattr(args, key, None)
         try:
             body = prepare_question(_mcp_question_namespace({**item, **shared}), env)
         except Refused as e:
             raise _item_refusal(i, e) from None
         bodies.append(body)
     payload = {
-        "questions": [{k: b[k] for k in ("question", "why", "options", "free_text")} for b in bodies],
+        "questions": [{k: b[k] for k in ("question", "why", "options", "free_text", *BRIEF_LIMITS) if k in b} for b in bodies],
         "expires_in_s": bodies[0]["expires_in_s"],
         "requester": bodies[0]["requester"],
     }
@@ -2165,6 +2244,7 @@ def _mcp_namespace(a: dict) -> tuple[argparse.Namespace, list[str]]:
     ns = argparse.Namespace(
         host=a.get("host") or "", script=script or None, command=None if script else command,
         why=a.get("why") or "", expected=a.get("expected") or None, risk=risk, timeout=timeout,
+        what=a.get("what"), does=a.get("does"), impact=a.get("impact"),
         expects_input=bool(a.get("expects_input")), shell=shell, cwd=a.get("cwd") or None,
         env_key=env_keys, task=a.get("task") or None, session=a.get("session") or None,
         role=a.get("role") or None, dry_run=bool(a.get("dry_run")), json=False,
@@ -2225,6 +2305,7 @@ def _mcp_question_namespace(a: dict) -> argparse.Namespace:
     return argparse.Namespace(
         question=a.get("question") or "", option=list(options), recommended=recommended or None,
         why=a.get("why") or "", no_free_text=not free_text,
+        what=a.get("what"), does=a.get("does"), impact=a.get("impact"),
         expires_h=a.get("expires_h", EXPIRES_DEFAULT_H), session=a.get("session") or None,
         role=a.get("role") or None, host=a.get("host") or None, task=a.get("task") or None,
         dry_run=bool(a.get("dry_run")), json=False,
@@ -2249,6 +2330,7 @@ def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
                           "not both; each item of questions carries its own question, why, options, "
                           "recommended and free_text")
         ns = argparse.Namespace(session=arguments.get("session") or None, role=arguments.get("role") or None,
+                                what=arguments.get("what"), does=arguments.get("does"), impact=arguments.get("impact"),
                                 host=arguments.get("host") or None, task=arguments.get("task") or None,
                                 expires_h=arguments.get("expires_h", EXPIRES_DEFAULT_H))
         payload = prepare_question_group(arguments.get("questions"), ns, env)
@@ -2689,6 +2771,8 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--host", required=True, help="target host id: contabo | mac | winbox")
     c.add_argument("--why", required=True, help="one line for the card: why this has to run")
     c.add_argument("--expected", help="one line for the card: what a good result looks like")
+    for key in BRIEF_LIMITS:
+        c.add_argument(f"--{key}", help="short CEO brief (trimmed to fit)")
     c.add_argument("--risk", choices=RISKS, default=DEFAULT_RISK,
                    help="your claim (default amber); the hub can only raise it")
     c.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S, metavar="SECONDS",
@@ -2727,6 +2811,8 @@ def _parser() -> argparse.ArgumentParser:
     q.add_argument("--recommended", type=int, metavar="N",
                    help="1-based: the option that carries the recommended badge")
     q.add_argument("--why", help=f"context the CEO reads before tapping (at most {WHY_MAX} characters)")
+    for key in BRIEF_LIMITS:
+        q.add_argument(f"--{key}", help="short CEO brief (trimmed to fit)")
     q.add_argument("--batch", metavar="FILE",
                    help=f"1 to {GROUP_MAX} questions as one group (a JSON list, - = stdin; each item "
                         "{question, why, options, recommended, free_text}); replaces "
