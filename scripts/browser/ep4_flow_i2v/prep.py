@@ -13,6 +13,8 @@ open(f"C:/mooniex/ep4s/prompt_S{shot}.txt","w",encoding="utf-8").write(prompt)
 d=D()
 try:
     p=d.page
+    if "/edit/" in p.url or "/project/" not in p.url:
+        p.goto(project_url(),wait_until="domcontentloaded"); p.wait_for_timeout(3500)
     p.evaluate("document.querySelectorAll('.cdk-overlay-container .cdk-overlay-backdrop').length&&document.body.click()")
     # 1. clear a filled start slot (clicking a filled chip removes its image)
     start=p.locator(".frame-trigger").first

@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 CDP="http://127.0.0.1:9226"
 def project_url():
     for t in json.load(urllib.request.urlopen(CDP+"/json/list",timeout=8)):
-        if t["type"]=="page" and "/project/" in t["url"]: return t["url"]
+        if t["type"]=="page" and "/project/" in t["url"] and "/edit/" not in t["url"]: return t["url"]
     raise SystemExit("no project tab")
 class D:
     def __init__(s):
