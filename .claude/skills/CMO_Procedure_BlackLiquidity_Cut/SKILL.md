@@ -15,6 +15,8 @@ description: >-
   head with no manifest (that is `CMO_Procedure_ReelEditor_TH`), or for a still image.
 created_by: agent
 audience: [cmo, video_editor]
+improved_by:
+  - {role: project_head, date: "2026-11-16", what: "§6h V6 Word-Synced Clause-by-Clause cutting, Audio-Source Correlation gate, Screen-Orientation & Camera-Axis logic (OTS/FRONT/SIDE on Veo 3.1 / Flow Omni 1.2), Semantic B-roll naming, 5:1 Pure/Basket cadence, 00_PRODUCT_LIBRARY REFF+FOOTAGE workflow, and 17 approved Mass-Editor SFX (CEO rulings Q-20261109-0516-eb40, Q-20261116-0603-73a1, Q-20261116-0652-5463, Q-20261116-0708-33ff)"}
 ---
 
 # BLACK LIQUIDITY — cutting an episode
@@ -760,9 +762,9 @@ Model: `rvm_mobilenetv3.pth`, **14.5 MB**, lives at
   check` while the captions sat on the page's own tab row, paragraph and
   heading, text over text (task-52c669bb).
 
-Sound effects are deliberately out of scope until the channel has a licensed,
+`[SUPERSEDED 2026-11-09]` "Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
-sound wrong.
+sound wrong." — Replaced by the 17 CEO-approved Mass-Editor SFX pack (`CMO_Standard_EditorSFX`, CEO ruling `Q-20261109-0516-eb40`) and Pre-Roll Peak Alignment (`§6h-5`).
 
 ### 6f. One caption style, every mode (CEO ruling 2026-09-25)
 
@@ -843,6 +845,83 @@ gate (§9) now checks for this mechanically at 30fps, including a
 single-frame dip — it is not a substitute for building the timing right in
 the first place, but it will catch it if you don't.
 
+### 6h. V6 Word-Synced Trading Psychology & TikTok Shop Basket Cuts (CEO rulings 2026-11-09 & 2026-11-16)
+
+Approved on `Q-20261109-0516-eb40`, `Q-20261116-0603-73a1`, `Q-20261116-0652-5463` and `Q-20261116-0708-33ff`.
+Reference contact sheets:
+- Pure Knowledge (`58.50s`): `reference/v6-ep1-58s-pure-wordsynced-reference.jpg` (Drive `1ehlrs1yfII-GY-AMNMFHZLop1htYgTZi`)
+- Basket Product (`65.44s`): `reference/v6-ep1-65s-basket-product-reff-reference.jpg` (Drive `1ks85qoSgNhF_Dg--EZFlIeo6pMJCUI9E`)
+- Reference builders: `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v6_ep1_word_synced.py`, `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v6_ep1_basket_product.py`, and `scripts/build_bl_v4_lungtep_style.py`.
+
+#### 6h-1. Word-Synced Clause-by-Clause Cutting (`1 Clause = 1 Cut = 1 Visual Proof`)
+
+1. **HARD — Every cut boundary (`start` / `end`) must lock 100% to the exact spoken clause timestamp + HyperFrames card/caption entry + SFX hit.**
+   **Why hard:** quality & retention — the CEO rejected V5 (`"ช่วงการตัดนะดีมาก แต่ Footage ไม่เข้ากับ เนื้อหาที่พูดเท่าไหร่ การพูด คำพูด จังหวะการตัดไม่สมเหตุสมผล"`) when background plates cut on arbitrary 2.5s timers instead of the spoken syllable boundaries.
+   - Measure word-level timestamps on the actual master voiceover WAV (`tts_65s/takes/*_slow.wav`), then align every plate cut (`EP1_V6_WORD_SYNCED_SCHEDULE`) to the exact clause boundary (`0.00 -> 1.25 -> 2.80 -> 4.55 -> 6.92s ...`).
+   - **Hook 3s Rapid Pacing (`@lungtepuniverse` benchmark):** Beat 1 (`0.00s – 6.92s`) cuts every `1.2s – 2.2s` across 4 high-impact shots (`02:00 AM clock` → `eye reflecting falling red candles` → `BL avatar pointing` → `BL avatar pointing at 3D brain hologram`) paired with 9 distinct OpenCV motion transitions (`hook_punch`, `whip_pan_h`, `scale_punch`, `exposure_flash`, `prism_shatter`, `neg_shockwave`, `whip_tilt_v`, `rgb_glitch`, `gravity_flip` in `scripts/build_bl_v4_lungtep_style.py`).
+   - **Semantic Visual Proof:** Every clip placed on a clause must **visibly prove or illustrate the exact Thai words spoken in that clause** (zero generic filler B-roll, zero repeated clips inside one episode: `assert len(clips) == len(set(clips))`).
+2. **HARD — Audio-Source Correlation Gate (`r > 0.99`) between Pure Knowledge and Basket cuts.**
+   **Why hard:** quality — on EP1 V6 (`Q-20261116-0652-5463`), Clip B (`65.44s`) passed immediately (`"B โอเครนะ"`), while Clip A (`58.50s`) failed (`"ส่วน A เสียงไม่ตรงกับภาพ เท่าไหร่"`) because `cut_pilot1_A_v5_58s_pure/audio/A_v5_58s_14lufs.wav` had been mixed from an older short TTS take (`26.92s`) instead of the first `58.08s` of the `65.44s` master voiceover (`r = 0.019`).
+   - Whenever an episode is rendered in both **Pure Knowledge** (`~58–66s`) and **Basket Product** (`~65–70s`) versions, mix the Pure Knowledge audio from the **exact same master voiceover WAV** trimmed at the pure speech boundary (e.g. `58.08s`, padded to `58.50s` with a `350ms` linear fade-out via `fade_tail=True`).
+   - Before delivering or uploading, extract the first `58.0s` of audio from both rendered MP4 files and verify `np.corrcoef(aud_pure, aud_basket)[0, 1] > 0.99` (EP1 V6 measured `r = 0.999960`).
+
+#### 6h-2. Screen-Orientation & Camera-Axis Logic for AI B-Roll Generation (`Veo 3.1` / `Flow Omni 1.2`)
+
+1. **HARD — Every AI video prompt that includes a computer monitor, trading chart, or smartphone MUST explicitly state the Camera Position, Character Orientation, and Screen-Normal Vector using one of the 3 rules below.**
+   **Why hard:** visual coherence — without explicit camera-axis and screen-normal instructions, video models frequently render monitors or smartphones facing the camera while the character stands behind them staring at the back casing (`CHAR_EP1_B2_MISTAKE_01..02`, rejected by the CEO on 2026-11-16: `"เรื่องหน้าจอคอมกับหน้าจอมือถือ AI ชอบ Generate หันผิดฝั่ง"`).
+
+   | Rule Code | Camera & Character Geometry | Where the Screen Faces | Mandatory Prompt Clause |
+   |---|---|---|---|
+   | **Rule A: `OTS`** (Over-The-Shoulder) | Camera sits behind the character's right/left shoulder (`3/4 rear over-the-shoulder view`). Character's back/shoulder is in foreground; character faces away from camera toward the desk. | Screen faces **toward the character's eyes AND toward the camera**. Both see the illuminated trading chart / clock. | `"OVER-THE-SHOULDER (OTS) camera positioned behind the character's right shoulder looking past his dark-haired head and black RICH beanie directly into the front of the ultrawide trading monitor screen."` |
+   | **Rule B: `FRONT`** (Front View of Character) | Camera is in front of the character facing his chest and face (`medium front shot`). Character holds a smartphone at chest height looking down at it. | Screen faces **INWARD toward the character's face**. Camera sees **ONLY the matte-black back casing & rear camera lenses** of the phone, plus red/green screen glow reflecting on his sunglasses. | `"MEDIUM FRONT VIEW facing the character. He holds a matte-black smartphone with the glowing screen facing INWARD toward his own face; the camera sees ONLY the matte-black back casing and rear camera lenses of the smartphone (NEVER the front screen facing the camera)."` |
+   | **Rule C: `SIDE`** (90° Side Profile) | Camera is at a strict 90° side profile (`perpendicular side shot`). Character is on one side in profile; monitor bezel is on the opposite edge in profile. | Screen faces **horizontally across the frame** directly into the character's eyes; light rays travel horizontally across the gap. | `"90-DEGREE SIDE PROFILE VIEW: monitor bezel on the left edge facing right, character in side profile on the right facing left into the monitor, blue light rays travelling horizontally onto his sunglasses and eyes."` |
+
+2. **Model & Quota Policy (`CEO ruling 2026-11-16`)**:
+   - **Primary Engine (`Google Veo 3.1` on `Champa.io`, `2–4 clips / EP`)**: Each BLACK LIQUIDITY episode has a quota of **2–4 clips** on `Google Veo 3.1` (`7 จำปา / clip` at `9:16 1080p`) via `scripts/champa/champa_fire.py --cdp http://127.0.0.1:9280 --model "Google Veo 3.1" --aspect "9:16" --resolution "1080p" --max-slots 1`. Always pass the locked character reference sheet (`ref_01_character_sheet.jpg`) via `ref_paths` and use `--max-slots 1` so `active_on_page == 0` is confirmed before firing the next shot.
+   - **Fallback Engine (`Google Flow Omni 1.2`, `2–4 clips / EP`)**: If `Champa.io` credits run out, switch to `Google Flow Omni 1.2` (`2–4 clips / EP`) with the same character reference and Screen-Orientation rules.
+   - **QC Before Cut**: Extract a preview frame (`ffmpeg -ss 1.5 -i clip.mp4 -frames:v 1`) and verify the screen orientation and character identity by eye before placing any generated clip into the cut.
+
+#### 6h-3. Semantic B-Roll Naming Convention & Reuse (`ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)`)
+
+1. **HARD — Every newly generated BLACK LIQUIDITY B-roll clip must be uploaded to `ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)` (`1vg8j7DY_hPE-X3yyTsp6ZrM8Gf72cfVG`, MD5-verified) using the 6-part semantic filename below (`CEO Q-20261116-0603-73a1`).**
+   **Why hard:** asset reuse & zero-mismatch retrieval — older clips named only `(scene) (date) (model)` gave no indication of which beat, camera axis, or Thai spoken phrases they fit, causing earlier cuts to pull mismatched B-roll.
+   - **Format**:
+     `{BEAT}_{SUBJECT}_{SCREEN_VIEW}_({action-en})_({คำพูดไทยที่เข้ากับภาพ})_({DD-MM-YYYY})_({Model}).mp4`
+   - **Field definitions**:
+     - `BEAT`: `HOOK` | `PAIN` | `BRAIN` | `FIX` | `CTA` | `PROD<NN>`
+     - `SUBJECT`: `CHAR` (features the locked BL character) | `BROLL` (close-up object/metaphor without character)
+     - `SCREEN_VIEW`: `OTS` (Rule A) | `FRONT` (Rule B) | `SIDE` (Rule C) | `NONE` (no screen in shot)
+     - `({action-en})`: 3–5 English kebab-case words describing the physical action
+     - `({คำพูดไทยที่เข้ากับภาพ})`: 2–3 Thai phrases/keywords separated by `-` stating the exact spoken concepts this clip illustrates
+     - `({DD-MM-YYYY})`: generation date
+     - `({Model})`: `Veo 3.1` | `Flow Omni 1.2` | `Seedance 2.0` | `Kling V3 Pro`
+   - **Verified examples on Drive (`2026-11-16`)**:
+     - `PAIN_CHAR_OTS_(watch-chart-02am-clock)_(จ้องจอถึงตีสอง-เฝ้ากราฟดึก)_(16-11-2026)_(Veo 3.1).mp4` (`1lyPyXdjkzZBKfhohhvT_tMI-nm_xekzC`)
+     - `PAIN_CHAR_FRONT_(hold-phone-backcasing-red-reflection)_(กราฟลาก-ฝืนถือสู้-พอร์ตติดลบ)_(16-11-2026)_(Veo 3.1).mp4` (`1wtGIRIeeP5bBjCw1gPbLElISQ813pIBm`)
+     - `BRAIN_CHAR_SIDE_(blue-light-hits-eyes-rub-temple)_(แสงสีฟ้าหลอกสมอง-ตาล้าตอนดึก)_(16-11-2026)_(Veo 3.1).mp4` (`1-Zwgz7w2Fh2xEo0e2ist7SxXq-O19kFU`)
+     - `FIX_CHAR_OTS_(turn-on-warm-lightbar-sleepmask)_(จัดแสงโต๊ะ-ลดแสงสะท้อน-ผ้าปิดตา)_(16-11-2026)_(Veo 3.1).mp4` (`1kMhpmnXr-LYMX12evmKlPYTBi7eiMslf`)
+
+#### 6h-4. TikTok Shop Product Basket Workflow, 5:1 Cadence & Reusable `00_PRODUCT_LIBRARY`
+
+1. **5:1 Content Cadence (`CEO ruling 2026-11-09`)**:
+   - Never post consecutive hard-selling clips on `@black_liquidity`. Publish **5 Pure Knowledge episodes** (`ยังไม่ขายของ`, ~58–66s, ending cleanly on the Behavioral Takeaway) followed by **1 Basket Product episode** (`ปักตะกร้าขายของ 1 ชิ้น`, ~65–70s, appending the 6–7s subtle product bridge at the tail).
+2. **HARD — Zero AI Disclosure Badge (`CEO ruling 2026-11-09`)**:
+   **Why hard:** audience focus — the CEO ruled (`"เอาคำว่าเนื้อหาที่สร้างจาก AI ออกได้ไหม อยากให้คนดู Focus ที่เนื้อหามากกว่าจะไปดูว่าใครเป็นคนทำ"`) that `<div class="bl-ai-pill">เนื้อหานี้สร้างด้วย AI</div>` must NEVER appear on screen in `index.html`, and no AI-generated disclosure text may be added to captions or tags. (The standing `.bl-legal` educational disclaimer at the bottom remains mandatory.)
+3. **Reusable Product Library (`ALL DRAFT/BLACK LIQUIDITY/00_PRODUCT_LIBRARY` `1n9PuChyLcl4_Sh88jvYJLGKHwVGcu5ZK`, `CEO Q-20261116-0603-73a1`)**:
+   - Every TikTok Shop product promoted on `@black_liquidity` has one dedicated subfolder `PROD-<NN>_<ชื่อสินค้า>/` inside `00_PRODUCT_LIBRARY`:
+     - `REFF/`: **1–3 real product reference photos** (`prod<NN>_ref_01..03.jpg`) saved from the actual TikTok Shop product added to `@black_liquidity`'s showcase.
+     - `FOOTAGE/`: **2–4 generated BLACK LIQUIDITY-themed product clips** (`Veo 3.1` or `Flow Omni 1.2`) generated using `ref_01_character_sheet.jpg` + `prod<NN>_ref_01.jpg` as visual references, named `PROD<NN>_{CHAR|BROLL}_{SCREEN_VIEW}_({action-en})_({คำพูดไทย})_({DD-MM-YYYY})_({Model}).mp4`.
+   - **Check Before Generating**: Before spending credits on product footage for a new episode, list `00_PRODUCT_LIBRARY/PROD-<NN>_*/FOOTAGE/`. Each Basket episode generates 2–4 clips, so repeat episodes for the same product reuse existing `FOOTAGE/` and `REFF/` assets at zero credit cost.
+   - **On-Screen Real Product Reference Card (`.bl-prod-reff-card`)**:
+     - During the Basket tail (e.g. `58.08s – 65.44s`), display the 3 real product photos (`REFF/prod<NN>_ref_01..03.jpg`) inside `.bl-prod-reff-card` (`border: 2px solid #FF2D40`, dark glass card, 3-column white image grid) over the generated BL product footage (`PROD01_BROLL_NONE` desk showcase at `58.08–61.80s` with card at `top: 420px`, then cutting to `PROD01_CHAR_FRONT` inspecting the product at `61.80–65.44s` while sliding `.bl-prod-reff-card` down to `top: 830px` on the chest below the chin so it never covers the character's face). See `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v6_ep1_basket_product.py`.
+
+#### 6h-5. Mass-Editor 17 Approved SFX & Pre-Roll Peak Alignment (`CMO_Standard_EditorSFX`)
+
+1. **HARD — Use ONLY the 17 CEO-Approved Mass-Editor SFX (`Q-20261109-0516-eb40`), aligned by Pre-Roll Peak and normalized to `-14.0 LUFS` (`-1.5 dBTP`).**
+   **Why hard:** audio quality — unapproved synthetic sounds were rejected by the CEO; only the 17 curated sounds in `/Users/gob/MoonieXHQ/Assets/BlackLiquidity/sfx-mass-pack/curated-48k/manifest.json` (`CMO_Standard_EditorSFX`) are permitted.
+   - **Pre-Roll Peak Alignment**: Every SFX file has a measured `peak_time_ms` in `manifest.json`. Place the file at `t_start = t_cut_or_text_pop - (peak_time_ms / 1000.0)` so the acoustic transient peak lands on the exact video cut frame or kinetic text pop.
+   - **Mix Levels & Master Loudness**: Mix SFX at `-6.0 dB` to `-11.0 dB` relative to voiceover (`mix_track_with_17sfx` in `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v5_batch.py`) and normalize the master stereo WAV with `loudnorm=I=-14.0:TP=-1.5:LRA=11` at `48000 Hz`.
+
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s → §6d traps (bright plate), §6f · status: promoted
@@ -882,12 +961,12 @@ the first place, but it will catch it if you don't.
 - 2026-10-01 [MISSING] §gates — the brand mark must be fully on from frame 0 of every window (CMO ruling 2026-10-01: a range render replays any entrance at every seam; EP58 blinked at 0.0 s and 11 seams). Check: `bl_checker --video` → `brand_mark` (≥95% of the clip's steady redness on the neon rule, every frame, arm-aware side). `bl_merge` does not run it · evidence: task-c32c40e8 · status: pending
 - 2026-10-01 [MISSING] §checker gates, empty frames — the checker's "legal band" mask is .66-.74 H (y 1267-1421), but the real `.bl-legal` pill sits at y 1430-1511; the new legal-pill probe uses the real rectangle (`LEGAL_PILL_RECT`), the old mask was not moved · evidence: task-c32c40e8 · status: pending
 - 2026-10-02 [WRONG] §9 render — the 2026-10-01 note's "12 windows by mkdir-lock drivers, 3-4 at once" is not safe on Contabo. task-cc55e620 ran 3 drivers on EP58 v2 while another job in `Work/bl-ep58/armA` ran 2, and chrome-headless + ffmpeg took about 4.6 of 7.9 GB. The box thrashed for 25 min, and the root tmux server died, taking every Contabo session with it. Render one window at a time on Contabo, and check `free -m` before each window. Same-host parallelism only with ≥3 GB available · evidence: task-cc55e620 (`journalctl -k` 2026-10-01 19:53–20:09 CEST, OOM task dump), counter to the task-8f940c57 note · status: pending
-- 2026-10-02 [MISSING] §gates, text_over_face — on the fixed template every COMP beat puts the caption band (y 1190-1382, `caption_band("COMP")` = .62-.72 H) over the composited avatar's head (face boxes from the matte: lip_a y 903-1339, lip_b y 976-1345), so with `--face-box` all 14 COMP beats of EP58 arm B flag (HOOK-1..4, PATTERN-1..3, MAIN-5..11) and an editor cannot dodge it from beats.json; task-cc55e620 passed 6/6 gates only because the face-box gate was skipped and its "Eye review" gave a verdict for 3 of the 8 listed frames (59.9, 0.0, 71.6), not 9.3 (caption over nose/mouth) or 16.7 (30% white blank under a tall EVID still). A brief should say "a verdict line per listed frame" and the face-box gate should run on every cut · evidence: task-cc55e620 REPORT vs CMO frames f_9.3, f_16.7 · status: pending (n=1; needs a template ruling before it is a rule)
+- 2026-10-02 [MISSING] §gates, text_over_face — on the fixed template every COMP beat puts the caption band (y 1190-1382, `caption_band("COMP")` = .62-.72 H) over the composited avatar's head (face boxes from the matte: lip_a y 903-1339, lip_b y 976-1345), so with `--face-box` all 14 COMP beats of EP58 arm B flag (HOOK-1..4, PATTERN-1..3, MAIN-5..11) and an editor cannot dodge it from beats.json; task-cc55e620 passed 6/6 gates only because the face-box gate was skipped and its "Eye review" gave a verdict for 3 of the 8 listed frames (59.9, 0.0, 71.6), not 9.3 (caption over nose/mouth) or 16.7 (30% white blank under a tall EVID still). A brief should say "a verdict line per listed frame" and the face-box gate should run on every cut (n=1; needs a template ruling before it is a rule) · evidence: task-cc55e620 REPORT vs CMO frames f_9.3, f_16.7 · status: pending
 - 2026-10-02 [MISSING] §9 render — on Contabo, one window at a time is faster per window as well as safer: in EP58 v2 iteration 2, seg06–seg10 each took 1–3 min alone, with `free -m` available ≥ 6054 MB at every start, against 10–25 min each when 5 windows ran in parallel and the box swapped (seg05 took 18 min under that load). This agrees with the 2026-10-02 WRONG note above; both come from the same task, so the rule body is not changed yet · evidence: task-cc55e620 docs/reports/task-cc55e620/WORKLOG.md (iteration 2) vs iteration 1 drv-fwd2.log · status: pending
 - 2026-10-02 [MISSING] §9 verify — `bl_tools.py` lives under this skill's `scripts/`, not under `tools/`, and `verify --seat` needs the ORIGINAL lipsync files from `drive/AI Drafts/` with the offsets from `offsets.json`; a brief that says `tools/bl_tools.py` costs the worker a search · evidence: task-cc55e620 REPORT (Skill learning), `find . -name bl_tools.py` · status: pending
 - 2026-10-01 [MISSING] §checker gates, text_over_face — returns `[]` when `--face-box` is not passed, so a run without one looks like a pass (EP58 did). Nothing here says how to obtain a face box; until it does, say "did not run" in the REPORT instead of quoting a pass · evidence: task-c32c40e8 item 5, `tools/bl_checker.py` text_over_face · status: pending
 - 2026-10-03 [MISSING] §9 seams — a window boundary must sit exactly on the next beat's own t0 (EP58 arm A: 16.63), not on the 1/30 grid: 16.6 left a bare first frame and bl_merge refused; 16.6333 made `emit_pieces` skip the beat (abs_t0 < t0_window - 0.001) so a KIN beat vanished for 2.3 s. Check each re-cut window's cut_pieces.json holds the intended beat · evidence: task-3cf9c2f8 seg03, armA/merge.log first two runs · status: pending
-- 2026-10-03 [MISSING] §gates, text_over_face — second independent run agrees with the 10-02 note above: task-3cf9c2f8 ran the gate with each lip take's face box on arm A and 17 of 40 beats fail (HOOK-1..4, PATTERN-1..3, MAIN-5..11, SUMMARY-7..9), by eye the pill covers the mouth, the avatar sits where arm B has it (not lower, contrary to the brief); the kit's COMP geometry (avatar top ~845, caption top ~1250, legal pill 1430) leaves ~85 px under the chin. Waits on a CEO template ruling, then this becomes a rule · evidence: task-3cf9c2f8 REPORT, armA/checker-lip_*.json · status: pending (n=2 on the facts, ruling open)
+- 2026-10-03 [MISSING] §gates, text_over_face — second independent run agrees with the 10-02 note above: task-3cf9c2f8 ran the gate with each lip take's face box on arm A and 17 of 40 beats fail (HOOK-1..4, PATTERN-1..3, MAIN-5..11, SUMMARY-7..9), by eye the pill covers the mouth, the avatar sits where arm B has it (not lower, contrary to the brief); the kit's COMP geometry (avatar top ~845, caption top ~1250, legal pill 1430) leaves ~85 px under the chin. Waits on a CEO template ruling, then this becomes a rule (n=2 on the facts, ruling open) · evidence: task-3cf9c2f8 REPORT, armA/checker-lip_*.json · status: pending
 - 2026-10-04 [MISSING] §5b B-roll — a KIN beat gets a default plate only when `media/broll/S{n}.mp4` exists; EP58 has no S08, so PATTERN-4 shows the bare brand background in both arms. Check the clip exists for every KIN line before the cut, or pick a replacement plate · evidence: task-f35f2935 REPORT cosmetic (g) · status: pending
 - 2026-10-04 [COSTLY] §9 render — hyperframes "Sequential screenshot capture stalled" cost one 8-minute window plus a retry; `prototypes/bl-ep58/render_v3.sh` has no auto-retry for that exact message (the v2 "redo" logs are the same family) · evidence: Work/bl-ep58/cut/v3/build-testb.log, task-f35f2935 · status: pending
 - 2026-10-04 [MISSING] §8 look at it — the v3 re-landing left two cosmetic families, both seen by eye on 16 frames: a 230-265 px dark band at the top of arm B MAIN-8/9 and PATTERN-2/3 (stills landed below the bug), and the dark brand background right of the avatar at shift 990 (MAIN-10/11, arm A SUMMARY-9 at 570). A candidate fix is to let a box with x+w <= 594 sit above y 461, since the bug zone is only on the right · evidence: docs/reports/task-f35f2935/REPORT.md (a)(b) · status: pending
@@ -914,3 +993,5 @@ the first place, but it will catch it if you don't.
 - 2026-10-14 [MISSING] §plates — the generator's `media/` is a COPY: after rebuilding plates re-sync `media/real` into `generator/media/real` or the render shows the old plate; and dark-page crops go on WHITE plates because `bl_merge` refuses a flat dark frame · evidence: task-03f18aab (floor-card label fix) · status: pending
 - 2026-10-14 [MISSING] §COMP — `bl_compose` clamps the avatar windows slightly inside the take length (lip_c ends 67.58, not 67.67), so an `avatar_until` above that breaks the render · evidence: task-03f18aab SUMMARY-7 (set to 67.55) · status: pending
 - 2026-10-14 [MISSING] §verify — seam sampling with `-ss` just above a frame's pts skips a frame; use 8.26 for the frame before an 8.3 s seam. Seam checks by frame difference flag every designed beat cut (diffs 16–235 at beat boundaries vs 1–6 inside a beat) — a real fault is a black/empty frame, which the merge's `empty_frames []` already covers · evidence: task-03f18aab; CMO c4432bad seam sweep of both EP61 finals · status: pending
+- 2026-11-09 [MISSING] §6h-4/§6h-5 — CEO rulings on V5/V6 Trading Psychology & TikTok Shop Basket series: (1) remove `<div class="bl-ai-pill">เนื้อหานี้สร้างด้วย AI</div>` from all BL renders and captions so viewers focus on content; (2) enforce a 5:1 cadence (5 Pure Knowledge clips ~58-66s before 1 Basket Product clip ~65-70s); (3) use ONLY the 17 CEO-approved Mass-Editor SFX (`Q-20261109-0516-eb40`) aligned by Pre-Roll Peak (`CMO_Standard_EditorSFX`) at `-14.0 LUFS` · evidence: CEO message 2026-11-09, Q-20261109-0516-eb40 → §6h-4, §6h-5 · status: promoted
+- 2026-11-16 [MISSING] §6h-1/§6h-2/§6h-3/§6h-4 — CEO rulings on V6 Word-Synced editing, Screen-Orientation Logic (`OTS`/`FRONT`/`SIDE` for `Google Veo 3.1` on `Champa.io` 2-4 clips/EP or `Google Flow Omni 1.2` fallback), 6-part Semantic B-Roll Naming in `ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)`, Reusable Product Library `ALL DRAFT/BLACK LIQUIDITY/00_PRODUCT_LIBRARY/<Product>/{REFF,FOOTAGE}` with on-screen `.bl-prod-reff-card`, and Audio-Source Correlation gate (`r > 0.99` between Pure Knowledge and Basket cuts after Clip A failed `Q-20261116-0652-5463` with `r = 0.019` from an old 26.92s audio track and passed `Q-20261116-0708-33ff` at `r = 0.999960`) · evidence: Q-20261116-0603-73a1, Q-20261116-0652-5463, Q-20261116-0708-33ff, Drive 1ehlrs1yfII-GY-AMNMFHZLop1htYgTZi & 1ks85qoSgNhF_Dg--EZFlIeo6pMJCUI9E → §6h · status: promoted
