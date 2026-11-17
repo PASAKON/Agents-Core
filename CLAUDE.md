@@ -224,9 +224,8 @@ when you act on it. **A question card never replaces a command card.** Anything 
 spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill
 `ALL_Protocol_RunInbox` §Question cards. The Mac has a Run Inbox token and peer executor (`RUN_PEER_EXECUTOR=1`,
 2026-11-02), so sessions on the Mac raise question and command cards directly with `tools/ask_run.py` and wait with
-`tools/ask_run.py wait <id>`. winbox has no run-inbox token yet, so a session there sends
-the question as one `blocker` letter to a Contabo C-level (its own, else CTO Main), which raises the card and
-sends back the answer with its `Q-…` id (CEO 2026-10-29). Never leave it waiting in that chat.
+`tools/ask_run.py wait <id>`. winbox has had the same token since 18 Nov (RUN-20261117-2034-6e3f; CEO: "การส่ง Card RUN PH สามารถ ส่งได้ ไม่ต้องผ่าน CTO เลย เพราะ ฉันเป็นคนอนุมัติ"), so a session there raises its own question cards and its own command cards. A PH on any host raises its cards itself and never routes them through CTO Main. winbox still has no peer executor, so a command for winbox goes on a `--host contabo` card whose line runs over `ssh winbox`. Never leave a question waiting in chat.
+[SUPERSEDED 2026-11-18] "winbox has no run-inbox token yet, so a session there sends the question as one `blocker` letter to a Contabo C-level" (CEO 2026-10-29).
 
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 
