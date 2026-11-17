@@ -35,13 +35,15 @@ card also emails him as a reminder (Console `scripts/run-mail-sender.mjs`).
 | host | runs cards | how |
 |---|---|---|
 | `contabo` | **yes** (P1 live since 2026-09-25 17:05 UTC) | the hub's own executor |
-| `winbox` | no — hub answers `501 peer_exec_not_yet` at creation | P2: executor on the peer |
+| `winbox` | no executor — a `host=winbox` card gets `501 peer_exec_not_yet`; since 2026-11-18 winbox holds the Run Inbox token, so its sessions raise question cards and `--host contabo` cards that run over `ssh winbox` themselves | P2: executor on the peer |
 | `mac` | **yes** (P2 live since 2026-11-02) | Contabo dispatches over the tailnet to `https://macbook-pro--gob.tail400676.ts.net/api/peer/run` (`RUN_PEER_EXECUTOR=1`, `RUN_PEER_DISPATCH=mac-3ecb3784`). Wait for the result with `tools/ask_run.py wait <id>` |
 
 A card for winbox never reaches the phone — the hub refuses it before storing anything.
 winbox's Claude CLI is already logged in (CEO 2026-09-28: "Window Login Claude นานแล้ว"), so no desk
 login is waiting on P2 there.
 The Mac has `~/.config/mooniex/run-inbox.token` and `RUN_PEER_EXECUTOR=1` (2026-11-02): sessions on the Mac raise question and command cards directly with `tools/ask_run.py` and wait with `tools/ask_run.py wait <id>`.
+**Since 2026-11-18 a winbox session (a PH included) raises its own cards** with `python tools\ask_run.py` from `C:\Users\passg\mooniex\org` (token installed by RUN-20261117-2034-6e3f; test Q-20261117-2050-dedb). CEO: "การส่ง Card RUN PH สามารถ ส่งได้ ไม่ต้องผ่าน CTO เลย เพราะ ฉันเป็นคนอนุมัติ". The blocker-letter routes below are now the fallback for when `ask_run.py` fails on winbox.
+
 There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2 lands on winbox, a step on
 winbox goes one of these ways, and never as a `!` line:
 

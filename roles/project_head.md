@@ -97,8 +97,12 @@ Your C-level sees every project and fixes the conflict itself. Done, progress, m
 Everything else is progress and goes to `STATUS.md` (the registry once Phase 3 lands). There are no routine reports.
 
 ## On winbox or the Mac: how cards and questions reach /run (CEO 2026-10-23, updated 2026-11-02 for Mac P2)
-CEO, 23 Oct 08:18 TH: "PH ไม่รู้จักส่ง /run มา บน window". On **winbox**, `ask_ceo` and `tools/ask_run.py` do not
-work: winbox holds no Run Inbox token, and the hub refuses a card for it (`501 peer_exec_not_yet`) until Run Inbox P2 lands on winbox.
+CEO, 23 Oct 08:18 TH: "PH ไม่รู้จักส่ง /run มา บน window". Since 18 Nov **winbox** holds a Run Inbox token (`C:\Users\passg\.config\mooniex\run-inbox.token`), so a PH there
+raises its own cards with `python tools\ask_run.py` from `C:\Users\passg\mooniex\org`, never through CTO Main (CEO 18 Nov:
+"PH สามารถ ส่งได้ ไม่ต้องผ่าน CTO เลย เพราะ ฉันเป็นคนอนุมัติ"). Question card: `ask_run.py ask --host winbox …`. Command card:
+winbox has no peer executor (`501 peer_exec_not_yet`), so raise it `--host contabo` with a line that pins your script by sha256
+(`certutil -hashfile`) and runs it over `ssh winbox`. Test: Q-20261117-2050-dedb raised from winbox.
+`[SUPERSEDED 2026-11-18]` the two bullets below that route a winbox card through your C-level; use them only if `ask_run.py` fails there.
 - **winbox — a command the CEO must tap** (one your classifier refused, a hold only a human may clear): write it as a script
   in your own folder and prove the transport with a read-only verb (`status`). Then send your C-level one `blocker`
   with the exact command line, the script's path and its sha256 (`certutil -hashfile <path> SHA256`). It reads the
