@@ -8,12 +8,13 @@ id, a letter id). It cannot **send** a command.
 
 ## Verbs
 
-Exactly these eight. Anything else is refused. Argument patterns are `fullmatch`.
+Exactly the verbs in `tools/node_dispatch.py` HANDLERS (14 on 2026-11-19; this table may lag). Anything else is refused. Argument patterns are `fullmatch`.
 
 | verb | args | does |
 |---|---|---|
 | `probe` | none | reports host, os, free GB, running workers, git version, `provides_measured` and `probe_errors` (below); writes the probe fields of this host's `hosts` row |
 | `kit` | none | read-only: this host's KIT facts (`tools.mesh_check.kit_facts`, no fetch, no path overrides), so `mesh_check` can read the Mac, which has no admin `ssh` alias |
+| `agy_list` | none | read-only: this host's AGY conversations (`tools.send_to_agy.scan_local_host`, max 50), one row each with `box`, `uuid`, `cwd`, `last_activity`, `title` (one line, ≤90 chars, redacted) and `surface` — never message bodies or language-server credentials. `deliver_letter` to `<role>-agy-<hex8>` on a POSIX host writes the inbox of a registered, unparked `state/agy-sessions/<box>.json` whose uuid matches, then `mail_wake.wake` |
 | `pid_alive` | `task-xxxxxxxx` | is the pid recorded on this host's task alive (`alive` true/false) |
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |

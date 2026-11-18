@@ -52,7 +52,8 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lib import mailbox, notify  # noqa: E402
+from lib import config as org_config  # noqa: E402
+from lib import db, mailbox, mesh, notify  # noqa: E402
 from lib.config import display_for, is_c_level  # noqa: E402
 from lib.roles import PH_ROLE, c_level_roles  # noqa: E402
 from tools import agent_transport, agy_card_run, live_sessions, mail_wake, ph_brain, send_to_cxo  # noqa: E402
@@ -60,8 +61,10 @@ from tools import agent_transport, agy_card_run, live_sessions, mail_wake, ph_br
 HOSTS: tuple[str, ...] = ("contabo", "mac", "winbox")
 
 # Host map extending tools/agy_takeover.py so any host can reach the other two over SSH
-# while executing locally when target_host == current_host().
-HOST_MAP: dict[str, dict[str, str]] = {
+# while executing locally when target_host == current_host(). The Mac is the exception:
+# config/hosts.yaml gives it `ssh: null` and only a `mesh_ssh`, so no admin alias is ever
+# dialled for it (ADR 0034). `route_for` sends it through lib.mesh (node_dispatch) instead.
+HOST_MAP: dict[str, dict[str, str | None]] = {
     "contabo": {
         "ssh": "mooniex-vps",
         "python": "python3",
@@ -69,7 +72,7 @@ HOST_MAP: dict[str, dict[str, str]] = {
         "agy_bin": "/root/.local/bin/agy",
     },
     "mac": {
-        "ssh": "mac",
+        "ssh": None,
         "python": "python3",
         "agents_root": "/Users/gob/MoonieXHQ/Agents/Core",
         "agy_bin": "/Users/gob/.local/bin/agy",
@@ -718,12 +721,102 @@ elif mode == "reply":
 '''
 
 
+def _host_ssh(host: str) -> str | None:
+    """Return the admin SSH alias for `host`, or None when `ssh` is null (e.g. `mac`)."""
+    cfg = HOST_MAP.get(host)
+    if not cfg:
+        return None
+    alias = cfg.get("ssh")
+    if not alias:
+        return None
+    with contextlib.suppress(Exception):
+        if org_config.host(host).get("ssh") is None:
+            return None
+    return str(alias)
+
+
+def route_for(
+    target_host: str,
+    *,
+    here: str | None = None,
+    env: dict[str, str] | None = None,
+) -> str:
+    """Return `'local'`, `'mesh'` (when host `ssh` is null, e.g. Mac), or `'ssh'`."""
+    target = target_host.lower().strip()
+    local = (here or current_host(env)).lower().strip()
+    if target == local:
+        return "local"
+    if target not in HOST_MAP:
+        raise ValueError(f"unknown target host {target_host!r}")
+    return "mesh" if _host_ssh(target) is None else "ssh"
+
+
+def _normalize_remote_conversations(
+    host: str,
+    raw_convs: Any,
+    *,
+    limit: int = 25,
+) -> list[dict[str, Any]]:
+    """Normalize conversation rows returned by `_probe_mesh_host` or `_probe_remote_host`."""
+    if not isinstance(raw_convs, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw_convs:
+        if not isinstance(item, dict):
+            continue
+        c = dict(item)
+        c["host"] = host
+        c.setdefault("kind", "agy")
+        if "conversation_id" in c and "uuid" not in c:
+            c["uuid"] = c["conversation_id"]
+        elif "uuid" in c and "conversation_id" not in c:
+            c["conversation_id"] = c["uuid"]
+        cid = str(c.get("conversation_id") or "")
+        box = str(c.get("box") or (f"cto-agy-{cid[:8]}" if cid else ""))
+        if box:
+            c["box"] = box
+            r_part, sep, s_part = box.partition("-")
+            c.setdefault("role", r_part or "cto")
+            c.setdefault("session_id", s_part if sep and s_part else (f"agy-{cid[:8]}" if cid else box))
+        c.setdefault("cwd", HOST_MAP.get(host, {}).get("agents_root") or str(ROOT))
+        surf = c.get("app_vs_cli") or c.get("surface") or "CLI"
+        c["app_vs_cli"] = surf
+        c["surface"] = surf
+        title = c.get("title") or c.get("first_user_line") or c.get("box") or ""
+        c["title"] = title
+        c["first_user_line"] = title
+        out.append(c)
+    return out[: max(1, int(limit))]
+
+
+def _probe_mesh_host(host: str, limit: int = 25) -> dict[str, Any]:
+    """Query `host` over the Org Mesh via `lib.mesh.dispatch(host, 'agy_list')`."""
+    host = host.lower().strip()
+    try:
+        reply = mesh.dispatch(host, "agy_list")
+    except Exception as exc:  # noqa: BLE001 — includes mesh.MeshUnreachable
+        return {"host": host, "ok": False, "error": str(exc)[:300], "conversations": []}
+    if not isinstance(reply, dict) or not reply.get("ok"):
+        err = str((reply or {}).get("error") if isinstance(reply, dict) else "bad mesh reply")[:300]
+        return {"host": host, "ok": False, "error": err or "agy_list refused", "conversations": []}
+    payload = reply.get("result") if isinstance(reply.get("result"), dict) else reply
+    raw_convs = payload.get("conversations") or payload.get("sessions") or []
+    return {
+        "host": host,
+        "ok": True,
+        "conversations": _normalize_remote_conversations(host, raw_convs, limit=limit),
+    }
+
+
 def _probe_remote_host(host: str, limit: int = 25) -> dict[str, Any]:
-    """Query `host` over SSH using `HOST_MAP` and return its AGY conversations."""
+    """Query `host` over SSH using `HOST_MAP` (or over the mesh if `ssh` is null)."""
     host = host.lower().strip()
     cfg = HOST_MAP.get(host)
     if not cfg:
         return {"host": host, "ok": False, "error": f"unknown host {host!r}", "conversations": []}
+    ssh_alias = _host_ssh(host)
+    if ssh_alias is None:
+        return _probe_mesh_host(host, limit=limit)
 
     cmd = [
         "ssh",
@@ -731,8 +824,8 @@ def _probe_remote_host(host: str, limit: int = 25) -> dict[str, Any]:
         "ConnectTimeout=6",
         "-o",
         "BatchMode=yes",
-        cfg["ssh"],
-        cfg["python"],
+        ssh_alias,
+        str(cfg["python"]),
         "-",
         "list",
         str(limit),
@@ -769,21 +862,11 @@ def _probe_remote_host(host: str, limit: int = 25) -> dict[str, Any]:
     else:
         convs = []
 
-    for c in convs:
-        if isinstance(c, dict):
-            c["host"] = host
-            c.setdefault("kind", "agy")
-            if "conversation_id" in c and "uuid" not in c:
-                c["uuid"] = c["conversation_id"]
-            elif "uuid" in c and "conversation_id" not in c:
-                c["conversation_id"] = c["uuid"]
-            surf = c.get("app_vs_cli") or c.get("surface") or "CLI"
-            c["app_vs_cli"] = surf
-            c["surface"] = surf
-            title = c.get("title") or c.get("first_user_line") or c.get("box") or ""
-            c["title"] = title
-            c["first_user_line"] = title
-    return {"host": host, "ok": True, "conversations": convs}
+    return {
+        "host": host,
+        "ok": True,
+        "conversations": _normalize_remote_conversations(host, convs, limit=limit),
+    }
 
 
 def scan_host(
@@ -808,7 +891,10 @@ def scan_host(
         )
         return {"host": host, "ok": True, "conversations": convs}
 
-    res = _probe_remote_host(host, limit=limit)
+    if host in HOST_MAP and _host_ssh(host) is None:
+        res = _probe_mesh_host(host, limit=limit)
+    else:
+        res = _probe_remote_host(host, limit=limit)
     # Merge any locally-registered `state/agy-sessions/*.json` entries pinned to `host`
     sdir = Path(sessions_dir or agy_card_run.AGY_SESSIONS_DIR)
     seen_uuids = {str(c.get("conversation_id") or "").lower() for c in res.get("conversations") or []}
@@ -1273,6 +1359,77 @@ def _resume_remote_agy(
     return {"ok": True, "host": target_host, "box": box, "conversation_id": conversation_id}
 
 
+_MESH_AGY_SID_RE = re.compile(r"agy-[0-9a-f]{8}")
+_MESH_SAFE_TOKEN_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+def _deliver_mesh_letter(
+    *,
+    target_host: str,
+    to_role: str,
+    to_sid: str,
+    from_role: str,
+    from_sid: str,
+    from_host: str,
+    message: str,
+    require_agy_box: bool = True,
+) -> dict[str, Any]:
+    """Create a hub `letters` row and deliver it via `lib.mesh.dispatch(target_host, 'deliver_letter', str(lid))`."""
+    if require_agy_box and (
+        to_role not in org_config.live_c_level_roles() or not _MESH_AGY_SID_RE.fullmatch(to_sid)
+    ):
+        return {
+            "ok": False,
+            "error": (
+                f"refused: mesh AGY delivery to {target_host} requires a <c-level>-agy-<8 hex> box, "
+                f"got {to_role}-{to_sid}"
+            ),
+            "letter_id": None,
+            "woke": False,
+        }
+    if not _MESH_SAFE_TOKEN_RE.fullmatch(from_role) or not _MESH_SAFE_TOKEN_RE.fullmatch(from_sid):
+        return {
+            "ok": False,
+            "error": f"refused: unsafe sender {from_role}-{from_sid} for mesh delivery",
+            "letter_id": None,
+            "woke": False,
+        }
+    lid = db.create_letter(
+        target_host,
+        to_role,
+        message,
+        to_session=to_sid,
+        from_role=from_role,
+        from_session=from_sid,
+        from_host=from_host,
+    )
+    try:
+        reply = mesh.dispatch(target_host, "deliver_letter", str(lid))
+    except Exception as exc:  # noqa: BLE001 — includes mesh.MeshUnreachable
+        return {
+            "ok": False,
+            "error": str(exc),
+            "letter_id": lid,
+            "woke": False,
+        }
+    if not isinstance(reply, dict) or not reply.get("ok"):
+        err = str((reply or {}).get("error") if isinstance(reply, dict) else "deliver_letter failed")
+        return {
+            "ok": False,
+            "error": err or "deliver_letter refused",
+            "letter_id": lid,
+            "woke": False,
+        }
+    res_payload = reply.get("result") if isinstance(reply.get("result"), dict) else {}
+    return {
+        "ok": True,
+        "letter_id": lid,
+        "woke": bool(res_payload.get("woke", True)),
+        "why": res_payload.get("why"),
+        "result": res_payload,
+    }
+
+
 def send(
     target: str,
     message: str,
@@ -1319,6 +1476,55 @@ def send(
     if not sep or not to_sid:
         to_role, to_sid = "cto", box
 
+    route = route_for(target_host, here=here, env=env)
+    prompt = format_send_prompt(
+        box=box,
+        from_box=resolved_from_box,
+        message=message,
+        from_host=here,
+        target_host=target_host,
+    )
+
+    if route == "mesh":
+        _log_cto_event(
+            f"[send_to_agy] {resolved_from_box} ({here}) -> {box} ({target_host} {surface} conv={conv_id}): "
+            f"{' '.join(clean_msg.split())[:120]}",
+            cto_log_path=cto_log_path,
+        )
+        mesh_res = _deliver_mesh_letter(
+            target_host=target_host,
+            to_role=to_role,
+            to_sid=to_sid,
+            from_role=from_role,
+            from_sid=from_sid,
+            from_host=here,
+            message=message,
+            require_agy_box=True,
+        )
+        out: dict[str, Any] = {
+            "ok": bool(mesh_res.get("ok")),
+            "box": box,
+            "to_role": to_role,
+            "to_sid": to_sid,
+            "from_box": resolved_from_box,
+            "from_role": from_role,
+            "from_sid": from_sid,
+            "host": target_host,
+            "conversation_id": conv_id,
+            "app_vs_cli": surface,
+            "letter_id": mesh_res.get("letter_id"),
+            "letter_path": None,
+            "woke": mesh_res.get("woke"),
+            "prompt": prompt,
+            "pid": None,
+            "remote": True,
+        }
+        if not out["ok"]:
+            out["error"] = mesh_res.get("error") or "deliver_letter refused"
+        elif mesh_res.get("why"):
+            out["why"] = mesh_res["why"]
+        return out
+
     # 1. Write the letter to local state/inbox/<box>/ (same letter shape as send_to_cxo)
     chain = [f"{from_role}:{from_sid}", f"{to_role}:{to_sid}"]
     letter_path = mailbox.send(
@@ -1355,26 +1561,17 @@ def send(
     except OSError:
         pass
 
-    # 3. Build prompt with sender + reply route
-    prompt = format_send_prompt(
-        box=box,
-        from_box=resolved_from_box,
-        message=message,
-        from_host=here,
-        target_host=target_host,
-    )
-
-    # 4. Log to CTO event log
+    # 3. Log to CTO event log
     _log_cto_event(
         f"[send_to_agy] {resolved_from_box} ({here}) -> {box} ({target_host} {surface} conv={conv_id}): "
         f"{' '.join(clean_msg.split())[:120]}",
         cto_log_path=cto_log_path,
     )
 
-    # 5. Resume the conversation ON ITS OWN HOST (local if target_host == here, else over SSH)
+    # 4. Resume the conversation ON ITS OWN HOST (local if target_host == here, else over SSH)
     pid: int | None = None
     remote_res: dict[str, Any] | None = None
-    if target_host == here:
+    if route == "local":
         pid = _spawn_detached_local_agy(
             prompt,
             box=box,
@@ -1555,7 +1752,8 @@ def reply_to_claude(
         cto_log_path=cto_log_path,
     )
 
-    if target_host == here:
+    route = route_for(target_host, here=here, env=env_map)
+    if route == "local":
         chain = [f"{from_role}:{from_sid}", f"{to_role}:{to_sid}"]
         letter_path = mailbox.send(
             to_role,
@@ -1578,6 +1776,30 @@ def reply_to_claude(
             "wake": wake_res,
         }
 
+    if route == "mesh":
+        mesh_res = _deliver_mesh_letter(
+            target_host=target_host,
+            to_role=to_role,
+            to_sid=to_sid,
+            from_role=from_role,
+            from_sid=from_sid,
+            from_host=here,
+            message=message,
+            require_agy_box=False,
+        )
+        out: dict[str, Any] = {
+            "ok": bool(mesh_res.get("ok")),
+            "from_box": resolved_from_box,
+            "to_box": to_box,
+            "host": target_host,
+            "remote": True,
+            "letter_id": mesh_res.get("letter_id"),
+            "wake": {"woke": mesh_res.get("woke"), "why": mesh_res.get("why")},
+        }
+        if not out["ok"]:
+            out["error"] = mesh_res.get("error") or "deliver_letter refused"
+        return out
+
     cfg = HOST_MAP.get(target_host)
     if not cfg:
         raise ValueError(f"unknown target host {target_host!r}")
@@ -1596,8 +1818,8 @@ def reply_to_claude(
         "ConnectTimeout=6",
         "-o",
         "BatchMode=yes",
-        cfg["ssh"],
-        cfg["python"],
+        str(cfg["ssh"]),
+        str(cfg["python"]),
         "-",
         "reply",
         "--to",
@@ -1618,7 +1840,7 @@ def reply_to_claude(
         detail = (proc.stderr or proc.stdout or f"rc={proc.returncode}").strip()[:400]
         raise RuntimeError(f"remote reply to {to_box} on {target_host} ({cfg['ssh']}) failed: {detail}")
 
-    wake_res: dict[str, Any] = {}
+    wake_res = {}
     out_lines = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
     if out_lines:
         with contextlib.suppress(ValueError):
@@ -1833,11 +2055,14 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.json:
                 print(json.dumps(res, indent=2, ensure_ascii=False))
-            else:
-                print(
-                    f"sent to AGY {res['box']} ({res['conversation_id']}) on {res['host']} "
-                    f"[{res['app_vs_cli']}]: [{res['from_box']}] : {args.message}"
-                )
+                return 0 if res.get("ok", True) else 1
+            if not res.get("ok", True):
+                print(f"send_to_agy error: {res.get('error') or 'delivery failed'}", file=sys.stderr)
+                return 1
+            print(
+                f"sent to AGY {res['box']} ({res['conversation_id']}) on {res['host']} "
+                f"[{res['app_vs_cli']}]: [{res['from_box']}] : {args.message}"
+            )
             return 0
 
         if args.cmd == "reply":
@@ -1849,10 +2074,13 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.json:
                 print(json.dumps(res, indent=2, ensure_ascii=False))
-            else:
-                print(
-                    f"replied to {res['to_box']} on {res['host']}: [{res['from_box']}] : {args.message}"
-                )
+                return 0 if res.get("ok", True) else 1
+            if not res.get("ok", True):
+                print(f"send_to_agy error: {res.get('error') or 'reply delivery failed'}", file=sys.stderr)
+                return 1
+            print(
+                f"replied to {res['to_box']} on {res['host']}: [{res['from_box']}] : {args.message}"
+            )
             return 0
     except PermissionError as exc:
         print(str(exc), file=sys.stderr)
