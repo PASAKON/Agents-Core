@@ -8,7 +8,7 @@ id, a letter id). It cannot **send** a command.
 
 ## Verbs
 
-Exactly these nine. Anything else is refused. Argument patterns are `fullmatch`.
+Exactly the verbs in `tools/node_dispatch.py` HANDLERS (14 on 2026-11-19; this table may lag). Anything else is refused. Argument patterns are `fullmatch`.
 
 | verb | args | does |
 |---|---|---|
