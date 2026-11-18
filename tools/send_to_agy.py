@@ -52,7 +52,8 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lib import mailbox, notify  # noqa: E402
+from lib import config as org_config  # noqa: E402
+from lib import db, mailbox, mesh, notify  # noqa: E402
 from lib.config import display_for, is_c_level  # noqa: E402
 from lib.roles import PH_ROLE, c_level_roles  # noqa: E402
 from tools import agent_transport, agy_card_run, live_sessions, mail_wake, ph_brain, send_to_cxo  # noqa: E402
@@ -60,8 +61,10 @@ from tools import agent_transport, agy_card_run, live_sessions, mail_wake, ph_br
 HOSTS: tuple[str, ...] = ("contabo", "mac", "winbox")
 
 # Host map extending tools/agy_takeover.py so any host can reach the other two over SSH
-# while executing locally when target_host == current_host().
-HOST_MAP: dict[str, dict[str, str]] = {
+# while executing locally when target_host == current_host(). The Mac is the exception:
+# config/hosts.yaml gives it `ssh: null` and only a `mesh_ssh`, so no admin alias is ever
+# dialled for it (ADR 0034). `route_for` sends it through lib.mesh (node_dispatch) instead.
+HOST_MAP: dict[str, dict[str, str | None]] = {
     "contabo": {
         "ssh": "mooniex-vps",
         "python": "python3",
@@ -69,7 +72,7 @@ HOST_MAP: dict[str, dict[str, str]] = {
         "agy_bin": "/root/.local/bin/agy",
     },
     "mac": {
-        "ssh": "mac",
+        "ssh": None,
         "python": "python3",
         "agents_root": "/Users/gob/MoonieXHQ/Agents/Core",
         "agy_bin": "/Users/gob/.local/bin/agy",
