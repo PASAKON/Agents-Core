@@ -180,6 +180,10 @@ state/hq-step4a-yaml-backup-*.yaml
 # personal data and must never be committed.
 state/bl-tiktok/
 
+# TikTok Content Posting API OAuth pending state, callback codes and user tokens (tools/tiktok_post.py)
+state/tiktok/
+state/tiktok/tokens-*.json
+
 # run logs of the Drive leg / doctor on this box (never committed; the ledger is ~/.claude/logs/drive-archive.log)
 state/*.log
 
