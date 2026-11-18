@@ -16,7 +16,9 @@ cd "$ROOT"
 ERR="$(mktemp)"
 trap 'rm -f "$ERR"' EXIT
 rc=0
-if [ "${ORG_LIVE_SESSIONS_NO_AGY:-0}" = "1" ]; then
+# AGY rows are opt-in (ORG_LIVE_SESSIONS_AGY=1): they grow the list from ~1k to ~8k chars, and every
+# C-level runs this before each send (CTO review of task-0d2258a9).
+if [ "${ORG_LIVE_SESSIONS_AGY:-0}" != "1" ]; then
   bash "$ROOT/scripts/hub/org-python.sh" -m tools.live_sessions "$@" 2>"$ERR" || rc=$?
 else
   bash "$ROOT/scripts/hub/org-python.sh" -m tools.send_to_agy live-sessions "$@" 2>"$ERR" || rc=$?
