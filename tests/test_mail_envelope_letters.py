@@ -1171,18 +1171,23 @@ def test_send_to_cxo_spawn_reusing_a_tab_passes_the_kind(cxo, locks, on, monkeyp
 
 
 @pytest.mark.parametrize("flag", [False, True])
-def test_send_to_cto_fyi_and_report_never_wake_a_c_level_box(inbox, monkeypatch, flag):
+def test_send_to_cto_normal_fyi_and_report_never_wake_a_c_level_box(inbox, monkeypatch, flag):
+    # CEO 18 Nov 2026: CTO -> worker -> CTO ends at the CTO, so a worker's URGENT
+    # letter (submit_report, a blocker) wakes its C-level owner; normal ones stay quiet.
     wakes = _wakes_on(monkeypatch, s2cto)
     if flag:
         monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
     mailbox.note_sweep(root=inbox)
     for kind in ("fyi", "report"):
-        assert s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind=kind, prio="urgent")
+        assert s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind=kind, prio="normal")
     assert s2cto.send("task-1", "report · normal · done", role="developer", cto_id="t1", subject="s")
     assert wakes == [] and len(_raw(inbox / "cto-t1")) == 3
+    assert s2cto.send("task-1", "report · urgent · done", role="developer", cto_id="t1", subject="s",
+                      kind="report", prio="urgent")
+    assert [w[:2] for w in wakes] == [("cto", "t1")]
     assert s2cto.send("task-1", "which branch?", role="developer", cto_id="t1", subject="s", kind="ask")
     assert s2cto.send("task-1", "stuck", role="developer", cto_id="t1", subject="s", kind="blocker")
-    assert len(wakes) == 2
+    assert len(wakes) == 3, "the urgent report, the ask and the blocker"
 
 
 def test_send_to_cto_passes_the_kind_to_wake_due_and_a_ph_owner_still_wakes(inbox, on, sweeper, monkeypatch):
@@ -1194,7 +1199,7 @@ def test_send_to_cto_passes_the_kind_to_wake_due_and_a_ph_owner_still_wakes(inbo
     s2cto.send("task-1", "fyi · normal · y", role="developer", cto_id="t1", subject="s")
     s2cto.send("task-1", "z", role="developer", cto_id="p1", owner_role="project_head",
                subject="s", kind="report", prio="urgent")
-    assert seen == ["report", "fyi", "report"]
+    assert seen == ["report", "fyi", None], "an urgent worker letter is passed as no quiet kind"
     assert [w[:2] for w in wakes] == [("project_head", "p1")], "only the PH box woke"
 
 

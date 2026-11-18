@@ -144,6 +144,12 @@ def _wake(role: str, session_id: str, label: str, prio: str | None,
     letters wait or the oldest has waited ORG_WAKE_DEBOUNCE_S
     (lib.mailbox.wake_due; tools/mail_wake_sweep.py fires the late one). Off:
     `_attempt_wake()` every time, as before."""
+    # A worker's urgent letter (submit_report, a blocker) wakes its owner even
+    # when the owner is a C-level: CTO -> worker -> CTO ends at the CTO, not in a
+    # quiet box until the CEO's next prompt (CEO 18 Nov 2026, task-71759b30).
+    # A normal report or fyi stays quiet, as lib.mailbox.quiet_for says.
+    if prio == "urgent":
+        kind = None
     try:
         due = mailbox.wake_due(role, session_id, prio or "normal", kind=kind)
     except Exception:
