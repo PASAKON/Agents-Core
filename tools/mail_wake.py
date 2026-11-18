@@ -207,6 +207,8 @@ def _wake(box: str, label: str) -> dict:
 
         woke = agent_transport.attempt_wake(
             tmux_session.session_name_for(m.group(1)), label, "mail_wake")
+    elif (agy := handle_agy(box)) is not None:
+        return _result(box, agy["woke"], agy["reason"])
     else:
         return _result(box, False, "not a session box")
     return _result(box, bool(woke), "woke" if woke else "no live session reached")

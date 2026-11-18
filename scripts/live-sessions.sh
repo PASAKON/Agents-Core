@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The live C-level session list (tools/live_sessions.py) with the hub env, on a POSIX host.
+# The live C-level session list (tools/live_sessions.py) + AGY conversations (tools/send_to_agy.py, kind agy)
+# with the hub env, on a POSIX host.
 #
 #   bash scripts/live-sessions.sh [--all] [--id <sid>] [--json] [--local]
 #
@@ -15,6 +16,10 @@ cd "$ROOT"
 ERR="$(mktemp)"
 trap 'rm -f "$ERR"' EXIT
 rc=0
-bash "$ROOT/scripts/hub/org-python.sh" -m tools.live_sessions "$@" 2>"$ERR" || rc=$?
+if [ "${ORG_LIVE_SESSIONS_NO_AGY:-0}" = "1" ]; then
+  bash "$ROOT/scripts/hub/org-python.sh" -m tools.live_sessions "$@" 2>"$ERR" || rc=$?
+else
+  bash "$ROOT/scripts/hub/org-python.sh" -m tools.send_to_agy live-sessions "$@" 2>"$ERR" || rc=$?
+fi
 grep -v '^\[infisical run\] ' "$ERR" >&2 || true
 exit "$rc"
