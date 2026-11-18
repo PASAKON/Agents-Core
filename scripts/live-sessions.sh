@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The live C-level session list (tools/live_sessions.py) with the hub env, on a POSIX host.
+# The live C-level session list (tools/live_sessions.py) + AGY conversations (tools/send_to_agy.py, kind agy)
+# with the hub env, on a POSIX host.
 #
 #   bash scripts/live-sessions.sh [--all] [--id <sid>] [--json] [--local]
 #
@@ -15,6 +16,12 @@ cd "$ROOT"
 ERR="$(mktemp)"
 trap 'rm -f "$ERR"' EXIT
 rc=0
-bash "$ROOT/scripts/hub/org-python.sh" -m tools.live_sessions "$@" 2>"$ERR" || rc=$?
+# AGY rows are opt-in (ORG_LIVE_SESSIONS_AGY=1): they grow the list from ~1k to ~8k chars, and every
+# C-level runs this before each send (CTO review of task-0d2258a9).
+if [ "${ORG_LIVE_SESSIONS_AGY:-0}" != "1" ]; then
+  bash "$ROOT/scripts/hub/org-python.sh" -m tools.live_sessions "$@" 2>"$ERR" || rc=$?
+else
+  bash "$ROOT/scripts/hub/org-python.sh" -m tools.send_to_agy live-sessions "$@" 2>"$ERR" || rc=$?
+fi
 grep -v '^\[infisical run\] ' "$ERR" >&2 || true
 exit "$rc"

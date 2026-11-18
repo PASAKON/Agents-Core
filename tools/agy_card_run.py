@@ -403,8 +403,15 @@ def extract_letter_extras(letter: dict[str, Any], shown_body: str = "") -> str:
 def format_wake_prompt(box: str, letters: list[dict[str, Any]]) -> str:
     """Build the prompt sent to `agy --conversation <uuid>` when woken by mailbox letters."""
     blocks: list[str] = []
+    peer_senders: list[str] = []
     for lt in letters:
         frm = lt.get("from") if isinstance(lt.get("from"), dict) else {}
+        frm_role = str(frm.get("role") or "").strip()
+        frm_sid = str(frm.get("session_id") or "").strip()
+        if frm_role and frm_role not in ("run-inbox", "hub") and frm_sid:
+            s_box = f"{frm_role}-{frm_sid}"
+            if s_box not in peer_senders:
+                peer_senders.append(s_box)
         head = " ".join(
             f"[{lt.get('id', '?')}] {str(lt.get('kind') or 'message').upper()} from "
             f"{frm.get('role', '?')} {frm.get('session_id', '?')} · {lt.get('sent_at', '')}".split()
@@ -418,11 +425,22 @@ def format_wake_prompt(box: str, letters: list[dict[str, Any]]) -> str:
         note = f"\n…[cut at 6000 chars; full letters are in state/inbox/{box}/read/]"
         joined = joined[: 6000 - len(note)] + note
 
+    reply_block = ""
+    if peer_senders:
+        reply_lines = [
+            f"To reply to `{s_box}`, run:\n"
+            f'  bash scripts/hub/org-python.sh tools/send_to_cxo.py {s_box} "<reply>"\n'
+            f'  (or cross-host: bash scripts/hub/org-python.sh tools/send_to_agy.py reply {s_box} "<reply>" --from {box})'
+            for s_box in peer_senders
+        ]
+        reply_block = "\n\n" + "\n".join(reply_lines)
+
     return (
         f"[RUN-INBOX / MAILBOX WAKE for AGY session `{box}`]\n"
         f"{len(letters)} new letter(s) arrived and were drained from `state/inbox/{box}/`:\n\n"
         f"{joined}\n\n"
         f"Continue the task in this session based on the CEO's response / command output above."
+        f"{reply_block}"
     )
 
 
@@ -507,6 +525,8 @@ def _call_agy_cli(
     add_dirs: list[str] | None = None,
     timeout_s: int = WAKE_TIMEOUT_S,
     agy_bin: str | None = None,
+    app_data_dir: str | None = None,
+    env: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Run one `agy -p <prompt> --conversation <uuid>` invocation and parse its output."""
     binary = agy_bin or ph_brain.resolve_agy_bin()
@@ -528,6 +548,10 @@ def _call_agy_cli(
             cmd.extend(["--add-dir", str(d)])
 
     run_cwd = str(cwd) if cwd and Path(cwd).is_dir() else str(ROOT)
+    run_env = dict(os.environ if env is None else env)
+    run_env["AGY_CONVERSATION_ID"] = conversation_id
+    if app_data_dir:
+        run_env["ANTIGRAVITY_APP_DATA_DIR"] = str(app_data_dir)
     try:
         proc = subprocess.run(
             cmd,
@@ -536,6 +560,7 @@ def _call_agy_cli(
             text=True,
             timeout=timeout_s,
             cwd=run_cwd,
+            env=run_env,
         )
     except subprocess.TimeoutExpired:
         return {
