@@ -1475,11 +1475,91 @@ def _write_worker_letter(letter: dict, role: object) -> dict:
                 tmux_name, from_role.upper(), "node_dispatch"))}
 
 
+# A standalone AGY conversation's box: `<c-level role>-agy-<first 8 hex of its
+# uuid>` (agy_card_run.resolve_identity, mail_wake's "standalone box"). It has
+# no Claude pane, so the pane checks of `_write_clevel_letter` do not apply.
+AGY_SID_RE = re.compile(r"agy-[0-9a-f]{8}")
+AGY_LIST_LIMIT = 50
+AGY_TITLE_CHARS = 90
+
+
+def _agy_record(box: str, sid: str) -> dict:
+    """The AGY session registered for `box` on THIS host, or ValueError.
+
+    The record (`state/agy-sessions/<box>.json`) is the conversation's own
+    opt-in to org mail: the AGY hook (scripts/hook-inbox.py) writes it on that
+    conversation's first prompt on this host, and `tools/agy_card_run.py
+    register` does it by hand. This verb never creates one: a dispatch key that
+    could register any local conversation could wake any of them (accept-edits)
+    with text of its choosing. A parked record (a live Claude pane took the box
+    over) counts as none, exactly as `mail_wake.handle_agy` reads it."""
+    from tools import agy_card_run, mail_wake
+    rec = agy_card_run.load_session(box, sessions_dir=mail_wake._agy_sessions_dir())
+    if rec is None:
+        raise ValueError(
+            f"no registered, unparked AGY session {box} on this host: register it here "
+            f"(tools/agy_card_run.py register --session {box} --conversation <uuid>); "
+            "its own AGY hook does it on the conversation's next prompt")
+    # The box name is derived from the conversation uuid; a record whose uuid
+    # does not start with it is not the conversation the sender named.
+    if not str(rec.get("conversation_id") or "").lower().startswith(sid[len("agy-"):]):
+        raise ValueError(f"AGY record {box} names a conversation that does not match the box")
+    return rec
+
+
+def _write_agy_letter(letter: dict, role: str, sid: str) -> dict:
+    """A letter for a standalone AGY box on this host: write the inbox, then let
+    `mail_wake.wake` start the box's detached runner (`handle_agy`), which drains
+    the inbox into one `agy -p --conversation <uuid>` turn. POSIX only: on
+    Windows `agy` over the forced command's session has no sign-in (hosts.yaml
+    winbox note), so the letter is refused before anything is written."""
+    if _is_windows():
+        raise ValueError("AGY letters are not delivered on Windows hosts")
+    box = f"{role}-{sid}"
+    from_role, from_sid = _letter_sender(letter)
+    _agy_record(box, sid)
+    path = mailbox.send(role, sid, letter["body"], from_role, from_sid, kind="message")
+    if not path.is_file():
+        raise ValueError(f"letter not on disk after write: {path}")
+    from tools import mail_wake
+    res = mail_wake.wake(box, label=from_role.upper())   # never raises
+    if res.get("woke") is True:
+        return {"to": box, "woke": True}
+    return {"to": box, "woke": False, "why": _redact(str(res.get("reason") or "not woken"))[:MAX_ERROR_CHARS]}
+
+
 def _write_letter(letter: dict) -> dict:
     role = letter.get("to_role")
     if role in config.live_c_level_roles():
+        sid = letter.get("to_session")
+        if isinstance(sid, str) and AGY_SID_RE.fullmatch(sid):
+            return _write_agy_letter(letter, role, sid)
         return _write_clevel_letter(letter, role)
     return _write_worker_letter(letter, role)
+
+
+def verb_agy_list() -> dict:
+    """Read-only: this host's AGY conversations, one row each, with exactly
+    box, uuid, cwd, last_activity, title and surface (App or CLI). The row is
+    built field by field, so nothing else a scan finds (an AGY language-server
+    address or CSRF token, a model, a mode) can reach the reply, and the title
+    is one line, cut and secret-redacted: the sender gets who and where, never
+    a conversation. `send_to_agy list` calls it over the mesh for the Mac,
+    which has no admin ssh alias."""
+    from tools import send_to_agy
+    here = _self_host()
+    rows = []
+    for c in send_to_agy.scan_local_host(here, limit=AGY_LIST_LIMIT):
+        title = _redact(" ".join(str(c.get("title") or c.get("box") or "").split()))
+        rows.append({
+            "box": str(c.get("box") or "")[:128],
+            "uuid": str(c.get("conversation_id") or "")[:36],
+            "cwd": str(c.get("cwd") or "")[:256],
+            "last_activity": str(c.get("last_activity") or "")[:32],
+            "title": title[:AGY_TITLE_CHARS],
+            "surface": "App" if c.get("surface") == "App" else "CLI",
+        })
+    return {"host": here, "conversations": rows}
 
 
 # One delivery slot per letter (W2.7, task-42fdcda7). Two overlapping
@@ -1604,6 +1684,7 @@ HANDLERS = {
     "spawn_ph": verb_spawn_ph,
     "stop_clevel": verb_stop_clevel,
     "deliver_letter": verb_deliver_letter,
+    "agy_list": verb_agy_list,
     "publish_branch": verb_publish_branch,
 }
 
@@ -1620,6 +1701,7 @@ _ARGSPEC = {
     "stop_clevel": (_SAFE_TOKEN_RE, SESSION_ID_RE),
     "spawn_ph": (_SAFE_TOKEN_RE, SESSION_ID_RE, roles.PH_PROJECT_RE),
     "deliver_letter": (LETTER_ID_RE,),
+    "agy_list": (),
     "publish_branch": (TASK_ID_RE,),
 }
 _TASK_VERBS = frozenset({"pid_alive", "spawn_worker", "kill_worker", "publish_branch"})
