@@ -202,13 +202,13 @@ def _require_client_credentials() -> tuple[str, str]:
 
 
 def validate_state(state: str) -> str:
-    if not isinstance(state, str) or not STATE_RE.match(state):
+    if not isinstance(state, str) or not STATE_RE.fullmatch(state):
         raise ValueError("state must match [A-Za-z0-9_-]{16,64}")
     return state
 
 
 def validate_account(account: str) -> str:
-    if not isinstance(account, str) or not ACCOUNT_RE.match(account):
+    if not isinstance(account, str) or not ACCOUNT_RE.fullmatch(account):
         raise ValueError("account must match [A-Za-z0-9_.-]{1,64}")
     return account
 
