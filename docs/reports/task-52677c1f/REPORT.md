@@ -43,3 +43,10 @@ Fixed the stale AGY takeover marker bug in `tools/mail_wake.py` where `state/agy
 ## Skill learning
 
 - (none)
+
+## CTO review (CTO Main, 2026-11-18)
+
+- Found: a takeover is live exactly while Claude is spent, and the Claude pane is usually still alive then. With "pane first" alone, the wake would go to a Claude that cannot answer, and the takeover marker would be parked. Changed: `_wake` still sends the box to AGY first when `claude_quota.claude_spent()` is true (`_claude_spent()` helper; any read error counts as not spent). Only a Claude with quota left gets the pane first and parks the marker.
+- Added test (d) `test_marker_with_live_pane_while_claude_spent_keeps_agy_takeover`.
+- Removed the runner's empty `.media_allow_raw` from the branch.
+- Ran: the 4 wake files, 164 passed. Every test file that imports mail_wake (9 files), 421 passed. The 3 original tests fail on origin/main's mail_wake.py.

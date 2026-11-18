@@ -186,7 +186,10 @@ def _wake(box: str, label: str) -> dict:
     if sid and role == PH_ROLE and (fallback := handle_ph(sid)) is not None:
         return _result(box, fallback["woke"], fallback["reason"])
     if sid and (role in c_level_roles() or role == PH_ROLE):
-        if sid.startswith("agy-") and (agy := handle_agy(box)) is not None:
+        # A standalone `<role>-agy-<id>` box has no Claude pane, and while Claude is
+        # spent a takeover marker is live: both still go to AGY first. Only a
+        # Claude with quota left gets the pane first (and parks a stale marker).
+        if (sid.startswith("agy-") or _claude_spent()) and (agy := handle_agy(box)) is not None:
             return _result(box, agy["woke"], agy["reason"])
         from tools import send_to_cxo  # lazy: a refusal above never pays for the import
 
@@ -268,6 +271,14 @@ def _spawn_agy_runner(box: str) -> None:
                          start_new_session=True, close_fds=True)
     finally:
         os.close(fd)
+
+
+def _claude_spent() -> bool:
+    """`claude_quota.claude_spent()`, False when it cannot be read."""
+    try:
+        return bool(claude_quota.claude_spent())
+    except Exception:
+        return False
 
 
 def _park_agy_marker(box: str, *, sessions_dir: Path | None = None) -> bool:

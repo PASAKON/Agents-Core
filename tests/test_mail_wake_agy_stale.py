@@ -163,3 +163,20 @@ def test_no_marker_unchanged(env_setup, monkeypatch):
         "reason": "no live session reached",
     }
     assert env_setup.agy_runs == []
+
+
+def test_marker_with_live_pane_while_claude_spent_keeps_agy_takeover(env_setup, monkeypatch):
+    """(d) Claude spent + marker: the takeover is live, so AGY gets the wake first,
+    the Claude pane is not tried and the marker stays unparked."""
+    inbox, sdir, agy_runs = env_setup.inbox, env_setup.sdir, env_setup.agy_runs
+    box = "cto-fresh"
+    _deliver_letter(inbox, box)
+    marker = _write_marker(sdir, box)
+    calls = []
+    monkeypatch.setattr(send_to_cxo, "attempt_wake", lambda role, sid, label: calls.append(sid) or True)
+    monkeypatch.setattr(mail_wake, "_claude_spent", lambda: True)
+    res = mail_wake.wake(box)
+    assert res["reason"] == mail_wake.AGY_REASON
+    assert agy_runs == [box]
+    assert calls == []
+    assert json.loads(marker.read_text(encoding="utf-8"))["parked"] is False
