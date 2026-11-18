@@ -44,9 +44,10 @@ followed, and written only when it is a regular file with one link.
 
 The relay letter, flag on or off, is a report or a blocker (urgent), a
 dev_message (normal) or, for a rate limit with no event, a fyi (normal), at
-most RELAY_MAX_CHARS for the whole letter. send_to_cto gets that kind: a
-report or a fyi never wakes a C-level box (it waits for the session's next
-prompt, lib.mailbox.quiet_for); a Project Head box wakes. A task with no
+most RELAY_MAX_CHARS for the whole letter. send_to_cto gets that kind, and
+every worker letter wakes its owner, C-level or Project Head (CEO 18 Nov 2026:
+CTO -> worker -> CTO ends at the CTO; lib.mailbox.quiet_for still governs
+C-level mail, where a PH picks quiet or wake for its own letters). A task with no
 owner is not relayed (there is no box to send to); its log line stays.
 
 Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1):

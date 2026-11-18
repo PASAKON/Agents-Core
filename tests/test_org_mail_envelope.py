@@ -290,11 +290,12 @@ def test_flag_off_a_report_turn_names_its_kind(tmp_path, monkeypatch, ledger, re
     assert mailbox.letter_kind(None, body) == "report"
 
 
-@pytest.mark.parametrize("owner_role,woken", [("cto", False), ("project_head", True)])
-def test_flag_off_a_report_wakes_a_ph_box_never_a_c_level_box(
+@pytest.mark.parametrize("owner_role,woken", [("cto", True), ("project_head", True)])
+def test_flag_off_a_worker_report_wakes_its_owner_c_level_or_ph(
         tmp_path, monkeypatch, ledger, owner_role, woken):
-    """Token rule 2 through the real send_to_cto: a report waits in a C-level
-    box for its next prompt; a Project Head box is woken (it must review)."""
+    """CEO 18 Nov 2026 (replaces token rule 2 for worker letters): CTO -> worker
+    -> CTO ends at the owner, so a worker's report wakes a C-level box as it
+    wakes a Project Head box."""
     flag(monkeypatch, False)
     root, mod = guarded_checkout(tmp_path, f"devhook_off_wake_{owner_role}")
     letters, wakes = [], []

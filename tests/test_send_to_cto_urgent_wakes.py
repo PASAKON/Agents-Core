@@ -1,4 +1,4 @@
-"""A worker's urgent report wakes its C-level owner; a normal report stays quiet (CEO 18 Nov 2026)."""
+"""Every worker letter wakes its owner, C-level or PH, whatever its kind (CEO 18 Nov 2026)."""
 from unittest.mock import Mock
 
 import pytest
@@ -6,12 +6,14 @@ import pytest
 from tools import send_to_cto as stc
 
 
-@pytest.mark.parametrize("prio,woke", [("urgent", True), ("normal", False)])
-def test_worker_report_to_clevel(monkeypatch, prio, woke):
-    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
-    monkeypatch.setattr(stc.mailbox, "envelope_on", lambda: False)
-    monkeypatch.setattr(stc.mailbox, "quiet_for", lambda role, kind: kind in ("report", "fyi"))
+@pytest.mark.parametrize("owner", ["cto", "cmo", "project_head"])
+@pytest.mark.parametrize("prio", ["urgent", "normal"])
+@pytest.mark.parametrize("kind", ["report", "fyi", "message"])
+def test_worker_letter_always_wakes(monkeypatch, owner, prio, kind):
+    monkeypatch.setattr(stc.mailbox, "envelope_on", lambda: True)
+    monkeypatch.setattr(stc.mailbox, "note_wake", lambda *a, **k: None)
+    monkeypatch.setattr(stc.mailbox, "quiet_for", lambda role, k: k in ("report", "fyi"))
     wake = Mock()
     monkeypatch.setattr(stc, "_attempt_wake", wake)
-    stc._wake("cto", "fresh", "BROWSER_OPERATOR", prio, "report")
-    assert wake.called is woke
+    stc._wake(owner, "s1", "DEVELOPER", prio, kind)
+    assert wake.called

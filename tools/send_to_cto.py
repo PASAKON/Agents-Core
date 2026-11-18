@@ -138,18 +138,20 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
 
 def _wake(role: str, session_id: str, label: str, prio: str | None,
           kind: str | None = None) -> None:
-    """The wake for a just-written letter. `kind` (`mailbox.letter_kind` of it):
-    fyi and report never wake a C-level box, flag on or off. Envelope mail
+    """The wake for a just-written worker letter: it wakes its owner at once,
+    C-level or Project Head, whatever its kind or prio (CEO 18 Nov 2026). Envelope mail
     (ORG_MAIL_ENVELOPE on): the debounced wake -- urgent at once, normal once 3
     letters wait or the oldest has waited ORG_WAKE_DEBOUNCE_S
     (lib.mailbox.wake_due; tools/mail_wake_sweep.py fires the late one). Off:
     `_attempt_wake()` every time, as before."""
-    # A worker's urgent letter (submit_report, a blocker) wakes its owner even
-    # when the owner is a C-level: CTO -> worker -> CTO ends at the CTO, not in a
-    # quiet box until the CEO's next prompt (CEO 18 Nov 2026, task-71759b30).
-    # A normal report or fyi stays quiet, as lib.mailbox.quiet_for says.
-    if prio == "urgent":
-        kind = None
+    # Every worker letter wakes its owner, C-level or Project Head, whatever its
+    # kind or prio: CTO -> worker -> CTO ends at the owner, never in a quiet box
+    # until the CEO's next prompt. CEO 18 Nov 2026: "ไม่ต้องกังวน เรื่องประหยัด Token
+    # ถ้าคุณ ทำงาน ผ่าน Worker โดยตรงต้องเป็นแบบนั้น ... PH ที่ทำงาน กับ Worker ก็
+    # เช่นเดียวกัน". The quiet rule (lib.mailbox.quiet_for) stays for C-level mail,
+    # where a PH chooses quiet or wake for its own letters to its C-level.
+    kind = None
+    prio = "urgent"   # at once: lib.mailbox.waiting_since_wake skips quiet kinds to a C-level, so a debounced one never fires
     try:
         due = mailbox.wake_due(role, session_id, prio or "normal", kind=kind)
     except Exception:
