@@ -17,7 +17,11 @@ users can write, so a symlinked box or letter must never be followed).
     below. Reason "claude spent: ran AGY brain".
   * `<role>-<sid>` with role a C-level or `project_head`: `send_to_cxo.attempt_wake`,
     at once. No debounce, because the session is waiting on that answer. Needs the
-    venv's python (lib.config reads policies/agents.yaml) but not ORG_DB_URL.
+    venv's python (lib.config reads policies/agents.yaml) but not ORG_DB_URL. When
+    the live Claude pane takes the wake while an AGY takeover marker exists in
+    `state/agy-sessions/<box>.json`, the marker is parked (`parked=true` +
+    `parked_note`); `handle_agy` runs only when no live Claude pane was reached (or
+    for a standalone `<role>-agy-<id>` box that has no Claude pane).
   * `<role>-task-<8 hex>` (a worker): the tmux session `wd-<8 hex>`, which
     `tools/delegate.py` names with `tmux_session.session_name_for` and
     `tools/send_to_worker.py` wakes through the same `agent_transport.attempt_wake`.
@@ -68,7 +72,9 @@ import contextlib
 import json
 import os
 import re
+import secrets
 import shlex
+import stat
 import subprocess
 import sys
 import time
@@ -133,6 +139,7 @@ MAX_STATEMENT_LINES = 200
 PH_SID_RE = re.compile(r"[0-9a-f]{8}")
 OWNER_SID_RE = re.compile(r"[0-9a-f]{8}|fresh")      # the same rule as tools/owner_relay.py
 _NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_NONBLOCK = getattr(os, "O_NONBLOCK", 0)
 _DEFAULT_INBOX_ROOT = ROOT / "state" / "inbox"
 _DEFAULT_AGY_SESSIONS_DIR = ROOT / "state" / "agy-sessions"
 
@@ -140,6 +147,10 @@ _DEFAULT_AGY_SESSIONS_DIR = ROOT / "state" / "agy-sessions"
 def _agy_sessions_dir() -> Path:
     if AGY_SESSIONS_DIR != _DEFAULT_AGY_SESSIONS_DIR:
         return AGY_SESSIONS_DIR
+    with contextlib.suppress(Exception):
+        from tools import agy_card_run
+        if agy_card_run.AGY_SESSIONS_DIR != _DEFAULT_AGY_SESSIONS_DIR:
+            return agy_card_run.AGY_SESSIONS_DIR
     if mailbox.INBOX_ROOT != _DEFAULT_INBOX_ROOT:
         return mailbox.INBOX_ROOT.parent / "agy-sessions"
     return AGY_SESSIONS_DIR
@@ -174,13 +185,17 @@ def _wake(box: str, label: str) -> dict:
     role, _, sid = box.partition("-")
     if sid and role == PH_ROLE and (fallback := handle_ph(sid)) is not None:
         return _result(box, fallback["woke"], fallback["reason"])
-    if sid and (role in c_level_roles() or role == PH_ROLE) and (agy := handle_agy(box)) is not None:
-        return _result(box, agy["woke"], agy["reason"])
     if sid and (role in c_level_roles() or role == PH_ROLE):
+        if sid.startswith("agy-") and (agy := handle_agy(box)) is not None:
+            return _result(box, agy["woke"], agy["reason"])
         from tools import send_to_cxo  # lazy: a refusal above never pays for the import
 
         woke = send_to_cxo.attempt_wake(role, sid, label)
-        if not woke and role == PH_ROLE and (fallback := handle_ph(sid, require_claude_spent=False)) is not None:
+        if woke:
+            _park_agy_marker(box)
+        elif (agy := handle_agy(box)) is not None:
+            return _result(box, agy["woke"], agy["reason"])
+        elif role == PH_ROLE and (fallback := handle_ph(sid, require_claude_spent=False)) is not None:
             return _result(box, fallback["woke"], fallback["reason"])
     elif (m := WORKER_BOX_RE.fullmatch(box)):
         if (agy := handle_agy(box)) is not None:
@@ -253,6 +268,103 @@ def _spawn_agy_runner(box: str) -> None:
                          start_new_session=True, close_fds=True)
     finally:
         os.close(fd)
+
+
+def _park_agy_marker(box: str, *, sessions_dir: Path | None = None) -> bool:
+    """When a live Claude pane is woken while an AGY marker exists for `box`,
+    atomically mark `state/agy-sessions/<box>.json` parked (mode 0600, with `parked_note`)."""
+    try:
+        if not BOX_RE.fullmatch(box or ""):
+            return False
+        sdir = Path(sessions_dir) if sessions_dir is not None else _agy_sessions_dir()
+        name = f"{box}.json"
+        ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        note = f"auto-parked by mail_wake on {ts}: live Claude pane ({box}) took the wake"
+        if mailbox._DIRFD_OK:
+            dfd = mailbox._open_dir(sdir)
+            if dfd is None:
+                return False
+            try:
+                raw = mailbox._read_at(dfd, name)
+                if raw is None:
+                    return False
+                data = json.loads(raw)
+                if not isinstance(data, dict) or data.get("parked"):
+                    return False
+                data["parked"] = True
+                data["parked_note"] = note
+                data["updated_at"] = ts
+                payload = (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+                tmp = f".{box}.{os.getpid()}.{secrets.token_hex(4)}.tmp"
+                wfd = os.open(
+                    tmp,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | _NOFOLLOW | _NONBLOCK,
+                    0o600,
+                    dir_fd=dfd,
+                )
+                try:
+                    try:
+                        wst = os.fstat(wfd)
+                        if not stat.S_ISREG(wst.st_mode) or wst.st_nlink != 1:
+                            raise OSError("unexpected temp file stat")
+                        if hasattr(os, "fchmod"):
+                            os.fchmod(wfd, 0o600)
+                        view = memoryview(payload)
+                        while view:
+                            written = os.write(wfd, view)
+                            view = view[written:]
+                    finally:
+                        os.close(wfd)
+                    os.replace(tmp, name, src_dir_fd=dfd, dst_dir_fd=dfd)
+                except BaseException:
+                    with contextlib.suppress(OSError):
+                        os.unlink(tmp, dir_fd=dfd)
+                    raise
+                return True
+            finally:
+                os.close(dfd)
+
+        if sdir.is_symlink() or not sdir.is_dir():
+            return False
+        path = sdir / name
+        raw = mailbox._read_regular(path)
+        if raw is None:
+            return False
+        data = json.loads(raw)
+        if not isinstance(data, dict) or data.get("parked"):
+            return False
+        data["parked"] = True
+        data["parked_note"] = note
+        data["updated_at"] = ts
+        payload = (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+        tmp_path = sdir / f".{box}.{os.getpid()}.{secrets.token_hex(4)}.tmp"
+        wfd = os.open(
+            str(tmp_path),
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | _NOFOLLOW | _NONBLOCK,
+            0o600,
+        )
+        try:
+            try:
+                wst = os.fstat(wfd)
+                if not stat.S_ISREG(wst.st_mode):
+                    raise OSError("unexpected temp file stat")
+                if hasattr(os, "fchmod"):
+                    os.fchmod(wfd, 0o600)
+                view = memoryview(payload)
+                while view:
+                    written = os.write(wfd, view)
+                    view = view[written:]
+            finally:
+                os.close(wfd)
+            os.chmod(str(tmp_path), 0o600)
+            os.replace(str(tmp_path), str(path))
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(str(tmp_path))
+            raise
+        return True
+    except Exception:
+        return False
 
 
 def handle_agy(box: str) -> dict | None:
