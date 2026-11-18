@@ -1158,6 +1158,10 @@ def _auto_heal_stalled_workers(stalled_items: list[dict]) -> list[dict]:
         task = db.get_task(tid)
         if not task or task.get("role") == "project_head":
             continue
+        # The stalled list was read earlier in this pass: a task merged, cancelled or put in review since
+        # then is not dead work. task-67800805 was re-spawned two minutes after its CTO merged it.
+        if task.get("status") not in ("in_progress", "stalled"):
+            continue
         try:
             review = json.loads(task.get("review") or "{}")
         except json.JSONDecodeError:

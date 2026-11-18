@@ -155,6 +155,26 @@ def test_watchdog_auto_self_heal_dead_worker_once(monkeypatch):
     assert healed_again == []
 
 
+def test_watchdog_auto_heal_skips_a_task_closed_since_the_scan(monkeypatch):
+    """The stalled list is read earlier in the pass. A task merged (or cancelled, or in review) since
+    then is not re-spawned: task-67800805 was healed two minutes after its CTO merged it."""
+    monkeypatch.setenv("ORG_WATCHDOG_AUTO_HEAL", "1")
+    for status in ("merged", "cancelled", "review", "done"):
+        row = {"id": "task-done01", "role": "developer", "status": status, "host": "contabo",
+               "branch": "agent/x", "description": "d", "review": "{}"}
+        monkeypatch.setattr(watchdog.db, "get_task", lambda tid, r=row: r)
+        calls = []
+        monkeypatch.setattr(watchdog.db, "update_status", lambda *a, **k: calls.append(a))
+        async def no_delegate(tid, host=None):
+            calls.append(("delegate", tid))
+        monkeypatch.setattr(watchdog.delegate, "delegate_task", no_delegate)
+        from tools import relocate_task as relocate_mod
+        monkeypatch.setattr(relocate_mod, "checkpoint_source_worktree",
+                            lambda t, dst: calls.append(("checkpoint",)) or {"checkpointed": False})
+        healed = watchdog._auto_heal_stalled_workers([{"task": "task-done01", "pid_alive": False}])
+        assert healed == [] and calls == [], status
+
+
 def test_windows_msvcrt_lock_fallback_in_mail_wake(monkeypatch, tmp_path):
     """When `fcntl` is None (Windows / winbox) and `msvcrt` is available, `_agy_flock`
     and `_flock` acquire and release locks cleanly without raising ValueError."""
