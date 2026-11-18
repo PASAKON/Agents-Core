@@ -462,15 +462,16 @@ def test_letter_prio_is_the_one_rule_the_mailbox_stores(inbox, on):
 # ---------------------------------------------------------------- send_to_cto
 
 
-def test_send_to_cto_stores_kind_and_debounces_normal(inbox, on, sweeper, monkeypatch):
+def test_send_to_cto_stores_kind_and_every_worker_letter_wakes(inbox, on, sweeper, monkeypatch):
+    # CEO 18 Nov 2026: a worker letter wakes its owner at once, normal prio too.
     wakes = []
     monkeypatch.setattr(s2cto, "_attempt_wake", lambda *a: wakes.append(a))
     assert s2cto.send("task-1", "fyi", role="developer", cto_id="t1",
                       subject="message task-1: fyi", kind="message", prio="normal")
-    assert wakes == []
+    assert len(wakes) == 1
     assert s2cto.send("task-1", "stuck", role="developer", cto_id="t1",
                       subject="blocker task-1: stuck", kind="blocker", prio="urgent")
-    assert len(wakes) == 1
+    assert len(wakes) == 2
     kinds = sorted((l["kind"], l["prio"]) for l in _raw(inbox / "cto-t1"))
     assert kinds == [("blocker", "urgent"), ("message", "normal")]
 
@@ -482,7 +483,7 @@ def test_send_to_cto_an_ask_without_prio_wakes_at_once_as_stored(inbox, on, swee
                subject="ask task-1: which branch", kind="ask")
     assert len(wakes) == 1, "stored urgent, so it must wake at once, not wait for the batch"
     s2cto.send("task-1", "done", role="developer", cto_id="t1", subject="report", kind="report")
-    assert len(wakes) == 1, "a report with no prio is normal and waits"
+    assert len(wakes) == 2, "a worker report wakes its owner too (CEO 18 Nov 2026); stored normal"
     got = sorted((l["kind"], l["prio"]) for l in _raw(inbox / "cto-t1"))
     assert got == [("ask", "urgent"), ("report", "normal")]
 
@@ -1171,18 +1172,17 @@ def test_send_to_cxo_spawn_reusing_a_tab_passes_the_kind(cxo, locks, on, monkeyp
 
 
 @pytest.mark.parametrize("flag", [False, True])
-def test_send_to_cto_fyi_and_report_never_wake_a_c_level_box(inbox, monkeypatch, flag):
+def test_send_to_cto_every_worker_letter_wakes_its_c_level_owner(inbox, monkeypatch, flag):
+    # CEO 18 Nov 2026: CTO -> worker -> CTO ends at the CTO; no quiet worker letters.
     wakes = _wakes_on(monkeypatch, s2cto)
     if flag:
         monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
     mailbox.note_sweep(root=inbox)
     for kind in ("fyi", "report"):
-        assert s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind=kind, prio="urgent")
+        assert s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind=kind, prio="normal")
     assert s2cto.send("task-1", "report · normal · done", role="developer", cto_id="t1", subject="s")
-    assert wakes == [] and len(_raw(inbox / "cto-t1")) == 3
-    assert s2cto.send("task-1", "which branch?", role="developer", cto_id="t1", subject="s", kind="ask")
-    assert s2cto.send("task-1", "stuck", role="developer", cto_id="t1", subject="s", kind="blocker")
-    assert len(wakes) == 2
+    assert len(_raw(inbox / "cto-t1")) == 3
+    assert [w[:2] for w in wakes] == [("cto", "t1")] * 3
 
 
 def test_send_to_cto_passes_the_kind_to_wake_due_and_a_ph_owner_still_wakes(inbox, on, sweeper, monkeypatch):
@@ -1194,8 +1194,8 @@ def test_send_to_cto_passes_the_kind_to_wake_due_and_a_ph_owner_still_wakes(inbo
     s2cto.send("task-1", "fyi · normal · y", role="developer", cto_id="t1", subject="s")
     s2cto.send("task-1", "z", role="developer", cto_id="p1", owner_role="project_head",
                subject="s", kind="report", prio="urgent")
-    assert seen == ["report", "fyi", "report"]
-    assert [w[:2] for w in wakes] == [("project_head", "p1")], "only the PH box woke"
+    assert seen == [None, None, None], "a worker letter is never passed as a quiet kind"
+    assert [w[:2] for w in wakes] == [("cto", "t1"), ("cto", "t1"), ("project_head", "p1")]
 
 
 @pytest.mark.parametrize("flag", [False, True])
