@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-73 org skills by kind — Rules 9 · Knowledge 19 · Workflow 6 · Procedure 13 · Standard 10 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+75 org skills by kind — Rules 9 · Knowledge 19 · Workflow 6 · Procedure 15 · Standard 10 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -63,8 +63,10 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 
 | name | owner | audience | what it is |
 |---|---|---|---|
+| `ALL_Procedure_UseALease` | CTO | all | Acquire, check and release an org resource lease. |
 | `CMO_Procedure_BlackLiquidity_Cut` | CMO | cmo, video_editor | Cut a BLACK LIQUIDITY episode — an AI-avatar talking-head video for the channel's TikTok — from a delivered Drive project folder into a… |
 | `CMO_Procedure_BlackLiquidity_JevEditor` | CMO | cmo, video_editor, cto | Run Jev (TypeSafe's typed-decision model, ALL_Knowledge_Jev SKILL.md) per BLACK LIQUIDITY script line to make the per-line editorial calls… |
+| `CMO_Procedure_BlackLiquidity_RealEventFootage` | CMO | cmo, cto, developer, browser_operator, video_editor | Build 9:16 Mobile View real-event news broadcast & live web footage REFs for BLACK LIQUIDITY (Script-First, fact-checked, 0.00px centered… |
 | `CMO_Procedure_Blender_Previz` | CMO | cmo, cto | Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead… |
 | `CMO_Procedure_CharacterSheet` | CMO | cmo, worker | Generate a neutral, reusable AI character reference sheet (white-background emotion grid + one full-body panel) for any film/video project… |
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from… |

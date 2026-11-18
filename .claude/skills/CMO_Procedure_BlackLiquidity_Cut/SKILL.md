@@ -17,6 +17,8 @@ created_by: agent
 audience: [cmo, video_editor]
 improved_by:
   - {role: project_head, date: "2026-11-16", what: "§6h V6 Word-Synced Clause-by-Clause cutting, Audio-Source Correlation gate, Screen-Orientation & Camera-Axis logic (OTS/FRONT/SIDE on Veo 3.1 / Flow Omni 1.2), Semantic B-roll naming, 5:1 Pure/Basket cadence, 00_PRODUCT_LIBRARY REFF+FOOTAGE workflow, and 17 approved Mass-Editor SFX (CEO rulings Q-20261109-0516-eb40, Q-20261116-0603-73a1, Q-20261116-0652-5463, Q-20261116-0708-33ff)"}
+  - {role: project_head, date: "2026-11-18", what: "§6h-7 V6.3 Minimalist Core Motion Explainer + STYLE 1 Neon Wireframe Icons, §6h-8 10-Track Channel BGM Library (Google Flow Music Lyria 3.5), BGM Semantic Naming Standard, -24.0 dB Ceiling + -3.0 dB Sidechain Ducking + Seamless Beat-Matched Loop (tools/bgm_bed.py), and How to Add New Tracks (tools/flow_music_gen.py) (CEO rulings Q-20261118-0816-a8e9, Q-20261118-0829-d794, Q-20261118-0857-cd08, Q-20261118-1023-871c, Q-20261118-1046-3f25, Q-20261118-1120-5270)"}
+  - {role: project_head, date: "2026-11-19", what: "§5a pointer to CMO_Procedure_BlackLiquidity_RealEventFootage (tools/bl_real_event_refs.py) for Script-First 9:16 Mobile View real-event news & live-web tutorial REFs with 0.00px centered Theme BL + Kanit highlight boxes (CEO ruling Q-20261118-2004-d9bc)"}
 ---
 
 # BLACK LIQUIDITY — cutting an episode
@@ -108,12 +110,10 @@ ffmpeg -i s04.mp4 -an -vf "scale=-2:1920:flags=lanczos,crop=1080:1920,fps=30" ..
 Keep the ORIGINAL lipsync files too: step 9 needs their audio.
 
 ### 5a. Real footage first — `real/` outranks every plate and every B-roll clip
-**CEO, 2026-09-23: "Realfootage สำคัญกว่า B-Roll".** From EP55 on, the project
-folder can carry a `real/` subfolder: screen recordings and stills of the named
-broker's logo, its real website and the real WikiFX page with the real numbers.
-They are produced by `tools/bl_realfootage.py` and are already censored. Signup
-buttons, bonus offers, promo codes and complainants' names are pixelated, and
-part of the logo is too.
+**CEO, 2026-09-23: "Realfootage สำคัญกว่า B-Roll" · CEO, 2026-11-19 (`Q-20261118-2004-d9bc`): Script-First 9:16 Mobile View Real-Event REFs.** From EP55 on, the project
+folder can carry a `real/` subfolder:
+- For **broker / WikiFX exposé episodes**: screen recordings and stills of the named broker's logo, its real website and the real WikiFX page with the real numbers, produced by `tools/bl_realfootage.py` per `CMO_Procedure_RealFootageCapture` and already censored. Signup buttons, bonus offers, promo codes and complainants' names are pixelated, and part of the logo is too.
+- For **real-event macro / news broadcast / live financial-web tutorial episodes** (`EP.11` `XAUUSD` crash, Fed Chair Kevin Warsh speeches, `TradingView` / `ForexFactory` / `TradingEconomics` / `th.investing.com` tutorials): `9:16` Vertical Mobile View (`1080×1920`) stills and focal-cropped moving video clips with `0.00px` OpenCV auto-centered `Theme BL + Kanit` highlight boxes (`pad_L == pad_R`, `pad_T == pad_B`) and `ขอบคุณภาพจาก @SourceA + @SourceB` (`+` separator) on news agency footage only, produced per `CMO_Procedure_BlackLiquidity_RealEventFootage` (`tools/bl_real_event_refs.py`) **after** the episode script is written and locked.
 
 Before placing any scene plate or catalogue clip, read `real/REAL_MANIFEST.json`.
 Every entry lists the script tags it proves (`covers: ["CONTEXT-3"]`). Wherever a
@@ -922,6 +922,123 @@ Reference contact sheets:
    - **Pre-Roll Peak Alignment**: Every SFX file has a measured `peak_time_ms` in `manifest.json`. Place the file at `t_start = t_cut_or_text_pop - (peak_time_ms / 1000.0)` so the acoustic transient peak lands on the exact video cut frame or kinetic text pop.
    - **Mix Levels & Master Loudness**: Mix SFX at `-6.0 dB` to `-11.0 dB` relative to voiceover (`mix_track_with_17sfx` in `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v5_batch.py`) and normalize the master stereo WAV with `loudnorm=I=-14.0:TP=-1.5:LRA=11` at `48000 Hz`.
 
+#### 6h-6. V6.1 Real MT4/MT5 Chart Viewport, Single-Focus Hierarchy & Unified `Kanit` Typography (`CEO rulings Q-20261116-1150-6fed & Q-20261116-1315-f2f8`)
+
+1. **HARD — Integrate Real MT4/MT5/TradingView Chart & Order Screen Recordings (`8–9 cuts / EP`) inside a Dedicated Safe Viewport (`x = 110..970, y = 430..1200`).**
+   **Why hard:** visual authority & zero UI collision — the CEO ruled on `Q-20261116-1150-6fed` (`"เราควรต้องใส่ footage เกี่ยวกับการอัดหน้าจอ กราฟ บน trading View หรือ บน MT4/MT5 ใน drive มีอยู่ลองเอามาใช้ให้เข้ากับ จังหวะของการพูด"`), and approved V6.1 on `Q-20261116-1315-f2f8`.
+   - Source real MT4/MT5 screen recordings from Google Drive (`ALL DRAFT/ASSETS/ALL Assets/MT4/MT5 APP.` `1kH_g7CtodO-gFR0_pkvbsisRf-sptBDK` and `ALL DRAFT/MYPASAKON/วิธีการใช้งาน APPs MT5` `102wBUOSSzP97zC4KypyYuZNxTAtSpAzl`).
+   - Crop each MT5 screen recording onto the active chart/orders/Swap/action-sheet region and frame it into an `860×770` viewport placed at `x = 110, y = 430` on a `1080×1920` `#07080A` canvas (`drawbox=x=0:y=0:w=860:h=770:color=0x2A2E35:t=3,pad=1080:1920:110:430:color=0x07080A`). This guarantees the MT5 screen never collides with the top-right brand bug (`#bug`, `top: 280..410px`) or the lower-third subtitle pill (`.cap`, `cy = 1315px`).
+   - In `render_v6_1_plate_track`, set `live_scale = 1.00` and boost brightness by `1.18x` on `mode == "chart"` segments so that after `.plate-clear` (`brightness(.84)`), the MT5 interface renders at 100% native sharpness and brightness.
+2. **HARD — Single-Focus Visual Hierarchy (`ข้อความ กับ footage ควรเลือกอย่างใดอย่างหนึ่ง` — Never Compete).**
+   **Why hard:** viewer focus — placing center cards over active charts or character expressions blocks the visual proof, while busy background footage behind text cards distracts from reading (`Q-20261116-1150-6fed`).
+   - **`mode == "chart"` / `mode == "footage"` (Footage-Led Beats)**: Keep the center of the frame (`y = 240..1230px`) **100% clear (`ZERO center cards, ZERO calloutBox`)**. Display **ONLY** the compact lower-third subtitle pill (`caption(at, out, text, 1315)`).
+   - **`mode == "text_bg"` (Text-Card-Led Beats)**: Apply a heavy Gaussian blur + dark ambient grade (`cv2.GaussianBlur(frm, (45, 45), 18) * 0.34`) to the background plate so it has **zero focal point (`โล่งๆ สบายตา ไม่มีจุด Focus`)**, and display **ONE** center card (`kinetic`, `check`, `cards`, or `rules`) with **ZERO lower-third `.cap`** active during that window.
+3. **HARD — 100% Unified `'Kanit'` Font Family & Non-Overlapping Card Layout.**
+   **Why hard:** typography & layout cleanliness — mixing `Archivo` (which lacks Thai glyphs and falls back to system `sans-serif`) with `Kanit` caused mismatched fonts inside `.bl-card`, and absolute-positioned `.badge` overlapped long Thai titles (`Q-20261116-1150-6fed`).
+   - Force `font-family: 'Kanit', sans-serif !important;` across `#root, #root *` and replace all `Archivo` declarations in `index.html`.
+   - Set `.bl-card .badge { position: static !important; display: inline-block !important; }` inside a vertical flex `.bl-card` (`display: flex; flex-direction: column; align-items: flex-start; gap: 8px;`) and unlock `.cards()` wrapper height (`overflow: visible`) so badges and multi-line Thai copy never overlap or clip. See `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v6_1_ep7_chart_hierarchy.py`.
+4. **HARD — Query Footage via `tools/footage_catalog.py` (`prototypes/bl-broll-catalog/FOOTAGE_INDEX.jsonl`, CEO Q-20261117-0922-99fe) — Never Read or Download Full Drive Folders.**
+   **Why hard:** context window & zero-mismatch retrieval — `FOOTAGE_INDEX.jsonl` indexes all **758 videos (796 timecode segments `start_s..end_s`)** across `ALL DRAFT/ASSETS` (`1LJreOD8H3jUNzypxTnPwvq-pS7jkQNRd`), `00_PRODUCT_LIBRARY`, and `วิธีการใช้งาน APPs MT5` with `channel_fit` (`BL`, `MYPASAKON`, `TTTM`, `ALL`), `person_shown` (`NONE`, `HANDS_ONLY`, `BL_AVATAR`, `CEO_PASAKON`), and `broker_lock`.
+   - Use `python3 tools/footage_catalog.py search --channel BL --mode <CHART_VIEWPORT|FOOTAGE_FOCUS|CALM_TEXT_BG> --q "<คำพูด>" --limit 5` or `match-script --channel BL --clauses clauses.json` to retrieve the exact `[start_s, end_s]` segment, and `python3 tools/footage_catalog.py fetch --drive-id <id> --start <s0> --end <s1> --out cut.mp4 --frame-viewport` to stream-cut only that timecode slice via HTTP Range.
+
+#### 6h-7. V6.2.1 Minimalist Core Motion Explainer, True Optical Centering & Locked `STYLE 1: Neon Wireframe` Icons (`mode="motion"`, CEO rulings Q-20261118-0816-a8e9, Q-20261118-0829-d794 & Q-20261118-0857-cd08)
+
+1. **HARD — Use `mode="motion"` ONLY on the 1–2 essential core-mechanism windows in an episode ("ใส่เฉพาะส่วนที่สำคัญจริงๆ") and keep the visual design strictly Minimalist ("อยากได้แบบ Minimal กว่านี้").**
+   **Why hard:** visual clarity & speed of comprehension — dense multi-box dashboards or 5-row radars distract the viewer (`Q-20261118-0816-a8e9`); a minimalist floating animation on pure dark space communicates the core mechanic in `< 0.5 seconds`.
+   - **Where to use `mode="motion"`**: Only on the 1–2 core causal mechanics where raw B-roll or real charts cannot show the invisible backend flow (e.g., B-Book zero-sum money transfer `พอร์ตคุณ -$1,000 ━━●━━▶ โบรก B-BOOK +$1,000`, or a single hero candlestick widening its spread, stabbing a wick through `แนวรับ` to trigger `STOP LOSS แตก!`, then snapping back up green `กวาด SL เสร็จ · ดีดกลับทันที!`). Everywhere else (`28.38–32.90s`, etc.), use real MT5/Exness charts (`mode="chart"`) or B-roll (`mode="footage"`).
+2. **HARD — True Optical Centering & Balanced Top / Bottom / Left / Right Box Padding (`CEO ruling Q-20261118-0829-d794`: `"ข้อความใน box อยากให้มัน อยู่ในจุด Center จริงๆ ที่ไม่ติดกรอบหรือขอบ ให้มีช่อง บน ล่าง ซ้าย ขวา ที่ห่างกันอย่างเหมาะสม"`).**
+   - `.mm-card`: Must use `display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; padding: 42px 48px !important; min-height: 224px; gap: 14px !important;` so Top / Bottom / Left / Right margins around `.lbl` (`29px`) and `.val` (`62px`) are 100% symmetrical and never crowd the border.
+   - `.mm-pill`: Must use `display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 18px !important; padding: 22px 44px !important; line-height: 1.10 !important;` with `transform: translateY(-1px)` on `span` for Thai `Kanit` optical baseline centering.
+3. **HARD — Zero Unicode Emoji on Screen — Always Use the Locked `STYLE 1: Neon Wireframe` Channel Icon Pack (`CEO rulings Q-20261118-0829-d794 & Q-20261118-0857-cd08`).**
+   **Why hard:** brand identity — the CEO ruled (`"ไม่อยากให้ใช้ Emoji อยากให้ใช้ ICON มากกว่า"`) and selected **`STYLE 1: Neon Wireframe (เส้นนีออนเรืองแสง แดง-ขาว-เหลือง)`** on `Q-20261118-0857-cd08` as the official BLACK LIQUIDITY icon pack.
+   - **Canonical Icon Assets**: `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/assets/icons/` (and `/Users/gob/MoonieXHQ/Assets/BlackLiquidity/icons-5styles/style_01_neon_wireframe/`):
+     - `01_target.png` (Stop-Loss Target Crosshair)
+     - `02_shield_break.png` (Shattered Shield / Stop-Loss Broken)
+     - `03_blocked_x.png` (Blocked X-Mark / A-Book Rejected)
+     - `04_reversal_arrow.png` (Bullish Surge / Instant Reversal Arrow)
+     - `05_vault.png` (Broker B-Book Dealing Desk Vault)
+     - `06_rebate_coin.png` (Cashback Coin / Rebate / Zero-Sum Profit)
+     - `07_warning.png` (Warning Triangle / Spread Widening)
+     - `08_brain_spark.png` (Brain + Lightning Spark / Cortisol Overload)
+     - `09_padlock.png` (Security Padlock / Survival Rule)
+   - Reference implementation: `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/scripts/build_v6_3_ep10_final.py` and `reference/v6_3-ep10-final-reference.jpg`.
+
+#### 6h-8. Channel BGM Library (`BL01–BL10`), Semantic Naming Rule, Seamless Beat-Matched Loop & `-24.0 dB` Volume Envelope (`tools/bgm_bed.py` & `tools/flow_music_gen.py`, CEO rulings Q-20261118-1023-871c, Q-20261118-1046-3f25 & Q-20261118-1120-5270)
+
+1. **HARD — Semantic Naming Standard for Channel Background Music (`กฏการตั้งชื่อเสียงเพลง` — CEO ruling `Q-20261118-1120-5270`):**
+   **Why hard:** zero-blind-listening retrieval — just like `§6h-3` B-roll semantic naming, every BGM track must declare its Track ID, English Title, Thai Situation, BPM, Duration, Date, and AI Engine in its filename so any editor or agent can select the right track from the filename or `BGM_MANIFEST.json` without listening to all files:
+   - **Format**:
+     `BL_BGM_{NN}_({Title-EN})_({สถานการณ์ที่ใช้-TH})_({BPM}BPM)_({MMmSSs})_({DD-MM-YYYY})_(FlowMusic-Lyria3.5).{wav|m4a}`
+   - **Storage Locations**:
+     - **Google Drive (Primary BL Audio Shelf)**: `ALL DRAFT/BLACK LIQUIDITY/BLACK LIQUIDITY [62]/Audio` (`1kpG9wATvy0i3mGWz0pmcPCLaWv6xHWjO`) — holds all 10 lossless 48kHz stereo `.wav` masters, all 10 192kbps `.m4a` files, and `BGM_MANIFEST.json` (`1kTIABrsSbYPP7ukO4UpuaoKfgCbHfjBI`), all MD5-verified (`CXO_Rules_GDrive_Filing` Rule 12).
+     - **Google Drive (Cross-Channel Shared Audio Shelf)**: `ALL DRAFT/ASSETS/Audio` (`1QxYqKsn2AqwujTH4It9NXKAsQvXmAOXH`) — holds all 10 `.m4a` files and `BL_BGM_MANIFEST.json` (`1_QDyIeuhct_WVPzgJzjf7PZ1mA8pYRdF`).
+     - **Local Cache**: `/Users/gob/MoonieXHQ/Assets/BlackLiquidity/channel-music-10/semantic/` and `/Users/gob/MoonieXHQ/Assets/BlackLiquidity/channel-music-10/BGM_MANIFEST.json`.
+
+2. **Situational Dictionary of the 10 BLACK LIQUIDITY Channel BGM Tracks (`นิยามของเพลง และการเลือกใช้ตามสถานการณ์`):**
+
+   | ID | `--situation` | ชื่อเพลง (`Title-EN`) | BPM / ความยาว | สถานการณ์ที่ควรใช้ (When to Use) | สถานการณ์ที่ห้ามใช้ (When NOT to Use) | Drive ID (`WAV` / `M4A`) |
+   |---|---|---|---|---|---|---|
+   | **`BL01`** *(Default)* | `bbook` | `Dark-Liquidity-Pulse` | `92 BPM` · `02m28s` (`148.2s`) | **เพลงหลักประจำช่อง (CEO Selected `Q-20261118-1046-3f25`)** ใช้กับคลิปแฉกลไกโบรกเกอร์ B-Book, Dealing Desk, สเปรดถ่าง, และโครงสร้างตลาดมืด | ห้ามใช้กับคลิปสรุปสูตรคณิตศาสตร์เร็วๆ ที่ต้องการจังหวะ 100+ BPM | WAV: `1aqLqR9MLOduIeaOIvbfd1vVBB8AsCMZB`<br>M4A: `1ExxuA-0BHOvxcQnf7tsUggAlZWKM6n-F` |
+   | **`BL02`** | `dealing_desk` | `Shadow-Dealing-Desk` | `88 BPM` · `02m55s` (`174.5s`) | ใช้กับคลิปเจาะลึกความลับหลังบ้านโบรกเกอร์, Liquidity Provider, Order Book ลับ, หรือจับพิรุธกราฟค้าง/รีโควต | ห้ามใช้กับคลิปข่าวด่วนที่ต้องการความตื่นเต้นเร่งจังหวะ | WAV: `1C5blV2hGOCcUWyyn4maH7fCBcfYBM_yr`<br>M4A: `19vOpoOOyUNJxh1dkUZq3NpVsQaL9uiFk` |
+   | **`BL03`** | `drawdown` | `Margin-Call-Tension` | `96 BPM` · `03m03s` (`182.7s`) | ใช้กับคลิปเล่าเหตุการณ์พอร์ตติดลบหนัก, กราฟทิ้งดิ่งกวาด Stop Loss (`Stop Hunt`), หรือวิกฤตล้างพอร์ต | ห้ามใช้กับคลิปสอนตั้งค่าโปรแกรมพื้นฐานที่ไม่มีอารมณ์กดดัน | WAV: `1o_QFe4KxbSdiLTyshbrR9Gyf0WiHDyJx`<br>M4A: `1uJT7YCGooSM5Umy7JbRawCgSUj6QyeK_` |
+   | **`BL04`** | `volatility` | `Midnight-Volatility` | `100 BPM` · `02m50s` (`170.2s`) | ใช้กับคลิปจังหวะตลาดอเมริกาเปิด, ข่าวแรง (`Non-Farm` / `CPI` / `FOMC`), ทองคำ (`XAUUSD`) สวิงแรง 3,000 จุด | ห้ามใช้กับคลิปแนวปรัชญาเงียบๆ หรือการพักสมองก่อนนอน | WAV: `1FdZEEamG1962lRhH23SJKePrki3h2-Jz`<br>M4A: `1GTr5W0rS355u6BPp9-TknFPKusHBg1L-` |
+   | **`BL05`** | `late_night` | `02AM-Chart-Glare` | `82 BPM` · `02m47s` (`167.4s`) | ใช้กับคลิปจิตวิทยาเทรดดึก (`02:00 AM`), แสงสีฟ้าจากจอหลอกสมอง, อาการล้าสะสม, และการฝืนถือออเดอร์ข้ามคืน | ห้ามใช้กับคลิปแฉกลโกงความเร็วสูงที่ต้องการบีทหนักแน่น | WAV: `18SxWfBdWB53yYM9DUXsOUE0lIWZEa9RL`<br>M4A: `10F8zzMljz5vklN6ZfytcY5OuoULWb3fl` |
+   | **`BL06`** | `reset` | `Cortisol-Reset` | `85 BPM` · `02m54s` (`174.5s`) | ใช้กับคลิปอธิบายกลไกสมอง (`Cortisol` / `Dopamine` / `Amygdala`), การหยุดหัวร้อน (`Revenge Trade`), และรีเซ็ตสติ | ห้ามใช้กับคลิปตื่นเต้นเร้าใจหรือจังหวะทุบกราฟ | WAV: `1SzkG8LwaAcIs_Li_ZtJ8v6XOMkVeoXkz`<br>M4A: `18eqKxr3PuhGAQyxLCH68SwPeitSCl_ge` |
+   | **`BL07`** | `sniper` | `Sniper-Execution` | `104 BPM` · `02m32s` (`151.7s`) | ใช้กับคลิปสอนเทคนิควางแผนเทรดแบบมืออาชีพ, รอจังหวะ `Sniper`, การตั้ง `Pending Order` / `Stop Loss` อย่างเป็นระบบ | ห้ามใช้กับคลิปดราม่าเศร้าหรือเรื่องเล่าความสูญเสีย | WAV: `1T3OQITrFg__RNEqgEmjMiwJtL5iHvfaE`<br>M4A: `1MwT6O-C6RRIoYs20r3KXqAuo-JslgkfA` |
+   | **`BL08`** | `math` | `The-1-Percent-Math` | `98 BPM` · `02m41s` (`160.9s`) | ใช้กับคลิปคำนวณตัวเลขจริง: ค่า `Spread`, `Swap`, `Commission`, `Rebate`, `Risk-to-Reward`, และสถิติคนรอด 1% | ห้ามใช้กับคลิปเน้นอารมณ์ดราม่าล้วนที่ไม่มีข้อมูลตัวเลข | WAV: `1l16mDPbpINWJv6URmuntJls3PDUtEFUE`<br>M4A: `1C-ujuYhS2hgDz80JyqN5cF1H5YqHOnMQ` |
+   | **`BL09`** | `survivor` | `Disciplined-Survivor` | `90 BPM` · `02m34s` (`154.2s`) | ใช้กับคลิปสรุปกฎเหล็ก 3 ข้อของเทรดเดอร์ที่อยู่รอด, การบริหารหน้าตัก (`Money Management`), และการรักษาวินัย | ห้ามใช้กับคลิปเปิดประเด็นข่าวฉาวที่ต้องการโทนมืดกดดันจัด | WAV: `1q-MblWEhnp3BvU5ZPTgGC-SRq6emVogW`<br>M4A: `1-jfZKKNHjbc6l1UpbN5UIt8lF4PpLIb_` |
+   | **`BL10`** | `basket` | `Obsidian-Gold-Signature` | `94 BPM` · `02m50s` (`169.6s`) | ใช้กับคลิปปักตะกร้าสินค้า (`Basket 5:1`), แนะนำไอเทมจัดโต๊ะเทรด/ถนอมสายตาในโทน `Dark Luxury` ของช่อง BL | ห้ามใช้กับคลิปแฉคดีโกงรุนแรงที่ไม่ได้ขายสินค้า | WAV: `1hKDmepKbux5gal_ZCclwdpsIQGoMru8H`<br>M4A: `1RLPLwqik4gsrQ_j2WHsCC_DysvBC3iV9` |
+
+3. **HARD — Seamless Beat-Matched BGM Loop (`tools/bgm_bed.py::loop_to_duration`, CEO ruling `Q-20261118-1023-871c`):**
+   **Why hard:** audio continuity — whenever a video is longer than the chosen BGM track (e.g., a `2:00` / `120s` or `3:30` / `210s` video with a `1:44` or `2:28` track), repeating the raw file creates an audible hole and rhythm break because AI tracks taper off in their final `4–6s`.
+   - `tools/bgm_bed.py::loop_to_duration` automatically trims the decaying tail (`last 6.0s`), searches for the exact bar/beat phase match via 100Hz Beat-Envelope Cross-Correlation (`find_best_loop_seam`), and joins Copy #2 to Copy #1 with a **`3.0s` Equal-Power Cosine Crossfade (`cos(theta)` / `sin(theta)`)** so there is zero click, zero volume dip, and zero rhythm break.
+
+4. **HARD — Enforce the CEO-Approved `-24.0 dB` 4-Stage Dynamic Volume Envelope (`tools/bgm_bed.py::apply_bgm_envelope_and_mix`, CEO rulings `Q-20261118-1023-871c` & `Q-20261118-1120-5270`):**
+   **Why hard:** voice clarity — on `Q-20261118-1120-5270`, the CEO audited two 15-second mixes (`-24 dB` vs `-28 dB`) and locked **`ระดับ A: -24.0 dB`** (`"เอาประมานนี้แหละ เขียนเป็น Skill ไว้ได้เลย"`).
+   - `[SUPERSEDED 2026-11-18]` "Stage 2 — Strict Ceiling Cap (`ceiling_db = -18.5 dB` below active Voiceover RMS) ... `speech_duck_db = -2.5 dB`" — superseded by the CEO's listening test on `Q-20261118-1046-3f25` (`"ตอนเอาใส่ในคลิปขอเบาๆ นะ"`) and `Q-20261118-1120-5270` approving `-24.0 dB` ceiling + `-3.0 dB` speech ducking.
+   - **Stage 1 — Progressive Fade-In (`0.0s ➔ 4.0s`)**: Start at `-40 dB` (`0.01x`) at `t = 0.0s` so the opening Hook voiceover & `boom_vine_01` SFX punch through cleanly, then ramp up along a raised-cosine S-curve over `4.0s` to the `-24.0 dB` ceiling.
+   - **Stage 2 — Strict Ceiling Cap (`ceiling_db = -24.0 dB` below active `-14.0 LUFS` Voiceover RMS)**: Never allow BGM to exceed `-24.0 dB` relative to the narrator's voiceover.
+   - **Stage 3 — Smooth Voiceover Sidechain Ducking (`speech_duck_db = -3.0 dB`, `350ms` smoothing window)**: Automatically attenuate BGM by an additional `-3.0 dB` (sitting at **`-27.0 dB`** during active spoken clauses) and let it gently breathe back up to `-24.0 dB` during natural pauses (`>0.35s`).
+   - **Stage 4 — Smooth Outro Fade-Out (`total_dur - 4.0s ➔ total_dur`)**: Attenuate BGM along a cosine curve over the final `4.0s` down to `0.0` (`-60 dB`) at the exact end of the video.
+
+5. **How to Call & Mix BGM in 1 Command (`การเรียกใช้งาน`):**
+   ```bash
+   # 1. ดูตารางเพลงและสถานการณ์ทั้งหมดในคลัง
+   /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/bgm_bed.py --list
+
+   # 2. เรียกใช้ด้วยรหัสเพลง (--track BL01..BL10) หรือเรียกตามสถานการณ์ (--situation bbook|drawdown|late_night|math|...)
+   #    (หากไม่มีไฟล์ในเครื่อง เครื่องมือจะดึงจาก Google Drive พร้อมตรวจ MD5 ให้อัตโนมัติ)
+   /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/bgm_bed.py \
+     --track BL01 \
+     --vo voice_and_17sfx.wav \
+     --ceiling-db -24.0 --speech-duck-db -3.0 --fade-in 4.0 --fade-out 4.0 \
+     --out mixed_with_bgm.wav
+
+   # 3. Normalize Master ขั้นสุดท้ายที่ -14.0 LUFS (-1.5 dBTP) ก่อน Mux เข้ากับ MP4
+   ffmpeg -nostdin -y -i mixed_with_bgm.wav -af loudnorm=I=-14.0:TP=-1.5:LRA=11 -ar 48000 -ac 2 final_master_14lufs.wav
+   ```
+
+6. **How to Generate & Add New BGM Tracks in the Future (`การหาเพลงเพิ่มจะต้องทำยังไง` — `tools/flow_music_gen.py`):**
+   Whenever the channel needs additional background tracks for new content themes:
+   - **Engine & Account**: Use **Google Flow Music (`https://www.flowmusic.app/`, model `Lyria 3.5`, `Instrumental = ON`)** on `winbox:9226` (the logged-in Flow Chrome profile; costs `5 credits` per full-length `2:30–3:02` stereo 48kHz WAV track).
+   - **Prompt Formula for Voiceover-Safe BGM**: Always include:
+     1. Genre & Mood (`"Subtle dark cinematic financial documentary underscore"`),
+     2. Exact BPM (`82–104 BPM`),
+     3. Low-end foundation (`"warm muted analog sub-bass pulse"`),
+     4. **Mandatory Midrange Clearance Clause**: `"completely clean midrange with no lead melody or harsh highs so spoken voiceover sits clear on top"`.
+   - **Automated 1-Command Generation, Semantic Naming, Drive Upload & Manifest Registration**:
+     Run `tools/flow_music_gen.py`, which opens a hidden background CDP tab on `winbox:9226` (`Target.createTarget` with `background: True` so it never disturbs the foreground desktop), toggles `Instrumental`, generates & downloads the full WAV, encodes the M4A, renames both with `BL_BGM_{NN}_({Title-EN})_({สถานการณ์ที่ใช้-TH})_({BPM}BPM)_({MMmSSs})_({DD-MM-YYYY})_(FlowMusic-Lyria3.5).{wav|m4a}`, uploads to `ALL DRAFT/BLACK LIQUIDITY/BLACK LIQUIDITY [62]/Audio` (`1kpG9wATvy0i3mGWz0pmcPCLaWv6xHWjO`) and `ALL DRAFT/ASSETS/Audio` (`1QxYqKsn2AqwujTH4It9NXKAsQvXmAOXH`) with MD5 verification, and appends the new row to `BGM_MANIFEST.json`:
+     ```bash
+     /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/flow_music_gen.py \
+       --id BL11 \
+       --title-en "Dark-Order-Flow" \
+       --situation-th "แฉออเดอร์ลับ-สภาพคล่องสถาบัน" \
+       --situation-key "order_flow" \
+       --bpm 92 \
+       --prompt "Subtle dark cinematic financial documentary underscore, 92 BPM, warm muted analog sub-bass pulse, minimal atmospheric dark synth pad, completely clean midrange with no lead melody so spoken voiceover sits clear on top." \
+       --when-to-use "ใช้กับคลิปเจาะลึก Order Flow สถาบันและการดักกินสภาพคล่อง"
+     ```
+
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s → §6d traps (bright plate), §6f · status: promoted
@@ -995,3 +1112,5 @@ Reference contact sheets:
 - 2026-10-14 [MISSING] §verify — seam sampling with `-ss` just above a frame's pts skips a frame; use 8.26 for the frame before an 8.3 s seam. Seam checks by frame difference flag every designed beat cut (diffs 16–235 at beat boundaries vs 1–6 inside a beat) — a real fault is a black/empty frame, which the merge's `empty_frames []` already covers · evidence: task-03f18aab; CMO c4432bad seam sweep of both EP61 finals · status: pending
 - 2026-11-09 [MISSING] §6h-4/§6h-5 — CEO rulings on V5/V6 Trading Psychology & TikTok Shop Basket series: (1) remove `<div class="bl-ai-pill">เนื้อหานี้สร้างด้วย AI</div>` from all BL renders and captions so viewers focus on content; (2) enforce a 5:1 cadence (5 Pure Knowledge clips ~58-66s before 1 Basket Product clip ~65-70s); (3) use ONLY the 17 CEO-approved Mass-Editor SFX (`Q-20261109-0516-eb40`) aligned by Pre-Roll Peak (`CMO_Standard_EditorSFX`) at `-14.0 LUFS` · evidence: CEO message 2026-11-09, Q-20261109-0516-eb40 → §6h-4, §6h-5 · status: promoted
 - 2026-11-16 [MISSING] §6h-1/§6h-2/§6h-3/§6h-4 — CEO rulings on V6 Word-Synced editing, Screen-Orientation Logic (`OTS`/`FRONT`/`SIDE` for `Google Veo 3.1` on `Champa.io` 2-4 clips/EP or `Google Flow Omni 1.2` fallback), 6-part Semantic B-Roll Naming in `ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)`, Reusable Product Library `ALL DRAFT/BLACK LIQUIDITY/00_PRODUCT_LIBRARY/<Product>/{REFF,FOOTAGE}` with on-screen `.bl-prod-reff-card`, and Audio-Source Correlation gate (`r > 0.99` between Pure Knowledge and Basket cuts after Clip A failed `Q-20261116-0652-5463` with `r = 0.019` from an old 26.92s audio track and passed `Q-20261116-0708-33ff` at `r = 0.999960`) · evidence: Q-20261116-0603-73a1, Q-20261116-0652-5463, Q-20261116-0708-33ff, Drive 1ehlrs1yfII-GY-AMNMFHZLop1htYgTZi & 1ks85qoSgNhF_Dg--EZFlIeo6pMJCUI9E → §6h · status: promoted
+- 2026-11-16 [MISSING] §6h-6 — CEO rulings on V6.1 Real MT4/MT5 Chart Viewport (`860x770` at `x=110, y=430` so chart UI never collides with `#bug` or `.cap`), Single-Focus Visual Hierarchy (`mode="chart"`/`"footage"` uses 100% clear center + lower-third `.cap` only, while `mode="text_bg"` blurs & dims background `GaussianBlur(45,45) * 0.34` with one center card and zero `.cap`), 100% unified `'Kanit'` font (removing `Archivo` fallback), and static flex-pill `.badge` + `overflow:visible` card height · evidence: Q-20261116-1150-6fed, Q-20261116-1315-f2f8, Drive 1gfaV1SVkurpvJUGO2ajKzN5Fq79Ux30i → §6h-6 · status: promoted
+- 2026-11-18 [MISSING] §6h-7/§6h-8 — CEO rulings on V6.3 Final & Channel Background Music Library: (1) Minimalist Core Motion Explainer (`mode="motion"`, >65% negative space, max 2-3 elements, used only on the 1-2 essential core mechanics), True Optical Centering (`.mm-card` `padding: 42px 48px`, `.mm-pill` `padding: 22px 44px`), and Locked `STYLE 1: Neon Wireframe` channel icon pack (`01_target.png`..`09_padlock.png`, zero Unicode emoji); (2) 10 Full-Length Google Flow Music (`Lyria 3.5`, `2:28–3:03`) tracks (`BL01–BL10`) named with the 7-part BGM Semantic Naming Standard and backed up to Drive (`1kpG9wATvy0i3mGWz0pmcPCLaWv6xHWjO` & `1QxYqKsn2AqwujTH4It9NXKAsQvXmAOXH`, MD5-verified), mixed via `tools/bgm_bed.py` at the CEO-approved `-24.0 dB` ceiling + `-3.0 dB` speech ducking + `4.0s` fade-in/out + 3.0s beat-phase crossfade loop, with new tracks generated via `tools/flow_music_gen.py` · evidence: Q-20261118-0816-a8e9, Q-20261118-0829-d794, Q-20261118-0857-cd08, Q-20261118-1023-871c, Q-20261118-1046-3f25, Q-20261118-1120-5270, Drive 1LW9OhjyogM-ZkA0hFT3FFEd_yEnZVK2q & 1T8WDMoADGNGp89eMGZWsZkwZmbAhbKg3 → §6h-7, §6h-8 · status: promoted
