@@ -460,6 +460,24 @@ projects:
       contabo: /opt/MoonieXHQ/Projects/MoonieX/ExpertAdvisor
     spawn_backend: tmux
 
+  - key: mooniex-screenbooking
+    name: MoonieX ScreenBooking (winbox screen booking and ScreenGuard; CEO order O-20261118-1203-700f)
+    path: /opt/MoonieXHQ/Projects/MoonieX/ScreenBooking
+    remote: https://github.com/PASAKON/MoonieX-ScreenBooking.git
+    default_branch: main
+    stack: [python, powershell]
+    agents_allowed: *default_workers
+    # Q-20261118-0755-c5de (CEO answer, 18 Nov): folder Projects/MoonieX/ScreenBooking,
+    # repo MoonieX-ScreenBooking. Host winbox for GUI work; ScreenGuard never touches
+    # terminal64 (EA) and never runs a Job on it.
+    auto_push: false
+    review_required: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/ScreenBooking
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/ScreenBooking
+      winbox: 'C:\Users\passg\mooniex\repo\MoonieX-ScreenBooking'
+    spawn_backend: tmux
+
   - key: mooniex-bedrock
     name: MoonieX Bedrock (Minecraft Bedrock Marketplace add-ons)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock
