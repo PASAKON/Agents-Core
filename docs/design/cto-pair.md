@@ -69,6 +69,7 @@ classifier or the CEO refused it (that is laundering); it raises the card itself
 
 ## 8. Shared aims
 
+- New org skills live only in `.claude/skills/`, never `.agents/skills/` (so both Claude and AGY share one skill folder under the AGY context budget).
 - The same rules for both lanes: a rule that binds Claude sessions binds AGY rooms too, unless the log records
   why it cannot (a tool one side lacks).
 - First joint job: Claude → AGY without a CEO tap per message (needs a CEO card: it is a permission).
