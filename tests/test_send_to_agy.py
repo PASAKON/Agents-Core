@@ -774,3 +774,37 @@ def test_cli_main_list_send_reply_and_error_codes(
     rc_missing = send_to_agy.main(["send", "nonexistent-box", "hello"])
     assert rc_missing == 2
 
+
+
+@pytest.mark.parametrize("surface", ["App", "CLI"])
+def test_app_surface_wakes_through_app_store_and_hub(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, surface: str,
+) -> None:
+    """A Mac App conversation is reachable only with --app_data_dir antigravity + AGY_ENABLE_HUB=1
+    (live 2026-11-19: without them agy said "trajectory not found"); a CLI one keeps the plain call."""
+    calls: list[dict[str, Any]] = []
+
+    class FakePopen:
+        def __init__(self, cmd: list[str], **kwargs: Any) -> None:
+            self.pid = 1
+            calls.append({"cmd": list(cmd), "env": kwargs["env"]})
+
+    monkeypatch.setattr(send_to_agy.subprocess, "Popen", FakePopen)
+    send_to_agy._spawn_detached_local_agy(
+        "hello", box="cto-agy-1ec08f78", to_role="cto", to_sid="agy-1ec08f78",
+        conversation_id=UUID_CONTABO_CLI, model="m", mode="plan", cwd=tmp_path,
+        surface=surface, sessions_dir=tmp_path / "s", agy_bin="/bin/agy", env={},
+    )
+    cmd, env = calls[0]["cmd"], calls[0]["env"]
+    if surface == "App":
+        assert cmd[:3] == ["/bin/agy", "--app_data_dir", "antigravity"]
+        assert env["AGY_ENABLE_HUB"] == "1"
+    else:
+        assert "--app_data_dir" not in cmd
+        assert "AGY_ENABLE_HUB" not in env
+
+
+def test_remote_script_app_wake_uses_app_store_and_hub() -> None:
+    src = send_to_agy._REMOTE_AGY_PY
+    assert 'cmd[1:1] = ["--app_data_dir", "antigravity"]' in src
+    assert 'child_env["AGY_ENABLE_HUB"] = "1"' in src
