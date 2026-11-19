@@ -51,19 +51,25 @@ Depending on which host owns the session:
   ```
 - **Winbox (`winbox`)**: Run commands over `ssh winbox` (using `C:\Users\passg\AppData\Local\Programs\Python\Python311\python.exe -` or PowerShell in `C:\Users\passg\mooniex\repo\MoonieX-Agents`).
 
-## Step 5: Raising CardRun (`RUN-...` / `Q-...`) & Auto-Triggering AGY
+## Step 5: Raising CardRun v2 (`RUN-...` / `Q-...`) as `💻 PH#<id> · <Project>`
 
-To raise a Command Card or Question Card from AGY (or bind the taken-over Claude mailbox `<role>-<sid>` so the CEO's tap on `terminal.mooniex.com/run` wakes your AGY session automatically):
+Per CEO rule (2026-11-16), AGY sessions **never** send cards in the name of `CTO` or `CMO`. They always send as `role="project_head"` with the taken-over project name (`--project <ProjectName>`) and lane (`--lane <cto|cmo|coo|cfo|cgo>`), displaying **`💻 PH#<id> · <ProjectName>`** on `terminal.mooniex.com/run`.
+Running `agy_takeover.py inspect "<target>"` automatically binds this AGY session to `project_head-<short_id>` with its `project` and `lane`.
 
 ```bash
-# Bind a taken-over mailbox (e.g. cto-6ebacd0e) to this AGY conversation:
-.venv/bin/python tools/agy_card_run.py register --session <role>-<sid> --role <role>
+# Explicitly bind or update a taken-over project identity on this AGY conversation:
+.venv/bin/python tools/agy_card_run.py register \
+  --session project_head-<sid> --role project_head --project <ProjectName> --lane <cto|cmo>
 
-# Raise a Command Card (auto-registers session + auto-triggers AGY when CEO taps Run):
-.venv/bin/python tools/agy_card_run.py create --host contabo \
+# Raise a Command Card v2 (auto-registers session + auto-triggers AGY when CEO taps Hold-to-Run):
+.venv/bin/python tools/ask_run.py create --host contabo \
+  --project <ProjectName> --lane <cto|cmo> \
+  --what "<หัวข้อ ≤40 ตัวอักษร>" --does "<คำสั่งนี้ทำอะไร ≤70 ตัวอักษร>" --impact "<ผลกระทบ ≤70 ตัวอักษร>" \
   --command "<command>" --why "<reason>" --expected "<expected>" --risk amber
 
-# Raise a Question Card (auto-registers session + auto-triggers AGY when CEO taps Answer):
-.venv/bin/python tools/agy_card_run.py ask \
+# Raise a Question Card v2 (auto-registers session + auto-triggers AGY when CEO taps Answer):
+.venv/bin/python tools/ask_run.py ask \
+  --project <ProjectName> --lane <cto|cmo> \
+  --what "<หัวข้อ ≤40 ตัวอักษร>" --does "<สิ่งที่ต้องการตัดสินใจ ≤70 ตัวอักษร>" --impact "<ผลกระทบ ≤70 ตัวอักษร>" \
   --question "<question>" --option "<opt1>" --option "<opt2>" --recommended 1 --why "<why>"
 ```

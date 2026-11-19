@@ -65,6 +65,9 @@ _UUID_RE = re.compile(
 )
 _BOX_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _CARD_ID_RE = re.compile(r"^(?:RUN-[A-Za-z0-9][A-Za-z0-9-]{3,63}|Q(?:G)?-[0-9]{8}-[0-9]{4}-[0-9a-f]{4})$")
+_PROJECT_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+_LEGACY_CXO_AGY_RE = re.compile(r"^(?:cto|cmo|coo|cfo|cgo)-agy-([A-Za-z0-9._-]+)$", re.IGNORECASE)
+_CXO_LANES = ("cto", "cmo", "coo", "cfo", "cgo")
 _NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
 
 DEFAULT_MODEL = ph_brain.PRIMARY_MODEL
@@ -150,6 +153,57 @@ def detect_conversation_id(
     return candidates[0][1]
 
 
+def find_session_by_conversation(
+    conversation_id: str | None,
+    sessions_dir: Path | None = None,
+) -> dict[str, Any] | None:
+    """Find the active `state/agy-sessions/*.json` matching `conversation_id`,
+    preferring `project_head-*` records with a `project` over legacy `cto-agy-*` records."""
+    cid = (conversation_id or "").strip()
+    if not cid:
+        return None
+    base = Path(sessions_dir or AGY_SESSIONS_DIR)
+    if base.is_symlink() or not base.is_dir():
+        return None
+    matches: list[tuple[int, str, dict[str, Any]]] = []
+    for path in base.glob("*.json"):
+        if path.is_symlink() or not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict) or data.get("parked"):
+            continue
+        if str(data.get("conversation_id") or "").strip() != cid:
+            continue
+        box = str(data.get("box") or path.stem)
+        role = str(data.get("role") or "").lower()
+        is_ph = role == "project_head" or box.startswith("project_head-")
+        has_named_sid = is_ph and not box.startswith("project_head-agy-")
+        has_project = bool(data.get("project"))
+        score = (4 if has_named_sid else 2 if is_ph else 0) + (1 if has_project else 0)
+        matches.append((score, str(data.get("updated_at") or ""), data))
+    if not matches:
+        return None
+    matches.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    return matches[0][2]
+
+
+def sanitize_project_name(raw: str | None) -> str | None:
+    """Return a Console-valid project identifier (`/^[A-Za-z0-9_-]{1,40}$/`) or None."""
+    if not raw:
+        return None
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "", str(raw).strip())[:40]
+    return cleaned if cleaned and _PROJECT_RE.fullmatch(cleaned) else None
+
+
+def normalize_lane(raw: str | None) -> str | None:
+    """Return canonical C-level lane (`cto|cmo|coo|cfo|cgo`) or None."""
+    val = (raw or "").strip().lower()
+    return val if val in _CXO_LANES else None
+
+
 def resolve_identity(
     session: str | None = None,
     role: str | None = None,
@@ -158,8 +212,14 @@ def resolve_identity(
     env: dict | None = None,
     brain_dir: Path | None = None,
     cwd: Path | None = None,
+    sessions_dir: Path | None = None,
 ) -> tuple[str, str, str, str | None]:
-    """Return `(box, role, session_id, conversation_id)` for an AGY session."""
+    """Return `(box, role, session_id, conversation_id)` for an AGY session.
+
+    Per CEO rule (2026-11-16): AGY sessions never send cards as CTO or CMO; they send
+    as `project_head` (`💻 PH#<id> · <Project>`) unless an explicit non-AGY C-level
+    session (`cmo-e785343f`) is passed directly.
+    """
     env = os.environ if env is None else env
     conv_id = detect_conversation_id(conversation_id, env=env, brain_dir=brain_dir)
 
@@ -181,7 +241,10 @@ def resolve_identity(
     if explicit_session:
         part_role, sep, part_sid = explicit_session.partition("-")
         if sep and part_role and part_sid:
-            resolved_role = explicit_role or part_role.lower()
+            p_role = part_role.lower()
+            if p_role in ("project_head", "ph"):
+                return f"project_head-{part_sid}", "project_head", part_sid, conv_id
+            resolved_role = explicit_role or p_role
             if explicit_session.startswith(resolved_role + "-"):
                 box = explicit_session
                 sid = explicit_session[len(resolved_role) + 1 :]
@@ -189,19 +252,32 @@ def resolve_identity(
                 box = f"{resolved_role}-{explicit_session}"
                 sid = explicit_session
             return box, resolved_role, sid, conv_id
-        resolved_role = explicit_role or "cto"
         sid = explicit_session
+        resolved_role = explicit_role if explicit_role and explicit_role not in _CXO_LANES else "project_head"
         return f"{resolved_role}-{sid}", resolved_role, sid, conv_id
 
-    resolved_role = explicit_role or "cto"
+    # Check if this conversation_id is already bound in state/agy-sessions/
+    if conv_id and (sessions_dir is not None or "PYTEST_CURRENT_TEST" not in os.environ or env.get("AGY_AUTO_BIND_IN_TEST")):
+        bound = find_session_by_conversation(conv_id, sessions_dir=sessions_dir)
+        if bound:
+            b_box = str(bound.get("box") or "")
+            b_sid = str(bound.get("session_id") or "")
+            if b_box.startswith("project_head-") and b_sid:
+                return b_box, "project_head", b_sid, conv_id
+
     env_sid = (env.get("CXO_SESSION_ID") or env.get("CTO_SESSION_ID") or "").strip()
     if env_sid:
-        sid = env_sid[len(resolved_role) + 1 :] if env_sid.startswith(resolved_role + "-") else env_sid
+        for prefix in ("project_head-", "ph-", "cto-", "cmo-", "coo-", "cfo-", "cgo-"):
+            if env_sid.startswith(prefix):
+                env_sid = env_sid[len(prefix) :]
+                break
+        sid = env_sid
     elif conv_id:
         short = re.sub(r"[^A-Za-z0-9._-]", "", conv_id[:8]) or "session"
         sid = f"agy-{short}"
     else:
         sid = "agy-main"
+    resolved_role = "project_head"
     box = f"{resolved_role}-{sid}"
     return box, resolved_role, sid, conv_id
 
@@ -230,6 +306,10 @@ def load_session(box: str, sessions_dir: Path | None = None) -> dict[str, Any] |
     if base.is_symlink():
         return None
     path = base / f"{clean}.json"
+    if not path.is_file():
+        m_leg = _LEGACY_CXO_AGY_RE.fullmatch(clean)
+        if m_leg:
+            path = base / f"project_head-agy-{m_leg.group(1)}.json"
     if path.is_symlink() or not path.is_file():
         return None
     try:
@@ -248,6 +328,8 @@ def register_session(
     *,
     box: str | None = None,
     role: str | None = None,
+    project: str | None = None,
+    lane: str | None = None,
     conversation_id: str | None = None,
     model: str | None = None,
     mode: str | None = None,
@@ -265,6 +347,7 @@ def register_session(
         conversation_id=conversation_id,
         env=env,
         brain_dir=brain_dir,
+        sessions_dir=sessions_dir,
     )
     existing = load_session(resolved_box, sessions_dir=sessions_dir) or {}
     final_conv = conv_id or existing.get("conversation_id")
@@ -273,7 +356,8 @@ def register_session(
             f"cannot determine AGY conversation_id for {resolved_box}; "
             "pass --conversation <uuid> or set AGY_CONVERSATION_ID"
         )
-    work_dir = str(Path(cwd or existing.get("cwd") or Path.cwd()).resolve())
+    sib_by_conv = find_session_by_conversation(final_conv, sessions_dir=sessions_dir) or {}
+    work_dir = str(Path(cwd or existing.get("cwd") or sib_by_conv.get("cwd") or Path.cwd()).resolve())
     dirs = list(add_dirs or existing.get("add_dirs") or [work_dir, str(ROOT)])
     dedup_dirs: list[str] = []
     for d in dirs:
@@ -286,12 +370,27 @@ def register_session(
         cards = cards[-50:]
 
     env_map = ({} if "PYTEST_CURRENT_TEST" in os.environ else os.environ) if env is None else env
-    ls_address = (env_map.get("ANTIGRAVITY_LS_ADDRESS") or existing.get("ls_address") or "").strip() or None
-    csrf_token = (env_map.get("ANTIGRAVITY_CSRF_TOKEN") or existing.get("csrf_token") or "").strip() or None
-    agentapi_exe = (env_map.get("ANTIGRAVITY_AGENTAPI_EXE") or existing.get("agentapi_exe") or "").strip() or None
-    project_id = (env_map.get("ANTIGRAVITY_PROJECT_ID") or existing.get("project_id") or "").strip() or None
-    app_data_dir = (env_map.get("ANTIGRAVITY_APP_DATA_DIR") or existing.get("app_data_dir") or "").strip() or None
-    trajectory_id = (env_map.get("ANTIGRAVITY_TRAJECTORY_ID") or existing.get("trajectory_id") or "").strip() or None
+    ls_address = (env_map.get("ANTIGRAVITY_LS_ADDRESS") or existing.get("ls_address") or sib_by_conv.get("ls_address") or "").strip() or None
+    csrf_token = (env_map.get("ANTIGRAVITY_CSRF_TOKEN") or existing.get("csrf_token") or sib_by_conv.get("csrf_token") or "").strip() or None
+    agentapi_exe = (env_map.get("ANTIGRAVITY_AGENTAPI_EXE") or existing.get("agentapi_exe") or sib_by_conv.get("agentapi_exe") or "").strip() or None
+    project_id = (env_map.get("ANTIGRAVITY_PROJECT_ID") or existing.get("project_id") or sib_by_conv.get("project_id") or "").strip() or None
+    app_data_dir = (env_map.get("ANTIGRAVITY_APP_DATA_DIR") or existing.get("app_data_dir") or sib_by_conv.get("app_data_dir") or "").strip() or None
+    trajectory_id = (env_map.get("ANTIGRAVITY_TRAJECTORY_ID") or existing.get("trajectory_id") or sib_by_conv.get("trajectory_id") or "").strip() or None
+
+    resolved_project = sanitize_project_name(
+        project
+        or existing.get("project")
+        or sib_by_conv.get("project")
+        or env_map.get("AGY_PROJECT")
+    )
+    resolved_lane = normalize_lane(
+        lane
+        or existing.get("lane")
+        or sib_by_conv.get("lane")
+        or env_map.get("AGY_LANE")
+        or (role if normalize_lane(role) else None)
+        or env_map.get("AGY_ROLE")
+    )
 
     # When invoked from a PreInvocation hook (where ANTIGRAVITY_LS_ADDRESS is not in os.environ),
     # inherit LS connection details from any sibling active session on the same host.
@@ -327,6 +426,10 @@ def register_session(
         "created_at": existing.get("created_at") or _now_iso(),
         "updated_at": _now_iso(),
     }
+    if resolved_project:
+        record["project"] = resolved_project
+    if resolved_lane:
+        record["lane"] = resolved_lane
     if ls_address:
         record["ls_address"] = ls_address
     if csrf_token:
@@ -935,9 +1038,11 @@ def run_passthrough(
     force_watch, args = _extract_bool_flag(args, "--watch")
     no_watch, args = _extract_bool_flag(args, "--no-watch")
 
-    # Peek at --session and --role if caller passed them
+    # Peek at --session, --role, --project, and --lane if caller passed them
     peek_session, _ = _extract_flag(args, "--session")
     peek_role, _ = _extract_flag(args, "--role")
+    peek_project, _ = _extract_flag(args, "--project")
+    peek_lane, _ = _extract_flag(args, "--lane")
     is_dry_run = _has_flag(args, "--dry-run")
 
     box, role, _sid, conv_id = resolve_identity(
@@ -946,6 +1051,25 @@ def run_passthrough(
         conversation_id=conv_flag,
         env=env,
         brain_dir=brain_dir,
+        sessions_dir=sessions_dir,
+    )
+
+    existing = (
+        load_session(box, sessions_dir=sessions_dir)
+        or (find_session_by_conversation(conv_id, sessions_dir=sessions_dir) if conv_id else None)
+        or {}
+    )
+    resolved_project = sanitize_project_name(
+        peek_project
+        or existing.get("project")
+        or (env or os.environ).get("AGY_PROJECT")
+    )
+    resolved_lane = normalize_lane(
+        peek_lane
+        or existing.get("lane")
+        or (peek_role if normalize_lane(peek_role) else None)
+        or (env or os.environ).get("AGY_LANE")
+        or (env or os.environ).get("AGY_ROLE")
     )
 
     injected: list[str] = []
@@ -953,6 +1077,10 @@ def run_passthrough(
         injected.extend(["--role", role])
     if not _has_flag(args, "--session"):
         injected.extend(["--session", box])
+    if resolved_project and not _has_flag(args, "--project"):
+        injected.extend(["--project", resolved_project])
+    if resolved_lane and not _has_flag(args, "--lane"):
+        injected.extend(["--lane", resolved_lane])
 
     final_args = _inject_before_double_dash(args, injected)
 
@@ -960,6 +1088,8 @@ def run_passthrough(
         register_session(
             box=box,
             role=role,
+            project=resolved_project,
+            lane=resolved_lane,
             conversation_id=conv_id,
             model=model_flag,
             mode=mode_flag,
@@ -991,6 +1121,8 @@ def run_passthrough(
             rec = register_session(
                 box=box,
                 role=role,
+                project=resolved_project,
+                lane=resolved_lane,
                 conversation_id=conv_id,
                 model=model_flag,
                 mode=mode_flag,
@@ -1021,9 +1153,9 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__.strip())
         print(
             "\nSubcommands:\n"
-            "  create [ask_run create flags...] [--conversation UUID] [--watch|--no-watch]\n"
-            "  ask    [ask_run ask flags...]    [--conversation UUID] [--watch|--no-watch]\n"
-            "  register [--session BOX] [--role ROLE] [--conversation UUID] [--model MODEL]\n"
+            "  create [ask_run create flags...] [--project NAME] [--lane LANE] [--conversation UUID] [--watch|--no-watch]\n"
+            "  ask    [ask_run ask flags...]    [--project NAME] [--lane LANE] [--conversation UUID] [--watch|--no-watch]\n"
+            "  register [--session BOX] [--role ROLE] [--project NAME] [--lane LANE] [--conversation UUID] [--model MODEL]\n"
             "  wake   <box> [--timeout SECONDS]\n"
             "  watch  <card_id> --box <box> [--interval SECONDS] [--max-wait SECONDS]\n"
             "  status [--json]\n"
@@ -1043,7 +1175,9 @@ def main(argv: list[str] | None = None) -> int:
     if verb == "register":
         p = argparse.ArgumentParser(prog="tools/agy_card_run.py register")
         p.add_argument("--session", "--box", dest="box", help="mailbox name <role>-<id>")
-        p.add_argument("--role", help="C-level or PH role (default: cto)")
+        p.add_argument("--role", help="PH role (default: project_head)")
+        p.add_argument("--project", default=None, help="Taken-over or active project name (e.g. CnDrama)")
+        p.add_argument("--lane", default=None, help="C-level lane (cto | cmo | coo | cfo | cgo)")
         p.add_argument("--conversation", help="AGY conversation UUID (default: auto-detect)")
         p.add_argument("--model", default=None, help=f"preferred AGY model (default: {DEFAULT_MODEL})")
         p.add_argument("--mode", default=None, help=f"AGY mode (default: {DEFAULT_MODE})")
@@ -1054,6 +1188,8 @@ def main(argv: list[str] | None = None) -> int:
             rec = register_session(
                 box=args.box,
                 role=args.role,
+                project=args.project,
+                lane=args.lane,
                 conversation_id=args.conversation,
                 model=args.model,
                 mode=args.mode,
@@ -1065,7 +1201,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(rec, indent=2, ensure_ascii=False))
         else:
-            print(f"Registered {rec['box']} -> conversation {rec['conversation_id']} ({rec['model']} on {rec['host']})")
+            proj_tag = f" project={rec.get('project')}" if rec.get("project") else ""
+            lane_tag = f" lane={rec.get('lane')}" if rec.get("lane") else ""
+            print(
+                f"Registered {rec['box']}{proj_tag}{lane_tag} -> conversation {rec['conversation_id']} "
+                f"({rec['model']} on {rec['host']})"
+            )
         return 0
 
     if verb == "wake":

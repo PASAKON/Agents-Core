@@ -181,19 +181,28 @@ def _ensure_live_publisher() -> None:
         pass
 
 
-AGY_CARDRUN_NOTICE = (
-    "[SYSTEM NOTICE — AGY CardRun v2 Active] "
-    "Whenever you have a question/choice for the CEO or a command requiring CEO approval, "
-    "never ask in chat and never use `ask_question`. Always raise a CardRun immediately via "
-    "`/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/ask_run.py ask|create` "
-    "(or `tools/agy_card_run.py`), print the Card ID + https://terminal.mooniex.com/run#<id> in one line, "
-    "and end your turn. This Antigravity session will wake up automatically via `agentapi send-message` "
-    "the moment the CEO taps the card on `/run`."
-)
+AGY_CARDRUN_NOTICE_V = 3
 
 
-def _agy_box(payload: dict) -> tuple[str, str, bool] | None:
-    """Resolve `(role, session_id, needs_notice)` and auto-register `state/agy-sessions/<box>.json`
+def _build_agy_notice(rec: dict) -> str:
+    box = rec.get("box") or "project_head-agy"
+    sid3 = str(rec.get("session_id") or "").replace("agy-", "")[:3] or "agy"
+    proj = rec.get("project") or "Project"
+    lane = (rec.get("lane") or "cto").lower()
+    return (
+        f"[SYSTEM NOTICE — AGY CardRun v2 Active · Sender: 💻 PH#{sid3} · {proj} (lane={lane}, box={box})] "
+        "Whenever you have a question/choice for the CEO or a command requiring CEO approval, "
+        "never ask in chat and never use `ask_question`. Always raise a CardRun v2 immediately in the name of PH + Project "
+        "(NEVER as CTO or CMO) via:\n"
+        f"`/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python /Users/gob/MoonieXHQ/Agents/Core/tools/ask_run.py ask|create "
+        f"--project {proj} --lane {lane} --what \"<หัวข้อ ≤40 ตัวอักษร>\" --does \"<ทำอะไร ≤70 ตัวอักษร>\" --impact \"<ผลกระทบ ≤70 ตัวอักษร>\" ...`\n"
+        "Print the Card ID + https://terminal.mooniex.com/run#<id> in one line and end your turn immediately. "
+        "This Antigravity window will wake up automatically via `agentapi send-message` the moment the CEO taps the card on `/run`."
+    )
+
+
+def _agy_box(payload: dict) -> tuple[str, str, str | None, str] | None:
+    """Resolve `(role, session_id, notice_text, conv_id)` and auto-register `state/agy-sessions/<box>.json`
     when invoked as an Antigravity (`conversationId`) lifecycle hook."""
     conv_id = str(payload.get("conversationId") or "").strip()
     if not conv_id:
@@ -203,17 +212,19 @@ def _agy_box(payload: dict) -> tuple[str, str, bool] | None:
         ws = payload.get("workspacePaths")
         ws_cwd = ws[0] if isinstance(ws, list) and ws else str(ROOT.parent.parent)
         box, role, sid, _ = agy_card_run.resolve_identity(conversation_id=conv_id, cwd=Path(ws_cwd))
-        needs_notice = False
+        notice_text: str | None = None
         if not os.environ.get("PYTEST_CURRENT_TEST"):
             with contextlib.suppress(Exception):
                 existing = agy_card_run.load_session(box) or {}
-                needs_notice = not bool(existing.get("card_run_notified"))
+                needs_notice = existing.get("card_run_notice_v") != AGY_CARDRUN_NOTICE_V
                 rec = agy_card_run.register_session(box=box, role=role, conversation_id=conv_id, cwd=ws_cwd)
                 if needs_notice:
                     rec["card_run_notified"] = True
+                    rec["card_run_notice_v"] = AGY_CARDRUN_NOTICE_V
                     p = agy_card_run.session_path(box)
                     p.write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        return role, sid, needs_notice
+                    notice_text = _build_agy_notice(rec)
+        return role, sid, notice_text, conv_id
     except Exception:
         return None
 
@@ -249,13 +260,15 @@ def main() -> int:
 
     is_agy = bool(payload.get("conversationId"))
     _ensure_live_publisher()    # before the drain: an empty box still runs it
-    needs_notice = False
+    notice_text: str | None = None
+    agy_conv_id = ""
     box = _current_box()
     if box is None and is_agy:
         agy_res = _agy_box(payload)
         if agy_res is not None:
             box = (agy_res[0], agy_res[1])
-            needs_notice = agy_res[2]
+            notice_text = agy_res[2]
+            agy_conv_id = agy_res[3]
     if box is None:
         if is_agy:
             print("{}")
@@ -265,9 +278,14 @@ def main() -> int:
     try:
         from lib import mailbox
         letters = mailbox.drain(role, session_id)
+        if is_agy and agy_conv_id:
+            short = agy_conv_id[:8]
+            for leg_role in ("cto", "cmo"):
+                if (leg_role, f"agy-{short}") != (role, session_id):
+                    letters.extend(mailbox.drain(leg_role, f"agy-{short}"))
     except Exception:
         letters = []
-    if not letters and not needs_notice:
+    if not letters and not notice_text:
         if is_agy:
             print("{}")
         return 0
@@ -275,8 +293,8 @@ def main() -> int:
     rendered = _render_letters(letters) if letters else ""
     if is_agy:
         steps: list[dict] = []
-        if needs_notice:
-            steps.append({"ephemeralMessage": AGY_CARDRUN_NOTICE})
+        if notice_text:
+            steps.append({"ephemeralMessage": notice_text})
         if rendered.strip():
             steps.append({"ephemeralMessage": rendered.rstrip()})
         print(json.dumps({"injectSteps": steps} if steps else {}, ensure_ascii=False))

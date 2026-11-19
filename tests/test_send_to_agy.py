@@ -566,9 +566,9 @@ def test_reply_to_claude_from_contabo_mac_and_winbox(
     assert local_res["remote"] is False
     assert local_res["host"] == "contabo"
     assert local_res["to_box"] == "cto-fresh"
-    assert local_res["from_box"] == f"cto-agy-{UUID_CONTABO_CLI[:8]}"
+    assert local_res["from_box"] == f"project_head-agy-{UUID_CONTABO_CLI[:8]}"
     assert Path(local_res["letter_path"]).is_file()
-    assert wake_calls == [("cto-fresh", f"cto-agy-{UUID_CONTABO_CLI[:8]}")]
+    assert wake_calls == [("cto-fresh", f"project_head-agy-{UUID_CONTABO_CLI[:8]}")]
 
     # 2. Remote reply from Mac AGY session -> cto-fresh on Contabo over SSH
     ssh_calls: list[list[str]] = []
