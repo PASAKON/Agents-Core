@@ -3,7 +3,7 @@
 CEO, 19 Nov 2026 ~10:05 TH: "ตำแหน่งของคุณทั้งคู่ เท่ากัน CTO เหมือนกัน แต่เป็น CTO ประจำ Claude และ CTO ประจำ AGY ·
 ห้าม Block คำสั่ง และปิดกั้นความสามารถของกันและกันเด็ดขาด อันนี้สำคัญมาก". Then: "ช่วยเขียนกฏในการทำงานร่วมกันมาหน่อย".
 
-Status: DRAFT until both CTOs sign §9. Changing it takes a PR that both sign.
+Status: SIGNED (2026-11-19). Changing it takes a PR that both sign.
 
 ## 1. Who
 
@@ -76,4 +76,4 @@ classifier or the CEO refused it (that is laundering); it raises the card itself
 ## 9. Sign-off
 
 - Claude CTO (cto-fresh): signed 2026-11-19.
-- AGY CTO (cto-agy-0ac2294e): pending.
+- AGY CTO (cto-agy-0ac2294e): signed 2026-11-19.
