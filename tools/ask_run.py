@@ -431,6 +431,21 @@ def _agy_env_conv(env: dict) -> str | None:
     return None
 
 
+def _agy_bound_session(conv: str | None, env: dict | None = None) -> dict[str, Any] | None:
+    """Return the active `state/agy-sessions/*.json` record matching `conv` when allowed."""
+    if not conv:
+        return None
+    if "PYTEST_CURRENT_TEST" in os.environ and not (env and env.get("AGY_AUTO_BIND_IN_TEST")):
+        return None
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools import agy_card_run
+        return agy_card_run.find_session_by_conversation(conv)
+    except Exception:
+        return None
+
+
 def _env_box(env: dict, *, cwd: Path | None = None) -> tuple[str | None, str | None]:
     """(role, session id) of the mailbox this process drains — the same
     resolution as scripts/hook-inbox.py `_current_box`, plus worktree worker
@@ -450,14 +465,23 @@ def _env_box(env: dict, *, cwd: Path | None = None) -> tuple[str | None, str | N
         return "cto", sid
     conv = _agy_env_conv(env)
     if conv:
-        agy_role = (env.get("AGY_ROLE") or "cto").strip().lower() or "cto"
+        bound = _agy_bound_session(conv, env=env)
+        if bound:
+            b_box = str(bound.get("box") or "").strip()
+            if b_box.startswith("project_head-"):
+                return "project_head", b_box
         short = re.sub(r"[^A-Za-z0-9._-]", "", conv[:8]) or "session"
-        return agy_role, f"agy-{short}"
+        return "project_head", f"agy-{short}"
     return None, None
 
 
+_PROJECT_TAG_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+_LEGACY_CXO_AGY_BOX_RE = re.compile(r"^(?:cto|cmo|coo|cfo|cgo)-agy-([A-Za-z0-9._-]+)$", re.IGNORECASE)
+
+
 def resolve_requester(session: str | None, role: str | None, task: str | None,
-                      env: dict | None = None, *, cwd: Path | None = None) -> dict:
+                      env: dict | None = None, *, cwd: Path | None = None,
+                      project: str | None = None, lane: str | None = None) -> dict:
     env = os.environ if env is None else env
     wt_worker = None
     if not env.get("WORKER_TASK_ID") and (cwd is not None or (env is os.environ and "PYTEST_CURRENT_TEST" not in env)):
@@ -471,10 +495,24 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     if worker and role in card_roles():   # whatever CXO_ROLE or AGY says: a worker is never C-level or a PH
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
+    conv = _agy_env_conv(env)
+    inferred_lane: str | None = None
+    if conv and not worker and not env.get("CXO_SESSION_ID") and not env.get("CTO_SESSION_ID"):
+        if role in {"cto", "cmo", "coo", "cfo", "cgo"}:
+            inferred_lane = role
+            role = "project_head"
+        elif role == "ph":
+            role = "project_head"
     session = (session or "").strip()
+    if session and conv and not worker:
+        m_leg = _LEGACY_CXO_AGY_BOX_RE.fullmatch(session)
+        if m_leg:
+            bound = _agy_bound_session(conv, env=env)
+            b_box = str((bound or {}).get("box") or "").strip()
+            session = b_box if b_box.startswith("project_head-") else f"project_head-agy-{m_leg.group(1)}"
     if not session:
         sid = (env.get("ORG_SESSION_ID") or env_sid or "").strip()
-        box_role = env_role or role
+        box_role = role if (conv and role == "project_head") else (env_role or role)
         if sid:
             session = sid if sid.startswith(box_role + "-") else f"{box_role}-{sid}"
     if not session:
@@ -486,7 +524,18 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     if role in {"cto", "cmo", "coo", "cfo", "cgo"}:
         requester["lane"] = role
     elif role == "project_head":
-        requester.update(_requester_project(session))
+        requester.update(_requester_project(session, conv=conv, env=env))
+        raw_proj = (project or env.get("AGY_PROJECT") or "").strip()
+        if raw_proj:
+            clean_proj = re.sub(r"[^A-Za-z0-9_-]+", "", raw_proj)[:40]
+            if clean_proj and _PROJECT_TAG_RE.fullmatch(clean_proj):
+                requester["project"] = clean_proj
+        explicit_lane = (lane or env.get("AGY_LANE") or "").strip().lower()
+        fallback_lane = (inferred_lane or env.get("AGY_ROLE") or "").strip().lower()
+        if explicit_lane in {"cto", "cmo", "coo", "cfo", "cgo"}:
+            requester["lane"] = explicit_lane
+        elif "lane" not in requester and fallback_lane in {"cto", "cmo", "coo", "cfo", "cgo"}:
+            requester["lane"] = fallback_lane
     task = (task or worker or "").strip()
     if task:
         if not _NAME_RE.match(task):
@@ -495,8 +544,41 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     return requester
 
 
-def _requester_project(session: str) -> dict:
+def _requester_project(session: str, *, conv: str | None = None, env: dict | None = None) -> dict:
     """Optional hub labels; unavailable or ambiguous metadata never blocks a card."""
+    out: dict[str, str] = {}
+    if "PYTEST_CURRENT_TEST" not in os.environ or (env and env.get("AGY_AUTO_BIND_IN_TEST")):
+        try:
+            if str(ROOT) not in sys.path:
+                sys.path.insert(0, str(ROOT))
+            from tools import agy_card_run
+            rec = agy_card_run.load_session(session) or (_agy_bound_session(conv, env=env) if conv else None) or {}
+            proj = str(rec.get("project") or "").strip()
+            ln = str(rec.get("lane") or "").strip().lower()
+            if ln in {"cto", "cmo", "coo", "cfo", "cgo"}:
+                out["lane"] = ln
+            if proj and _PROJECT_TAG_RE.fullmatch(proj):
+                out["project"] = proj
+        except Exception:
+            pass
+        if "project" not in out or "lane" not in out:
+            try:
+                locks_dir = ROOT / "state" / "locks"
+                pfile = locks_dir / f"{session}.project"
+                if pfile.is_file() and "project" not in out:
+                    pname = pfile.read_text(encoding="utf-8").strip()
+                    if pname and _PROJECT_TAG_RE.fullmatch(pname):
+                        out["project"] = pname
+                spfile = locks_dir / f"{session}.spawned_by"
+                if spfile.is_file() and "lane" not in out:
+                    sp = spfile.read_text(encoding="utf-8").strip().lower()
+                    sp_role = sp.split("-", 1)[0]
+                    if sp_role in {"cto", "cmo", "coo", "cfo", "cgo"}:
+                        out["lane"] = sp_role
+            except Exception:
+                pass
+    if "project" in out and "lane" in out:
+        return out
     try:
         if str(ROOT) not in sys.path:
             sys.path.append(str(ROOT))
@@ -508,10 +590,11 @@ def _requester_project(session: str) -> dict:
         if len(rows) == 1:
             name, lane = rows[0]["name"], rows[0]["lane"]
             if lane in {"cto", "cmo", "coo", "cfo", "cgo"} and re.fullmatch(r"[A-Z][A-Za-z0-9]{0,39}", name or ""):
-                return {"lane": lane, "project": name}
+                out.setdefault("lane", lane)
+                out.setdefault("project", name)
     except Exception:
         pass
-    return {}
+    return out
 
 
 BRIEF_LIMITS = {"what": 40, "does": 70, "impact": 70}
@@ -892,16 +975,30 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
             raise Refused(f"--env-key takes a variable NAME, never NAME=value (got {bad[0]!r})")
         payload["env_keys"] = list(dict.fromkeys(args.env_key))
     payload["why"] = _one_line("--why", args.why)
-    if host in BRIEF_HOSTS:
-        payload.update(brief_fields(args))
     if args.expected is not None:
         payload["expected"] = _one_line("--expected", args.expected)
+    if host in BRIEF_HOSTS:
+        explicit_brief = brief_fields(args)
+        if explicit_brief:
+            payload.update(explicit_brief)
+        elif _agy_env_conv(env or os.environ):
+            cmd_line = (payload.get("command") or payload.get("script", {}).get("path") or "").strip().splitlines()[0] if (payload.get("command") or payload.get("script")) else ""
+            payload["what"] = (cmd_line or payload["why"])[:40]
+            payload["does"] = payload["why"][:70]
+            payload["impact"] = (payload.get("expected") or f"รันบน {host} ({args.risk})")[:70]
     if args.timeout <= 0:
         raise Refused("--timeout must be a positive number of seconds")
     payload["risk"] = args.risk
     payload["timeout_s"] = args.timeout
     payload["expects_input"] = bool(args.expects_input)
-    payload["requester"] = resolve_requester(args.session, args.role, args.task, env)
+    payload["requester"] = resolve_requester(
+        args.session,
+        args.role,
+        args.task,
+        env,
+        project=getattr(args, "project", None),
+        lane=getattr(args, "lane", None),
+    )
     # A script ask's args are an argv the hub quotes itself, so its cap is read from [path, *args]
     # (the hub renders it as `bash x.sh ...`, which the simple-command rule would refuse).
     argv = [payload["script"]["path"], *script_args] if payload.get("kind") == "script" else None
@@ -1028,7 +1125,14 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
     field order, before the content checks. Only the fields §3.1 names are
     ever set: there is no field here that could carry an answer (§1.2), and
     `--recommended N` (1-based) becomes `recommended: true` on that option."""
-    who = resolve_requester(args.session, args.role, getattr(args, "task", None), env)
+    who = resolve_requester(
+        args.session,
+        args.role,
+        getattr(args, "task", None),
+        env,
+        project=getattr(args, "project", None),
+        lane=getattr(args, "lane", None),
+    )
     requester: dict[str, Any] = {k: v for k, v in who.items() if k != "task"}
     requester["host"] = resolve_host(args.host, env)
     if "task" in who:
@@ -2117,7 +2221,8 @@ def prepare_question_group(items: Any, args: argparse.Namespace, env: dict | Non
             raise Refused(f"invalid_questions: questions[{i}] has {', '.join(extra)}; an item carries only "
                           f"{', '.join(GROUP_ITEM_KEYS)} (requester, host and expiry are the group's)")
         shared = {"session": args.session, "role": args.role, "host": args.host,
-                  "task": getattr(args, "task", None), "expires_h": args.expires_h}
+                  "task": getattr(args, "task", None), "expires_h": args.expires_h,
+                  "project": getattr(args, "project", None), "lane": getattr(args, "lane", None)}
         for key in BRIEF_LIMITS:
             if key not in item:
                 shared[key] = getattr(args, key, None)
@@ -2251,7 +2356,8 @@ def _mcp_namespace(a: dict) -> tuple[argparse.Namespace, list[str]]:
         what=a.get("what"), does=a.get("does"), impact=a.get("impact"),
         expects_input=bool(a.get("expects_input")), shell=shell, cwd=a.get("cwd") or None,
         env_key=env_keys, task=a.get("task") or None, session=a.get("session") or None,
-        role=a.get("role") or None, dry_run=bool(a.get("dry_run")), json=False,
+        role=a.get("role") or None, project=a.get("project") or None, lane=a.get("lane") or None,
+        dry_run=bool(a.get("dry_run")), json=False,
         spend=None, no_spend=(a.get("no_spend") or None))
     spend = a.get("spend") or None
     if spend is not None and not isinstance(spend, dict):
@@ -2311,7 +2417,8 @@ def _mcp_question_namespace(a: dict) -> argparse.Namespace:
         why=a.get("why") or "", no_free_text=not free_text,
         what=a.get("what"), does=a.get("does"), impact=a.get("impact"),
         expires_h=a.get("expires_h", EXPIRES_DEFAULT_H), session=a.get("session") or None,
-        role=a.get("role") or None, host=a.get("host") or None, task=a.get("task") or None,
+        role=a.get("role") or None, project=a.get("project") or None, lane=a.get("lane") or None,
+        host=a.get("host") or None, task=a.get("task") or None,
         dry_run=bool(a.get("dry_run")), json=False,
         media=paths or None, caption=captions if any(captions) else None, pick=pick)
 
@@ -2334,6 +2441,7 @@ def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
                           "not both; each item of questions carries its own question, why, options, "
                           "recommended and free_text")
         ns = argparse.Namespace(session=arguments.get("session") or None, role=arguments.get("role") or None,
+                                project=arguments.get("project") or None, lane=arguments.get("lane") or None,
                                 what=arguments.get("what"), does=arguments.get("does"), impact=arguments.get("impact"),
                                 host=arguments.get("host") or None, task=arguments.get("task") or None,
                                 expires_h=arguments.get("expires_h", EXPIRES_DEFAULT_H))
@@ -2432,6 +2540,8 @@ def _auto_bind_agy_session(payload: dict, card_id: str, env: dict | None = None)
         rec = agy_card_run.register_session(
             box=box,
             role=role,
+            project=req.get("project"),
+            lane=req.get("lane"),
             conversation_id=conv_id,
             card_id=card_id,
             env=env,
@@ -2788,8 +2898,10 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--env-key", action="append", metavar="NAME",
                    help="env var NAME the executor may pass through (repeatable; never a value)")
     c.add_argument("--task", help="task id (default: WORKER_TASK_ID)")
-    c.add_argument("--session", help="your mailbox name <role>-<id>, e.g. cto-6ebacd0e (default: from env)")
-    c.add_argument("--role", help="your role (default: CXO_ROLE / WORKER_ROLE)")
+    c.add_argument("--session", help="your mailbox name <role>-<id>, e.g. project_head-3511068d (default: from env)")
+    c.add_argument("--role", help="your role (default: project_head on AGY, or CXO_ROLE / WORKER_ROLE)")
+    c.add_argument("--project", help="project name shown on the sender pill (e.g. CnDrama)")
+    c.add_argument("--lane", help="C-level lane shown on the sender pill (cto | cmo | coo | cfo | cgo)")
     sp = c.add_argument_group("spend label (a card that spends credit; Console docs/run.md §Spend label)")
     sp.add_argument("--spend-provider", metavar="NAME", help="fal | openrouter | higgsfield | ... (lowercase)")
     sp.add_argument("--spend-billing", choices=SPEND_BILLING, help="api credit or account credit (default api)")
@@ -2838,8 +2950,10 @@ def _parser() -> argparse.ArgumentParser:
                    help="how long the question waits (default 24, from 10 minutes to 7 days)")
     q.add_argument("--host", help="the machine this session runs on: contabo | mac | winbox "
                                   "(default: ORG_HOST, else this checkout's self_host, else the hostname)")
-    q.add_argument("--session", help="your mailbox name <role>-<id>, e.g. cto-6ebacd0e (default: from env)")
-    q.add_argument("--role", help="your role (default: CXO_ROLE / WORKER_ROLE)")
+    q.add_argument("--session", help="your mailbox name <role>-<id>, e.g. project_head-3511068d (default: from env)")
+    q.add_argument("--role", help="your role (default: project_head on AGY, or CXO_ROLE / WORKER_ROLE)")
+    q.add_argument("--project", help="project name shown on the sender pill (e.g. CnDrama)")
+    q.add_argument("--lane", help="C-level lane shown on the sender pill (cto | cmo | coo | cfo | cgo)")
     q.add_argument("--dry-run", action="store_true", help="print the JSON body, send nothing")
     q.add_argument("--json", action="store_true", help="print the hub's answer as JSON")
 

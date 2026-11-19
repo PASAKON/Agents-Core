@@ -56,41 +56,45 @@ def test_resolve_identity_defaults_and_overrides(tmp_path):
         env={"AGY_CONVERSATION_ID": CONV_UUID},
         brain_dir=tmp_path,
     )
-    assert box == "cto-agy-aced3034"
-    assert role == "cto"
+    assert box == "project_head-agy-aced3034"
+    assert role == "project_head"
     assert sid == "agy-aced3034"
     assert conv == CONV_UUID
 
     # Explicit takeover session
     box2, role2, sid2, conv2 = agy_card_run.resolve_identity(
-        session="cmo-e785343f",
+        session="project_head-3511068d",
         conversation_id=CONV_UUID,
         env={},
         brain_dir=tmp_path,
     )
-    assert (box2, role2, sid2, conv2) == ("cmo-e785343f", "cmo", "e785343f", CONV_UUID)
+    assert (box2, role2, sid2, conv2) == ("project_head-3511068d", "project_head", "3511068d", CONV_UUID)
 
 
 def test_register_and_load_session_refuses_symlinks(tmp_path):
     sdir = tmp_path / "agy-sessions"
     rec = agy_card_run.register_session(
-        box="cto-agy-aced3034",
-        role="cto",
+        box="project_head-3511068d",
+        role="project_head",
+        project="CnDrama",
+        lane="cmo",
         conversation_id=CONV_UUID,
         card_id="RUN-20261108-1200-abcd",
         sessions_dir=sdir,
         env={"ORG_HOST": "contabo"},
     )
-    assert rec["box"] == "cto-agy-aced3034"
+    assert rec["box"] == "project_head-3511068d"
+    assert rec["project"] == "CnDrama"
+    assert rec["lane"] == "cmo"
     assert rec["conversation_id"] == CONV_UUID
     assert rec["cards"] == ["RUN-20261108-1200-abcd"]
 
-    loaded = agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)
+    loaded = agy_card_run.load_session("project_head-3511068d", sessions_dir=sdir)
     assert loaded is not None and loaded["conversation_id"] == CONV_UUID
 
     # Symlinked session file is refused
     evil = sdir / "cto-evil.json"
-    evil.symlink_to(sdir / "cto-agy-aced3034.json")
+    evil.symlink_to(sdir / "project_head-3511068d.json")
     assert agy_card_run.load_session("cto-evil", sessions_dir=sdir) is None
 
 
@@ -99,9 +103,14 @@ def test_ask_run_env_box_supports_agy_conversation_id():
         None,
         None,
         None,
-        env={"AGY_CONVERSATION_ID": CONV_UUID, "AGY_ROLE": "cmo"},
+        env={"AGY_CONVERSATION_ID": CONV_UUID, "AGY_ROLE": "cmo", "AGY_PROJECT": "CnDrama"},
     )
-    assert req == {"session": "cmo-agy-aced3034", "role": "cmo", "lane": "cmo"}
+    assert req == {
+        "session": "project_head-agy-aced3034",
+        "role": "project_head",
+        "project": "CnDrama",
+        "lane": "cmo",
+    }
 
 
 def test_passthrough_create_injects_identity_registers_session_and_spawns_watcher(tmp_path, monkeypatch):
@@ -131,6 +140,10 @@ def test_passthrough_create_injects_identity_registers_session_and_spawns_watche
             "systemctl status mooniex-console",
             "--why",
             "org-rule: check status",
+            "--project",
+            "CnDrama",
+            "--lane",
+            "cmo",
             "--conversation",
             CONV_UUID,
         ],
@@ -147,16 +160,22 @@ def test_passthrough_create_injects_identity_registers_session_and_spawns_watche
             "systemctl status mooniex-console",
             "--why",
             "org-rule: check status",
+            "--project",
+            "CnDrama",
+            "--lane",
+            "cmo",
             "--role",
-            "cto",
+            "project_head",
             "--session",
-            "cto-agy-aced3034",
+            "project_head-agy-aced3034",
         ]
     ]
     # On Mac (peer host), watcher is spawned automatically
-    assert watched == [("RUN-20261108-1500-beef", "cto-agy-aced3034")]
-    saved = agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)
+    assert watched == [("RUN-20261108-1500-beef", "project_head-agy-aced3034")]
+    saved = agy_card_run.load_session("project_head-agy-aced3034", sessions_dir=sdir)
     assert saved is not None
+    assert saved["project"] == "CnDrama"
+    assert saved["lane"] == "cmo"
     assert saved["cards"] == ["RUN-20261108-1500-beef"]
 
 
@@ -166,22 +185,24 @@ def test_wake_session_drains_letters_formats_notes_and_tail_and_falls_back_on_qu
     monkeypatch.setattr(mailbox, "INBOX_ROOT", inbox)
     monkeypatch.setattr(ph_brain, "QUOTA_SNAPSHOT", tmp_path / "no-snapshot.json")
 
-    box = "cto-agy-aced3034"
+    box = "project_head-agy-aced3034"
     agy_card_run.register_session(
         box=box,
-        role="cto",
+        role="project_head",
+        project="CnDrama",
+        lane="cmo",
         conversation_id=CONV_UUID,
         sessions_dir=sdir,
         env={"ORG_HOST": "contabo"},
     )
 
     # Deliver a RUN result letter with output tail and a Q answer letter with full CEO note
-    p1 = mailbox.send("cto", "agy-aced3034", "RUN-20261108-1500-beef done (exit 0)", "run-inbox", "hub", root=inbox)
+    p1 = mailbox.send("project_head", "agy-aced3034", "RUN-20261108-1500-beef done (exit 0)", "run-inbox", "hub", root=inbox)
     d1 = json.loads(p1.read_text())
     d1["tail"] = "active (running) since Sun 2026-11-08\nMemory: 42.1M"
     p1.write_text(json.dumps(d1))
 
-    p2 = mailbox.send("cto", "agy-aced3034", "Q-20261108-1501-cafe answered: Tonight", "run-inbox", "hub", root=inbox)
+    p2 = mailbox.send("project_head", "agy-aced3034", "Q-20261108-1501-cafe answered: Tonight", "run-inbox", "hub", root=inbox)
     d2 = json.loads(p2.read_text())
     d2["answer"] = {"choice": 0, "label": "Tonight", "text": "Deploy after 22:30 TH and ping me on LINE"}
     p2.write_text(json.dumps(d2))
@@ -231,15 +252,15 @@ def test_mail_wake_triggers_registered_agy_session(tmp_path, monkeypatch):
     monkeypatch.setattr(mail_wake, "AGY_SESSIONS_DIR", sdir)
     monkeypatch.setattr(claude_quota, "HISTORY", tmp_path / "no-quota.jsonl")
 
-    box = "cto-agy-aced3034"
+    box = "project_head-agy-aced3034"
     agy_card_run.register_session(
         box=box,
-        role="cto",
+        role="project_head",
         conversation_id=CONV_UUID,
         sessions_dir=sdir,
         env={"ORG_HOST": "contabo"},
     )
-    mailbox.send("cto", "agy-aced3034", "RUN-20261108-1500-beef done", "run-inbox", "hub", root=inbox)
+    mailbox.send("project_head", "agy-aced3034", "RUN-20261108-1500-beef done", "run-inbox", "hub", root=inbox)
 
     spawned = []
     monkeypatch.setattr(mail_wake, "_spawn_agy_runner", lambda b: spawned.append(b))
@@ -297,10 +318,10 @@ def test_mail_wake_plan_commands_allows_ask_run_for_ph_and_records_wait(tmp_path
 def test_watch_card_writes_letter_and_wakes_local_agy_session(tmp_path, monkeypatch):
     inbox = tmp_path / "inbox"
     sdir = tmp_path / "agy-sessions"
-    box = "cto-agy-aced3034"
+    box = "project_head-agy-aced3034"
     agy_card_run.register_session(
         box=box,
-        role="cto",
+        role="project_head",
         conversation_id=CONV_UUID,
         sessions_dir=sdir,
         env={"ORG_HOST": "mac"},
@@ -386,16 +407,18 @@ def test_ask_run_auto_binds_agy_session_from_antigravity_conversation_id(tmp_pat
         lambda cid, box, **kw: watched.append((cid, box)) or 9999,
     )
 
-    env = {"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID, "ORG_HOST": "mac"}
+    env = {"ANTIGRAVITY_CONVERSATION_ID": CONV_UUID, "ORG_HOST": "mac", "AGY_PROJECT": "CnDrama", "AGY_LANE": "cmo"}
     req = ask_run.resolve_requester(None, None, None, env=env)
-    assert req == {"session": "cto-agy-aced3034", "role": "cto", "lane": "cto"}
+    assert req == {"session": "project_head-agy-aced3034", "role": "project_head", "project": "CnDrama", "lane": "cmo"}
 
     ask_run._auto_bind_agy_session({"requester": req}, "RUN-20261108-1700-cafe", env=env)
-    saved = agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)
+    saved = agy_card_run.load_session("project_head-agy-aced3034", sessions_dir=sdir)
     assert saved is not None
     assert saved["conversation_id"] == CONV_UUID
+    assert saved["project"] == "CnDrama"
+    assert saved["lane"] == "cmo"
     assert saved["cards"] == ["RUN-20261108-1700-cafe"]
-    assert watched == [("RUN-20261108-1700-cafe", "cto-agy-aced3034")]
+    assert watched == [("RUN-20261108-1700-cafe", "project_head-agy-aced3034")]
 
 
 def test_detect_conversation_id_from_source_metadata_and_cli_pb_files(tmp_path):
@@ -446,16 +469,16 @@ def test_wake_session_uses_agentapi_for_desktop_app_and_falls_back_to_cli(tmp_pa
     assert rec["csrf_token"] == "csrf-secret-123"
     assert rec["agentapi_exe"] == str(fake_ls)
 
-    mailbox.send("cto", "agy-aced3034", "Q-20261108-1649-a4dd answered: ทดสอบผ่าน!", "run-inbox", "hub", root=inbox)
-    res = agy_card_run.wake_session("cto-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
+    mailbox.send("project_head", "agy-aced3034", "Q-20261108-1649-a4dd answered: ทดสอบผ่าน!", "run-inbox", "hub", root=inbox)
+    res = agy_card_run.wake_session("project_head-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
     assert res["ok"] is True
     assert res["woke"] is True
     assert res["method"] == "agentapi"
-    assert agy_card_run.load_session("cto-agy-aced3034", sessions_dir=sdir)["last_wake_method"] == "agentapi"
+    assert agy_card_run.load_session("project_head-agy-aced3034", sessions_dir=sdir)["last_wake_method"] == "agentapi"
 
     # If the Desktop App language server returns non-zero (e.g. closed), wake_session falls back to _call_agy_cli
     fake_ls.write_text("#!/bin/sh\nexit 1\n")
-    mailbox.send("cto", "agy-aced3034", "RUN-20261108-1705-abcd done (exit 0)", "run-inbox", "hub", root=inbox)
+    mailbox.send("project_head", "agy-aced3034", "RUN-20261108-1705-abcd done (exit 0)", "run-inbox", "hub", root=inbox)
     cli_called = []
     monkeypatch.setattr(
         agy_card_run,
@@ -469,7 +492,7 @@ def test_wake_session_uses_agentapi_for_desktop_app_and_falls_back_to_cli(tmp_pa
             "limit_hit": None,
         },
     )
-    res2 = agy_card_run.wake_session("cto-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
+    res2 = agy_card_run.wake_session("project_head-agy-aced3034", sessions_dir=sdir, inbox_root=inbox)
     assert res2["ok"] is True
     assert res2["woke"] is True
     assert len(cli_called) == 1
@@ -521,6 +544,42 @@ def test_shared_hooks_support_both_claude_and_agy_payloads(tmp_path):
         env={},
     )
     assert stop_ok == {"decision": "allow"}
+
+
+def test_takeover_auto_bind_and_card_v2_ph_identity(tmp_path, monkeypatch):
+    from tools import agy_takeover
+
+    sdir = tmp_path / "agy-sessions"
+    monkeypatch.setattr(agy_card_run, "AGY_SESSIONS_DIR", sdir)
+
+    env = {
+        "AGY_CONVERSATION_ID": CONV_UUID,
+        "AGY_AUTO_BIND_IN_TEST": "1",
+        "ORG_HOST": "mac",
+    }
+    info = {
+        "short_id": "3511068d",
+        "project": "CnDrama",
+        "owner": "cmo-e785343f",
+        "role_label": "Project Head · CnDrama",
+        "skills": ["CMO_Procedure_Colab_DirectRender"],
+    }
+    rec = agy_takeover.auto_bind_takeover_session(info, env=env)
+    assert rec is not None
+    assert rec["box"] == "project_head-3511068d"
+    assert rec["role"] == "project_head"
+    assert rec["project"] == "CnDrama"
+    assert rec["lane"] == "cmo"
+
+    # Even if an old AGY caller passes --role cto or --session cto-agy-aced3034, it resolves to PH#351 · CnDrama
+    req = ask_run.resolve_requester("cto-agy-aced3034", "cto", None, env=env)
+    assert req == {
+        "session": "project_head-3511068d",
+        "role": "project_head",
+        "project": "CnDrama",
+        "lane": "cmo",
+    }
+
 
 
 

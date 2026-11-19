@@ -415,8 +415,56 @@ def format_handoff_markdown(info: dict[str, Any]) -> str:
         f"- **If work is on `contabo`**: run commands via `ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core && ...'` or delegate an AGY worker via `python3 tools/ph_brain.py delegate ...`.",
         f"- **If work is on `winbox`**: run commands via `ssh winbox ...` or inspect worktrees under `C:\\Users\\passg\\mooniex\\worktrees`.",
         "- **Read any listed Claude Skill (`SKILL.md`) above** before executing specialized gates or procedures.",
+        f"- **CardRun v2 Sender Identity**: this AGY session is bound to `project_head-{info.get('short_id')}` (`💻 PH#{str(info.get('short_id') or '')[:3]} · {info.get('project')}`). Always include `--what`, `--does`, and `--impact` when calling `tools/ask_run.py`.",
     ])
     return "\n".join(lines) + "\n"
+
+
+def infer_takeover_lane(info: dict[str, Any]) -> str:
+    """Infer C-level lane (`cto|cmo|coo|cfo|cgo`) for a taken-over session."""
+    owner = str(info.get("owner") or "").strip().lower()
+    owner_prefix = owner.split("-", 1)[0]
+    if owner_prefix in ("cto", "cmo", "coo", "cfo", "cgo"):
+        return owner_prefix
+    role_label = str(info.get("role_label") or "").lower()
+    proj = str(info.get("project") or "").lower()
+    for lane in ("cmo", "cfo", "coo", "cgo", "cto"):
+        if lane in role_label or proj.startswith(lane):
+            return lane
+    for sk in info.get("skills") or []:
+        sk_up = str(sk).upper()
+        for lane in ("CMO", "CFO", "COO", "CGO", "CTO"):
+            if sk_up.startswith(lane + "_"):
+                return lane.lower()
+    return "cto"
+
+
+def auto_bind_takeover_session(info: dict[str, Any], env: dict | None = None) -> dict[str, Any] | None:
+    """When `inspect` runs inside an AGY session, bind `state/agy-sessions/project_head-<short_id>.json`
+    with `role="project_head"`, `project=<ProjectName>`, and `lane=<lane>` so `/run` cards show
+    `💻 PH#<id> · <Project>` instead of `CTO`/`CMO`."""
+    env = os.environ if env is None else env
+    if "PYTEST_CURRENT_TEST" in env and not env.get("AGY_AUTO_BIND_IN_TEST"):
+        return None
+    try:
+        from tools import agy_card_run
+        conv_id = agy_card_run.detect_conversation_id(env=env)
+        if not conv_id:
+            return None
+        short_id = str(info.get("short_id") or "").strip() or conv_id[:8]
+        raw_proj = str(info.get("project") or short_id).strip()
+        project = agy_card_run.sanitize_project_name(raw_proj) or short_id
+        lane = infer_takeover_lane(info)
+        return agy_card_run.register_session(
+            box=f"project_head-{short_id}",
+            role="project_head",
+            project=project,
+            lane=lane,
+            conversation_id=conv_id,
+            env=env,
+        )
+    except Exception:
+        return None
 
 
 def save_handoff_bundle(info: dict[str, Any], takeover_dir: Path | None = None) -> Path:
@@ -484,14 +532,21 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "inspect":
             info = inspect_target(args.target, host=args.host, max_turns=args.turns)
             saved_path = save_handoff_bundle(info) if args.save else None
+            bound_rec = auto_bind_takeover_session(info)
             if args.json:
                 if saved_path:
                     info["saved_bundle"] = str(saved_path)
+                if bound_rec:
+                    info["agy_session"] = bound_rec.get("box")
                 print(json.dumps(info, indent=2, ensure_ascii=False))
             else:
                 print(format_handoff_markdown(info))
                 if saved_path:
                     print(f"\n[Saved handoff bundle to: {saved_path}]")
+                if bound_rec:
+                    print(
+                        f"[Bound AGY CardRun v2 identity: {bound_rec['box']} · project={bound_rec.get('project')} · lane={bound_rec.get('lane')}]"
+                    )
             return 0
 
         if args.cmd == "handoff-to-brain":
