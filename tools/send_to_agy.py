@@ -49,6 +49,10 @@ import sys
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
+# The Mac App keeps conversations in ~/.gemini/antigravity; agy defaults to antigravity-cli and
+# reaches an App conversation only with `--app_data_dir antigravity` + AGY_ENABLE_HUB=1
+# (live 2026-11-19, RUN-20261119-0253-217a; without them: "trajectory not found").
+APP_STORE_NAME = "antigravity"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -683,6 +687,11 @@ elif mode in ("send", "resume"):
         child_env["ANTIGRAVITY_APP_DATA_DIR"] = str(app_data_dir)
     elif surface == "App":
         child_env["ANTIGRAVITY_APP_DATA_DIR"] = str(home / ".gemini" / "antigravity")
+    if surface == "App":
+        # The env above is ignored by agy; only the flag + hub reach the App's store
+        # (live 2026-11-19, RUN-20261119-0253-217a). Without them: "trajectory not found".
+        child_env["AGY_ENABLE_HUB"] = "1"
+        cmd[1:1] = ["--app_data_dir", "antigravity"]
 
     log_path = sdir / f"send-{box}.log"
     fd = os.open(str(log_path), os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0), 0o600)
@@ -1254,6 +1263,10 @@ def _spawn_detached_local_agy(
         child_env["ANTIGRAVITY_APP_DATA_DIR"] = str(app_data_dir)
     elif surface == "App":
         child_env["ANTIGRAVITY_APP_DATA_DIR"] = str(Path.home() / ".gemini" / "antigravity")
+    if surface == "App":
+        # See APP_STORE_NAME: agy reads the App's store only with this flag + the hub.
+        child_env["AGY_ENABLE_HUB"] = "1"
+        cmd[1:1] = ["--app_data_dir", APP_STORE_NAME]
 
     fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | _NOFOLLOW, 0o600)
     popen_kw: dict[str, Any] = {
