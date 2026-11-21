@@ -5,6 +5,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from tools import agy_kit_check
 
 
@@ -55,3 +57,34 @@ def test_this_repo_lists_claude_skills_and_fits_budget() -> None:
     r = agy_kit_check.check(budget=agy_kit_check.DEFAULT_BUDGET)
     assert ".agents/skills.json does not list .claude/skills" not in r["problems"]
     assert r["org_skills"] + 1 <= agy_kit_check.DEFAULT_BUDGET
+
+
+@pytest.mark.parametrize("size", [900, 1000, 1200])
+@pytest.mark.parametrize("style", ["quoted", "plain", "folded", "literal"])
+def test_description_byte_limit(tmp_path: Path, size: int, style: str) -> None:
+    root = _repo(tmp_path, org=1, tracked=[], untracked=[])
+    # Thai characters demonstrate that the limit counts UTF-8 bytes, not characters.
+    value = "ก" * (size // 3) + "x" * (size % 3)
+    if style in ("folded", "literal"):
+        value = (">-" if style == "folded" else "|-") + "\n  " + value
+    elif style == "quoted":
+        value = '"' + value + '"'
+    (root / ".claude/skills/ORG_0/SKILL.md").write_text(
+        f"---\nname: ORG_0\ndescription: {value}\nowner: CTO\n---\n"
+        + "description: " + "z" * 2000, encoding="utf-8")
+    result = agy_kit_check.check(root)
+    assert result["ok"] == (size <= 1000)
+    assert result["long_descriptions"] == ([("ORG_0", size)] if size > 1000 else [])
+    if size > 1000:
+        assert result["problems"] == [
+            "1 skill description(s) over 1000 bytes: ORG_0 (1200)"]
+
+
+def test_multiline_description_and_cli_override(tmp_path: Path, capsys) -> None:
+    root = _repo(tmp_path, org=1, tracked=[], untracked=[])
+    (root / ".claude/skills/ORG_0/SKILL.md").write_text(
+        '---\ndescription: >\n  ' + 'x' * 600 + '\n  ' + 'y' * 600
+        + '\nowner: CTO\n---\n', encoding="utf-8")
+    assert agy_kit_check.check(root)["long_descriptions"] == [("ORG_0", 1201)]
+    assert agy_kit_check.main(["--root", str(root), "--max-desc-bytes", "1201", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["long_descriptions"] == []

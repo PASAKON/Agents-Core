@@ -1,6 +1,6 @@
 ---
 name: CTO_ILAG_LakornTheme
-description: "The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of 2026-10-26 (it replaced the navy + gold approved 2026-09-28 on EP4 'ขายฝากนาแม่'; the tool still draws navy until it moves). Covers the daily 'รู้หรือไม่?' knowledge poster (ChatGPT, 4:5, Page logo in the footer) and the 15-30 s Story clip with its end card, both made by tools/ilag_theme.py. Trigger on /CTO_ILAG_LakornTheme and on 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Use instead of designing a new look, a local text composite, or a free-hand image prompt. Episode covers stay in CTO_ChatGPT-Image_LakornCover."
+description: "ILAG ละครสั้นคุณธรรม theme: gold, white, black (CEO 2026-10-26); tools/ilag_theme.py still draws old navy. Daily 'รู้หรือไม่?' poster (ChatGPT, 4:5, Page logo footer) and 15-30 s Story/end card. Trigger: /CTO_ILAG_LakornTheme, 'รู้หรือไม่', 'โปสเตอร์ความรู้', 'โพสความรู้', 'Story', 'สตอรี่', 'การ์ดท้ายคลิป', 'end card', 'ธีมช่อง', 'ธีมน้ำเงินทอง', 'Keep Theme'. Do NOT design a new look, local text composite or free-hand image prompt. Episode covers: CTO_ChatGPT-Image_LakornCover."
 created_by: agent
 author: {role: cto, date: "2026-09-28"}
 audience: [cto, browser_operator, developer]
