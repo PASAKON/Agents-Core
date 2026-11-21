@@ -3,21 +3,7 @@ name: CMO_Procedure_BlackLiquidity_JevEditor
 kind: procedure
 owner: CMO
 aka: [VIDEO_EDITOR_jev-editor-helper]
-description: >-
-  PROCEDURE — Run Jev (TypeSafe's typed-decision model, ALL_Knowledge_Jev SKILL.md) per BLACK
-  LIQUIDITY script line to make the per-line editorial calls a human editor
-  used to decide by eye — beat (hook/show/verdict/cta), plate entry
-  (shrink/hard_cut), focus device (spotlight/highlight_sweep/zoom/none), and
-  three positional-slot picks (focus target, highlight word, text slot) —
-  with low-confidence answers flagged in an HTML storyboard for the CEO's
-  review. Trigger on /CMO_Procedure_BlackLiquidity_JevEditor and whenever a BLACK
-  LIQUIDITY episode's SCRIPT.tsv exists and P1-P3 editorial calls (which mode,
-  which device, where the text goes) are needed before cutting — "run jev on
-  this episode", "plan the beats", "generate the storyboard", "ให้ Jev
-  ตัดสินใจ", CEO ruling 2026-09-23 ("ให้ JEV Model ช่วยตัดสินใจแทน Editor").
-  Do NOT use it to write the script itself (CMO_Standard_BlackLiquidity_Script), to
-  actually composite/render the cut (CMO_Procedure_BlackLiquidity_Cut, its edl/ layers), or
-  for sound/P4 (parked by the CEO, out of scope here).
+description: "PROCEDURE — Run Jev (ALL_Knowledge_Jev) per BLACK LIQUIDITY script line for the editorial calls an editor made by eye: beat, plate entry, focus device, focus target, highlight word, text slot; low-confidence answers flagged in an HTML storyboard for the CEO. Trigger on /CMO_Procedure_BlackLiquidity_JevEditor when an episode's SCRIPT.tsv exists: \"run jev\", \"plan the beats\", \"ให้ Jev ตัดสินใจ\". Do NOT use to write the script, render the cut, or for sound."
 created_by: agent
 author: {role: developer, date: "2026-09-23"}
 audience: [cmo, video_editor, cto]

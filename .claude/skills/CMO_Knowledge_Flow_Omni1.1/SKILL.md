@@ -3,21 +3,7 @@ name: CMO_Knowledge_Flow_Omni1.1
 kind: knowledge
 owner: CMO
 aka: [CTO_Flow_Omni1.1_Ops]
-description: >-
-  KNOWLEDGE — Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra
-  account: the model-scope block the three Flow skills share, money and measured credit costs, which
-  model, test-fire size, the settings panel, reference chips (how many bind, add order, thumbnails),
-  Omni prompt grammar, voices, sound, Thai text, frames vs องค์ประกอบ, uploading an Element, getting the
-  clip file, the zero-model runner, and the traps that silently waste a generation. Trigger on
-  "Google Flow", "Omni Flash", "Veo", "Ingredients to Video", "Scenebuilder", "Flow credits",
-  "flow_shoot", "ยิง Flow", "เสียงตัวละคร", and whenever a C-level is about to delegate or drive browser
-  work on Google Flow or generate video on the CEO's Google AI subscription (slash command
-  /CMO_Knowledge_Flow_Omni1.1). Before a shoot (what Flow deletes, night, wardrobe, REF_1, the asset sheet,
-  props that need an Element) read CMO_Gate_Flow_Omni1.1_Continuity; after a shoot (mechanical audit,
-  transcripts, contact sheets) CMO_Gate_Flow_Omni1.1_FilmQC; running a film is CMO_Knowledge_Film_Production; the
-  prompt file is CMO_Standard_Film_PromptFormat. Supplements BROWSER_OPERATOR_Protocol_Playbook and CXO_Protocol_DevSpawn. Do NOT
-  fire for Higgsfield/Seedance (CMO_Knowledge_Seedance2.5_Higgsfield), MiniMax H3 (CMO_Knowledge_MiniMax_H3), Wan3 on
-  TopView (CMO_Knowledge_Wan3.0_TopView), fal.ai, Grok or Kling.
+description: "KNOWLEDGE — Operating Google Flow (Omni Flash, Veo 3.1) on the CEO's Google AI account: credit costs, model choice, settings, reference chips, Omni prompt grammar, voices and sound, Thai text, Elements, getting the clip file, the zero-model runner, and the traps that waste a generation. Trigger on /CMO_Knowledge_Flow_Omni1.1, \"Google Flow\", \"Omni Flash\", \"Veo\", \"Flow credits\", \"flow_shoot\", \"ยิง Flow\", \"เสียงตัวละคร\", or before delegating Flow work. Before a shoot read CMO_Gate_Flow_Omni1.1_Continuity, after it CMO_Gate_Flow_Omni1.1_FilmQC. Do NOT fire for Higgsfield/Seedance, MiniMax H3, Wan3, fal.ai, Grok or Kling."
 created_by: agent
 author: {role: developer, date: "2026-09-25"}
 audience: [cmo, cto, browser_operator, developer, script_writer]
