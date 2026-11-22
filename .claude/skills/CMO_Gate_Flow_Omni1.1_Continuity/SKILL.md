@@ -3,18 +3,7 @@ name: CMO_Gate_Flow_Omni1.1_Continuity
 kind: gate
 owner: CMO
 aka: [CTO_Flow_Omni1.1_Continuity]
-description: >-
-  GATE — Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1
-  Flash, องค์ประกอบ mode): one table of time, place, who, wardrobe and props per
-  shot, and flags for what cost re-shoots on "จุดจบของเจ้าหนี้นอกระบบ" (night on a
-  day plate, a healthy character on a sickbed, what Flow silently deletes, fast
-  lines, REF_1 close-ups); the asset sheet every prompt quotes, and which props
-  need an Element. Trigger on /CMO_Gate_Flow_Omni1.1_Continuity and proactively
-  before any paid Flow shoot of a multi-scene film — 'check continuity',
-  'เช็คความต่อเนื่อง', 'ก่อนยิงเช็คอะไร', 'ฉากกลางคืนออกมาเป็นกลางวัน', 'ชุดเปลี่ยน',
-  'ตัวละครนอนบนเตียง', or when a shot sheet (docs/scripts/*.data.py) is written or
-  changed. Do NOT fire for Higgsfield/Seedance, Kling, Grok or fal.ai work — its
-  Flow flags are untested there (CMO_Knowledge_Seedance2.5_Higgsfield owns Seedance).
+description: "GATE — Continuity sheet and pre-shoot gate for an AI film in Google Flow: per shot time, place, who, wardrobe, props; flags for night on a day plate, what Flow silently deletes, fast lines, REF_1 close-ups; the asset sheet and which props need an Element. Trigger on /CMO_Gate_Flow_Omni1.1_Continuity and before any paid multi-scene Flow shoot: \"check continuity\", \"เช็คความต่อเนื่อง\", \"ก่อนยิงเช็คอะไร\", \"ชุดเปลี่ยน\". Do NOT fire for Seedance, Kling, Grok or fal.ai."
 created_by: agent
 author: {role: cto, date: "2026-09-23"}
 audience: [cmo, cto, script_writer, browser_operator]

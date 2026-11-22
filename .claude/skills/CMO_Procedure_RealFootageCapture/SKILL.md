@@ -3,7 +3,7 @@ name: CMO_Procedure_RealFootageCapture
 kind: procedure
 owner: CMO
 aka: [real-footage-capture]
-description: "PROCEDURE — Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as vertical clips and stills, censored partially and by position so viewers still recognise what they see, then hand them to the edit keyed to script lines. Holds the CEO-approved censor rules (2026-09-23): users' personal data, faces of minors and uninvolved people, ads and unrelated banners, promo/signup offers, other brokers. Trigger on /CMO_Procedure_RealFootageCapture and whenever a task says Cap หน้าจอ, จับภาพหน้าเว็บ, ถ่ายหน้าเว็บจริง, footage จริง, Realfootage, เอาโลโก้มา Censor, เบลอบางส่วน, show the real WikiFX page, screen-record a broker site, or plans a BLACK LIQUIDITY episode that names a broker. Do NOT use it to generate footage (Seedance, Flow, Higgsfield own that), to pull catalogue B-roll, or to cut the episode (that is CMO_Procedure_BlackLiquidity_Cut)."
+description: "PROCEDURE — Capture real web footage (a company logo, its live site, a WikiFX page) as vertical clips and stills, censored by position so viewers still recognise it, keyed to script lines. Holds the CEO censor rules (2026-09-23): personal data, minors and bystanders, ads, promo offers, other brokers. Trigger on /CMO_Procedure_RealFootageCapture, \"Cap หน้าจอ\", \"จับภาพหน้าเว็บ\", \"footage จริง\", \"เบลอบางส่วน\", a BLACK LIQUIDITY episode naming a broker. Do NOT use to generate footage or cut the episode."
 created_by: agent
 author: {role: cto, date: "2026-09-22"}
 audience: [cmo, cto, developer, browser_operator, video_editor]

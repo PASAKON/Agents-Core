@@ -3,17 +3,7 @@ name: CMO_Workflow_ShortFilm
 kind: workflow
 owner: CMO
 aka: [CTO_Film_Workflow]
-description: >-
-  WORKFLOW — The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield),
-  MiniMax H3 (our ComfyRunpod studio) and Wan 3.0 (TopView): brief and rules → market and idea → story →
-  characters and plates → shot plan → previz (Blender, H3) → prompts → generation waves → QC → edit and
-  finish (grade, subtitles, end credits) → posters and the YouTube A/B test → challenge rules check →
-  publish → Drive filing and cleanup. Each step names its gate, the skill that owns its rules and the tool
-  that does it; the rules themselves live in those skills, not here. Trigger on /CMO_Workflow_ShortFilm and
-  whenever a new short film, trailer or challenge entry starts or an agent joins one mid-way: "ทำหนังสั้น",
-  "เริ่มโปรเจคหนังใหม่", "Workflow ทำ Short Movie", "วางแผนทำหนัง", "ส่งประกวด", "short film workflow",
-  "ตอนนี้หนังอยู่ขั้นไหน". Do NOT use it for engine details (read the engine skill) or for BLACK LIQUIDITY
-  talking-head episodes (CMO_Procedure_BlackLiquidity_Cut).
+description: "WORKFLOW — Day-by-day workflow for an ILAG festival short film on Seedance 2.5, MiniMax H3 and Wan 3.0: brief → idea → story → plates → shot plan → previz → prompts → generation → QC → edit → posters and A/B → rules check → publish → Drive. Each step names its gate, skill and tool. Trigger on /CMO_Workflow_ShortFilm, \"ทำหนังสั้น\", \"เริ่มโปรเจคหนังใหม่\", \"ส่งประกวด\", \"short film workflow\", \"หนังอยู่ขั้นไหน\". Do NOT use for engine details or BLACK LIQUIDITY."
 created_by: agent
 author: {role: cto, date: "2026-09-27"}
 audience: [cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor]
