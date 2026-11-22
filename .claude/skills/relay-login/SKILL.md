@@ -124,6 +124,12 @@ Data / Local Storage / IndexedDB / Session Storage without asking him first;
 only its `Cache`, `Code Cache`, `GPUCache` are free (rule owner:
 `ALL_Rules_DiskHygiene`).
 
+**HARD — One canonical Browser Home per account; NEVER create a throwaway Chrome profile (`Work/<task>/tmp/chrome-profile` or an ad-hoc port) to ask for a login, and always locate the most recent login first (CEO 2026-11-22, IRON-RULES §60 amendment):**
+1. **Locate the latest login across all boxes before opening a request:** Run `node scripts/relay-inventory.mjs --site <site>` AND `node scripts/relay-request.mjs list --all` to see which Browser Home on which host (`contabo`, `mac`, `winbox`) last completed a `done` login for that account.
+2. **Verify the session in the canonical Browser Home directly:** Because `relay-inventory.mjs` reads only the current tab title/path (and marks a home `unknown` when parked on another domain like `developers.tiktok.com`, or `signed OUT` when parked on its initial `/login/qrcode` tab), open or navigate a tab in that canonical Browser Home to a non-login authenticated page first and check if the session is still active.
+3. **If active and idle (`no lock in tools/home_lock.py`, no active phone relay), continue in that exact Browser Home session:** Acquire `tools/home_lock.py acquire home:<host>:<port>`, run your task against that Browser Home (or export its `storageState` / cookies if Playwright `recordVideo` is needed), and release the lock when done. Never spawn a new profile (`Work/<task>/tmp/chrome-profile`) or another Browser Home for the same account — logging in to the same TikTok account across multiple profiles (`9282`, `9292`, `9260`) triggers TikTok's *"Maximum number of attempts reached / Maximum of Signin"* block and revokes existing sessions.
+4. **Never keep `/login` or `/login/qrcode` as a signed-in Browser Home's `startUrl`:** Launching onto `/login/qrcode` hits the login endpoint on every boot and makes `relay-inventory.mjs` report `signed OUT`. Park on the site's home/studio URL instead. If any site shows a sign-in rate-limit error, close the open relay request immediately and stop asking for logins until the cooldown clears.
+
 ## 2. Tell the CEO which pill
 
 Open the login page in that Chrome first, then write in chat (or a
