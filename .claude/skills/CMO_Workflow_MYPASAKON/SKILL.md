@@ -77,18 +77,17 @@ Do: map every non-avatar scene (`~15s`–`208s` across the episode) to real scre
 - **Leak scrub:** inspect timestamps on every screen recording to exclude macOS Launchpad, Dock popups, notifications, personal tabs, or competitor broker ads.
 Gate: every scene timestamp has clean dark-mode visual coverage with zero OS/PII leaks.
 
-### Step 9 · Neon DNA full cut [node: compose_cut]
-Do: assemble the full `30fps` `1080×1920` cut in **`Style A: RAZOR CHAMFER`** (`#040A07` obsidian canvas × `#7CFF00` electric lime, `12px–4px–1px` chamfered corner brackets, `Prompt` + `JetBrains Mono`) alternating the 4 `MYPASAKON` layout modes (`CMO_Standard_MYPASAKON_NeonDNA` + `CMO_Procedure_BlackLiquidity_Cut` pacing):
-- **Mode 1 (Avatar Hero + Top `Style A` Window):** for close-up selfie plates (`1080×1920`), shift avatar down (`crop=1080:1680:0:0,pad=1080:1920:0:240:#040A07`) so headwear/forehead clears the `y=120..560` top window; place subtitle pill at `y=1610`.
-- **Mode 2 (50/50 Split — Avatar Top + Live App Bottom):** `crop=1080:1240:0:320,scale=760:872` at `(160, 18)` so chin stays `>120px` above the `y=770` divider subtitle pill; `Style A` screen window at `y=900..1720`.
-- **Mode 3 (`380×380` Neon Ring Avatar + Progressive Numbered Cards):** `crop=1060:1060:10:320,scale=380:380` inside a `4px` `#7CFF00` ring at `(350, 90)`, subtitle pill at `y=508`, and progressive `01 / 02 / 03` Razor Chamfer cards below (`y=660+`).
-- **Mode 4 (Full-Focus Screen / Dual Comparison / Kinetic Cards):** zoomed live app windows (`y=150..1240` + bottom callout card `y=1290`), dual `AI Chart vs TradingView` stacked comparison, or red `✕ Myth` vs neon green `✓ Truth` cards with curved SVG connector arrows + subtle risk disclaimer pill at `y=1818`.
-- **Audio design (`CMO_Standard_EditorSFX`):** pre-roll peak-aligned SFX from `Assets/BlackLiquidity/sfx-mass-pack/curated-48k` (sparse, purposeful, zero consecutive duplicates) + `BL07` dark-tech BGM (`tools/bgm_bed.py`, `-24.0 dB` ceiling + `-3.0 dB` speech ducking + `4s` fade-in/out), mastered to **`-14.0 LUFS` / `-1.5 dBTP`**.
-Gate: exact frame count `round(trimmed_audio_dur * 30)` with zero frame gaps across all concatenated scenes.
+### Step 9 · Viral x BL V7.8 cut [node: compose_cut]
+Do: cut the full `30fps` `1080×1920` episode strictly following `CMO_Procedure_MYPASAKON_Cut` (measured off `@mypasakon`'s `108K–228K` viral clips + `CMO_Procedure_BlackLiquidity_Cut` V6.3–V7.8 GSAP motion engine, adapted to Emerald `#00E676`/`#7CFF00` + Gold `#FFD54F` with zero top-right logo/date stamp):
+- **2-Layer RVM Parallax Viral Hook (`0.0–4.8s`):** `RVM mobilenetv3` cutout CEO + 3D shadow over full-bleed dark-emerald chart + Giant 2-Line `Kanit 800` Hook Headline & floating market chips.
+- **Full-Screen Natural Talking-Head + Headroom Headlines (`y = 255–485px`):** shift tight selfie takes down `+148px` so bold headlines & pop cards sit above the `RICH` beanie (never boxed into 50/50 splits and never over the mic hand at `y > 1400px`).
+- **Smooth `sine.out` RVM Avatar Shrink (`BL §6d`) & Screen + Circular PiP (`v5_45k_tv_ai`):** RVM cutout CEO shrinking to chest-up bottom-left (`cx=315px`) in front of live news, and `268×268` Circular Neon-Emerald PiP at `(866, 288)` over blurred-ambient rounded `964×760` focal screen viewports.
+- **BL V7.8 GSAP Motion, SFX, BGM & CTA:** Diagonal Emerald Slash Wipes (`fireSlashWipe`), 2-part Split Keyword Chips, animated UI `calloutBox` highlights, 100% distinct vector-icon GSAP infographics (`2–5 words`, zero emoji), real moving chart cutaways (`tools/footage_catalog.py`), ending `CMO_Procedure_TikTok_CTAMotion` (`ctaSave` & `ctaFollow`), 17 curated SFX, and `BL07` `-24.0 dB` ducked BGM (`tools/bgm_bed.py`) at **`-14.0 LUFS`**.
+Gate: exact frame count `round(trimmed_audio_dur * 30)` with zero frame gaps.
 
 ### Step 10 · Cut and visual QC [node: qc_check]
-Do: run `tools/mypasakon_audio_trim.py verify-cut --video <final.mp4> --audio <trimmed.mp3> --sheet <qc_8frame_sheet.jpg>` AND visually inspect a multi-mode contact sheet via `read_file` covering every avatar mode and every screen-capture scene. Fix and re-render individual scenes (`seg_XX_*.mp4`) if any text touches a face, clips inside the `380×380` circle, or shows a desktop artifact.
-Gate: `verify-cut` returns `"ok": true` (`1080×1920`, `30.0 fps`, `-16.5..-11.5 LUFS`) and visual inspection passes 100%.
+Do: run `tools/mypasakon_audio_trim.py verify-cut --video <final.mp4> --audio <trimmed.mp3> --sheet <qc_8frame_sheet.jpg>` AND inspect a `4×2` **iPhone TikTok Viewer UI Simulation Sheet** (`scale = 933/1920`, `54.34px` side crop, right-rail icons blended on top) via `read_file` to verify zero face/beanie overlap, zero TikTok UI collision, zero desktop leaks, and bullseye CTA ring fit.
+Gate: `verify-cut` returns `"ok": true` (`1080×1920`, `30.0 fps`, `-16.5..-11.5 LUFS`) and iPhone UI simulation passes 100%.
 
 ### Step 11 · Gate 2 video approval [node: gate2_video]
 Do: send `MYPASAKON_<EP>_NeonFull_1080p.mp4` to `/run` (`tools/ask_run.py ask --project "MYPASAKON" --lane "cmo" --media <final.mp4> ...`), print Card ID + URL, and end turn. Note: when reading multi-media card picks back, always verify via `ask_run.py wait <Q-id> --max-wait 1` (`picked:` line) rather than trusting the mailbox wake summary's `choice` fallback.

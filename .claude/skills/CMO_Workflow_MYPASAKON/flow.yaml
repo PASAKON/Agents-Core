@@ -121,17 +121,17 @@ nodes:
     blockers: [input, quota]
 
   - id: compose_cut
-    name: Neon DNA full cut
-    does: Cuts the full 1080x1920 30fps episode in Style A Razor Chamfer (#040A07 x #7CFF00) with SFX and -24dB BGM.
+    name: Viral x BL V7.8 cut
+    does: Cuts the full 1080x1920 30fps episode in @mypasakon viral style + BL V7.8 GSAP motion, SFX and -24dB BGM.
     phase: edit
     kind: agent
     after: [lipsync, broll_footage]
     role: video_editor
-    skill: CMO_Standard_MYPASAKON_NeonDNA
+    skill: CMO_Procedure_MYPASAKON_Cut
     stage: agent
-    output: Finals/MYPASAKON_<EP>_NeonFull_1080p.mp4
+    output: Finals/MYPASAKON_<EP>_Viral_1080p.mp4
     verify: {check: "Rendered 1080x1920@30fps MP4 frame count matches trimmed master audio with 0 gaps"}
-    gate: Modes 1-4 alternating cleanly, 2-4 word Thai subs, curated-48k SFX, and -14 LUFS mix.
+    gate: RVM hook/composite, headroom titles, PiP screen, GSAP motion, CTA ring, and -14 LUFS mix.
     blockers: [bug, verify_fail, quota]
     measured:
       - {date: "2026-11-25", cost_usd: 0, minutes: 12.0, source: Q-20261125-1018-c6f1}

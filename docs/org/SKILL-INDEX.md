@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-74 org skills by kind — Rules 9 · Knowledge 19 · Workflow 7 · Procedure 15 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+75 org skills by kind — Rules 9 · Knowledge 19 · Workflow 7 · Procedure 16 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -72,6 +72,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from… |
 | `CMO_Procedure_ClientScript_Handoff` | CMO | cmo, content_strategist, script_writer, developer | Write, revise, and file client/broker video scripts as shared Google Docs, sending 1 pure Topic/Tags/Script block per clip to Telegram and… |
 | `CMO_Procedure_Colab_DirectRender` | CMO | cmo, cto | Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac: write one take spec (JSON: scenes, refs… |
+| `CMO_Procedure_MYPASAKON_Cut` | CMO | cmo, cto, project_head, video_editor, developer | Cut a MYPASAKON (@mypasakon) 9:16 TikTok episode combining the channel's measured viral visual grammar (2-layer RVM cutout Hook, headroom… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture real web footage (a company logo, its live site, a WikiFX page) as vertical clips and stills, censored by position so viewers… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
 | `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
