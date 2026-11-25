@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-73 org skills by kind — Rules 9 · Knowledge 19 · Workflow 6 · Procedure 15 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+74 org skills by kind — Rules 9 · Knowledge 19 · Workflow 7 · Procedure 15 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -55,6 +55,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
 | `CMO_Workflow_KhaoHomEpisode` | CMO | cmo, project_head, video_editor, browser_operator, researcher, script_writer, content_strategist | Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on… |
 | `CMO_Workflow_LakornSerial` | CMO | cmo, cto | Ordered workflow for a ละครสั้นคุณธรรม Facebook serial (ILAG Studio): 10-20 min EPs, each a complete case with a 15-second hook, twist and… |
+| `CMO_Workflow_MYPASAKON` | CMO | cmo, cto, project_head, video_editor, developer | End-to-end MYPASAKON (@mypasakon) TikTok episode loop: script & client handoff -> raw CEO voice (.mp4/.mov) Dead-Air & retake trim -> Gate… |
 | `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_PromptFormula` | CMO | cmo, project_head, script_writer, prompt_engineer, browser_operator, video_editor, web_designer | How every CMO-lane prompt is born and how a hit becomes a formula: look up the channel's formula index first; with no formula, search… |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | Day-by-day workflow for an ILAG festival short film on Seedance 2.5, MiniMax H3 and Wan 3.0: brief → idea → story → plates → shot plan →… |
