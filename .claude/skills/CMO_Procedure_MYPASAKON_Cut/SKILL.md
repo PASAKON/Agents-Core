@@ -6,7 +6,8 @@ owner: CMO
 audience: [cmo, cto, project_head, video_editor, developer]
 created_by: agent
 author: {role: project_head, date: "2026-11-25"}
-improved_by: []
+improved_by:
+  - {role: project_head, date: "2026-11-25", note: "Added HARD Desktop Smart-Zoom rule (1:1 Full-Screen Establish -> cubic_in_out True-Center zoom at x=540 with 20-30% surrounding UI context & source-locked focus spotlight) per Q-20261125-1324-fa7a"}
 aka: [mypasakon-cut]
 ---
 
@@ -31,6 +32,8 @@ Every visual constant in this procedure is measured directly from `@mypasakon`'s
    **Why hard:** retention & channel authenticity — across `@mypasakon`'s `108K–228K` viral clips, talking-head beats are **full-screen natural shots** (with bold headlines in the headroom above the `RICH` beanie) or **RVM background-removed cutouts** (`PeterL1n/RobustVideoMatting` `mobilenetv3` on MPS) composited over full-bleed charts/screens — never boxed into a 50/50 split or static cyber-HUD grid.
 4. **HARD — Ultra-Minimal Copy (`2–5 words` per card/headline) & Zero Unicode Emoji (`CMO_Standard_MYPASAKON_NeonDNA` §1.2 + BL V7.0 §7).**
    **Why hard:** mobile comprehension & luxury look — replace all Unicode emojis (`🔥`, `⚠️`, `✅`) with clean Vector SVG icons (`stroke-width: 2.4–3.0`, `#00E676` / `#7CFF00` / `#FFD54F` / `#FF5252`).
+5. **HARD — Desktop Screen Footage: Full-Screen Establish -> True-Center `cubic_in_out` Smart-Zoom with `20–30%` Surrounding Context & Strict `1:1` Uniform Aspect Ratio (`CEO feedback 2026-11-25`, `Q-20261125-1324-fa7a`).**
+   **Why hard:** viewer orientation & readability — never squash a desktop window into a fixed non-uniform box or crop paragraph edges; always establish the full `1:1` desktop browser window first (`แสดงเต็มจอก่อน`), then smoothly zoom (`3u² - 2u³`) so the exact mouse cursor / spoken UI target lands **dead-center at `x = 540px, y = stage_cy`** while keeping `20–30%` surrounding UI visible (`เว้นพื้นที่ให้เห็นรอบข้างบ้าง`) and zero sliced words.
 
 ## Steps — Six Beat Archetypes & Exact Pixel Geometry (`1080×1920`)
 
@@ -48,9 +51,11 @@ Every visual constant in this procedure is measured directly from `@mypasakon`'s
    - **Archetype 3 · Full-Screen Natural Talking-Head + Headroom Headline (`v1_228k` `8.6s/70.1s` & `v2_108k` `20.1s/29.0s`):**
      - Shift close-up selfie plates (`1080×1920` where beanie crown is `y ≈ 380px`) down by **`+148px`** (extending vertical background lines seamlessly at top + smooth top headroom vignette `0.32× -> 1.0×`) so the `RICH` beanie crown sits at `y ≈ 530px`.
      - Place bold `Kanit 800` (`62px`) 2-line headlines OR crisp white/emerald pop cards (`.mp-hr-card`, `back.out(1.7)`) in **`y = 255..485px`** — never over the speaker's moving mic hand (`y = 1400..1880px`) and never under TikTok's bottom caption (`y > 1550px`).
-   - **Archetype 4 · Focal Screen Viewport + Top-Right Circular Neon-Emerald PiP (`v5_45k_tv_ai` `35.4s` × `BL V6.1 §6h-6`):**
-     - Render a **full-bleed blurred dark-emerald ambient backdrop** (`GaussianBlur * 0.28`, `0..1080, 0..1920`, zero black margins) behind a sharp rounded-`26px` focal-cropped screen viewport (`964×760` at `x = 58, y = 410..435`, zoomed tightly onto the active menu/prompt/chart; convert white `TradingView` charts to dark mode via `255 - bgr` + HSV `+90` hue rotation so green/red candles stay intact; scrub all macOS Dock/Launchpad frames).
-     - During live Lipsync screen narration (`sync_lip2`), overlay a **`268×268px` Circular Neon-Emerald PiP** at `(cx=866, cy=288)` (`5px` `#00E676` ring, fed by a generous `860×860` face+beanie crop `[x=110..970, y=340..1200]` so zero headwear/chin clips).
+   - **Archetype 4 · Smart-Zoom Desktop Camera + Top-Right Circular Neon-Emerald PiP (`v5_45k_tv_ai` `35.4s` × `Q-20261125-1324-fa7a`):**
+     - Strip macOS top bar, Dock, and sidebar PII (`extract_clean_desktop_window`, attaching a clean `46px` dark browser header `[ ● ● ●  domain ]`), and render over a **full-bleed blurred dark-emerald ambient backdrop** (`GaussianBlur * 0.27`, `0..1080, 0..1920`, zero black margins; convert white `TradingView` charts to dark mode via `255 - bgr` + HSV `+90` hue rotation).
+     - **Phase 1 (`0.00–1.15s` Establish):** Render the entire desktop window edge-to-edge (`stage_w = 1040px`, strict uniform `scale_x == scale_y == 1040 / W_win`) so viewers see what the real computer screen looks like first.
+     - **Phase 2 (`1.15–2.05s` True-Center Smart-Zoom):** Smoothly tween (`cubic_in_out`) `(cx, cy, view_w)` so the exact mouse click / spoken UI element (`(cx, cy) == (focus_cx, focus_cy)`) lands at **exact true center (`x = 540px, y = stage_cy`)**. Measure real content column pixel width first (e.g., `1,680px` column -> `view_w = 2,020–2,040px`) so `100%` of Thai/English text fits uncut with `20–30%` surrounding browser context (`~180px` side margins), paired with a `24%` peripheral spotlight dim (`76%` outer brightness, `100%` target), a source-locked Neon-Emerald double-keyline focus frame (`#00FF7C`), and an animated click ripple. Pre-verify all screen beats on a crosshair (`540, stage_cy`) preview sheet before full encode.
+     - During live Lipsync screen narration (`sync_lip2`), shift `stage_y` to `425..1245px` and overlay a **`264×264px` Circular Neon-Emerald PiP** at `(cx=868, cy=282)` (`5px` `#00E676` ring, fed by `860×860` face+beanie crop `[x=110..970, y=340..1200]`).
    - **Archetype 5 · Bespoke `BL V7.8` Minimal GSAP Motion Infographics (`#080D0A` Radial Emerald Studio Canvas):**
      - Transition in with a **`-8°` Diagonal Neon-Emerald Slash Wipe (`fireSlashWipe(at)`)**.
      - Build **100% distinct episode-specific GSAP frames** per concept (e.g., `3-Step Numbered Roadmap` with `expo.out` slide, `Myth vs Truth + USD ⟷ XAU Inverse Scale`, `Dual AI vs TradingView Chart Match`, `Head-to-Head VS Cards`, `50% / 50% Animated Progress Split Bar`).
@@ -75,3 +80,4 @@ Done looks like: `verify-cut` prints `"ok": true` (`1080×1920`, `30.0 fps`, `-1
 
 ## Field notes
 - 2026-11-25 [WRONG] Static cyber-HUD boxes (`Style A` 50/50 split & bottom `y=1610` chest subtitles) rejected on `Q-20261125-1144-8cf6` (`"ยังไม่ใช่ Style Mypasakon ที่ฉันอยากได้นะ ลองหาคลิป Viral อื่นๆ มาตัดตาม ... อีกอย่างคือ Skill ของ Black Liquidity ทำไว้ดีมากๆ เอาใช้และปรับให้เข้ากับเรา"`); measured 5 real `@mypasakon` viral hits (`228.7K`, `107.7K`, `84.6K`, `59.4K`, `45.4K`) and fused headroom talking-head + RVM cutout composite + circular PiP with BL V7.8 GSAP/HyperFrames motion · evidence: Q-20261125-1144-8cf6 · status: promoted
+- 2026-11-25 [WRONG] Fixed-box non-uniform desktop crops (`1960×1440` squashed into `964×760` with no full-screen establish, slicing Thai paragraph edges and leaving right-column targets off-center) rejected on `Q-20261125-1324-fa7a` (`"ส่วนอื่นๆ ดีหมดแล้ว ยกเว้นแต่ภาพ จอจริง จาก footage ที่มาจากในคอม ... แสดงเต็มจอ ให้คนได้เห็นว่าจอจริงเป็นยังไง และ ใช้การ zoom เข้าในจุดที่ mouse และ ฉันพูดถึง ... เว้นพื้นที่ให้เห็นรอบข้างบ้าง ... ให้มันเป็น center จริง"`); replaced with `smart_screen_camera` (`1:1` uniform Full-Screen Establish -> `cubic_in_out` True-Center zoom at `x=540` with measured column margins + source-locked spotlight frame) · evidence: Q-20261125-1324-fa7a · status: promoted
