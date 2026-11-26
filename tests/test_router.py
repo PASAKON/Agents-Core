@@ -82,9 +82,8 @@ def test_pins_paths_needs_and_exclusion(monkeypatch):
 
 def test_winbox_ram_and_ph_hold():
     row = reading("winbox")
+    # CEO 2026-11-11 (Q-20261111-0524-640c): no fixed winbox RAM reserve; 90% fill governs.
     row["facts"]["ram_free_gb"] = 3.99
-    assert choose(row).host is None
-    row["facts"]["ram_free_gb"] = 4
     assert choose(row).host == "winbox"
     assert choose(row, role="project_head").host is None
     row["facts"]["ceo_hold"] = False
