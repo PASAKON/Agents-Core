@@ -113,8 +113,9 @@ def test_alert_once_at_240(ob):
 def test_hard_stop_and_reserve():
     cfg = QuotaConfig(critical_reserve=10)
     assert decide_push(cfg, 300).reason == "hard_stop"
-    assert decide_push(cfg, 289).reason == "critical_reserve"
-    assert decide_push(cfg, 289, critical=True).allowed
+    assert decide_push(cfg, 289).allowed  # 290th push: non-critical may use up to 290
+    assert decide_push(cfg, 290).reason == "critical_reserve"  # 291-300 critical only
+    assert decide_push(cfg, 290, critical=True).allowed
     assert not decide_push(cfg, 299, batch=2, critical=True).allowed
     assert decide_push(QuotaConfig(), 100).reason == "ok_reserve_unset"
 
