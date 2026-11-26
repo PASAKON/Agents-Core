@@ -84,6 +84,8 @@ dismisses it on the phone. Every new request also emails him as a reminder.
 
 ## 1. Expose the Chrome (one per account, a dedicated profile)
 
+**Launch a home on winbox through Console or the phone, never over ssh (CTO 2026-11-26).** A Chrome started from a card or an ssh session is a child of that Windows job and dies when the session ends, even though it reports exit 0 and a pid (RUN-20261126-1855-4e89: pid 54320 gone, port 9285 refused). Open a relay request from the winbox Console (`relay-request.mjs open ...`); the CEO taps เปิด on the phone and Console keeps it up. Add `--force "home stopped; CEO taps เปิด"` only when the request refuses a stopped home.
+
 **First, find a login that already exists (CEO 2026-10-14, Q-20261013-1917-0fa2; IRON §60 step 1).** Before you
 create, launch or ask for anything, run `node scripts/relay-inventory.mjs --site <site>`. It covers every box the
 relay reaches. Each row gives host:port, the home, signed in | signed OUT | unknown, when the site's own page last
@@ -236,6 +238,7 @@ never a value, cookie or QR payload.
   next seed pattern comes from.
 
 ## Field notes
+- 2026-11-26 [MISSING] §1 winbox — a home launched over ssh (`node scripts\relay-home.mjs launch line-oa-win`) printed exit 0 and pid 54320 and was gone within minutes; port 9285 refused. Launch through the Console or the phone instead · evidence: RUN-20261126-1855-4e89, relay request rq-abdc280d · status: pending
 - 2026-09-25 [MISSING] rollout test: two live sessions (Mac cto-95cbbb28, Contabo cto-e1e3d3ef) got the letter cold and both answered in the §0 one-line format within 2 min (one real request — Facebook Dorsine Gobb on mac:9230 — one "not blocked"); the format needs no further explanation in the letter · evidence: GH MoonieX-Console#9 comment 2026-09-25 05:1x → §0 (confirms the line as written; no edit needed) · status: promoted
 - 2026-09-25 [MISSING] after a Google login Chrome's own "Sign in to Chrome" intercept (`chrome://signin-dice-web-intercept.top-chrome`) shows up as the first page target, so `relay-inspect` and the pill list can pick it before the real tab; skip `chrome://` / `*.top-chrome` targets · evidence: winbox:9225 04:4x, GH MoonieX-Console#9 → §3 "Sign in to Chrome" intercept (relay-inspect still takes the first page target, Console 567c6f9) · status: promoted
 - 2026-09-25 [MISSING] the mirror's first real-site login (Google on winbox:9225) is still unverified; the fake form on Contabo:9250 passed the CEO's test and winbox:9224 ChatGPT came up signed in after his phone flow · evidence: MoonieX-Console 62ea287, GH MoonieX-Console#9 — rejected: a later note records a real-site login through the relay (Facebook on mac:9230, 2026-09-25, session verified by CTO 95cbbb28) · status: rejected
