@@ -200,6 +200,7 @@ class _MediaHandler(_Handler):
 @pytest.fixture
 def mhub(monkeypatch):
     fake = FakeHub()
+    fake.on("GET", CREATE_PATH, (200, {"questions": []}))
     fake.count = 0                                          # type: ignore[attr-defined]
     fake.uploads = {}                                       # type: ignore[attr-defined]
     server = ThreadingHTTPServer(("127.0.0.1", 0), _MediaHandler)
@@ -903,7 +904,7 @@ def test_uploads_come_first_then_the_create_with_the_ids(mhub, tools, stage, tmp
     assert ask_run.main(argv) == 0
     out, err = capsys.readouterr()
     assert QID in out
-    assert [(r["method"], r["path"]) for r in mhub.requests] == [("POST", MEDIA_PATH)] * 4 + [("POST", CREATE_PATH)]
+    assert [(r["method"], r["path"]) for r in mhub.requests] == [("POST", MEDIA_PATH)] * 4 + [("GET", CREATE_PATH), ("POST", CREATE_PATH)]  # GET = pending-card lookup
     ups = uploads(mhub)
     assert [u["name"] for u in ups] == ["cover_a.jpg", "cover_b.png", "teaser.mp4", "teaser.mp4.poster.jpg"]
     assert all(u["ctype"] == "application/octet-stream" and u["auth"] == f"Bearer {mhub.token}" for u in ups)
@@ -1044,7 +1045,7 @@ def test_mcp_media_sends_through_the_same_upload_path(mhub, tools, stage, tmp_pa
     path = put(tmp_path, "a.png", blob("png", 300))
     out = ask_run.mcp_ask_ceo(_mcp([{"path": path}], dry_run=False))
     assert out["id"] == QID and out["media"]
-    assert [r["path"] for r in mhub.requests] == [MEDIA_PATH, CREATE_PATH]
+    assert [r["path"] for r in mhub.requests] == [MEDIA_PATH, CREATE_PATH, CREATE_PATH]  # lookup, then create
 
 
 @pytest.mark.parametrize("media, extra, code", [

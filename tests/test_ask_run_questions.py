@@ -165,7 +165,8 @@ def test_create_posts_the_body_and_prints_id_and_url(hub, capsys):
     assert rc == 0
     assert out.splitlines() == [QID, f"{hub.url}/run#{QID}"]
     assert "wait " + QID in err and "Only the CEO's tap" in err
-    (req,) = hub.requests
+    (lookup, req) = hub.requests
+    assert lookup["method"] == "GET" and lookup["query"]["status"] == ["pending"]
     assert (req["method"], req["path"], req["auth"]) == ("POST", "/api/run/questions", f"Bearer {hub.token}")
     assert req["body"]["options"][0] == {"label": "Tonight", "recommended": True}
     assert req["body"]["requester"] == {"session": "cto-t", "role": "cto", "lane": "cto", "host": "contabo"}
@@ -782,7 +783,7 @@ def test_org_server_exposes_ask_ceo_with_the_one_rule_in_plain_words(srv):
     assert "questions=[{question, why, options, recommended, free_text}, ...] (1-6)" in tool.description
     assert set(tool.inputSchema["properties"]) == {
         "question", "options", "why", "recommended", "free_text", "expires_h", "session", "role",
-        "host", "task", "dry_run", "questions", "media", "pick", "what", "does", "impact"}
+        "host", "task", "dry_run", "questions", "media", "pick", "job", "what", "does", "impact"}
     assert "q-" in " ".join(tools["ask_run_wait"].description.lower().split())
     assert "answer" not in " ".join(tools) and "answer" not in tools["ask_ceo"].name
 
@@ -876,7 +877,7 @@ def test_org_ask_ceo_posts_and_returns_id_url_expiry(srv, hub, capsys):
     assert json.loads(text) == {"id": QID, "url": f"{hub.url}/run#{QID}", "expires_at": "2026-10-14T11:02:00Z"}
     assert hub.requests[0]["auth"] == f"Bearer {hub.token}" and hub.token not in text
     assert ask_run.main(_argv({"recommended": 1})) == 0
-    assert hub.requests[0]["body"] == json.loads(capsys.readouterr().out)
+    assert hub.requests[-1]["body"] == json.loads(capsys.readouterr().out)
 
 
 def test_org_hub_refusal_is_reported_not_raised(srv, hub):

@@ -135,6 +135,7 @@ def _sealed(monkeypatch, tmp_path):
 @pytest.fixture
 def hub(monkeypatch):
     fake = FakeHub()
+    fake.on("GET", "/api/run/questions", (200, {"questions": []}))
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
     server.hub = fake  # type: ignore[attr-defined]
     thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)

@@ -1152,6 +1152,11 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
         "requester": requester,
     }
     body.update(brief_fields(args))
+    job = getattr(args, "job", None)
+    if job is not None:
+        if not isinstance(job, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}", job):
+            raise Refused("invalid_job: use 1-64 letters, digits, dots, colons, underscores or hyphens")
+        body["job"] = job
     paths, captions = list(getattr(args, "media", None) or []), list(getattr(args, "caption", None) or [])
     if paths:        # QUESTIONS.md §11: ids are filled in once the files are uploaded
         if not options:
@@ -2124,10 +2129,69 @@ def submit(payload: dict, path: str = ASKS_PATH) -> dict:
 
 def submit_question(payload: dict) -> dict:
     """POST the question; the hub's answer plus the phone URL of the card."""
+    payload = reconcile_question_job(payload)
     resp = submit(payload, QUESTIONS_PATH)
     if not _QID_RE.match(resp["id"]):
         raise HubError(f"hub accepted the question but returned a malformed id: {resp['id'][:80]!r}")
     return resp
+
+
+def reconcile_question_job(payload: dict) -> dict:
+    """Use the persisted why text: Console discards unknown requester metadata.
+
+    The marker is exact, bounded and visible. No local cache or org DB access is
+    involved. Cancellation failure stops creation; the API is not transactional.
+    """
+    payload = dict(payload)
+    job = payload.pop("job", None)
+    marker = f"job: {job}" if job else None
+    try:
+        response = _call("GET", QUESTIONS_PATH, query={"status": "pending", "limit": "200"})
+    except HubError:
+        if job:
+            raise  # a replacement must not leave the old card live
+        return payload  # the lookup only feeds a warning: never block a question on it
+    rows = response.get("questions") if isinstance(response, dict) else response
+    if not isinstance(rows, list):
+        if not job:
+            return payload
+        raise HubError("hub returned no pending question list")
+    who = payload["requester"]
+    pending = [q for q in rows if isinstance(q, dict) and q.get("status") == "pending"
+               and (q.get("requester") or {}).get("session") == who["session"]]
+    replaced = []
+    recent = []
+    for q in pending:
+        qid = q.get("id")
+        if not isinstance(qid, str) or not _QID_RE.fullmatch(qid):
+            raise HubError("hub returned a malformed pending question id")
+        if marker and marker in (q.get("why") or "").splitlines():
+            result = _unwrap(_call("POST", _question_path(qid, "/cancel"), body={}))
+            if result.get("status") != "cancelled":
+                raise HubError(f"{qid}: cancellation was not confirmed")
+            replaced.append(qid)
+        elif not job:
+            try:
+                created = datetime.fromisoformat(q["created_at"].replace("Z", "+00:00"))
+                age = (datetime.now(timezone.utc) - created).total_seconds()
+            except (KeyError, TypeError, ValueError):
+                continue
+            if 0 <= age <= 1800:
+                recent.append(qid)
+    if recent:
+        _say("ask_run: warning: pending questions from the last 30 min: " + ", ".join(recent))
+    if marker:
+        from lib.ceo_text import trim_ceo_text
+        prefix = []
+        if replaced:
+            prefix.append(f"แทน {replaced[0]} (ยกเลิกแล้ว)" +
+                          (f" +{len(replaced) - 1}" if len(replaced) > 1 else ""))
+        prefix.append(marker)
+        payload["why"] = trim_ceo_text({
+            "question": payload["question"],
+            "why": "\n".join(prefix + [payload["why"]]),
+        })["why"]
+    return payload
 
 
 def _blank(value: Any) -> bool:
@@ -2419,6 +2483,7 @@ def _mcp_question_namespace(a: dict) -> argparse.Namespace:
         expires_h=a.get("expires_h", EXPIRES_DEFAULT_H), session=a.get("session") or None,
         role=a.get("role") or None, project=a.get("project") or None, lane=a.get("lane") or None,
         host=a.get("host") or None, task=a.get("task") or None,
+        job=None if a.get("job") == "" else a.get("job"),
         dry_run=bool(a.get("dry_run")), json=False,
         media=paths or None, caption=captions if any(captions) else None, pick=pick)
 
@@ -2463,6 +2528,8 @@ def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
     With `questions` (1-6 items) it raises one group instead, like `ask --batch`,
     and returns {group_id, url, expires_at, questions: [{id, url}]}."""
     if arguments.get("questions") not in (None, "", []):
+        if arguments.get("job"):
+            raise Refused("invalid_job: job applies to one question, not a group")
         return _mcp_ask_ceo_group(arguments, env)
     try:
         if arguments.get("options") in (None, "") and not (arguments.get("question") or "").strip():
@@ -2474,6 +2541,8 @@ def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
         if payload.get("media"):
             body, resp, lines = send_media_question(payload, list(ns.media), dry_run=ns.dry_run)
             if resp is None:
+                if not ns.dry_run:
+                    raise HubError("question submission returned no result")
                 return {"dry_run": True, "would_post": base + QUESTIONS_PATH, "payload": body, "media": lines}
             return {"id": resp["id"], "url": resp["url"], "expires_at": resp.get("expires_at"), "media": lines}
     except Refused as e:
@@ -2609,6 +2678,8 @@ def cmd_ask(args: argparse.Namespace) -> int:
         for line in lines:
             _say(line)
         if resp is None:
+            if not args.dry_run:
+                raise HubError("question submission returned no result")
             print(json.dumps(body, indent=2, ensure_ascii=False))
             sys.stdout.flush()
             _say(f"dry run: nothing sent (would upload {len(lines)} item(s) to {base}{MEDIA_PATH}, "
@@ -2927,6 +2998,7 @@ def _parser() -> argparse.ArgumentParser:
     q.add_argument("--recommended", type=int, metavar="N",
                    help="1-based: the option that carries the recommended badge")
     q.add_argument("--why", help=f"context the CEO reads before tapping (at most {WHY_MAX} characters)")
+    q.add_argument("--job", help="stable job key; replaces this requester's pending question for that job")
     for key in BRIEF_LIMITS:
         q.add_argument(f"--{key}", help="short CEO brief (trimmed to fit)")
     q.add_argument("--batch", metavar="FILE",
@@ -2997,6 +3069,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("`-- args...` only go with create --script")
     if args.verb == "ask":
         lone = [flag for flag, given in (("--question", args.question is not None),
+                                         ("--job", args.job is not None),
                                          ("--option", args.option is not None),
                                          ("--why", args.why is not None),
                                          ("--recommended", args.recommended is not None),
