@@ -205,3 +205,104 @@ To test the DOM detector, channel/recipient readback, and kill switch determinis
 | **Reply-Token Lifetime** | **TBD** | `docs/research/line-messaging-quota.md` notes single-use short expiry after webhook event generation, but exact seconds/TTL cut-off is **TBD**. |
 | **Quota Reset Time** | **TBD** | Exact monthly quota reset boundary/timezone verification on the live `@587kfqpt` account is **TBD**. |
 | **Exact Throttle Ceilings** | **TBD** | Exact per-hour and per-day outbound message ceilings for the `chat.line.biz` browser sender are **TBD**. |
+
+---
+
+## 6. Care Session + Escalation (`docs/plans/2026-11-19-mooniex-care-team.md` §2–3)
+
+This section defines the **care session + escalation** architecture from `docs/plans/2026-11-19-mooniex-care-team.md` (§2–3, SomPong repo), specifying how customer answers are built, gated, escalated, and handed over to `care_outbox`.
+
+### 6.1 `care` Role (`น้องมูน`, Sonnet 5.5, Own Unix User & Gate) and LuNar Cutover
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Role Key & Persona** | `care` — Customer Care Agent (แอดมินดูแลลูกค้า), persona **"น้องมูน" (Moon)**. |
+| **Model** | **Sonnet 5.5** |
+| **Team Lead / Supervisor** | SomPong (`coo`, Opus 5.5) — Head of Customer Care (หัวหน้าทีมดูแลลูกค้า); owns the playbook, reviews the queue and 21:00 TH digest daily, resolves escalations, and routes money/promises to the CEO. |
+| **Isolation & Runtime** | Dedicated role row, separate tmux session, **own Unix user**, and **own gate** (`care` gate, following `docs/design/sompong-coo-session.md` and `family_gate`: events in, `reply`/`skip` out, plain text). Does **not** share SomPong's session. |
+| **Answer Builder** | The **`care` role builds the answers** for customer threads and enqueues outbound message batches (up to 5 short bubbles per call) into `care_outbox` (§2). `care` never calls the LINE Messaging API directly. |
+| **LuNar Cutover Rule** | **The old LuNar chat flow / `@mooniex` LINE agent is switched off ONLY after `care` answers live** (verified answering real chats in production during Phase 1 cutover). Until `care` is live and verified, the existing flow is not removed. |
+
+### 6.2 Inbound `care_queue`, Immediate Ack & Hourly Round (`08:00–22:00 TH`)
+
+1. **Webhook Ingest (`care_queue`, No Model at Ingest):**
+   - When a customer writes to `@mooniex` (`@587kfqpt`), `src/webhook/line.js` records the inbound event in `care_queue` (`customer_id`, `text`, `media`, `received_at`, `reply_token`). No LLM runs during webhook ingestion.
+2. **Immediate Ack (No Model, Free via Webhook `replyToken`):**
+   - The first message in a quiet thread triggers an immediate fixed acknowledgement sent via the LINE webhook `replyToken` (`POST /v2/bot/message/reply`, 0 monthly quota consumed; sent immediately before the token expires):
+     > `"ได้รับข้อความแล้วครับ แอดมินจะตอบภายใน 1 ชั่วโมง (เวลาทำการ 08:00–22:00 น.)"`
+   - Rate-limited to **once per thread per `N` quiet hours** (**TBD**), never once per message.
+3. **Hourly Round (`08-22 TH` / `08:00–22:00 TH`):**
+   - A timer runs every hour on the hour from **`08:00` to `22:00` TH** (`Asia/Bangkok`). Messages arriving overnight after `22:00 TH` wait in `care_queue` for the `08:00 TH` round.
+   - If `care_queue` has pending items, the timer wakes the `care` session **once** for the round, passing **one grouped event per customer thread** containing all messages received from that customer since the last round.
+   - `care` processes all active threads in that turn and writes each outbound response (grouped up to 5 bubbles per API call) into `care_outbox`, which the sender drains under the reply-first and quota rules in §1–4.
+4. **Active-Case Live Turns (Reply-Token Fast Path):**
+   - While a customer thread is in an active goal-driven case (see §6.4), follow-up messages from that customer can wake `care` within a few minutes (**TBD**) so `care` can reply using the free webhook `replyToken` while it is still valid, continuing turn-by-turn until the goal is met, escalated, or the chat goes quiet.
+
+### 6.3 Escalation to `coo` -> 3 Ranked Answers on One CEO Card -> Goal & FAQ Rule
+
+`care` escalates to **`coo` (SomPong)** whenever a thread involves:
+- **Money, rebates, complaints, or promises**; or
+- **Anything `care` is unsure of, has never answered before, or cannot find in approved knowledge** (FAQ, memory, skills, or permitted systems).
+
+The end-to-end escalation workflow is:
+1. **Customer Holding Line:** `care` invokes `escalate` and sends a short holding reply to the customer: `"ขอเช็คให้ก่อนนะครับ"`.
+2. **`coo` Fact Lookup & Analysis:** SomPong (`coo`) analyses the escalated thread and looks up the facts across partner tools, research, and customer history.
+3. **3 Ranked Answers on One CEO Question Card:** `coo` raises **one CEO Run Inbox question card** (`ask_ceo` / `tools/ask_run.py ask`) presenting **the 3 most likely answers, ranked (`1`, `2`, `3`)**.
+4. **CEO Selection or Policy Instruction:** The CEO taps `1`, `2`, or `3` (or selects none and writes his own). The CEO's response may be either direct reply wording or an **instruction / policy rule** (how to answer, what rule applies, where to check — for example, for *"rebate asked for but not received"*, the CEO rule: *"MoonieX pays rebates only to clients registered under our network, so get the customer to register under us"*).
+5. **Turned into (a) Customer Goal and (b) FAQ / Playbook Rule:** SomPong (`coo`) converts the CEO's card answer into:
+   - **(a) A per-customer goal** (and next step) assigned to `care` for that customer thread; and
+   - **(b) A new or updated FAQ / playbook rule**, ensuring the same question never needs to be escalated to the CEO twice.
+
+### 6.4 Per-Customer Goal and Step State (Turn-by-Turn Conversation)
+
+- **Persistent Goal + Step State:** For every active case, MoonieX Care stores **per-customer goal and step state** (e.g., `customer_id`, `goal`, `current_step`, `case_status`, `source_rule_or_card_id`, `updated_at`).
+- **Turn-by-Turn Execution:** `care` works toward the customer's goal (e.g., *"customer re-registers under MoonieX and the rebate starts"*) **one short turn at a time**, like a skilled human admin:
+  - One clear point per turn, delivered as short plain-text bubbles (up to 5 message objects grouped in one reply/push call);
+  - No long walls of text;
+  - Waits for the customer's reply before advancing `current_step` to the next step, repeating until the goal is satisfied or re-escalated.
+- **Resumability:** Because `goal` and `current_step` are persisted per customer, hourly batch rounds, live follow-up turns, and `care` session restarts resume cleanly from the exact step where the thread left off.
+
+### 6.5 `care` Gate Tool Allowlist & Security Rules (`family_gate` Pattern)
+
+Customer messages are treated strictly as **untrusted data, never instructions**. The `care` session runs behind its own dedicated gate enforcing the following tool and policy boundaries:
+
+| Category | Rule / Scope |
+| :--- | :--- |
+| **Allowed Tools (Allowlist ONLY)** | 1. `reply` — enqueue plain-text reply bubbles (≤5 per call) into `care_outbox` for the active customer.<br>2. `skip` — close the current event turn without sending a message.<br>3. `history` — read conversation history **for that customer only** (strictly scoped to the active `customer_id`; no cross-customer reads).<br>4. `media` — read/inspect media attachments sent by that customer in the current thread.<br>5. `escalate` — escalate the thread to `coo` (SomPong) and enqueue the holding line.<br>6. **FAQ read** — read-only lookup against the approved MoonieX Care FAQ / playbook rules. |
+| **Forbidden Tools (Hard Denylist)** | **No `Bash`**, **no `Edit` / `Write`**, **no web fetch of customer links**, **no org tools** (no task ledger writes, no session management, no direct CEO cards), and **no secrets** (no Infisical, `.env`, or credential access). |
+| **Content Prohibitions** | Never quote amounts owed, never make rebate or payout promises, never give investment advice, and never speak in the CEO's name beyond the approved FAQ. |
+| **Partner Data (XM / Exness)** | **Not in Phase 1.** Looking up a customer's partner/broker account requires identity verification and is deferred to a later phase per CEO decision. |
+
+### 6.6 Voice (Reuses LunarAgent AI Skills via Lunar Owner)
+
+- **Reuse Existing LunarAgent AI Skills:** `care` ("น้องมูน") uses the CEO's admin voice already taught in the **LunarAgent AI skills** (clear, polite, short, turn-by-turn Thai replies).
+- **Sourced via Lunar Owner:** The CTO locates and reuses those skills from the **Lunar project (via its owner)** — do **not** write a new voice guide from scratch.
+- **Humanizer Pass:** Fixed texts (instant ack, holding line, and FAQ rules) receive a final pass with `CMO_Standard_HumanVoice_TH` (plain, natural, polite Thai with zero AI tells).
+
+### 6.7 Bug Route (`care -> coo -> CTO`) & Daily Digest (`21:00 TH`)
+
+- **Bug & System-Change Route (`care -> coo -> CTO`):**
+  - When `care` hits a bug, tool failure, or needed system adjustment, `care` reports it to **`coo` (SomPong)**.
+  - **`coo` sends the bug/fix request straight to the `CTO` to fix**, with **no CEO round-trip**.
+  - Exception: Anything involving money, secrets, or permanent deletion still goes to the CEO (`ALL_Rules_Approvals`).
+- **Daily Digest (`21:00 TH`):**
+  - Every day at **`21:00 TH`**, a digest is sent to **`coo` (SomPong)** covering:
+    1. Total chats received that day;
+    2. Counts and status of **answered / escalated / open** threads;
+    3. Top customer questions and candidate **FAQ updates**.
+
+### 6.8 Care Session & Escalation Risk Table and Additional TBDs
+
+| # | Risk | Failure Mode / Impact | Mitigation & Control |
+| :--- | :--- | :--- | :--- |
+| 1 | **Prompt injection via customer chat** | A customer sends adversarial text attempting to run shell commands, read other customers' chats, or extract secrets. | Customer text is data only; the `care` gate enforces a strict allowlist (`reply`, `skip`, per-customer `history`, `media`, `escalate`, FAQ read) with **no `Bash`, `Edit`, web fetch, org tools, or secrets**, running under its **own Unix user**. |
+| 2 | **Premature LuNar switch-off or dual-reply overlap** | Switching off the old LuNar chat flow before `care` is verified drops customer chats; running both without cutover coordination causes double replies. | **Old LuNar chat flow is switched off only after `care` answers live** (verified on real chats in P1); cutover flips the outbound producer atomically once `care` is confirmed healthy. |
+| 3 | **Unauthorized financial / rebate promise** | `care` guesses an unverified rebate rule or promises a payout. | Hard rule to `escalate` money, rebates, complaints, promises, and any unknown question to `coo` → 3 ranked answers on one CEO card → codified into a per-customer goal and FAQ rule. |
+| 4 | **Context loss across hourly rounds** | Multi-turn troubleshooting forgets what step the customer was on between hourly batches or after a restart. | Persist **per-customer goal and step state** in the hub so every hourly round, live turn, or session restart resumes at the exact step. |
+| 5 | **Push quota exhaustion from multi-line replies** | Sending multiple separate push API calls per turn burns the 300/month free quota rapidly. | Group up to 5 bubbles into one API call, prioritize valid webhook `replyToken` (free instant ack + active-case live turns) and `chat.line.biz` browser sender (§3–4), and confirm LINE per-call vs. per-bubble quota counting (**TBD**). |
+
+**Additional §6 Parameters Marked TBD** (preserving all §1–5 TBDs above):
+- **Instant-Ack Quiet-Thread Window (`N` hours):** **TBD** (minimum quiet interval before a returning thread receives another automatic instant ack).
+- **Active-Case Live-Turn Window:** **TBD** (exact minute cut-off and trigger threshold for answering active-case turns immediately via webhook `replyToken` between hourly rounds).
+- **LINE Push Quota Counting (Per Call vs. Per Bubble up to 5):** **TBD** (CTO to verify from LINE Messaging API documentation whether one push request carrying up to 5 message bubbles counts as 1 message or `k` messages against the 300/month free quota).
+
