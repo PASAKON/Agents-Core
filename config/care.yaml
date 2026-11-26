@@ -1,0 +1,13 @@
+# MoonieX Care S1 config. null = TBD (docs/design/mooniex-care.md §5); never guess.
+channel_basic_id: "@587kfqpt"
+dry_run: true                      # S1 default; flip only on CEO go
+reply_token_lifetime_seconds: null # TBD: unknown -> reply is attempted, LINE rejection = expired
+push:
+  monthly_limit: 300               # Free plan; runtime value from GET /quota overrides if present
+  alert_at: 240                    # COO alert once per month
+  critical_reserve: null           # TBD: slots kept for critical announcements (null -> 0, flagged)
+quota_reset:
+  timezone: null                   # TBD: reset boundary unverified; month key uses this tz or UTC
+browser_sender:                    # S2 only, not read by S1
+  hourly_ceiling: null
+  daily_ceiling: null
