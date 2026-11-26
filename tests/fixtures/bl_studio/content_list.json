@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/tiktok/v1/creator/item_list/",
+    "schema_status": "live",
+    "captured_at_utc": "2026-11-26T15:59:00Z"
+  },
+  "status_code": 0,
+  "has_more": false,
+  "items": [
+    {
+      "item_id": "7400000000000000001",
+      "create_time": 1795063712,
+      "desc": "ตัวอย่างคลิปทดสอบ1",
+      "video": {
+        "duration": 58
+      },
+      "stats": {
+        "play_count": 1201,
+        "digg_count": 24,
+        "comment_count": 2,
+        "share_count": 4,
+        "collect_count": 9
+      }
+    },
+    {
+      "item_id": "7400000000000000002",
+      "create_time": 1795286215,
+      "desc": "ตัวอย่างคลิปทดสอบ2",
+      "video": {
+        "duration": 64
+      },
+      "stats": {
+        "play_count": 1502,
+        "digg_count": 31,
+        "comment_count": 3,
+        "share_count": 6,
+        "collect_count": 11
+      }
+    },
+    {
+      "item_id": "7400000000000000003",
+      "create_time": 1791927546,
+      "desc": "ตัวอย่างคลิปทดสอบ3",
+      "video": {
+        "duration": 45
+      },
+      "stats": {
+        "play_count": 26,
+        "digg_count": 2,
+        "comment_count": 0,
+        "share_count": 0,
+        "collect_count": 1
+      }
+    }
+  ]
+}

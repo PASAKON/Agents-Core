@@ -1,0 +1,136 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/",
+    "schema_status": "live",
+    "captured_at_utc": "2026-11-26T15:59:00Z"
+  },
+  "status_code": 0,
+  "status_msg": "",
+  "extra": {
+    "fatal_item_ids": [],
+    "logid": "",
+    "now": 1764169140000
+  },
+  "log_pb": {
+    "impr_id": ""
+  },
+  "video_info": {
+    "aweme_id": "7400000000000000001",
+    "aweme_type": 0,
+    "create_time": 1795063712,
+    "desc": "ตัวอย่างคลิปทดสอบ4",
+    "author": {
+      "nickname": "",
+      "sec_uid": "",
+      "uid": "",
+      "unique_id": ""
+    },
+    "statistics": {
+      "collect_count": 9,
+      "comment_count": 2,
+      "digg_count": 24,
+      "play_count": 1201,
+      "share_count": 4
+    },
+    "status": {
+      "private_status": 0
+    },
+    "video": {
+      "duration": 58000,
+      "height": 1920,
+      "width": 1080
+    }
+  },
+  "video_finish_rate_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 0.218
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 0.014
+    }
+  },
+  "video_per_duration_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 24.6
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 1.1
+    }
+  },
+  "video_retention_rate_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "peak_value": 1.0,
+      "list": [
+        {"timestamp": 0, "value": 1.0},
+        {"timestamp": 3, "value": 0.785},
+        {"timestamp": 10, "value": 0.612},
+        {"timestamp": 20, "value": 0.47},
+        {"timestamp": 30, "value": 0.364},
+        {"timestamp": 45, "value": 0.261},
+        {"timestamp": 58, "value": 0.218}
+      ]
+    }
+  },
+  "video_traffic_source_percent_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": [
+        {"key": "for_you", "value": 0.742},
+        {"key": "search", "value": 0.128},
+        {"key": "personal_profile", "value": 0.065},
+        {"key": "following", "value": 0.041},
+        {"key": "other", "value": 0.024}
+      ]
+    }
+  },
+  "video_new_followers": {
+    "status": 0,
+    "value": 3
+  },
+  "realtime_new_followers": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 3
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 0
+    }
+  },
+  "item_search_terms": {
+    "status": 0,
+    "value": [
+      {"keyword": "ราคาทองดิ่ง", "value": 14},
+      {"keyword": "ข่าวทองคำ", "value": 8}
+    ]
+  },
+  "video_vv_history_48_hours": [
+    {"timestamp": 0, "value": 42},
+    {"timestamp": 3600, "value": 118},
+    {"timestamp": 86400, "value": 265},
+    {"timestamp": 172800, "value": 312}
+  ],
+  "unique_viewer_num": {
+    "status": 0,
+    "value": 777
+  },
+  "follower_num": {
+    "status": 0,
+    "value": 50000
+  }
+}

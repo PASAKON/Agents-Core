@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/mod/v1/getPenaltyDetails/",
+    "schema_status": "live",
+    "captured_at_utc": "2026-11-26T15:59:00Z"
+  },
+  "ab_result": 0,
+  "appeal_status": 0,
+  "extra": {
+    "fatal_item_ids": [],
+    "logid": "",
+    "now": 1764169140000
+  },
+  "feedback_status": 0,
+  "improve_views": false,
+  "log_pb": {
+    "impr_id": ""
+  },
+  "status_code": 0,
+  "status_msg": "",
+  "top_penalty_details": {
+    "is_adult_group": false,
+    "penalty_source": 0,
+    "penalty_trigger": 0,
+    "penalty_type": 0
+  }
+}
