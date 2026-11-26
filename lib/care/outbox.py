@@ -106,14 +106,16 @@ class Outbox:
         return dict(zip(cols, r))
 
     def claim_sending(self, row_id: int, via: str) -> bool:
-        """Atomic queued/deferred -> sending. MUST run before any send."""
+        """Atomic queued/deferred/fallback -> sending. MUST run before any send."""
         if via not in VIAS:
             raise ValueError("bad via")
         ts = self._ts()
+        allowed_states = ("queued", "deferred", "fallback") if via == "api_reply" else ("queued", "deferred")
+        marks = ",".join("?" * len(allowed_states))
         cur = self.conn.execute(
             "UPDATE care_outbox SET state='sending', delivery_via=?, sending_started_at=?,"
             " attempt_count=attempt_count+1, updated_at=?"
-            " WHERE id=? AND state IN ('queued','deferred')", (via, ts, ts, row_id))
+            f" WHERE id=? AND state IN ({marks})", (via, ts, ts, row_id, *allowed_states))
         self.conn.commit()
         return cur.rowcount == 1
 
@@ -147,6 +149,38 @@ class Outbox:
         self.conn.execute("UPDATE care_outbox SET reply_token=NULL, updated_at=? WHERE id=?",
                           (self._ts(), row_id))
         self.conn.commit()
+
+    def attach_reply_token(self, row_id: int, reply_token: str,
+                           reply_token_expires_at: Optional[datetime] = None) -> bool:
+        """Attach a fresh webhook replyToken to a queued/deferred/fallback row."""
+        if not reply_token:
+            raise ValueError("empty reply_token")
+        ts = self._ts()
+        cur = self.conn.execute(
+            "UPDATE care_outbox SET reply_token=?, reply_token_expires_at=?, updated_at=?"
+            " WHERE id=? AND state IN ('queued','deferred','fallback')",
+            (reply_token, _iso(reply_token_expires_at), ts, row_id))
+        self.conn.commit()
+        return cur.rowcount == 1
+
+    def count_browser_sends_since(self, cutoff: datetime) -> int:
+        """Count oa_browser sends (sending or sent) whose timestamp is >= cutoff."""
+        cutoff_utc = cutoff.astimezone(timezone.utc)
+        rows = self.conn.execute(
+            "SELECT COALESCE(sent_at, sending_started_at, updated_at)"
+            " FROM care_outbox"
+            " WHERE delivery_via='oa_browser' AND state IN ('sending','sent')"
+        ).fetchall()
+        count = 0
+        for (ts_str,) in rows:
+            if not ts_str:
+                continue
+            dt = datetime.fromisoformat(ts_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt.astimezone(timezone.utc) >= cutoff_utc:
+                count += 1
+        return count
 
     def stuck_sending(self) -> list[int]:
         """Rows left in `sending` after a crash: never auto-retried (design §2.3.3)."""

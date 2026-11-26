@@ -45,9 +45,11 @@ class CareSender:
 
     def __init__(self, outbox: Outbox, http: Http, token: str, cfg: QuotaConfig,
                  alert_coo: Callable[[str], None] = lambda msg: None,
-                 dry_run: bool = True, clock=lambda: datetime.now(timezone.utc)):
+                 dry_run: bool = True, clock=lambda: datetime.now(timezone.utc),
+                 browser_sender=None):
         self.outbox, self.http, self._token, self.cfg = outbox, http, token, cfg
         self.alert_coo, self.dry_run, self.clock = alert_coo, dry_run, clock
+        self.browser_sender = browser_sender
         self.reply = ReplyBackend(http, token)
         self.push = PushBackend(http, token)
 
@@ -62,14 +64,27 @@ class CareSender:
     def _halted_key(self) -> str:
         return f"push_halt:{self.cfg.channel_id}:{month_key(self.clock())}"
 
+    def _browser_sender_killed(self) -> bool:
+        return self.outbox.get_flag("care_sender_enabled") == "false"
+
     def process(self, row_id: int) -> str:
         """Returns the plan/outcome label. In dry_run nothing is claimed or sent."""
         row = self.outbox.get(row_id)
+        if row["state"] == "fallback":
+            if self._token_valid(row):
+                return self._do_reply(row)
+            return "skip_fallback"
         if row["state"] not in ("queued", "deferred"):
             return f"skip_{row['state']}"
         if self._token_valid(row):
             return self._do_reply(row)
         if row["message_kind"] != "important_announcement":
+            if self.browser_sender is not None:
+                return self.browser_sender.process(row_id)
+            if self._browser_sender_killed():
+                if not self.dry_run:
+                    self.outbox.mark_fallback(row_id, "sender_disabled_fallback_reply_token")
+                return "fallback_reply_token"
             if not self.dry_run:
                 self.outbox.mark_deferred(row_id, "await_browser_sender")
             return "defer_browser"
