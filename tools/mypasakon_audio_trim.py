@@ -286,6 +286,95 @@ def cmd_sync_lip(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sync_omni(args: argparse.Namespace) -> int:
+    """Align a Google Flow Omni 1.2 Flash restyled 1080p avatar clip back to 0.0ms drift at 30fps.
+    Measures 16kHz FFT phase-locked waveform cross-correlation lag (~280-310ms Flow lead-in),
+    trims the lead-in, resamples 24fps -> 30fps 1080x1920, clone-pads tail to exact target frames,
+    and muxes the clean reference audio.
+    """
+    omni_p = Path(args.omni)
+    ref_p = Path(args.ref)
+    out_p = Path(args.out)
+    out_p.parent.mkdir(parents=True, exist_ok=True)
+
+    tmp_ref_wav = out_p.parent / f"_ref_{out_p.stem}.wav"
+    tmp_om_wav = out_p.parent / f"_om_{out_p.stem}.wav"
+    try:
+        ref_cmd = ["ffmpeg", "-nostdin", "-y"]
+        if args.duration:
+            ref_cmd += ["-t", f"{float(args.duration):.4f}"]
+        ref_cmd += ["-i", str(ref_p), "-ac", "1", "-ar", "16000", str(tmp_ref_wav)]
+        subprocess.run(ref_cmd, check=True, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["ffmpeg", "-nostdin", "-y", "-i", str(omni_p), "-ac", "1", "-ar", "16000", str(tmp_om_wav)],
+            check=True, stderr=subprocess.DEVNULL,
+        )
+
+        def read_f32(p: Path) -> np.ndarray:
+            with wave.open(str(p), "rb") as w:
+                return np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
+
+        xr = read_f32(tmp_ref_wav)
+        xo = read_f32(tmp_om_wav)
+        sr = 16000
+        n_fft = 1
+        while n_fft < (len(xr) + len(xo)):
+            n_fft <<= 1
+        cc = np.fft.irfft(np.fft.rfft(xo, n_fft) * np.conj(np.fft.rfft(xr, n_fft)))
+        cc_norm = cc / (np.linalg.norm(xr) * np.linalg.norm(xo) + 1e-8)
+        # Search realistic Flow lead-in window [-0.2s .. +0.8s]
+        max_pos = min(n_fft // 2, int(0.8 * sr))
+        max_neg = min(n_fft // 2, int(0.2 * sr))
+        pos_best = int(np.argmax(cc_norm[:max_pos]))
+        neg_best = n_fft - max_neg + int(np.argmax(cc_norm[n_fft - max_neg:]))
+        if cc_norm[pos_best] >= cc_norm[neg_best]:
+            lag_samples = pos_best
+            corr = float(cc_norm[pos_best])
+        else:
+            lag_samples = neg_best - n_fft
+            corr = float(cc_norm[neg_best])
+
+        lag_s = max(0.0, lag_samples / float(sr))
+        target_dur = float(args.duration) if args.duration else (len(xr) / float(sr))
+        fps = 30
+        target_frames = int(round(target_dur * fps))
+
+        vf = (
+            f"trim=start={lag_s:.4f},setpts=PTS-STARTPTS,"
+            f"fps={fps},scale=1080:1920,"
+            f"tpad=stop_mode=clone:stop_duration=0.6,trim=end_frame={target_frames}"
+        )
+        subprocess.run([
+            "ffmpeg", "-nostdin", "-y",
+            "-i", str(omni_p),
+            "-t", f"{target_dur:.4f}", "-i", str(ref_p),
+            "-filter_complex", f"[0:v]{vf}[vout]",
+            "-map", "[vout]", "-map", "1:a:0",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "16", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-shortest",
+            str(out_p),
+        ], check=True, stderr=subprocess.DEVNULL)
+
+        pf = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", str(out_p)],
+            capture_output=True, text=True, check=True,
+        )
+        got_frames = int(pf.stdout.strip())
+        res = {
+            "ok": got_frames == target_frames,
+            "out": str(out_p),
+            "lag_ms": round(lag_s * 1000.0, 1),
+            "waveform_corr": round(corr, 4),
+            "frames": got_frames,
+            "expected_frames": target_frames,
+        }
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+        return 0 if res["ok"] else 1
+    finally:
+        tmp_ref_wav.unlink(missing_ok=True)
+        tmp_om_wav.unlink(missing_ok=True)
+
+
 def cmd_verify_cut(args: argparse.Namespace) -> int:
     vid = Path(args.video)
     aud = Path(args.audio)
@@ -374,6 +463,12 @@ def main() -> int:
     p_syn.add_argument("--lip", action="append", required=True)
     p_syn.add_argument("--out-dir", required=True)
 
+    p_som = sub.add_parser("sync-omni")
+    p_som.add_argument("--omni", required=True)
+    p_som.add_argument("--ref", required=True)
+    p_som.add_argument("--out", required=True)
+    p_som.add_argument("--duration", type=float)
+
     p_ver = sub.add_parser("verify-cut")
     p_ver.add_argument("--video", required=True)
     p_ver.add_argument("--audio", required=True)
@@ -388,6 +483,8 @@ def main() -> int:
         return cmd_chunks(args)
     if args.cmd == "sync-lip":
         return cmd_sync_lip(args)
+    if args.cmd == "sync-omni":
+        return cmd_sync_omni(args)
     return cmd_verify_cut(args)
 
 

@@ -106,9 +106,24 @@ nodes:
     gate: All 3 avatar clips in sync with zero dead-air waste.
     blockers: [credit, key, upstream, money]
 
+  - id: omni12_restyle
+    name: Omni 1.2 1080p restyle
+    does: Upgrades the 3 x 15s lipsync clips via Google Flow Omni 1.2 Flash into 1080p winter knit sweater & sharp studio.
+    phase: gen
+    kind: api
+    after: [lipsync]
+    tool: tools/flow_shoot_card.py
+    provider: google-flow
+    output: AI Drafts/omni_lip1_1080p.mp4, omni_lip2_1080p.mp4, omni_lip3_1080p.mp4
+    verify: {cmd: "python tools/mypasakon_audio_trim.py sync-omni --omni <shot.mp4> --ref <lip.mp4> --out <omni_sync.mp4>"}
+    gate: 1080x1920 winter knit sweater & studio clarity with 0ms FFT-locked mouth sync and intact face.
+    blockers: [credit, login, money, upstream]
+    measured:
+      - {date: "2026-11-26", cost_usd: 0, minutes: 2.5, source: RUN-20261126-1015-8e87}
+
   - id: broll_footage
     name: Screen and Flow B-roll
-    does: Preps real app/chart screen captures (dark-converted if white) plus optional Flow Omni 1.2 neon B-roll.
+    does: Preps real app/chart screen captures (Smart-Zoom 1:1 establish -> center zoom) plus optional Flow neon B-roll.
     phase: gen
     kind: agent
     after: [gate1_audio]
@@ -125,7 +140,7 @@ nodes:
     does: Cuts the full 1080x1920 30fps episode in @mypasakon viral style + BL V7.8 GSAP motion, SFX and -24dB BGM.
     phase: edit
     kind: agent
-    after: [lipsync, broll_footage]
+    after: [omni12_restyle, broll_footage]
     role: video_editor
     skill: CMO_Procedure_MYPASAKON_Cut
     stage: agent
