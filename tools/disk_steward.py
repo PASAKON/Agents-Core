@@ -147,6 +147,10 @@ def live_cwds():
                 continue
 
 
+class ProtectedPath(ValueError):
+    """Permanent safety exclusion; requires human review before retrying."""
+
+
 def guard_path(path, *, cwds=None, in_use_image=False):
     """Reject secrets, login state, Docker data, and live cwd ancestors.
 
@@ -162,19 +166,19 @@ def guard_path(path, *, cwds=None, in_use_image=False):
                  'hosts.yml', '.ssh', 'auth.json', 'acme.json'}
     if in_use_image or any(part in protected or any(s in part for s in ('oauth', 'credential', 'token', 'secret', 'winbox-keys'))
                            or part == '.env' or part.endswith(('.pem', '.key', '.env')) for part in parts):
-        raise ValueError(f'NEVER: {path}')
+        raise ProtectedPath(f'NEVER: {path}')
     for index, part in enumerate(parts):
         if part != 'archive':
             continue
         archive_parts = parts[index + 1:]
         if any(p.startswith(('mac-secrets', 'winbox-keys', 'agents-core-presync')) for p in archive_parts):
-            raise ValueError(f'NEVER: {path}')
+            raise ProtectedPath(f'NEVER: {path}')
         if archive_parts and archive_parts[0] == 'mooniex-vps' and any(
                 p.startswith(('.env', 'id_')) or p in {'traefik_data', 'acme.json'}
                 for p in archive_parts[1:]):
-            raise ValueError(f'NEVER: {path}')
+            raise ProtectedPath(f'NEVER: {path}')
     if 'tmp/claude-0' in text or 'docker/volumes' in text or 'docker/image' in text or 'docker/overlay2' in text:
-        raise ValueError(f'NEVER: {path}')
+        raise ProtectedPath(f'NEVER: {path}')
     for cwd in live_cwds() if cwds is None else cwds:
         c = PureWindowsPath(cwd) if windows else Path(cwd).resolve()
         if c == p or p in c.parents:
@@ -235,6 +239,15 @@ def run_action(action, host, band, dry_run=False):
                **action, status='planned', rc=None, bytes_before=before, bytes_after=before)
     result = None
     try:
+        blocked_file = STATE / f'blocked-closes-{host}.json'
+        close_key = None
+        if action['name'] == 'close' and action.get('guard_tree') and len(action.get('paths', [])) == 1:
+            close_key = str(Path(action['paths'][0]).absolute())
+            blocked = json.loads(blocked_file.read_text()) if blocked_file.exists() else {}
+            if close_key in blocked:
+                # A successful disposition, not a successful archive. The original
+                # skipped row remains in the ledger and the persistent block file.
+                return subprocess.CompletedProcess(action.get('argv', []), 0)
         if action.get('skip'):
             row.update(status='skipped', reason=action['skip'])
             record(row, dry_run)
@@ -251,6 +264,19 @@ def run_action(action, host, band, dry_run=False):
             row.update(status='run', rc=result.returncode)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         row.update(status='refused', rc=1, error=str(exc))
+        if isinstance(exc, ProtectedPath) and close_key and not dry_run:
+            row.update(status='skipped', rc=None,
+                       reason='protected data; human review required before clearing block')
+            blocked[close_key] = dict(ts=row['ts'], error=str(exc), reason=row['reason'])
+            try:
+                STATE.mkdir(parents=True, exist_ok=True)
+                temp = blocked_file.with_suffix('.tmp')
+                temp.write_text(json.dumps(blocked), encoding='utf-8')
+                temp.replace(blocked_file)
+            except OSError as persist_error:
+                row.update(status='refused', rc=1, error=str(persist_error))
+            else:
+                result = subprocess.CompletedProcess(action.get('argv', []), 0)
     row['bytes_after'] = shutil.disk_usage(Path.cwd()).free
     record(row, dry_run)
     return result

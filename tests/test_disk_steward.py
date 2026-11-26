@@ -123,6 +123,29 @@ def test_dry_run_never_runs(monkeypatch, tmp_path, capsys, free, extra):
     assert not ds.STATE.exists()
 
 
+@pytest.mark.parametrize('failure', ['live', 'subprocess', 'persist', 'dry'])
+def test_close_block_only_handles_persistent_data(monkeypatch, tmp_path, failure):
+    monkeypatch.setattr(ds, 'STATE', tmp_path / 'state')
+    folder = tmp_path / 'Work/task-123'
+    folder.mkdir(parents=True)
+    monkeypatch.setattr(ds, 'live_cwds', lambda: [folder] if failure == 'live' else [])
+    if failure in ('persist', 'dry'):
+        (folder / 'Local State').write_text('dummy')
+    if failure == 'persist':
+        ds.STATE.write_text('not a directory')
+    run = Mock(return_value=SimpleNamespace(returncode=7, stdout='', stderr='dummy failure'))
+    monkeypatch.setattr(ds.subprocess, 'run', run)
+    rows = []
+    monkeypatch.setattr(ds, 'record', lambda row, dry_run=False: rows.append(row))
+    result = ds.run_action(dict(name='close', argv=['unused'], paths=[str(folder)], guard_tree=True),
+                           'contabo', 'orange', dry_run=failure == 'dry')
+    assert result is None or result.returncode == 7
+    assert not (ds.STATE / 'blocked-closes-contabo.json').exists()
+    if failure != 'subprocess':
+        run.assert_not_called()
+        assert rows[0]['status'] == 'refused'
+
+
 def test_daily_stamps_and_orphan_close(monkeypatch, tmp_path):
     from tools import remote_maintenance
     monkeypatch.setattr(remote_maintenance, 'hub_reap', lambda **kw: 0)
@@ -174,3 +197,54 @@ def test_letter_dedupe_reuses_delivery(monkeypatch, tmp_path):
     ds.letters('contabo','red','2026-10-28',stamps,False)
     assert send.call_count == 3
     assert all(c.args[0] != 'ceo' for c in send.call_args_list)
+
+
+@pytest.mark.parametrize('relative', [
+    'tmp/run-shoot-h4rgNr/Local State',
+    'tmp/pytest-of-root/pytest-2/test_login_pty_join_and_forwar2/.gemini/antigravity-cli/antigravity-oauth-token',
+])
+def test_protected_close_is_persistently_skipped(monkeypatch, tmp_path, relative):
+    monkeypatch.setattr(ds, 'STATE', tmp_path / 'state')
+    monkeypatch.setattr(ds, 'live_cwds', lambda: [])
+    folder = tmp_path / 'Work/task-123'
+    protected = folder / relative
+    protected.parent.mkdir(parents=True)
+    protected.write_text('dummy fixture')
+    run = Mock(side_effect=AssertionError('must not close protected data'))
+    monkeypatch.setattr(ds.subprocess, 'run', run)
+    action = dict(name='close', argv=['unused'], paths=[str(folder)], guard_tree=True)
+    first = ds.run_action(action, 'contabo', 'orange')
+    assert first is not None and first.returncode == 0
+    ledger = (ds.STATE / 'steward.jsonl').read_text()
+    row = json.loads(ledger)
+    assert row['status'] == 'skipped' and row['rc'] is None
+    assert row['error'] == f'NEVER: {protected}'
+    blocked = json.loads((ds.STATE / 'blocked-closes-contabo.json').read_text())
+    assert str(folder) in blocked
+    monkeypatch.setattr(ds.os, 'walk', Mock(side_effect=AssertionError('already blocked')))
+    assert ds.run_action(action, 'contabo', 'orange').returncode == 0
+    assert (ds.STATE / 'steward.jsonl').read_text() == ledger
+    assert protected.read_text() == 'dummy fixture'
+    run.assert_not_called()
+
+
+def test_blocked_orphan_does_not_fail_tick(monkeypatch, tmp_path):
+    from tools import remote_maintenance
+    monkeypatch.setattr(ds, 'STATE', tmp_path / 'state')
+    monkeypatch.setenv('ORG_DB_URL', 'unused-test-only')
+    monkeypatch.setattr(ds.policy, 'host_key', lambda host=None: 'contabo')
+    monkeypatch.setattr(ds, 'machine', lambda _: {'hq': str(tmp_path)})
+    monkeypatch.setattr(ds, 'live_cwds', lambda: [])
+    monkeypatch.setattr(ds, 'plan', lambda _: [dict(name='orphans', argv=['orphans'], daily=True)])
+    monkeypatch.setattr(ds, 'letters', lambda *args: None)
+    monkeypatch.setattr(ds, 'm4_report', lambda **kwargs: 0)
+    monkeypatch.setattr(ds, 'push_tick', lambda *args: None)
+    monkeypatch.setattr(remote_maintenance, 'hub_reap', lambda **kwargs: 0)
+    folder = tmp_path / 'Work/task-123'
+    folder.mkdir(parents=True)
+    (folder / 'Local State').write_text('dummy')
+    run = Mock(return_value=SimpleNamespace(returncode=0, stdout='[{"task":"task-123"}]'))
+    monkeypatch.setattr(ds.subprocess, 'run', run)
+    assert ds.tick('contabo') == 0
+    assert 'orphans' in json.loads((ds.STATE / 'contabo.json').read_text())
+    assert run.call_count == 1
