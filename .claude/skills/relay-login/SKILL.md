@@ -31,6 +31,20 @@ into a relay Chrome was refused by the auto-mode classifier as a bypass
 (cto-3156a56c, 2026-09-27). Those go through `ALL_Protocol_RunInbox`
 (`--expects-input`); on the Mac or winbox before its P2, its §Hosts route.
 
+## HARD rule — reuse the signed-in browser; never ask for a new login while one exists (CEO 2026-11-26)
+
+CEO, 26 Nov 2026 (O-20261126-1955-9b90): "ใช้เป็นมาตรฐานสำหรับทุก การใช้งาน Relay ใช้งาน ใน Broser ที่มีการ Login
+ค้างไว้อยู่แล้วห้าม ขอมาใหม่ แล้ว ทำคิว ไว้". Every role, every machine, every site.
+1. Run `relay-inventory.mjs --site <site>` first. An account that is signed in anywhere is used THERE: take its
+   lock (`tools/home_lock.py acquire home:<host>:<port>`), do the job, release. Busy → wait your turn for that
+   lock; never open a second Chrome, profile or login for the same account.
+2. A new login request is allowed only when the inventory shows the account's own canonical home **signed OUT**
+   (verified on the site's own page, §1), and it is opened in that same home, never a new profile.
+3. One account = one Browser Home. TikTok revokes sessions when one account signs in from several profiles
+   ("Maximum of Signin"), so a second login costs the first one.
+**Why hard:** the CEO's time (each login is his tap, 2FA or QR) and the accounts themselves (TikTok drops the
+existing session).
+
 ## Rule — open the request, never ask to open it (CEO 2026-10-02)
 
 A login the session needs → open the relay request **now** (§1/§2), then one chat line: machine:port,
