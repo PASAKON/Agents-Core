@@ -8,6 +8,16 @@ push:
   critical_reserve: null           # TBD: slots kept for critical announcements (null -> 0, flagged)
 quota_reset:
   timezone: null                   # TBD: reset boundary unverified; month key uses this tz or UTC
-browser_sender:                    # S2 only, not read by S1
-  hourly_ceiling: null
-  daily_ceiling: null
+browser_sender:                    # S2 OA Manager browser sender (docs/design/mooniex-care.md §4)
+  enabled: true                    # runtime kill switch in care_state ('care_sender_enabled') overrides when 'false'
+  cdp_port: null                   # TBD (design §4.2, §5): null placeholder; no live browser in offline S2
+  channel_display_name: "MoonieX Officials"
+  channel_name: "@mooniex"
+  channel_basic_id: "@587kfqpt"
+  hourly_ceiling: null             # TBD (design §4.6, §5): null placeholder
+  daily_ceiling: null              # TBD (design §4.6, §5): null placeholder
+  pacing:
+    pre_open_seconds: [0.25, 0.75]
+    per_char_seconds: [0.018, 0.045]
+    min_stage_seconds: [0.30, 0.90]
+    cooldown_seconds: [1.20, 2.80]
