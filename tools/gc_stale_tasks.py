@@ -224,6 +224,30 @@ def _alive_for_gc(t: dict) -> bool | None:
     return remote_pid_alive(host_cfg, pid)
 
 
+def _tell_owner(t: dict, why: str) -> None:
+    """Letter the task's owner when gc cancels a row it never ran (COO 2026-11-26).
+
+    Three MoonieX Care tasks died silently in one day: a delegate refusal
+    (path collision, IRON 59 rule 7) sat in delegate_log, nobody read it,
+    and gc cancelled the row. The owner now hears the reason at once.
+    Best effort: a mailbox failure never blocks the sweep.
+    """
+    owner = t.get("owner_cto")
+    if not owner:
+        return
+    reason = (t.get("delegate_log") or "").strip().splitlines()
+    last = reason[-1][:300] if reason else "no delegate_log"
+    body = (f"gc cancelled {t['id']} ({(t.get('title') or '')[:60]}): {why}. "
+            f"Last delegate_log: {last}. Re-create the row and delegate_task "
+            "in the same step, then check it reads in_progress.")
+    try:
+        from lib import mailbox
+        mailbox.send(t.get("owner_role") or "cto", owner, body, "system", "gc",
+                     kind="blocker")
+    except Exception as exc:  # pragma: no cover - best effort
+        print(f"[gc] could not letter owner of {t['id']}: {exc}", file=sys.stderr)
+
+
 def gc_stale_tasks(
     *,
     pending_minutes: int = STALE_PENDING_MINUTES,
@@ -288,6 +312,7 @@ def gc_stale_tasks(
                 t["id"], "cancelled", actor="gc_stale_tasks",
                 report=f"gc: stale pending >{pending_minutes}min without assignment",
             )
+            _tell_owner(t, f"pending >{pending_minutes} min, never delegated")
             entry["locks_released"] = db.release_task_locks(t["id"], t["project"])
         entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
         cancelled.append(entry)
@@ -363,6 +388,7 @@ def gc_stale_tasks(
                 t["id"], "cancelled", actor="gc_stale_tasks",
                 report=f"gc: stale conflict >{conflict_minutes}min, caller gave up",
             )
+            _tell_owner(t, f"conflict >{conflict_minutes} min, delegate refused")
             entry["locks_released"] = db.release_task_locks(t["id"], t["project"])
         entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
         cancelled.append(entry)
