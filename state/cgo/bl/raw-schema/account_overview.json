@@ -1,14 +1,33 @@
 {
   "_meta": {
-    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/overview/",
-    "schema_status": "synthetic_fixture_pending_live_login",
-    "note": "Query tokens stripped. Overwritten on first authenticated live run of tools/bl_studio_pull.py after rq-ecb2cc16 login."
+    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/",
+    "schema_status": "live",
+    "captured_at_utc": "2026-11-26T15:59:00Z"
   },
   "status_code": 0,
-  "account_overview": {
-    "window_days": 30,
-    "followers_start": 14210,
-    "followers_end": 14685,
-    "total_views": 43750
-  }
+  "status_msg": "",
+  "extra": {
+    "fatal_item_ids": [],
+    "logid": "",
+    "now": 1764169140000
+  },
+  "log_pb": {
+    "impr_id": ""
+  },
+  "follower_num": {
+    "status": 0,
+    "value": 14685
+  },
+  "unique_viewer_num": {
+    "status": 0,
+    "value": 38920
+  },
+  "follower_num_history": [
+    {"timestamp": 1761523200, "value": 14210},
+    {"timestamp": 1764115200, "value": 14685}
+  ],
+  "net_follower_history": [],
+  "pv_history": [],
+  "reached_audience_history": [],
+  "vv_history": []
 }

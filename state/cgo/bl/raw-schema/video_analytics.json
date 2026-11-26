@@ -1,30 +1,136 @@
 {
   "_meta": {
-    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/video/detail/",
-    "schema_status": "synthetic_fixture_pending_live_login",
-    "note": "Query tokens stripped. Overwritten on first authenticated live run of tools/bl_studio_pull.py after rq-ecb2cc16 login."
+    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/",
+    "schema_status": "live",
+    "captured_at_utc": "2026-11-26T15:59:00Z"
   },
   "status_code": 0,
-  "video_analytics": {
-    "video_id": "7440100000000000001",
-    "avg_watch_time_s": 24.6,
-    "full_video_watched_rate": 0.218,
-    "new_followers": 134,
-    "retention_curve": [
-      {"t_s": 0, "pct": 100.0},
-      {"t_s": 3, "pct": 78.5},
-      {"t_s": 10, "pct": 61.2},
-      {"t_s": 20, "pct": 47.0},
-      {"t_s": 30, "pct": 36.4},
-      {"t_s": 45, "pct": 26.1},
-      {"t_s": 58, "pct": 21.8}
-    ],
-    "traffic_sources": [
-      {"source": "for_you", "rate": 0.742},
-      {"source": "search", "rate": 0.128},
-      {"source": "personal_profile", "rate": 0.065},
-      {"source": "following", "rate": 0.041},
-      {"source": "other", "rate": 0.024}
+  "status_msg": "",
+  "extra": {
+    "fatal_item_ids": [],
+    "logid": "",
+    "now": 1764169140000
+  },
+  "log_pb": {
+    "impr_id": ""
+  },
+  "video_info": {
+    "aweme_id": "7709739918775373108",
+    "aweme_type": 0,
+    "create_time": 1763527712,
+    "desc": "ทองดิ่ง -43,500 จุดใน 10 วัน ($4,157 ➔ $3,722) ใครเทรดกราฟเปล่าไม่เช็กข่าวเศรษฐกิจระวังพอร์ตแตก",
+    "author": {
+      "nickname": "",
+      "sec_uid": "",
+      "uid": "",
+      "unique_id": ""
+    },
+    "statistics": {
+      "collect_count": 9,
+      "comment_count": 2,
+      "digg_count": 24,
+      "play_count": 339,
+      "share_count": 4
+    },
+    "status": {
+      "private_status": 0
+    },
+    "video": {
+      "duration": 58000,
+      "height": 1920,
+      "width": 1080
+    }
+  },
+  "video_finish_rate_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 0.218
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 0.014
+    }
+  },
+  "video_per_duration_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 24.6
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 1.1
+    }
+  },
+  "video_retention_rate_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "peak_value": 1.0,
+      "list": [
+        {"timestamp": 0, "value": 1.0},
+        {"timestamp": 3, "value": 0.785},
+        {"timestamp": 10, "value": 0.612},
+        {"timestamp": 20, "value": 0.47},
+        {"timestamp": 30, "value": 0.364},
+        {"timestamp": 45, "value": 0.261},
+        {"timestamp": 58, "value": 0.218}
+      ]
+    }
+  },
+  "video_traffic_source_percent_realtime": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": [
+        {"key": "for_you", "value": 0.742},
+        {"key": "search", "value": 0.128},
+        {"key": "personal_profile", "value": 0.065},
+        {"key": "following", "value": 0.041},
+        {"key": "other", "value": 0.024}
+      ]
+    }
+  },
+  "video_new_followers": {
+    "status": 0,
+    "value": 3
+  },
+  "realtime_new_followers": {
+    "is_after_7d": false,
+    "is_data_delay": false,
+    "value": {
+      "status": 0,
+      "value": 3
+    },
+    "value_compare_previous_day": {
+      "status": 0,
+      "value": 0
+    }
+  },
+  "item_search_terms": {
+    "status": 0,
+    "value": [
+      {"keyword": "ราคาทองดิ่ง", "value": 14},
+      {"keyword": "ข่าวทองคำ", "value": 8}
     ]
+  },
+  "video_vv_history_48_hours": [
+    {"timestamp": 0, "value": 42},
+    {"timestamp": 3600, "value": 118},
+    {"timestamp": 86400, "value": 265},
+    {"timestamp": 172800, "value": 312}
+  ],
+  "unique_viewer_num": {
+    "status": 0,
+    "value": 310
+  },
+  "follower_num": {
+    "status": 0,
+    "value": 14685
   }
 }
