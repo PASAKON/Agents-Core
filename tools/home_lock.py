@@ -5,15 +5,16 @@ Before you use a Chrome that the login inventory found (Console
 take its lock. Release it when you are done. A lock that nobody renews ends on
 its TTL.
 
-    python3 tools/home_lock.py acquire home:winbox:9224 [--owner cto-xxxx] [--ttl 1800] [--purpose "images"]
+    python3 tools/home_lock.py acquire home:winbox:9224 [--owner cto-xxxx] [--ttl 1800] [--purpose "images"] [--wait 300]
     python3 tools/home_lock.py renew   home:winbox:9224 [--owner …] [--ttl 1800]
     python3 tools/home_lock.py release home:winbox:9224 [--owner …]
+    python3 tools/home_lock.py queue   home:winbox:9224 [--json]
     python3 tools/home_lock.py list
 
     from tools.home_lock import home_lock
-    with home_lock("home:winbox:9224", purpose="ChatGPT images") as lock:
+    with home_lock("home:winbox:9224", purpose="ChatGPT images", wait_s=300) as lock:
         ...              # lock.renew() on a long job
-                         # HomeLockHeld if another owner has it
+                         # HomeLockHeld if another owner has it (or wait_s times out)
 
 Key format: `home:<host>:<port>`. The host is the hub `hosts` name (contabo,
 mac, winbox) and the port is the Chrome's CDP port on that host. The owner is a
@@ -44,10 +45,14 @@ stdlib only.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
+import random
 import re
 import sys
+import threading
+import time
 import urllib.error
 import urllib.request
 from contextlib import contextmanager
@@ -67,17 +72,62 @@ TTL_DEFAULT_S = 1800
 TTL_MIN_S, TTL_MAX_S = 60, 6 * 3600
 LOCKS_PATH = "/api/relay/locks"
 EXIT_OK, EXIT_HELD, EXIT_HUB = 0, 2, 3
+QUEUE_DIR = ROOT / "state" / "home-queue"
+HEARTBEAT_TTL_S = 120.0
+POLL_MIN_S, POLL_MAX_S = 10.0, 15.0
+_THREAD_LOCK = threading.Lock()
 
 HubError = ask_run.HubError
+
+
+def _clock() -> float:
+    return time.time()
+
+
+def _sleep(seconds: float) -> None:
+    time.sleep(seconds)
+
+
+def _poll_delay() -> float:
+    return random.uniform(POLL_MIN_S, POLL_MAX_S)
+
+
+def _owner_alive(owner: str) -> bool:
+    return bool(owner)
+
+
+def _pid_alive(pid: int) -> bool:
+    if not isinstance(pid, int) or pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    stat_path = Path(f"/proc/{pid}/stat")
+    if stat_path.exists():
+        try:
+            raw = stat_path.read_text(encoding="utf-8", errors="ignore")
+            rparen = raw.rfind(")")
+            if rparen != -1 and raw[rparen + 1:].lstrip().startswith("Z"):
+                return False
+        except OSError:
+            pass
+    return True
 
 
 class HomeLockHeld(Exception):
     """Another owner holds the lock and it has not expired."""
 
-    def __init__(self, key: str, holder: dict):
-        self.key, self.holder = key, holder
-        super().__init__(f"{key} is held by {holder.get('owner', '?')} until {holder.get('expiresAt', '?')}"
-                         + (f" ({holder['purpose']})" if holder.get("purpose") else ""))
+    def __init__(self, key: str, holder: dict, message: str | None = None, position: int | None = None):
+        self.key, self.holder, self.position = key, holder, position
+        if message is None:
+            message = (f"{key} is held by {holder.get('owner', '?')} until {holder.get('expiresAt', '?')}"
+                       + (f" ({holder['purpose']})" if holder.get("purpose") else ""))
+        super().__init__(message)
 
 
 def default_owner(env: dict | None = None) -> str:
@@ -95,13 +145,154 @@ def default_owner(env: dict | None = None) -> str:
     return sid if not role or sid.startswith(role + "-") else f"{role}-{sid}"
 
 
-def _check(key: str, owner: str, ttl: int | None = None) -> None:
+def _check_key(key: str) -> None:
     if not KEY_RE.match(key or "") or not 1 <= int(key.rsplit(":", 1)[1]) <= 65535:
         raise ValueError("key must be home:<host>:<port>, e.g. home:winbox:9224")
+
+
+def _check(key: str, owner: str, ttl: int | None = None, wait_s: float | None = None) -> None:
+    _check_key(key)
     if not OWNER_RE.match(owner or ""):
         raise ValueError("owner must be a session or task id (pass --owner, or run inside a session)")
     if ttl is not None and not (TTL_MIN_S <= ttl <= TTL_MAX_S):
         raise ValueError(f"ttl must be {TTL_MIN_S}-{TTL_MAX_S} seconds")
+    if wait_s is not None and wait_s < 0:
+        raise ValueError("wait must be >= 0 seconds")
+
+
+def _key_safe(key: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]", "_", key)
+
+
+def _queue_path(key: str) -> Path:
+    return QUEUE_DIR / f"{_key_safe(key)}.jsonl"
+
+
+def _ticket_alive(ticket: dict, now: float) -> bool:
+    owner = ticket.get("owner")
+    if not owner or not _owner_alive(owner):
+        return False
+    try:
+        hb = float(ticket["heartbeat"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    if now - hb > HEARTBEAT_TTL_S:
+        return False
+    pid = ticket.get("pid")
+    if pid is not None:
+        try:
+            if not _pid_alive(int(pid)):
+                return False
+        except (TypeError, ValueError):
+            return False
+    return True
+
+
+@contextmanager
+def _locked_queue_file(key: str) -> Iterator[list[dict]]:
+    path = _queue_path(key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with _THREAD_LOCK:
+        with open(path, "a+", encoding="utf-8") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            try:
+                f.seek(0)
+                tickets: list[dict] = []
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        row = json.loads(line)
+                        if isinstance(row, dict):
+                            tickets.append(row)
+                    except ValueError:
+                        continue
+                yield tickets
+                f.seek(0)
+                f.truncate(0)
+                for row in tickets:
+                    f.write(json.dumps(row, separators=(",", ":")) + "\n")
+                f.flush()
+            finally:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+
+def _enqueue_or_touch(
+    key: str,
+    owner: str,
+    purpose: str = "",
+    now: float | None = None,
+    pid: int | None = None,
+) -> tuple[int, list[dict]]:
+    now = _clock() if now is None else now
+    pid = os.getpid() if pid is None else pid
+    with _locked_queue_file(key) as tickets:
+        alive = [t for t in tickets if _ticket_alive(t, now)]
+        pos = 0
+        for idx, t in enumerate(alive, 1):
+            if t.get("owner") == owner:
+                t["heartbeat"] = now
+                t["pid"] = pid
+                if purpose:
+                    t["purpose"] = purpose
+                pos = idx
+                break
+        if pos == 0:
+            alive.append({
+                "key": key,
+                "owner": owner,
+                "pid": pid,
+                "purpose": purpose,
+                "enqueuedAt": now,
+                "heartbeat": now,
+            })
+            pos = len(alive)
+        tickets[:] = alive
+        return pos, [dict(t) for t in alive]
+
+
+def _dequeue(key: str, owner: str, now: float | None = None) -> None:
+    now = _clock() if now is None else now
+    path = _queue_path(key)
+    if not path.exists():
+        return
+    with _locked_queue_file(key) as tickets:
+        tickets[:] = [
+            t for t in tickets
+            if t.get("owner") != owner and _ticket_alive(t, now)
+        ]
+
+
+def _read_queue(key: str, now: float | None = None) -> list[dict]:
+    now = _clock() if now is None else now
+    path = _queue_path(key)
+    if not path.exists():
+        return []
+    with _locked_queue_file(key) as tickets:
+        alive = [t for t in tickets if _ticket_alive(t, now)]
+        tickets[:] = alive
+        return [dict(t) for t in alive]
+
+
+def _is_expired(expires_at: Any, now: float) -> bool:
+    if expires_at is None or expires_at == "":
+        return False
+    if isinstance(expires_at, (int, float)):
+        return float(expires_at) <= now
+    if isinstance(expires_at, str):
+        try:
+            return float(expires_at) <= now
+        except ValueError:
+            pass
+        try:
+            dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.timestamp() <= now
+        except ValueError:
+            return False
+    return False
 
 
 def _transport(method: str, op: str, body: dict | None = None) -> tuple[int, dict]:
@@ -179,10 +370,7 @@ def _not_front_door(body: dict) -> HubError | None:
     return None
 
 
-def acquire(key: str, owner: str | None = None, ttl: int = TTL_DEFAULT_S, purpose: str = "") -> dict:
-    """Take the lock (or renew your own). Returns the lock; raises HomeLockHeld."""
-    owner = owner or default_owner()
-    _check(key, owner, ttl)
+def _acquire_once(key: str, owner: str, ttl: int = TTL_DEFAULT_S, purpose: str = "") -> dict:
     status, body = _transport("POST", "acquire", {"key": key, "owner": owner, "ttl": ttl, "purpose": purpose})
     if status == 409:
         err = _not_front_door(body)
@@ -190,6 +378,101 @@ def acquire(key: str, owner: str | None = None, ttl: int = TTL_DEFAULT_S, purpos
             raise err
         raise HomeLockHeld(key, body.get("holder") or {})
     return body.get("lock") or {}
+
+
+def _current_holder(key: str, now: float | None = None) -> dict | None:
+    now = _clock() if now is None else now
+    for lk in list_locks():
+        if lk.get("key") == key:
+            if _is_expired(lk.get("expiresAt"), now):
+                return None
+            return lk
+    return None
+
+
+def _is_lock_free_or_expired(key: str, owner: str, now: float | None = None) -> tuple[bool, dict | None]:
+    holder = _current_holder(key, now)
+    if holder is None or holder.get("owner") == owner:
+        return True, holder
+    return False, holder
+
+
+def acquire(
+    key: str,
+    owner: str | None = None,
+    ttl: int = TTL_DEFAULT_S,
+    purpose: str = "",
+    wait_s: float = 0,
+) -> dict:
+    """Take the lock (or renew your own). With wait_s > 0, queue FIFO when held."""
+    owner = owner or default_owner()
+    _check(key, owner, ttl, wait_s)
+    if not wait_s:
+        return _acquire_once(key, owner, ttl, purpose)
+
+    start = _clock()
+    deadline = start + float(wait_s)
+    acquired = False
+    last_holder: dict = {}
+    pos, _ = _enqueue_or_touch(key, owner, purpose, start)
+    try:
+        if pos == 1:
+            try:
+                lock = _acquire_once(key, owner, ttl, purpose)
+                acquired = True
+                _dequeue(key, owner, start)
+                return lock
+            except HomeLockHeld as exc:
+                last_holder = exc.holder or {}
+        else:
+            holder = _current_holder(key, start)
+            if holder and holder.get("owner") == owner:
+                lock = _acquire_once(key, owner, ttl, purpose)
+                acquired = True
+                _dequeue(key, owner, start)
+                return lock
+            if holder:
+                last_holder = holder
+
+        while True:
+            now = _clock()
+            remaining = deadline - now
+            if remaining <= 0:
+                pos, tickets = _enqueue_or_touch(key, owner, purpose, now)
+                holder = _current_holder(key, now) or last_holder
+                behind = holder.get("owner") if holder and holder.get("owner") != owner else None
+                if not behind:
+                    ahead = [t["owner"] for t in tickets if t.get("owner") and t.get("owner") != owner]
+                    behind = ahead[0] if ahead else (last_holder.get("owner") or "?")
+                raise HomeLockHeld(
+                    key,
+                    holder or {"owner": behind},
+                    message=f"{key}: still queued behind {behind}, position {pos}",
+                    position=pos,
+                )
+
+            sleep_s = min(remaining, _poll_delay())
+            _sleep(sleep_s)
+
+            now = _clock()
+            pos, _ = _enqueue_or_touch(key, owner, purpose, now)
+            if pos != 1:
+                continue
+            free, holder = _is_lock_free_or_expired(key, owner, now)
+            if holder:
+                last_holder = holder
+            if not free:
+                continue
+            try:
+                lock = _acquire_once(key, owner, ttl, purpose)
+                acquired = True
+                _dequeue(key, owner, now)
+                return lock
+            except HomeLockHeld as exc:
+                last_holder = exc.holder or last_holder
+    finally:
+        if not acquired:
+            _dequeue(key, owner)
 
 
 def renew(key: str, owner: str | None = None, ttl: int = TTL_DEFAULT_S) -> dict:
@@ -214,6 +497,30 @@ def list_locks() -> list[dict]:
     return list(body.get("locks") or [])
 
 
+def queue_status(key: str) -> dict:
+    """Return current holder and live FIFO waiters for key."""
+    _check_key(key)
+    now = _clock()
+    holder = _current_holder(key, now)
+    holder_owner = holder.get("owner") if holder else None
+    raw_waiters = _read_queue(key, now)
+    waiters: list[dict] = []
+    for t in raw_waiters:
+        if holder_owner and t.get("owner") == holder_owner:
+            continue
+        enq = float(t.get("enqueuedAt", now))
+        waiters.append({
+            "position": len(waiters) + 1,
+            "owner": t["owner"],
+            "purpose": t.get("purpose") or "",
+            "waited_s": max(0, int(now - enq)),
+            "pid": t.get("pid"),
+            "enqueuedAt": enq,
+            "heartbeat": float(t.get("heartbeat", now)),
+        })
+    return {"key": key, "holder": holder, "waiters": waiters}
+
+
 class _Held:
     def __init__(self, key: str, owner: str, ttl: int, lock: dict):
         self.key, self.owner, self.ttl, self.lock = key, owner, ttl, lock
@@ -224,10 +531,16 @@ class _Held:
 
 
 @contextmanager
-def home_lock(key: str, owner: str | None = None, ttl: int = TTL_DEFAULT_S, purpose: str = "") -> Iterator[_Held]:
+def home_lock(
+    key: str,
+    owner: str | None = None,
+    ttl: int = TTL_DEFAULT_S,
+    purpose: str = "",
+    wait_s: float = 0,
+) -> Iterator[_Held]:
     """Hold the lock for the block; release it on the way out, also on an error."""
     owner = owner or default_owner()
-    held = _Held(key, owner, ttl, acquire(key, owner, ttl, purpose))
+    held = _Held(key, owner, ttl, acquire(key, owner, ttl, purpose, wait_s=wait_s))
     try:
         yield held
     finally:
@@ -249,16 +562,42 @@ def main(argv: list[str] | None = None) -> int:
             s.add_argument("--ttl", type=int, default=TTL_DEFAULT_S)
         if verb == "acquire":
             s.add_argument("--purpose", default="")
+            s.add_argument("--wait", type=float, default=0)
+    q = sub.add_parser("queue")
+    q.add_argument("key")
+    q.add_argument("--json", action="store_true")
     sub.add_parser("list")
     sub.choices["list"].add_argument("--json", action="store_true")
     a = p.parse_args(argv)
     try:
         if a.verb in ("acquire", "renew"):
-            lock = acquire(a.key, a.owner or None, a.ttl, getattr(a, "purpose", ""))
+            lock = acquire(
+                a.key,
+                a.owner or None,
+                a.ttl,
+                getattr(a, "purpose", ""),
+                wait_s=getattr(a, "wait", 0) or 0,
+            )
             print(f"{lock.get('key', a.key)} held by {lock.get('owner')} until {lock.get('expiresAt')}")
         elif a.verb == "release":
             ok = release(a.key, a.owner or None)
             print(f"{a.key} released" if ok else f"{a.key} was not held by you (expired or someone else's)")
+        elif a.verb == "queue":
+            info = queue_status(a.key)
+            if a.json:
+                print(json.dumps(info, indent=2))
+            else:
+                h = info["holder"]
+                if h:
+                    p_str = f" ({h['purpose']})" if h.get("purpose") else ""
+                    print(f"holder: {h.get('owner', '?')} until {h.get('expiresAt', '?')}{p_str}")
+                else:
+                    print("holder: (none)")
+                if not info["waiters"]:
+                    print("waiters: (none)")
+                for w in info["waiters"]:
+                    p_str = f"  ({w['purpose']})" if w.get("purpose") else ""
+                    print(f"  {w['position']}. {w['owner']}  waited {w['waited_s']}s{p_str}")
         else:
             locks = list_locks()
             if a.json:
