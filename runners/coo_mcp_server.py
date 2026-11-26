@@ -327,7 +327,7 @@ def _serve() -> None:
                        recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
                        session: str = "", role: str = "", host: str = "", task: str = "",
                        dry_run: bool = False, questions: list[dict] | None = None,
-                       media: list[dict] | None = None, pick: str = "",
+                       media: list[dict] | None = None, pick: str = "", job: str = "",
                        what: str = "", does: str = "", impact: str = "") -> str:
         """Ask the CEO a question with 2-4 answers he taps on /run (a question card). Never for a
         command, money or a secret (that is ask_run). options: 2-4 one-line labels; recommended:
@@ -335,6 +335,7 @@ def _serve() -> None:
         options, recommended, free_text}, ...] (1-6). Pictures, videos or sounds to look at:
         media=[{path, caption?}, ...] (1-12 local files, shrunk before upload; needs ffmpeg) and
         pick="one"|"many" (required for 2 or more; then no options, the items are A, B, C ...).
+        job: optional stable key; replaces this requester's pending cards for that job.
         Returns {id, url, expires_at} (or a QG- group id); read the answer with ask_run_wait:
         that hub record is his decision. Not the same tool as mcp__sompong__ask_ceo
         (Telegram/LINE)."""
@@ -342,7 +343,7 @@ def _serve() -> None:
                                       recommended=recommended, free_text=free_text,
                                       expires_h=expires_h, session=session, role=role, host=host,
                                       task=task, dry_run=dry_run, questions=questions,
-                                      media=media, pick=pick, what=what, does=does, impact=impact)
+                                      media=media, pick=pick, job=job, what=what, does=does, impact=impact)
         return json.dumps(out, indent=2, ensure_ascii=False)
 
     @mcp.tool(name="ask_run_wait")

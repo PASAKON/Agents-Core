@@ -200,6 +200,7 @@ class _MediaHandler(_Handler):
 @pytest.fixture
 def mhub(monkeypatch):
     fake = FakeHub()
+    fake.on("GET", CREATE_PATH, (200, {"questions": []}))
     fake.count = 0                                          # type: ignore[attr-defined]
     fake.uploads = {}                                       # type: ignore[attr-defined]
     server = ThreadingHTTPServer(("127.0.0.1", 0), _MediaHandler)

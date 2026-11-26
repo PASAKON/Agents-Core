@@ -407,13 +407,13 @@ async def _h_ask_ceo(*, question: str = "", options: list[str] | None = None, wh
                      recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
                      session: str = "", role: str = "", host: str = "", task: str = "",
                      dry_run: bool = False, questions: list[dict] | None = None,
-                     media: list[dict] | None = None, pick: str = "",
+                     media: list[dict] | None = None, pick: str = "", job: str = "",
                      what: str = "", does: str = "", impact: str = "") -> str:
     arguments = {
         "question": question, "options": options, "why": why, "recommended": recommended,
         "free_text": free_text, "expires_h": expires_h, "session": session, "role": role,
         "host": host, "task": task, "dry_run": dry_run, "questions": questions,
-        "media": media, "pick": pick,
+        "media": media, "pick": pick, "job": job,
         "what": what, "does": does, "impact": impact,
     }
     result = await asyncio.to_thread(ask_run_tool.mcp_ask_ceo, arguments)
@@ -902,6 +902,8 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "decision; the mailbox letter is only a wake-up). dry_run=True "
             "returns the JSON body and sends nothing. Same code as "
             "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9). "
+            "job: optional stable key for one question; cancels this requester's pending "
+            "cards for that job before posting a replacement. "
             "Several questions at once: pass questions=[{question, why, options, "
             "recommended, free_text}, ...] (1-6) instead of question/options/why; "
             "they show together on /run, the CEO answers and sends once, and you "
@@ -923,7 +925,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             Param("expires_h", float, 24.0), Param("session", str, ""),
             Param("role", str, ""), Param("host", str, ""), Param("task", str, ""),
             Param("dry_run", bool, False), Param("questions", list[dict], None),
-            Param("media", list[dict], None), Param("pick", str, ""),
+            Param("media", list[dict], None), Param("pick", str, ""), Param("job", str, ""),
             Param("what", str, ""), Param("does", str, ""), Param("impact", str, ""),
         ),
         handler=_h_ask_ceo,
