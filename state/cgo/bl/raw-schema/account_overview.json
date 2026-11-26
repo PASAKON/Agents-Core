@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/overview/",
+    "schema_status": "synthetic_fixture_pending_live_login",
+    "note": "Query tokens stripped. Overwritten on first authenticated live run of tools/bl_studio_pull.py after rq-ecb2cc16 login."
+  },
+  "status_code": 0,
+  "account_overview": {
+    "window_days": 30,
+    "followers_start": 14210,
+    "followers_end": 14685,
+    "total_views": 43750
+  }
+}

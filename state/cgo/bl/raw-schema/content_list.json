@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/tiktok/v1/creator/item_list/",
+    "schema_status": "synthetic_fixture_pending_live_login",
+    "note": "Query tokens stripped. Overwritten on first authenticated live run of tools/bl_studio_pull.py after rq-ecb2cc16 login."
+  },
+  "status_code": 0,
+  "has_more": false,
+  "items": [
+    {
+      "item_id": "7440100000000000001",
+      "create_time": 1763956800,
+      "desc": "โบรกเกอร์เถื่อนอ้างใบอนุญาต ASIC ปลอม เช็คยังไงไม่ให้โดนหลอก ถอนเงินไม่ได้ #BLACKLIQUIDITY #โบรกเกอร์เถื่อน #Forexไทย",
+      "video": {
+        "duration": 58
+      },
+      "stats": {
+        "play_count": 28450,
+        "digg_count": 1920,
+        "comment_count": 64,
+        "share_count": 310,
+        "collect_count": 485
+      }
+    },
+    {
+      "item_id": "7438200000000000002",
+      "create_time": 1763352000,
+      "desc": "แชร์ลูกโซ่คริปโตสัญญาปันผลวันละ 3% ปิดเว็บหนีแล้ว ผู้เสียหายกว่า 400 ราย #BLACKLIQUIDITY #เตือนภัยการลงทุน",
+      "video": {
+        "duration": 72
+      },
+      "stats": {
+        "play_count": 15300,
+        "digg_count": 940,
+        "comment_count": 29,
+        "share_count": 145,
+        "collect_count": 210
+      }
+    },
+    {
+      "item_id": "7420500000000000003",
+      "create_time": 1759636800,
+      "desc": "คลิปเก่าเกิน 30 วัน: วิธีเช็คเลขทะเบียน FCA อังกฤษด้วยตัวเองใน 1 นาที #BLACKLIQUIDITY #สอนเทรด",
+      "video": {
+        "duration": 45
+      },
+      "stats": {
+        "play_count": 9200,
+        "digg_count": 510,
+        "comment_count": 11,
+        "share_count": 55,
+        "collect_count": 98
+      }
+    }
+  ]
+}

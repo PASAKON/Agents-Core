@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "endpoint_path": "https://www.tiktok.com/aweme/v2/data/insight/video/detail/",
+    "schema_status": "synthetic_fixture_pending_live_login",
+    "note": "Query tokens stripped. Overwritten on first authenticated live run of tools/bl_studio_pull.py after rq-ecb2cc16 login."
+  },
+  "status_code": 0,
+  "video_analytics": {
+    "video_id": "7440100000000000001",
+    "avg_watch_time_s": 24.6,
+    "full_video_watched_rate": 0.218,
+    "new_followers": 134,
+    "retention_curve": [
+      {"t_s": 0, "pct": 100.0},
+      {"t_s": 3, "pct": 78.5},
+      {"t_s": 10, "pct": 61.2},
+      {"t_s": 20, "pct": 47.0},
+      {"t_s": 30, "pct": 36.4},
+      {"t_s": 45, "pct": 26.1},
+      {"t_s": 58, "pct": 21.8}
+    ],
+    "traffic_sources": [
+      {"source": "for_you", "rate": 0.742},
+      {"source": "search", "rate": 0.128},
+      {"source": "personal_profile", "rate": 0.065},
+      {"source": "following", "rate": 0.041},
+      {"source": "other", "rate": 0.024}
+    ]
+  }
+}
