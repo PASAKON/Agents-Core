@@ -196,7 +196,7 @@ def test_three_waiters_get_lock_in_arrival_order(env, capsys):
     assert hl.queue_status(KEY)["waiters"] == []
 
 
-def test_dead_waiter_is_skipped(env):
+def test_dead_waiter_is_skipped(env, monkeypatch):
     hl.acquire(KEY, "holder-0", ttl=600)
 
     # Enqueue two waiters ahead of waiter-live:
@@ -213,11 +213,16 @@ def test_dead_waiter_is_skipped(env):
     # Schedule holder-0 to release on the first sleep tick
     real_sleep = env.sleep
 
+    released = []
+
     def release_then_sleep(seconds: float) -> None:
         real_sleep(seconds)
-        hl.release(KEY, "holder-0")
+        if not released:
+            hl.release(KEY, "holder-0")
+            released.append(True)
 
-    env.sleep = release_then_sleep  # type: ignore[method-assign]
+    # The fixture bound hl._sleep to env.sleep already; patch the module hook itself.
+    monkeypatch.setattr(hl, "_sleep", release_then_sleep)
     lock = hl.acquire(KEY, "waiter-live", ttl=300, purpose="live-job", wait_s=30)
     assert lock["owner"] == "waiter-live"
     assert hl.queue_status(KEY)["waiters"] == []
