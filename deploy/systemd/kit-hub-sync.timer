@@ -1,0 +1,10 @@
+[Unit]
+Description=Publish Contabo hub every two hours
+
+[Timer]
+OnCalendar=*-*-* 00/2:00:00
+Persistent=true
+Unit=kit-hub-sync.service
+
+[Install]
+WantedBy=timers.target
