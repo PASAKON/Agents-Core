@@ -2145,9 +2145,16 @@ def reconcile_question_job(payload: dict) -> dict:
     payload = dict(payload)
     job = payload.pop("job", None)
     marker = f"job: {job}" if job else None
-    response = _call("GET", QUESTIONS_PATH, query={"status": "pending", "limit": "200"})
+    try:
+        response = _call("GET", QUESTIONS_PATH, query={"status": "pending", "limit": "200"})
+    except HubError:
+        if job:
+            raise  # a replacement must not leave the old card live
+        return payload  # the lookup only feeds a warning: never block a question on it
     rows = response.get("questions") if isinstance(response, dict) else response
     if not isinstance(rows, list):
+        if not job:
+            return payload
         raise HubError("hub returned no pending question list")
     who = payload["requester"]
     pending = [q for q in rows if isinstance(q, dict) and q.get("status") == "pending"
