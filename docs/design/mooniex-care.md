@@ -230,6 +230,8 @@ This section defines the **care session + escalation** architecture from `docs/p
 2. **Immediate Ack (No Model, Free via Webhook `replyToken`):**
    - The first message in a quiet thread triggers an immediate fixed acknowledgement sent via the LINE webhook `replyToken` (`POST /v2/bot/message/reply`, 0 monthly quota consumed; sent immediately before the token expires):
      > `"ได้รับข้อความแล้วครับ แอดมินจะตอบภายใน 1 ชั่วโมง (เวลาทำการ 08:00–22:00 น.)"`
+   - **Outside hours (before `08:00` or after `22:00` TH):** the ack must not promise "within 1 hour". It uses the night text instead (CEO picked it on Q-20261126-1837-cdec, 26 Nov 18:53Z):
+     > `"ได้รับข้อความแล้วครับ แอดมินจะเริ่มตอบตั้งแต่ 08:00 น. นะครับ"`
    - Rate-limited to **once per thread per `N` quiet hours** (**TBD**), never once per message.
 3. **Hourly Round (`08-22 TH` / `08:00–22:00 TH`):**
    - A timer runs every hour on the hour from **`08:00` to `22:00` TH** (`Asia/Bangkok`). Messages arriving overnight after `22:00 TH` wait in `care_queue` for the `08:00 TH` round.
