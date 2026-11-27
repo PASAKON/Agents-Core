@@ -1,0 +1,48 @@
+# MoonieX Care Phase 1 (P1) configuration (docs/design/mooniex-care.md §6).
+# null = TBD (docs/design/mooniex-care.md §5, §6.8); never guess.
+role: "care"
+persona: "น้องมูน"
+persona_en: "Moon"
+model: "claude-sonnet-5-5"
+supervisor_role: "coo"
+supervisor_name: "SomPong"
+channel_basic_id: "@587kfqpt"
+channel_name: "@mooniex"
+channel_display_name: "MoonieX Officials"
+max_bubbles_per_call: 5
+lunar_cutover_only_after_care_live: true
+
+hours:
+  timezone: "Asia/Bangkok"
+  window: "08-22 TH"
+  start_hour: 8
+  end_hour: 22
+  start: "08:00"
+  end: "22:00"
+
+ack:
+  day_text: "ได้รับข้อความแล้วครับ แอดมินจะตอบภายใน 1 ชั่วโมง (เวลาทำการ 08:00–22:00 น.)"
+  in_hours_text: "ได้รับข้อความแล้วครับ แอดมินจะตอบภายใน 1 ชั่วโมง (เวลาทำการ 08:00–22:00 น.)"
+  night_text: "ได้รับข้อความแล้วครับ แอดมินจะเริ่มตอบตั้งแต่ 08:00 น. นะครับ"
+  outside_hours_text: "ได้รับข้อความแล้วครับ แอดมินจะเริ่มตอบตั้งแต่ 08:00 น. นะครับ"
+  holding_text: "ขอเช็คให้ก่อนนะครับ"
+  quiet_hours_window: null
+
+escalation:
+  target_role: "coo"
+  holding_text: "ขอเช็คให้ก่อนนะครับ"
+  ceo_card_ranked_choices: 3
+  bug_route: "care -> coo -> CTO"
+
+digest:
+  time_th: "21:00"
+  hour_th: 21
+  target_role: "coo"
+
+gate:
+  allowed_tools: ["reply", "skip", "history", "media", "escalate", "faq_read"]
+  forbidden_categories: ["bash", "edit", "web_fetch", "org_tools", "secrets", "partner_data"]
+  max_bubbles_per_reply: 5
+
+active_case_live_turn_minutes: null
+push_quota_counting_mode: null
