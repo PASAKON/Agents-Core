@@ -53,3 +53,29 @@ def test_timeout_reports_observed_terminal_count_and_scheduled_task_result():
     assert 'WindowsTerminal running=$($terminalCount -gt 0); count=$terminalCount;' in failure
     assert 'scheduled task=$stName; LastTaskResult=$lastTaskResult' in failure
     assert 'may not have' not in failure
+
+
+def test_codex_restores_task_acls_before_report_step():
+    body = _text().split("elseif ($Runner -eq 'codex')", 1)[1]
+    body = body.split('$launcherBody = @"', 1)[1].split('\n"@', 1)[0]
+    snapshot = body.index('`$savedTaskAcls = [ordered]@{}')
+    run = body.index('Invoke-WithStdin')
+    restore = body.index('Set-Acl -LiteralPath `$aclPath')
+    assert snapshot < run < restore < body.index('$reportStepBody')
+    assert '} finally {' in body[run:restore]
+    assert "[IO.Path]::GetDirectoryName(`$taskGitDir) -ne `$worktreesDir" in body
+    assert body.count('refusing gitdir reparse point') == 2
+    assert 'AccessControlSections]::Access' in body
+    assert '`$acl.SetSecurityDescriptorSddlForm(`$savedTaskAcls[`$aclPath], `$accessSection)' in body
+    assert 'icacls' not in body  # no recursive reset / blanket deny removal
+    assert re.findall(r'(?<!`)\$\w+', body[body.index('# Save only'):body.index('$heartbeatStop')]) == [
+        '$wt', '$RepoPath', '$codexPromptPath', '$codexJsonLog'
+    ]
+
+
+def test_commit_failure_includes_git_stderr_and_exit_code():
+    body = _text().split('function New-ReportStepBody', 1)[1].split("if ($Runner -eq 'claude')", 1)[0]
+    assert body.count('`$commitOutput = @(git ') == 2
+    assert 'task $Task" 2>&1)' in body
+    assert '`$keptBody 2>&1)' in body
+    assert 'launcher commit failed (exit `$commitExit): `$(`$commitOutput -join [Environment]::NewLine)' in body
