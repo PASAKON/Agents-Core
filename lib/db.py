@@ -336,6 +336,7 @@ _MIGRATION_COLUMNS = [
     # NULL = the runner's own default. Written by tools/delegate.py
     # _route_runner; read by runners/agy_local.py (PLAN-auto-dispatch Q1b).
     ("runner_model", "TEXT"),
+    ("order_id", "TEXT"),
 ]
 
 # `hosts` probe columns added for PLAN-auto-dispatch H1 (task-25c272ce). Same
@@ -408,6 +409,19 @@ _PROJECTS_MIGRATION = [
 ]
 
 _MILESTONES_MIGRATION = [("due_at", "TIMESTAMPTZ"), ("order_id", "TEXT")]
+
+_ORDERS_MIGRATION = [
+    ("title", "TEXT"),
+    ("lane", "TEXT"),
+    ("mode", "TEXT CHECK (mode IN ('direct', 'ph'))"),
+    ("ph_session", "TEXT"),
+    ("msg_group", "TEXT"),
+    ("size", "TEXT CHECK (size IN ('S', 'M', 'L'))"),
+    ("next_step", "TEXT"),
+    ("blocker_what", "TEXT"),
+    ("updated_at", "TIMESTAMPTZ"),
+    ("dropped", "BOOLEAN NOT NULL DEFAULT FALSE"),
+]
 
 _LIVE_SESSIONS_MIGRATION = [
     ("verified", "BOOLEAN"),
@@ -799,7 +813,8 @@ def _pg_schema_current(conn) -> bool:
               "letters": _LETTERS_MIGRATION,
               "live_sessions": _LIVE_SESSIONS_MIGRATION,
               "projects": _PROJECTS_MIGRATION,
-              "milestones": _MILESTONES_MIGRATION}
+              "milestones": _MILESTONES_MIGRATION,
+              "orders": _ORDERS_MIGRATION}
     have: dict[str, set[str]] = {}
     for table, column in conn.execute(
             "SELECT table_name, column_name FROM information_schema.columns"
@@ -894,6 +909,13 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
             if col not in milestones_existing:
                 guard = "IF NOT EXISTS " if is_pg else ""
                 conn.execute(f"ALTER TABLE milestones ADD COLUMN {guard}{col} {coltype}")
+    orders_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(orders)").fetchall()}
+    if orders_existing:
+        for col, coltype in _ORDERS_MIGRATION:
+            if col not in orders_existing:
+                guard = "IF NOT EXISTS " if is_pg else ""
+                conn.execute(f"ALTER TABLE orders ADD COLUMN {guard}{col} {coltype}")
 
 
 def init_schema(conn, *, is_pg: bool) -> None:

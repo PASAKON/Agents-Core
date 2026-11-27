@@ -123,6 +123,21 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 CREATE INDEX IF NOT EXISTS idx_orders_closed_at ON orders(closed_at);
 CREATE INDEX IF NOT EXISTS idx_orders_project_id ON orders(project_id);
+CREATE TABLE IF NOT EXISTS order_goals (
+    order_id      TEXT NOT NULL REFERENCES orders(id),
+    n             INTEGER NOT NULL,
+    parent_n      INTEGER,
+    title         TEXT NOT NULL,
+    weight        INTEGER NOT NULL DEFAULT 1 CHECK (weight > 0),
+    due_at        TIMESTAMPTZ,
+    done_at       TIMESTAMPTZ,
+    evidence      TEXT,
+    milestone_ref INTEGER,
+    PRIMARY KEY (order_id, n),
+    FOREIGN KEY (order_id, parent_n) REFERENCES order_goals(order_id, n),
+    CHECK (parent_n IS NULL OR parent_n <> n),
+    CHECK (done_at IS NULL OR (evidence IS NOT NULL AND length(btrim(evidence)) > 0))
+);
 CREATE TABLE IF NOT EXISTS tasks (
     id              TEXT PRIMARY KEY,
     project         TEXT NOT NULL,
