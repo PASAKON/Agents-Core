@@ -1,5 +1,10 @@
 # MoonieX Care S1 config. null = TBD (docs/design/mooniex-care.md §5); never guess.
 channel_basic_id: "@587kfqpt"
+queue:
+  enabled: false                   # proposal only; no webhook cutover
+  quiet_hours: null                # required explicit positive N; policy TBD
+  timezone: Asia/Bangkok
+  batch_hours: [8, 22]             # inclusive, hourly on the hour
 dry_run: true                      # S1 default; flip only on CEO go
 reply_token_lifetime_seconds: null # TBD: unknown -> reply is attempted, LINE rejection = expired
 push:
