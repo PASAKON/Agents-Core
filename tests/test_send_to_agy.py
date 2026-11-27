@@ -808,3 +808,87 @@ def test_remote_script_app_wake_uses_app_store_and_hub() -> None:
     src = send_to_agy._REMOTE_AGY_PY
     assert 'cmd[1:1] = ["--app_data_dir", "antigravity"]' in src
     assert 'child_env["AGY_ENABLE_HUB"] = "1"' in src
+
+
+def test_deliver_mesh_letter_allows_c_level_and_project_head_agy_boxes_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dispatched: list[tuple[str, str, tuple[str, ...]]] = []
+
+    def fake_dispatch(host: str, verb: str, *args: str, **kwargs: Any) -> dict[str, Any]:
+        dispatched.append((host, verb, tuple(args)))
+        return {
+            "ok": True,
+            "verb": "deliver_letter",
+            "result": {"letter_id": int(args[0]), "delivered": True, "woke": True},
+        }
+
+    monkeypatch.setattr(mesh, "dispatch", fake_dispatch)
+
+    # 1. project_head + agy-1a2b3c4d passes the guard
+    res_ph = send_to_agy._deliver_mesh_letter(
+        target_host="mac",
+        to_role="project_head",
+        to_sid="agy-1a2b3c4d",
+        from_role="cgo",
+        from_sid="fresh",
+        from_host="contabo",
+        message="Reply to BL App AGY box",
+    )
+    assert res_ph["ok"] is True
+    assert isinstance(res_ph["letter_id"], int)
+    assert res_ph["woke"] is True
+    ph_row = db.get_letter(res_ph["letter_id"])
+    assert ph_row is not None
+    assert (ph_row["to_role"], ph_row["to_session"]) == ("project_head", "agy-1a2b3c4d")
+
+    # 2. project_head + bl-autoqueue is still refused
+    res_ph_non_agy = send_to_agy._deliver_mesh_letter(
+        target_host="mac",
+        to_role="project_head",
+        to_sid="bl-autoqueue",
+        from_role="cgo",
+        from_sid="fresh",
+        from_host="contabo",
+        message="Should be refused",
+    )
+    assert res_ph_non_agy["ok"] is False
+    assert res_ph_non_agy["letter_id"] is None
+    assert res_ph_non_agy["woke"] is False
+    assert "requires a <c-level|project_head>-agy-<8 hex> box" in res_ph_non_agy["error"]
+    assert "got project_head-bl-autoqueue" in res_ph_non_agy["error"]
+
+    # 3. cgo + agy-… still passes
+    res_cgo = send_to_agy._deliver_mesh_letter(
+        target_host="mac",
+        to_role="cgo",
+        to_sid="agy-89abcdef",
+        from_role="cto",
+        from_sid="fresh",
+        from_host="contabo",
+        message="Message to CGO AGY box",
+    )
+    assert res_cgo["ok"] is True
+    assert isinstance(res_cgo["letter_id"], int)
+    assert res_cgo["woke"] is True
+    cgo_row = db.get_letter(res_cgo["letter_id"])
+    assert cgo_row is not None
+    assert (cgo_row["to_role"], cgo_row["to_session"]) == ("cgo", "agy-89abcdef")
+
+    # 4. random role + agy-… is still refused
+    res_random = send_to_agy._deliver_mesh_letter(
+        target_host="mac",
+        to_role="random_role",
+        to_sid="agy-1a2b3c4d",
+        from_role="cgo",
+        from_sid="fresh",
+        from_host="contabo",
+        message="Should be refused",
+    )
+    assert res_random["ok"] is False
+    assert res_random["letter_id"] is None
+    assert res_random["woke"] is False
+    assert "requires a <c-level|project_head>-agy-<8 hex> box" in res_random["error"]
+    assert "got random_role-agy-1a2b3c4d" in res_random["error"]
+
+    assert len(dispatched) == 2
