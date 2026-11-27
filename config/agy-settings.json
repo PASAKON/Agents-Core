@@ -23,7 +23,9 @@
       "command(date)",
       "command(regex:^(echo|printf|true)( [^;&|`$<>\\n\\r]*)?$)",
       "command(regex:^(sort|uniq|diff|nl|cut|basename|dirname|stat|file|tree)( [^;&|`$<>\\n\\r]*)?$)",
-      "command(regex:^cd ((/opt/MoonieXHQ/Agents/Core|/Users/gob/MoonieXHQ/Agents/Core)/worktrees/[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.)( && (ls|pwd|cat|head|tail|wc|grep|git (status|log|show|diff|rev-parse|ls-files))( [^;&|`$<>\\n\\r]*)?)?$)"
+      "command(regex:^cd ((/opt/MoonieXHQ/Agents/Core|/Users/gob/MoonieXHQ/Agents/Core)/worktrees/[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.)( && (ls|pwd|cat|head|tail|wc|grep|git (status|log|show|diff|rev-parse|ls-files))( [^;&|`$<>\\n\\r]*)?)?$)",
+      "command(regex:^bash (/opt/MoonieXHQ/Agents/Core/|/Users/gob/MoonieXHQ/Agents/Core/)?scripts/hub/org-python\\.sh tools/send_to_agy\\.py reply [A-Za-z0-9][A-Za-z0-9_.:-]{0,63} (\\\"[^\\\"$`\\\\\\n\\r]*\\\"|'[^'\\n\\r]*')( --(from|host) [A-Za-z0-9][A-Za-z0-9_.:-]{0,63})*$)",
+      "command(regex:^bash (/opt/MoonieXHQ/Agents/Core/|/Users/gob/MoonieXHQ/Agents/Core/)?scripts/hub/org-python\\.sh tools/send_to_cxo\\.py( --from [A-Za-z0-9][A-Za-z0-9_.:-]{0,63})?( --subject (\\\"[^\\\"$`\\\\\\n\\r]*\\\"|'[^'\\n\\r]*'))? [A-Za-z0-9][A-Za-z0-9_.:-]{0,63} (\\\"[^\\\"$`\\\\\\n\\r]*\\\"|'[^'\\n\\r]*')$)"
     ],
     "deny": [
       "command(rm)",
