@@ -1389,12 +1389,13 @@ def _deliver_mesh_letter(
 ) -> dict[str, Any]:
     """Create a hub `letters` row and deliver it via `lib.mesh.dispatch(target_host, 'deliver_letter', str(lid))`."""
     if require_agy_box and (
-        to_role not in org_config.live_c_level_roles() or not _MESH_AGY_SID_RE.fullmatch(to_sid)
+        (to_role != "project_head" and to_role not in org_config.live_c_level_roles())
+        or not _MESH_AGY_SID_RE.fullmatch(to_sid)
     ):
         return {
             "ok": False,
             "error": (
-                f"refused: mesh AGY delivery to {target_host} requires a <c-level>-agy-<8 hex> box, "
+                f"refused: mesh AGY delivery to {target_host} requires a <c-level|project_head>-agy-<8 hex> box, "
                 f"got {to_role}-{to_sid}"
             ),
             "letter_id": None,
