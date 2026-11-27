@@ -150,7 +150,7 @@ roles:
     can_delete_branch: false
     can_ask_ceo: false
     workspace_only: true
-    skills_profile: care
+    skills_profile: worker-baseline   # tools stay limited by allowed_tools below
     allowed_tools: [reply, skip, history, escalate]
 
   developer:

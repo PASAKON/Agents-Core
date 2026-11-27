@@ -39,7 +39,7 @@ WORKER_SHORT = {
     "browser_operator": "Browser", "video_editor": "Edit", "devops_engineer": "Ops",
     "security_engineer": "Sec", "data_analyst": "Data", "researcher": "Res",
     "prompt_engineer": "Prompt", "ads_manager": "Ads", "content_strategist": "Content",
-    "script_writer": "Script", "probe": "Probe",
+    "script_writer": "Script", "probe": "Probe", "care": "Care",
 }
 SHORT_TO_ROLE = {v: k for k, v in WORKER_SHORT.items()}
 WORKER_JOB_MAX = 40       # callers cut a free-text title this far before windows_safe(); fit() does the rest
