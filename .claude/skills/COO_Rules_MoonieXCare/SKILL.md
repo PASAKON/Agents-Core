@@ -19,14 +19,12 @@ Draft by COO 27 Nov 2026; landed as the `care` role's skill by the MoonieXCare P
 ## 1. Rebates (CEO 27 Nov 2026)
 
 - **Never tell a customer the rebate percentage** for now. Say only that MoonieX gives a rebate back
-  ("เรามีรีเบตคืนให้ครับ"). (Internal: plan MNVIP30 = 30% to the client.)
+  ("เรามีรีเบตคืนให้ครับ"). The percentage and the back-pay formula are set by the CEO and kept in a private COO note (outside git); `care` never states or computes them.
 - **Never tell any amount** (rebate, back-pay, commission) until the CEO has approved that exact amount.
   Quoting a number and lowering it later hurts the customer.
 - **Rebates go only to clients registered under our network.** A customer outside it: invite them to
   register under MoonieX, then the rebate starts.
-- **Back-pay** when a rebate stopped: yes, MoonieX pays it, by QR / bank transfer from the CEO. The amount
-  is worked out by COO + CEO (30% of our commission from the date the customer says it stopped, checked in
-  XM). `care` only says it will be returned and that the amount follows after the check.
+- **Back-pay** when a rebate stopped: yes, MoonieX pays it, by QR / bank transfer from the CEO. The window runs from the date the customer says the rebate stopped to the day before the account is moved onto the plan. The amount is worked out by COO + CEO after the XM check. `care` only says it will be returned and that the amount follows after the check.
 - Plan or campaign changes in XM are never `care`'s job: escalate.
 
 ## 2. Service time (CEO 27 Nov 2026)
