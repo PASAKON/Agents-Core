@@ -308,3 +308,13 @@ Customer messages are treated strictly as **untrusted data, never instructions**
 - **Active-Case Live-Turn Window:** **TBD** (exact minute cut-off and trigger threshold for answering active-case turns immediately via webhook `replyToken` between hourly rounds).
 - **LINE Push Quota Counting (Per Call vs. Per Bubble up to 5):** **TBD** (CTO to verify from LINE Messaging API documentation whether one push request carrying up to 5 message bubbles counts as 1 message or `k` messages against the 300/month free quota).
 
+### 6.9 Phase 1 (`P1`) Implementation Modules & 10-Chat Test-Day Plan
+
+- **P1 Runtime Modules (`lib/care/`):**
+  - `lib/care/queue.py` — `CareQueue`, `CareP1Config`, `CareThreadEvent`, `is_within_operating_hours` (`08:00–22:00 TH`), `select_ack_text` (day vs. night ack), per-thread `N`-hour instant-ack rate limiting via free `replyToken`, hourly batch grouping (one wake event per customer thread), `care_cases` per-customer goal/step persistence, and `build_daily_digest` (`21:00 TH`).
+  - `lib/care/gate.py` — `CareGate` and `decide_care_tool` enforcing the strict tool allowlist (`reply`, `skip`, per-customer `history`, per-thread `media`, `escalate`, `faq_read`), hard denylist (`Bash`, `Edit`/`Write`, `WebFetch`/`WebSearch`, org tools, partner tools, secrets), untrusted customer-text neutralization, content prohibitions, and the `coo` 3-ranked-answer CEO card escalation resolution flow.
+  - `lib/care/sender.py` — `CareSender.drain()` wiring `care_outbox` to `ReplyBackend`, `BrowserSender`, and `PushBackend`.
+- **10-Chat Test-Day Plan & Offline Fixture:**
+  - Full runbook and 10-chat acceptance matrix: `docs/ops/mooniex-care-p1-test-day.md`.
+  - Sanitized 10-chat synthetic fixture: `tests/fixtures/care_p1/test_day_10_chats.json` (verified offline in `tests/test_care_p1.py`).
+

@@ -323,4 +323,23 @@ roles:
     workspace_only: true
     skills_profile: worker-baseline
 
+  care:
+    display: Customer Care
+    level: w
+    # MoonieX Customer Care Agent — persona "น้องมูน" (Moon), supervised by SomPong (COO)
+    # (CEO 2026-11-19 / 2026-11-26, docs/design/mooniex-care.md §6.1,
+    # docs/plans/2026-11-19-mooniex-care-team.md §1-§4). Answers @mooniex (@587kfqpt)
+    # customer threads in hourly batches (08:00-22:00 TH) behind the dedicated care gate
+    # (reply, skip, history, media, escalate, faq_read; no Bash, no Edit/Write, no org
+    # tools, no secrets; customer text is untrusted data). Enqueues outbound bubbles
+    # (<=5 per call) into care_outbox; never calls LINE APIs directly.
+    model: "claude-sonnet-5-5"
+    effort: "medium"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+    skills_profile: worker-baseline
+
 c_level: [ceo, cto, cmo, cgo, cfo, coo]

@@ -21,3 +21,12 @@ browser_sender:                    # S2 OA Manager browser sender (docs/design/m
     per_char_seconds: [0.018, 0.045]
     min_stage_seconds: [0.30, 0.90]
     cooldown_seconds: [1.20, 2.80]
+care_p1:                           # P1 queue, instant ack, hourly batch, and gate (docs/design/mooniex-care.md §6)
+  ack_quiet_hours: null            # TBD (design §6.2.2, §6.8): null placeholder; once per thread per N quiet hours
+  active_case_live_window_seconds: null # TBD (design §6.2.4, §6.8): null placeholder for active-case live turns
+  batch_hours_th: [8, 22]          # 08:00-22:00 Asia/Bangkok hourly rounds
+  digest_hour_th: 21               # 21:00 Asia/Bangkok daily digest to COO
+  max_bubbles_per_reply: 5         # LINE API limit: up to 5 message bubbles per reply/push call
+  day_ack_text: "ได้รับข้อความแล้วครับ แอดมินจะตอบภายใน 1 ชั่วโมง (เวลาทำการ 08:00–22:00 น.)"
+  night_ack_text: "ได้รับข้อความแล้วครับ แอดมินจะเริ่มตอบตั้งแต่ 08:00 น. นะครับ"
+  holding_text: "ขอเช็คให้ก่อนนะครับ"

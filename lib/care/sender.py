@@ -90,6 +90,13 @@ class CareSender:
             return "defer_browser"
         return self._do_push(row)
 
+    def drain(self, limit: Optional[int] = None) -> list[tuple[int, str]]:
+        """Process pending (queued/deferred) outbox rows in FIFO order."""
+        row_ids = self.outbox.pending()
+        if limit is not None:
+            row_ids = row_ids[: max(0, int(limit))]
+        return [(rid, self.process(rid)) for rid in row_ids]
+
     def _do_reply(self, row: dict) -> str:
         if self.dry_run:
             return "would_reply"
