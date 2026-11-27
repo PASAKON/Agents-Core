@@ -78,8 +78,12 @@ class Outbox:
     def enqueue(self, *, idempotency_key: str, recipient_id: str, recipient_display_name: str,
                 message_kind: str, payload: Any, reply_token: Optional[str] = None,
                 reply_token_expires_at: Optional[datetime] = None, critical: bool = False,
-                channel_basic_id: str = DEFAULT_BASIC_ID) -> tuple[int, bool]:
-        """Insert once per idempotency key. Returns (row_id, created)."""
+                channel_basic_id: str = DEFAULT_BASIC_ID, commit: bool = True) -> tuple[int, bool]:
+        """Insert once per key; return (row_id, created).
+
+        commit=False lets a trusted caller include this write in its own
+        transaction; the caller must commit or roll back before sending.
+        """
         if message_kind not in KINDS:
             raise ValueError("bad message_kind")
         ts = self._ts()
@@ -92,7 +96,8 @@ class Outbox:
              message_kind, 1 if critical else 0, json.dumps(payload), reply_token,
              _iso(reply_token_expires_at), ts, ts))
         created = cur.rowcount == 1
-        self.conn.commit()
+        if commit:
+            self.conn.commit()
         row = self.conn.execute("SELECT id FROM care_outbox WHERE idempotency_key=?",
                                 (idempotency_key,)).fetchone()
         return row[0], created
