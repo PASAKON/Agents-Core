@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>OrderTrack Widgets Mockup - Scriptable iPhone (390pt)</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eef2f6;
+    --w-bg: #ffffff;
+    --w-bg-2: #f8fafc;
+    --w-bg-3: #e2e8f0;
+    --text: #0f172a;
+    --text-2: #334155;
+    --muted: #64748b;
+    --border: #cbd5e1;
+    --border-subtle: #e2e8f0;
+    --accent: #2563eb;
+    --accent-bg: #dbeafe;
+    --accent-fg: #1d4ed8;
+
+    --st-wait-fg: #dc2626;
+    --st-wait-bg: #fef2f2;
+    --st-wait-bd: #fca5a5;
+
+    --st-block-fg: #d97706;
+    --st-block-bg: #fffbeb;
+    --st-block-bd: #fcd34d;
+
+    --st-stall-fg: #7c3aed;
+    --st-stall-bg: #f5f3ff;
+    --st-stall-bd: #c4b5fd;
+
+    --st-work-fg: #059669;
+    --st-work-bg: #ecfdf5;
+    --st-work-bd: #6ee7b7;
+
+    --st-queue-fg: #475569;
+    --st-queue-bg: #f1f5f9;
+    --st-queue-bd: #cbd5e1;
+
+    --st-done-fg: #16a34a;
+    --st-done-bg: #f0fdf4;
+    --st-done-bd: #86efac;
+
+    --grp-fg: #0284c7;
+    --grp-bg: #e0f2fe;
+    --grp-bd: #7dd3fc;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #070a10;
+      --w-bg: #141b26;
+      --w-bg-2: #1e293b;
+      --w-bg-3: #334155;
+      --text: #f8fafc;
+      --text-2: #cbd5e1;
+      --muted: #94a3b8;
+      --border: #2e3c51;
+      --border-subtle: #1e293b;
+      --accent: #3b82f6;
+      --accent-bg: #1e3a8a;
+      --accent-fg: #93c5fd;
+
+      --st-wait-fg: #f87171;
+      --st-wait-bg: #2a1215;
+      --st-wait-bd: #7f1d1d;
+
+      --st-block-fg: #fbbf24;
+      --st-block-bg: #271c09;
+      --st-block-bd: #78350f;
+
+      --st-stall-fg: #c4b5fd;
+      --st-stall-bg: #1e1633;
+      --st-stall-bd: #4c1d95;
+
+      --st-work-fg: #34d399;
+      --st-work-bg: #08261e;
+      --st-work-bd: #065f46;
+
+      --st-queue-fg: #94a3b8;
+      --st-queue-bg: #1e293b;
+      --st-queue-bd: #334155;
+
+      --st-done-fg: #4ade80;
+      --st-done-bg: #092414;
+      --st-done-bd: #14532d;
+
+      --grp-fg: #38bdf8;
+      --grp-bg: #0c2538;
+      --grp-bd: #0369a1;
+    }
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Noto Sans Thai", sans-serif;
+    font-size: 12.5px;
+    line-height: 1.38;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 390pt iPhone Screen Canvas */
+  .iphone-screen {
+    width: 100%;
+    max-width: 390px;
+    margin: 0 auto;
+    padding: 10px 16px 28px;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .brand-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mockup-switch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .mockup-switch a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    background: var(--w-bg);
+  }
+
+  .mockup-switch a.active {
+    color: var(--accent-fg);
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .sec-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 10px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  /* iOS Widget Base (22px squircle radius) */
+  .ios-widget {
+    background: var(--w-bg);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Small Widget Row: 158x158pt widget + legend card beside it inside 358pt width */
+  .small-row {
+    display: grid;
+    grid-template-columns: 158px 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .widget-small {
+    width: 158px;
+    min-height: 158px;
+    padding: 11px;
+  }
+
+  .w-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .w-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+
+  .w-title svg {
+    width: 12px;
+    height: 12px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .small-avg-ring {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .small-avg-ring svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .small-avg-num {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .small-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 6px 0;
+  }
+
+  .s-stat {
+    background: var(--w-bg-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 5px 3px;
+    text-align: center;
+  }
+
+  .s-stat-num {
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .s-stat-num svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .s-stat-lbl {
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .small-foot {
+    font-size: 9.5px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 4px;
+  }
+
+  /* Companion Legend beside Small Widget */
+  .small-legend {
+    background: var(--w-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 10px;
+    font-size: 10.5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .legend-title {
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .legend-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+    color: var(--text-2);
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .legend-item svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Medium Widget: 338..358pt width x 158pt min-height (4 rows) */
+  .widget-medium {
+    width: 100%;
+    min-height: 162px;
+    padding: 11px 12px;
+  }
+
+  .w-submeta {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .med-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 6px;
+  }
+
+  .med-row {
+    display: grid;
+    grid-template-columns: 14px 44px 34px 16px 1fr 48px;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .med-row:last-child {
+    border-bottom: none;
+  }
+
+  .med-st-icon {
+    width: 13px;
+    height: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .med-st-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .med-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    font-size: 10px;
+    color: var(--text);
+  }
+
+  .w-lane {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 0 4px;
+    border-radius: 3px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .lane-cto { color: #2563eb; border-color: #93c5fd; background: rgba(37, 99, 235, 0.1); }
+  .lane-cmo { color: #db2777; border-color: #f9a8d4; background: rgba(219, 39, 119, 0.1); }
+  .lane-coo { color: #059669; border-color: #6ee7b7; background: rgba(5, 150, 105, 0.1); }
+  .lane-cfo { color: #d97706; border-color: #fcd34d; background: rgba(217, 119, 6, 0.1); }
+  .lane-cgo { color: #7c3aed; border-color: #c4b5fd; background: rgba(124, 58, 237, 0.1); }
+
+  .med-mode {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-2);
+  }
+
+  .med-mode svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .med-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-2);
+    font-weight: 500;
+    min-width: 0;
+  }
+
+  .med-bar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+  }
+
+  .med-bar {
+    width: 24px;
+    height: 5px;
+    background: var(--w-bg-3);
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .med-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  .med-pct {
+    font-size: 9.5px;
+    font-weight: 700;
+    width: 22px;
+    text-align: right;
+  }
+
+  /* Large Widget: 338..358pt width x 354pt+ (8-row capacity, showing all 6 orders + next goal) */
+  .widget-large {
+    width: 100%;
+    min-height: 354px;
+    padding: 12px;
+  }
+
+  .lg-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .lg-same-msg-wrap {
+    border-left: 2.5px solid var(--grp-fg);
+    padding-left: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .lg-same-msg-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--grp-fg);
+  }
+
+  .lg-same-msg-head svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .lg-row {
+    background: var(--w-bg-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 6px 8px;
+  }
+
+  .lg-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 2px;
+  }
+
+  .lg-row-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .lg-row-left svg.st-svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .lg-mode-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 9.5px;
+    color: var(--muted);
+  }
+
+  .lg-mode-tag svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  .lg-row-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .lg-due {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .lg-words {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lg-next-goal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+
+  .lg-next-goal-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .lg-badge-wait {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--st-wait-bg);
+    color: var(--st-wait-fg);
+    border: 1px solid var(--st-wait-bd);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Full 6-Order Inspector below widgets so every required detail is verifiable in widgets.html */
+  .inspector-card {
+    background: var(--w-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 9px;
+    margin-bottom: 8px;
+  }
+
+  .insp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .insp-head-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .ring-22 {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .insp-words {
+    background: var(--w-bg-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 5px 7px;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+
+  .insp-words-txt {
+    font-size: 11.5px;
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .insp-words.expanded .insp-words-txt {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .insp-meta {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .insp-goals {
+    list-style: none;
+    margin: 0 0 5px;
+    padding: 0;
+    font-size: 10.5px;
+    color: var(--text-2);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .insp-subgoals {
+    list-style: none;
+    margin: 2px 0 2px 10px;
+    padding-left: 6px;
+    border-left: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .insp-foot {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--text-2);
+    border-top: 1px dashed var(--border-subtle);
+    padding-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="iphone-screen">
+  <!-- Header -->
+  <header class="top-bar">
+    <div class="brand-title">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <rect x="2" y="1.5" width="12" height="13" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="8" cy="12" r="1" fill="currentColor"/>
+      </svg>
+      <span>Scriptable Widgets (390pt)</span>
+    </div>
+    <nav class="mockup-switch" aria-label="Mockup Views">
+      <a href="a.html">แบบ A</a>
+      <a href="b.html">แบบ B</a>
+      <a href="widgets.html" class="active">Widgets</a>
+    </nav>
+  </header>
+
+  <!-- 1. SMALL WIDGET (158x158pt) -->
+  <div class="sec-label">
+    <span>1. Orders Small (158 x 158 pt)</span>
+    <span>แตะเปิด /project</span>
+  </div>
+
+  <div class="small-row">
+    <a href="a.html" class="ios-widget widget-small" aria-label="Orders Small Widget">
+      <div class="w-head">
+        <span class="w-title">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>งานที่สั่ง</span>
+        </span>
+        <span class="small-avg-ring" title="ค่าเฉลี่ยงานที่เปิดอยู่ 38%">
+          <svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+            <circle cx="18" cy="18" r="14" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="54.5" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+          </svg>
+          <span class="small-avg-num">38%</span>
+        </span>
+      </div>
+
+      <div class="small-stats-grid">
+        <div class="s-stat">
+          <div class="s-stat-num" style="color:var(--st-wait-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><polygon points="5,1.5 11,1.5 14.5,5 14.5,11 11,14.5 5,14.5 1.5,11 1.5,5" stroke="currentColor" stroke-width="1.8"/><path d="M8 5V8.5M8 11H8.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>1</span>
+          </div>
+          <div class="s-stat-lbl">รอคุณ</div>
+        </div>
+        <div class="s-stat">
+          <div class="s-stat-num" style="color:var(--st-work-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.8"/><polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor"/></svg>
+            <span>1</span>
+          </div>
+          <div class="s-stat-lbl">ทำอยู่</div>
+        </div>
+        <div class="s-stat">
+          <div class="s-stat-num" style="color:var(--st-done-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 8.2L7.2 10L10.8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>1</span>
+          </div>
+          <div class="s-stat-lbl">เสร็จวันนี้</div>
+        </div>
+      </div>
+
+      <div class="small-foot">
+        <span>เปิดอยู่ 5 งาน</span>
+        <span>เฉลี่ย 38%</span>
+      </div>
+    </a>
+
+    <!-- SF-Symbol SVG Legend Card -->
+    <div class="small-legend">
+      <div>
+        <div class="legend-title">สัญลักษณ์ SF-Symbol SVG</div>
+        <div class="legend-list">
+          <span class="legend-item" style="color:var(--st-wait-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><polygon points="5,1.5 11,1.5 14.5,5 14.5,11 11,14.5 5,14.5 1.5,11 1.5,5" stroke="currentColor" stroke-width="1.6"/><path d="M8 5V8.5M8 11H8.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>รอคุณ</span>
+          </span>
+          <span class="legend-item" style="color:var(--st-block-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L14.5 13.5H1.5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5V9.5M8 11.5H8.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>ติด</span>
+          </span>
+          <span class="legend-item" style="color:var(--st-stall-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6V10M9.5 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>นิ่ง</span>
+          </span>
+          <span class="legend-item" style="color:var(--st-work-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor"/></svg>
+            <span>กำลังทำ</span>
+          </span>
+          <span class="legend-item" style="color:var(--st-queue-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2.5"/><path d="M8 5V8L10 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>รอคิว</span>
+          </span>
+          <span class="legend-item" style="color:var(--st-done-fg);">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 8.2L7.2 10L10.8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>เสร็จ</span>
+          </span>
+          <span class="legend-item">
+            <svg viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="currentColor"/></svg>
+            <span>สั่งตรง</span>
+          </span>
+          <span class="legend-item">
+            <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>ผ่าน PH</span>
+          </span>
+        </div>
+      </div>
+      <div style="font-size:9.5px;color:var(--muted);border-top:1px solid var(--border-subtle);padding-top:4px;">
+        เรียง: รอคุณ &gt; ติด &gt; นิ่ง &gt; ทำอยู่ &gt; รอคิว
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MEDIUM WIDGET (338x158pt, 4 priority rows) -->
+  <div class="sec-label">
+    <span>2. Orders Medium (338 x 158 pt · 4 แถวแรก)</span>
+    <span>แถวรอคุณขึ้นก่อน</span>
+  </div>
+
+  <div class="ios-widget widget-medium">
+    <div class="w-head">
+      <span class="w-title">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>งานที่สั่ง (Orders)</span>
+      </span>
+      <span class="w-submeta">รอคุณ 1 · ติด 1 · นิ่ง 1 · ทำ 1 · คิว 1</span>
+    </div>
+
+    <div class="med-rows">
+      <!-- Med Row 1: O-82c1 (Waiting CEO) -->
+      <div class="med-row">
+        <span class="med-st-icon" style="color:var(--st-wait-fg);" title="รอคุณ">
+          <svg viewBox="0 0 16 16" fill="none"><polygon points="5,1.5 11,1.5 14.5,5 14.5,11 11,14.5 5,14.5 1.5,11 1.5,5" stroke="currentColor" stroke-width="1.7"/><path d="M8 5V8.5M8 11H8.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </span>
+        <span class="med-id">O-82c1</span>
+        <span class="w-lane lane-cto">CTO</span>
+        <span class="med-mode" title="ผ่าน PH#dfb41593">
+          <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+        </span>
+        <span class="med-title">ทีมดูแลลูกค้า น้องมูน ทดสอบแชทจริง 10 แชท (รอ relay)</span>
+        <span class="med-bar-wrap">
+          <span class="med-bar"><span class="med-bar-fill" style="width:60%;background:var(--st-wait-fg);"></span></span>
+          <span class="med-pct" style="color:var(--st-wait-fg);">60%</span>
+        </span>
+      </div>
+
+      <!-- Med Row 2: O-82c2 (Blocked) -->
+      <div class="med-row">
+        <span class="med-st-icon" style="color:var(--st-block-fg);" title="ติด">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L14.5 13.5H1.5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5V9.5M8 11.5H8.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="med-id">O-82c2</span>
+        <span class="w-lane lane-cmo">CMO</span>
+        <span class="med-mode" title="ผ่าน PH#c4190a12">
+          <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+        </span>
+        <span class="med-title">สคริปต์เปิดตัวน้องมูน 3 คลิป (ติด: รอฟุตเทจ O-82c1)</span>
+        <span class="med-bar-wrap">
+          <span class="med-bar"><span class="med-bar-fill" style="width:40%;background:var(--st-block-fg);"></span></span>
+          <span class="med-pct" style="color:var(--st-block-fg);">40%</span>
+        </span>
+      </div>
+
+      <!-- Med Row 3: O-79a4 (Stalled) -->
+      <div class="med-row">
+        <span class="med-st-icon" style="color:var(--st-stall-fg);" title="นิ่ง">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6V10M9.5 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="med-id">O-79a4</span>
+        <span class="w-lane lane-cfo">CFO</span>
+        <span class="med-mode" title="ผ่าน PH#a108f332">
+          <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+        </span>
+        <span class="med-title">สรุปค่า Subscription เทียบ Tool Value พ.ย. (นิ่ง 3 วัน)</span>
+        <span class="med-bar-wrap">
+          <span class="med-bar"><span class="med-bar-fill" style="width:25%;background:var(--st-stall-fg);"></span></span>
+          <span class="med-pct" style="color:var(--st-stall-fg);">25%</span>
+        </span>
+      </div>
+
+      <!-- Med Row 4: O-90d5 (Working, Direct mode = filled diamond) -->
+      <div class="med-row">
+        <span class="med-st-icon" style="color:var(--st-work-fg);" title="กำลังทำ">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor"/></svg>
+        </span>
+        <span class="med-id">O-90d5</span>
+        <span class="w-lane lane-coo">COO</span>
+        <span class="med-mode" title="สั่งตรง (COO)">
+          <svg viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="currentColor"/></svg>
+        </span>
+        <span class="med-title">เช็ค Skill ไม่ถูกเรียกใช้เกิน 30 วัน คัดเข้ากรุ</span>
+        <span class="med-bar-wrap">
+          <span class="med-bar"><span class="med-bar-fill" style="width:66%;background:var(--st-work-fg);"></span></span>
+          <span class="med-pct" style="color:var(--st-work-fg);">66%</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. LARGE WIDGET (338x354pt, up to 8 rows + Next Goal per order) -->
+  <div class="sec-label">
+    <span>3. Orders Large (338 x 354 pt · สูงสุด 8 แถว + Goal ถัดไป)</span>
+    <span>ครบ 6 สถานะ</span>
+  </div>
+
+  <div class="ios-widget widget-large">
+    <div class="w-head">
+      <span class="w-title">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>งานที่สั่งทั้งหมด + เป้าหมายถัดไป</span>
+      </span>
+      <span class="w-submeta">แสดง 6/8 แถว · อัปเดต 10:12 น.</span>
+    </div>
+
+    <div class="lg-rows">
+      <!-- Same-message pair inside Large widget -->
+      <div class="lg-same-msg-wrap">
+        <div class="lg-same-msg-head">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 9.5L9.5 6.5M5 11L3.5 12.5C2.4 13.6 2.4 15.4 3.5 16.5M7 4.5L8.5 3C9.6 1.9 11.4 1.9 12.5 3C13.6 4.1 13.6 5.9 12.5 7L11 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>มาจากข้อความเดียวกัน (2 งาน: O-82c1, O-82c2 · 26 พ.ย. 18:37)</span>
+        </div>
+
+        <!-- Large Row 1: O-82c1 (Waiting CEO) -->
+        <div class="lg-row">
+          <div class="lg-row-top">
+            <div class="lg-row-left">
+              <svg class="st-svg" style="color:var(--st-wait-fg);" viewBox="0 0 16 16" fill="none"><polygon points="5,1.5 11,1.5 14.5,5 14.5,11 11,14.5 5,14.5 1.5,11 1.5,5" stroke="currentColor" stroke-width="1.7"/><path d="M8 5V8.5M8 11H8.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span class="med-id">O-82c1</span>
+              <span class="w-lane lane-cto">CTO</span>
+              <span class="lg-mode-tag">
+                <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>PH#dfb41593</span>
+              </span>
+            </div>
+            <div class="lg-row-right">
+              <span class="lg-due">ครบ 3 ธ.ค. (D-6)</span>
+              <span class="med-bar"><span class="med-bar-fill" style="width:60%;background:var(--st-wait-fg);"></span></span>
+              <span class="med-pct" style="color:var(--st-wait-fg);">60%</span>
+            </div>
+          </div>
+          <div class="lg-words">"ทำทีมดูแลลูกค้า น้องมูน ทดสอบกับแชทจริง 10 แชท ให้ตอบได้ทั้งคำถามพอร์ตและถอนเงิน"</div>
+          <div class="lg-next-goal">
+            <span class="lg-next-goal-text">Goal ถัดไป: G3.2 ผูก LINE OA (ย่อย 1/3) · codex·winbox</span>
+            <a href="/relay#rq-abdc280d" class="lg-badge-wait">relay rq-abdc280d</a>
+          </div>
+        </div>
+
+        <!-- Large Row 2: O-82c2 (Blocked) -->
+        <div class="lg-row">
+          <div class="lg-row-top">
+            <div class="lg-row-left">
+              <svg class="st-svg" style="color:var(--st-block-fg);" viewBox="0 0 16 16" fill="none"><path d="M8 2L14.5 13.5H1.5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5V9.5M8 11.5H8.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span class="med-id">O-82c2</span>
+              <span class="w-lane lane-cmo">CMO</span>
+              <span class="lg-mode-tag">
+                <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>PH#c4190a12</span>
+              </span>
+            </div>
+            <div class="lg-row-right">
+              <span class="lg-due">ครบ 29 พ.ย. (D-2)</span>
+              <span class="med-bar"><span class="med-bar-fill" style="width:40%;background:var(--st-block-fg);"></span></span>
+              <span class="med-pct" style="color:var(--st-block-fg);">40%</span>
+            </div>
+          </div>
+          <div class="lg-words">"เตรียมสคริปต์เปิดตัวน้องมูน 3 คลิป โชว์ภาพหน้าจอแชทจริงจากทีม CTO"</div>
+          <div class="lg-next-goal">
+            <span class="lg-next-goal-text">Goal ถัดไป: G3 แคปหน้าจอแชทจริง (รอ O-82c1) · agy·mac</span>
+            <span style="font-size:9px;color:var(--st-block-fg);font-weight:700;">ติด O-82c1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Large Row 3: O-79a4 (Stalled) -->
+      <div class="lg-row">
+        <div class="lg-row-top">
+          <div class="lg-row-left">
+            <svg class="st-svg" style="color:var(--st-stall-fg);" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6V10M9.5 6V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span class="med-id">O-79a4</span>
+            <span class="w-lane lane-cfo">CFO</span>
+            <span class="lg-mode-tag">
+              <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>PH#a108f332</span>
+            </span>
+          </div>
+          <div class="lg-row-right">
+            <span class="lg-due" style="color:var(--st-wait-fg);">ครบ 28 พ.ย. (D-1)</span>
+            <span class="med-bar"><span class="med-bar-fill" style="width:25%;background:var(--st-stall-fg);"></span></span>
+            <span class="med-pct" style="color:var(--st-stall-fg);">25%</span>
+          </div>
+        </div>
+        <div class="lg-words">"รวบรวมค่าใช้จ่าย Subscription เดือน พ.ย. เทียบรายงาน Tool Value"</div>
+        <div class="lg-next-goal">
+          <span class="lg-next-goal-text">Goal ถัดไป: G2 จับคู่ค่าใช้จ่ายกับคะแนน runner_fit · ขยับ 3 วันก่อน</span>
+          <span style="font-size:9px;color:var(--st-stall-fg);font-weight:700;">นิ่ง 3 วัน</span>
+        </div>
+      </div>
+
+      <!-- Large Row 4: O-90d5 (Working, Direct) -->
+      <div class="lg-row">
+        <div class="lg-row-top">
+          <div class="lg-row-left">
+            <svg class="st-svg" style="color:var(--st-work-fg);" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor"/></svg>
+            <span class="med-id">O-90d5</span>
+            <span class="w-lane lane-coo">COO</span>
+            <span class="lg-mode-tag">
+              <svg viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="currentColor"/></svg>
+              <span>สั่งตรง</span>
+            </span>
+          </div>
+          <div class="lg-row-right">
+            <span class="lg-due">วันนี้ 16:00 (D-0)</span>
+            <span class="med-bar"><span class="med-bar-fill" style="width:66%;background:var(--st-work-fg);"></span></span>
+            <span class="med-pct" style="color:var(--st-work-fg);">66%</span>
+          </div>
+        </div>
+        <div class="lg-words">"เช็คว่าสัปดาห์นี้มี Skill ไหนไม่ถูกเรียกใช้เกิน 30 วัน คัดชื่อเก็บเข้ากรุ"</div>
+        <div class="lg-next-goal">
+          <span class="lg-next-goal-text">Goal ถัดไป: G3 ส่งตารางสรุปรายชื่อให้ CEO · codex+agy·contabo</span>
+          <span style="font-size:9px;color:var(--st-work-fg);font-weight:700;">ขยับ 4 นาที</span>
+        </div>
+      </div>
+
+      <!-- Large Row 5: O-91e2 (Queued) -->
+      <div class="lg-row">
+        <div class="lg-row-top">
+          <div class="lg-row-left">
+            <svg class="st-svg" style="color:var(--st-queue-fg);" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2.5"/><path d="M8 5V8L10 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span class="med-id">O-91e2</span>
+            <span class="w-lane lane-cgo">CGO</span>
+            <span class="lg-mode-tag">
+              <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>PH#e5521b08</span>
+            </span>
+          </div>
+          <div class="lg-row-right">
+            <span class="lg-due">ครบ 1 ธ.ค. (D-4)</span>
+            <span class="med-bar"><span class="med-bar-fill" style="width:0%;background:var(--st-queue-fg);"></span></span>
+            <span class="med-pct" style="color:var(--st-queue-fg);">0%</span>
+          </div>
+        </div>
+        <div class="lg-words">"เตรียมแคมเปญดึงพาร์ทเนอร์ IB ต้นเดือน ธ.ค. สรุปเงื่อนไขรีเบตและหน้าเว็บ"</div>
+        <div class="lg-next-goal">
+          <span class="lg-next-goal-text">Goal ถัดไป: G1 สรุปโครงสร้างรีเบต ธ.ค. · codex·mac (คิว 1)</span>
+          <span style="font-size:9px;color:var(--st-queue-fg);font-weight:700;">รอคิว</span>
+        </div>
+      </div>
+
+      <!-- Large Row 6: O-88b0 (Done) -->
+      <div class="lg-row">
+        <div class="lg-row-top">
+          <div class="lg-row-left">
+            <svg class="st-svg" style="color:var(--st-done-fg);" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 8.2L7.2 10L10.8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="med-id">O-88b0</span>
+            <span class="w-lane lane-cto">CTO</span>
+            <span class="lg-mode-tag">
+              <svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>PH#b7120c44</span>
+            </span>
+          </div>
+          <div class="lg-row-right">
+            <span class="lg-due">เสร็จ 26 พ.ย.</span>
+            <span class="med-bar"><span class="med-bar-fill" style="width:100%;background:var(--st-done-fg);"></span></span>
+            <span class="med-pct" style="color:var(--st-done-fg);">100%</span>
+          </div>
+        </div>
+        <div class="lg-words">"ปรับเพดานโหลดเครื่อง Contabo, Winbox และ Mac ให้ใช้กฎเดียวกันที่ 90%"</div>
+        <div class="lg-next-goal">
+          <span class="lg-next-goal-text">ครบทุก Goal (3/3 · PR#819 merged) · ไม่มี worker ค้าง</span>
+          <span style="font-size:9px;color:var(--st-done-fg);font-weight:700;">เสร็จ 100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. DEEP-LINK DETAILS FOR ALL 6 ORDERS (Complete Checklist, Sub-goals, Workers, Relay Button) -->
+  <div class="sec-label">
+    <span>ข้อมูลเต็มทั้ง 6 งานเมื่อแตะจาก Widget</span>
+    <span>แตะคำพูดเพื่อดูเต็ม</span>
+  </div>
+
+  <!-- Order 1 Detail (O-82c1, Waiting CEO, 3 sub-goals, same message group) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-wait-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="35.2" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-82c1 (60%)</strong>
+        <span class="w-lane lane-cto">CTO</span>
+        <span class="lg-mode-tag">ผ่าน PH#dfb41593 MoonieXCare</span>
+      </div>
+      <a href="/relay#rq-abdc280d" class="lg-badge-wait">รอคุณ: เปิด /relay rq-abdc280d</a>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"ทำทีมดูแลลูกค้า น้องมูน ทดสอบกับแชทจริง 10 แชท ให้ตอบได้ทั้งคำถามพอร์ตและปัญหาถอนเงิน พร้อมสรุปผลส่งพี่ และอีกงานให้ CMO เตรียมสคริปต์เปิดตัวน้องมูน 3 คลิปด้วย"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 26 พ.ย. 18:37 น. (เวลาไทย) · SomPong · ข้อความร่วม (2 งาน)</span>
+      <span>ครบ 3 ธ.ค. (D-6)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[เสร็จ] G1: S1 outbox และระบบคิวข้อความ (sha:a41c90e)</li>
+      <li>[เสร็จ] G2: ระบบรับข้อความกะดึก night ack (sha:b82f11c)</li>
+      <li>
+        [กำลังทำ 1/3] G3: S2 winbox sender และผูก LINE OA (3 เป้าหมายย่อย):
+        <ul class="insp-subgoals">
+          <li>[เสร็จ] G3.1: เตรียมโปรไฟล์และสคริปต์ส่งข้อความบน winbox (sha:c09d44a)</li>
+          <li>[รอคุณ] G3.2: ผูกเซสชัน LINE OA ผ่าน relay rq-abdc280d</li>
+          <li>[รอคิว] G3.3: ทดสอบส่งข้อความจริงและเช็คสถานะอ่าน 5 รอบ</li>
+        </ul>
+      </li>
+      <li>[รอคิว] G4: ทดสอบกับแชทลูกค้าจริงครบ 10 แชทและสรุปผล (ผูก M4)</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Worker: codex · winbox (#t-91a4) | ขั้นต่อไป: PH ขึ้นการ์ด S2 หลังเปิด LINE OA</span>
+      <span>ขยับล่าสุด 2 ชม.</span>
+    </div>
+  </article>
+
+  <!-- Order 2 Detail (O-82c2, Blocked, same message group) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-block-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="52.8" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-82c2 (40%)</strong>
+        <span class="w-lane lane-cmo">CMO</span>
+        <span class="lg-mode-tag">ผ่าน PH#c4190a12 CarePromo</span>
+      </div>
+      <span style="font-size:10px;color:var(--st-block-fg);font-weight:700;">ติด: รอฟุตเทจ O-82c1</span>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"เตรียมสคริปต์เปิดตัวน้องมูน 3 คลิป สำหรับ TikTok และ LINE VOOM เอาโทนเข้าใจง่าย โชว์ภาพหน้าจอแชทจริงจากทีม CTO ห้ามดูเป็น AI และคุมแท็กตามกฎ 5 แท็ก"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 26 พ.ย. 18:37 น. (เวลาไทย) · SomPong · ข้อความร่วม (2 งาน)</span>
+      <span>ครบ 29 พ.ย. (D-2)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[เสร็จ] G1: วางโครงเรื่องและ Hook 3 วินาทีแรกครบ 3 คลิป (doc:script-v1)</li>
+      <li>[เสร็จ] G2: ตรวจผ่านเกณฑ์ Anti-Slop และภาษาพูดธรรมชาติ (row:qc-118)</li>
+      <li>[ติด] G3: แคปหน้าจอแชทจริงจากระบบ MoonieXCare (รอ O-82c1)</li>
+      <li>[รอคิว] G4: ตัดต่อ HyperFrames 1080x1920 และส่งเข้าคิวโพสต์ (ผูก M4)</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Worker: agy · mac (#t-73f0) | ขั้นต่อไป: ดึงคลิปหน้าจอแชทจริงจาก O-82c1</span>
+      <span>ขยับล่าสุด 55 นาที</span>
+    </div>
+  </article>
+
+  <!-- Order 3 Detail (O-79a4, Stalled) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-stall-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="66" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-79a4 (25%)</strong>
+        <span class="w-lane lane-cfo">CFO</span>
+        <span class="lg-mode-tag">ผ่าน PH#a108f332 FinanceAudit</span>
+      </div>
+      <span style="font-size:10px;color:var(--st-stall-fg);font-weight:700;">นิ่ง 3 วัน (order_stale)</span>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"รวบรวมค่าใช้จ่าย Subscription ของเครื่องมือ AI และเซิร์ฟเวอร์ทั้งหมดในเดือน พ.ย. เทียบกับความคุ้มค่าในรายงาน Tool Value แล้วทำตารางสรุปตัวที่ควรตัดออกให้พี่"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 23 พ.ย. 11:20 น. (เวลาไทย) · แชท CFO</span>
+      <span>ครบ 28 พ.ย. (D-1)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[เสร็จ] G1: ดึงรายการตัดบัตรและใบแจ้งหนี้เดือน พ.ย. ครบทุกเจ้า (row:cfo-sub-11)</li>
+      <li>[ค้าง] G2: จับคู่ค่าใช้จ่ายกับคะแนน runner_fit จากรายงาน Tool Value</li>
+      <li>[รอคิว] G3: จัดกลุ่มเครื่องมือที่ต่ำกว่าเกณฑ์พร้อมคำนวณยอดประหยัด</li>
+      <li>[รอคิว] G4: ส่งตารางสรุปและขึ้นการ์ดขออนุมัติยกเลิกตัวที่ไม่คุ้ม</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Worker: ไม่มี (PH จอดบน contabo) | ขั้นต่อไป: CFO ปลุก PH#a108f332 มาผูกตัวเลข</span>
+      <span>ขยับล่าสุด 3 วันที่แล้ว</span>
+    </div>
+  </article>
+
+  <!-- Order 4 Detail (O-90d5, Working, Direct) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-work-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="29.9" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-90d5 (66%)</strong>
+        <span class="w-lane lane-coo">COO</span>
+        <span class="lg-mode-tag">สั่งตรง (COO ทำเอง)</span>
+      </div>
+      <span style="font-size:10px;color:var(--st-work-fg);font-weight:700;">กำลังทำ</span>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"ไปเช็คให้หน่อยว่าสัปดาห์นี้มี Skill ไหนในระบบที่ไม่ถูกเรียกใช้เลยเกิน 30 วัน แล้วคัดรายชื่อที่ควรเก็บเข้ากรุมาให้พี่ดูหน่อย"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 27 พ.ย. 08:40 น. (เวลาไทย) · แชท COO</span>
+      <span>ครบ วันนี้ 16:00 (D-0)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[เสร็จ] G1: เข้าใจโจทย์และดึงข้อมูล telemetry การใช้ Skill 30 วัน (row:tele-30d)</li>
+      <li>[เสร็จ] G2: คัดกรอง Skill ที่ไม่ถูกเรียกใช้และเช็คงานค้างที่ผูกอยู่ (sha:77d201b)</li>
+      <li>[กำลังทำ] G3: จัดทำตารางสรุปรายชื่อ Skill ที่เสนอเก็บเข้ากรุส่ง CEO</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Workers: codex·contabo (#t-55c8), agy·contabo (#t-55c9) | ขั้นต่อไป: ส่งสรุปในแชท COO</span>
+      <span>ขยับล่าสุด 4 นาที</span>
+    </div>
+  </article>
+
+  <!-- Order 5 Detail (O-91e2, Queued) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-queue-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-91e2 (0%)</strong>
+        <span class="w-lane lane-cgo">CGO</span>
+        <span class="lg-mode-tag">ผ่าน PH#e5521b08 PartnerGrowth</span>
+      </div>
+      <span style="font-size:10px;color:var(--st-queue-fg);font-weight:700;">รอคิว</span>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"เตรียมแคมเปญดึงพาร์ทเนอร์ IB รอบต้นเดือนธันวาคม สรุปเงื่อนไขรีเบตและหน้า Landing Page สำหรับเทียบข้อเสนอให้จบในสัปดาห์นี้"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 27 พ.ย. 09:50 น. (เวลาไทย) · การ์ด Q-20261127-0945</span>
+      <span>ครบ 1 ธ.ค. (D-4)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[รอคิว] G1: สรุปโครงสร้างรีเบตและตารางเปรียบเทียบแคมเปญ ธ.ค. (ผูก M1)</li>
+      <li>[รอคิว] G2: ออกแบบหน้าเปรียบเทียบข้อเสนอพาร์ทเนอร์บนเว็บ (ผูก M2)</li>
+      <li>[รอคิว] G3: ตรวจตัวเลขและส่งการ์ดขออนุมัติเปิดแคมเปญ (ผูก M3)</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Worker: codex · mac (#t-60a1 รอคิวลำดับ 1) | ขั้นต่อไป: เริ่มรันเมื่อช่อง worker บน mac ว่าง</span>
+      <span>ขยับล่าสุด 25 นาที</span>
+    </div>
+  </article>
+
+  <!-- Order 6 Detail (O-88b0, Done) -->
+  <article class="inspector-card">
+    <div class="insp-head">
+      <div class="insp-head-left">
+        <svg class="ring-22" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--w-bg-3)" stroke-width="4"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--st-done-fg)" stroke-width="4" stroke-dasharray="88" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+        </svg>
+        <strong>O-88b0 (100%)</strong>
+        <span class="w-lane lane-cto">CTO</span>
+        <span class="lg-mode-tag">ผ่าน PH#b7120c44 HostRouter</span>
+      </div>
+      <span style="font-size:10px;color:var(--st-done-fg);font-weight:700;">เสร็จ 100%</span>
+    </div>
+    <div class="insp-words" onclick="this.classList.toggle('expanded')">
+      <div class="insp-words-txt">"ปรับเพดานโหลดของเครื่อง Contabo, Winbox และ Mac ให้ใช้กฎเดียวกันที่ 90% ทั้ง Disk, RAM และ CPU พร้อมอัปเดตตัวกระจายงานให้ตรงกัน"</div>
+    </div>
+    <div class="insp-meta">
+      <span>สั่ง 26 พ.ย. 14:10 น. (เวลาไทย) · แชท CTO</span>
+      <span>เสร็จ 26 พ.ย. (100%)</span>
+    </div>
+    <ul class="insp-goals">
+      <li>[เสร็จ] G1: ปรับค่า fill_limit_pct เป็น 90 ใน config/hosts.yaml (sha:31f882a)</li>
+      <li>[เสร็จ] G2: อัปเดตชุดทดสอบ router และตรวจสอบสถานะทั้ง 3 เครื่อง (PR#819)</li>
+      <li>[เสร็จ] G3: ปิดงานพร้อมบันทึกหลักฐานลง hub และแจ้งผล CEO (row:close-88b0)</li>
+    </ul>
+    <div class="insp-foot">
+      <span>Worker: ไม่มีค้าง (การ์ด RUN-20261126-1540 สำเร็จ) | ขั้นต่อไป: ปิดงานแล้ว (PR#819 merged)</span>
+      <span>ขยับล่าสุด เมื่อวาน 16:05</span>
+    </div>
+  </article>
+</div>
+</body>
+</html>
