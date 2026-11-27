@@ -469,3 +469,450 @@
 2026-09-23T21:12:19  shot 171: submitted (attempt 2, est 15 credits)
 2026-09-23T21:13:32    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
 2026-09-23T21:14:29  shot 171: verified — 10.0s 1080x1920
+2026-09-25T19:13:10  attached + muted, 1 row(s) to attempt
+2026-09-25T19:13:18    attach_chip(@sia__face) failed: TimeoutError('Locator.wait_for: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last to be visible\n')
+2026-09-25T19:13:29    attach_chip(@sia__face) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n    - locator resolved to <button type="button" maticonbutton="" aria-haspopup="true" aria-expanded="true" cdk-describedby-host="ng-1" mat-ripple-loader-centered="" aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์" aria-describedby="cdk-describedby-message-ng-1-6" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-tooltip-trigger add-menu-trigger mat-unthemed add-menu-trigger-active">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    5 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 500ms\n')
+2026-09-25T19:13:36  shot 8: needs_model — chip never attached: @sia__face
+2026-09-25T19:14:37  attached + muted, 1 row(s) to attempt
+2026-09-25T19:15:16    attach_chip(@sia__face) failed: TimeoutError('Locator.fill: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-pane:has(.asset-item)").last.locator("input[aria-label=\\"ค้นหาเนื้อหา\\"], input[aria-label=\\"ค้นหา\\"]").first\n')
+2026-09-25T19:15:58    attach_chip(@sia__face) failed: TimeoutError('Locator.fill: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-pane:has(.asset-item)").last.locator("input[aria-label=\\"ค้นหาเนื้อหา\\"], input[aria-label=\\"ค้นหา\\"]").first\n')
+2026-09-25T19:16:06  shot 8: needs_model — chip never attached: @sia__face
+2026-09-25T19:16:21  attached + muted, 1 row(s) to attempt
+2026-09-25T19:16:59    attach_chip(@kla__school) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])kla__school(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:17:14  DRY-RUN shot 8: settings={'model_omni': True, 'mode_ingredients': True, 'aspect_9_16': True, 'qty_x1': True, 'resolution': True, 'duration': True} chips=['@sia__face', '@kla__face', '@lan__busy', '@sia__boss', '@kla__school'] resolution=360p dur_s=8 prompt_verified=True estimate=6 credits — stopping before Submit
+2026-09-25T19:17:28  attached + muted, 3 row(s) to attempt
+2026-09-25T19:18:11    attach_chip(@kla__school) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])kla__school(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:18:26  shot 8: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.10 GB, 4.89 GB free — would leave < 5 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T19:21:54  attached + muted, 3 row(s) to attempt
+2026-09-25T19:22:32    attach_chip(@kla__school) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])kla__school(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:22:51    attach_chip(@kla__school) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])kla__school(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:22:59  shot 8: needs_model — chip never attached: @kla__school
+2026-09-25T19:23:41  shot 11: submitted (attempt 1, est 6 credits)
+2026-09-25T19:24:53  shot 11: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-25T19:25:14    attach_chip(@yai__face) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])yai__face(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:25:33    attach_chip(@yai__face) failed: TimeoutError('Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])yai__face(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-25T19:25:41  shot 13: needs_model — chip never attached: @yai__face
+2026-09-25T19:27:10  attached + muted, 2 row(s) to attempt
+2026-09-25T19:27:33  shot 8: submitted (attempt 1, est 6 credits)
+2026-09-25T19:28:45  shot 8: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-25T19:29:31    attach_chip(@lan__busy) failed: TimeoutError('Locator.fill: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last.locator("input[aria-label=\\"ค้นหาเนื้อหา\\"], input[aria-label=\\"ค้นหา\\"]").first\n')
+2026-09-25T19:29:52  shot 13: submitted (attempt 1, est 6 credits)
+2026-09-25T19:31:04  shot 13: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-25T19:36:03  attached + muted, 23 row(s) to attempt
+2026-09-25T19:36:38  shot 1: submitted (attempt 1, est 12 credits)
+2026-09-25T19:38:20  shot 1: verified — 8.0s 720x1280
+2026-09-25T19:38:54  shot 2: submitted (attempt 1, est 12 credits)
+2026-09-25T19:40:06  shot 2: verified — 8.0s 720x1280
+2026-09-25T19:40:30  shot 3: submitted (attempt 1, est 12 credits)
+2026-09-25T19:41:42  shot 3: verified — 8.0s 720x1280
+2026-09-25T19:42:07  shot 4: submitted (attempt 1, est 20 credits)
+2026-09-25T19:43:49  shot 4: verified — 8.0s 720x1280
+2026-09-25T19:44:11  shot 5: submitted (attempt 1, est 12 credits)
+2026-09-25T19:52:59    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T19:53:07  shot 5: failed — timeout
+2026-09-25T19:53:33  shot 6: submitted (attempt 1, est 12 credits)
+2026-09-25T19:54:45  shot 6: verified — 8.0s 720x1280
+2026-09-25T19:55:07  shot 7: submitted (attempt 1, est 12 credits)
+2026-09-25T20:03:55    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T20:04:03  shot 7: failed — timeout
+2026-09-25T20:04:22  shot 8: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.20 GB, 5.18 GB free — would leave < 5 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T20:05:47  shot 5: needs_model — card not found
+2026-09-25T20:06:00  shot 7: needs_model — card not found
+2026-09-25T20:06:18  attached + muted, 16 row(s) to attempt
+2026-09-25T20:06:41  shot 8: submitted (attempt 1, est 12 credits)
+2026-09-25T20:07:54  shot 8: verified — 8.0s 720x1280
+2026-09-25T20:10:07  shot 9: submitted (attempt 1, est 12 credits)
+2026-09-25T20:10:57  shot 9: verified — 8.0s 720x1280
+2026-09-25T20:12:27    settings panel open err: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first\n    - locator resolved to <button matbutton="" flow-button="" cdkoverlayorigin="" _ngcontent-ng-c1998785918="" aria-label="ทริกเกอร์การตั้งค่า" mat-ripple-loader-uninitialized="" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-button mat-mdc-button-base settings-trigger-button mdc-button--unelevated mat-mdc-unelevated-button mat-unthemed flow-button-primary flow-button-small flow-button-no-touch-target">…</button>\n  - attempting click action\n    - scrolling into view if needed\n')
+2026-09-25T20:13:12    attach_chip(@pa__face) failed: TimeoutError('Locator.wait_for: Timeout 4000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]:visible, .cdk-overlay-container:has(input[aria-label=\\"ค้นหาเนื้อหา\\"])").last to be visible\n')
+2026-09-25T20:18:50    attach_chip(@pa__face) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n    - locator resolved to <button type="button" maticonbutton="" aria-haspopup="true" aria-expanded="false" cdk-describedby-host="ng-1" mat-ripple-loader-centered="" aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์" aria-describedby="cdk-describedby-message-ng-1-6" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-tooltip-trigger add-menu-trigger mat-unthemed">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n')
+2026-09-25T20:18:59  shot 10: needs_model — chip never attached: @pa__face
+2026-09-25T20:20:46  shot 11: submitted (attempt 1, est 12 credits)
+2026-09-25T20:21:30  shot 11: verified — 8.0s 720x1280
+2026-09-25T20:22:06    attach_chip(@yai__face) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n    - locator resolved to <button type="button" maticonbutton="" aria-haspopup="true" aria-expanded="false" cdk-describedby-host="ng-1" mat-ripple-loader-centered="" aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์" aria-describedby="cdk-describedby-message-ng-1-6" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-tooltip-trigger add-menu-trigger mat-unthemed">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n')
+2026-09-25T20:23:44  shot 12: submitted (attempt 1, est 12 credits)
+2026-09-25T20:24:32  shot 12: verified — 8.0s 720x1280
+2026-09-25T20:25:31  shot 13: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.10 GB, 4.72 GB free — would leave < 5 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T20:26:14  attached + muted, 11 row(s) to attempt
+2026-09-25T20:26:36  shot 13: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.06 GB, 4.78 GB free — would leave < 5 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T20:29:21  attached + muted, 1 row(s) to attempt
+2026-09-25T20:29:48  shot 13: submitted (attempt 1, est 12 credits)
+2026-09-25T20:31:00  shot 13: verified — 8.0s 720x1280
+2026-09-25T20:32:33  attached + muted, 1 row(s) to attempt
+2026-09-25T20:32:58  shot 14: submitted (attempt 1, est 12 credits)
+2026-09-25T20:34:10  shot 14: verified — 8.0s 720x1280
+2026-09-25T20:34:50  attached + muted, 1 row(s) to attempt
+2026-09-25T20:35:17  shot 15: submitted (attempt 1, est 12 credits)
+2026-09-25T20:36:28  shot 15: verified — 8.0s 720x1280
+2026-09-25T20:36:30  attached + muted, 1 row(s) to attempt
+2026-09-25T20:36:57  shot 16: submitted (attempt 1, est 12 credits)
+2026-09-25T20:38:08  shot 16: verified — 8.0s 720x1280
+2026-09-25T20:38:10  attached + muted, 1 row(s) to attempt
+2026-09-25T20:38:31  shot 17: submitted (attempt 1, est 12 credits)
+2026-09-25T20:39:44  shot 17: verified — 8.0s 720x1280
+2026-09-25T20:39:46  attached + muted, 1 row(s) to attempt
+2026-09-25T20:40:13  shot 18: submitted (attempt 1, est 12 credits)
+2026-09-25T20:41:25  shot 18: verified — 8.0s 720x1280
+2026-09-25T20:41:26  attached + muted, 1 row(s) to attempt
+2026-09-25T20:41:49  shot 19: submitted (attempt 1, est 12 credits)
+2026-09-25T20:50:36    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T20:50:44  shot 19: failed — timeout
+2026-09-25T20:50:46  attached + muted, 1 row(s) to attempt
+2026-09-25T20:52:02  attached + muted, 1 row(s) to attempt
+2026-09-25T20:52:27  shot 21: submitted (attempt 1, est 12 credits)
+2026-09-25T20:53:39  shot 21: verified — 8.0s 720x1280
+2026-09-25T20:53:47  attached + muted, 1 row(s) to attempt
+2026-09-25T20:54:16  shot 22: submitted (attempt 1, est 12 credits)
+2026-09-25T20:55:29  shot 22: verified — 8.0s 720x1280
+2026-09-25T20:55:31  attached + muted, 1 row(s) to attempt
+2026-09-25T20:55:56  shot 23: submitted (attempt 1, est 12 credits)
+2026-09-25T20:57:09  shot 23: verified — 8.0s 720x1280
+2026-09-25T20:57:10  attached + muted, 1 row(s) to attempt
+2026-09-25T20:57:45  shot 10: submitted (attempt 1, est 12 credits)
+2026-09-25T20:58:58  shot 10: verified — 8.0s 720x1280
+2026-09-25T20:59:00  attached + muted, 1 row(s) to attempt
+2026-09-25T20:59:24  shot 20: submitted (attempt 1, est 15 credits)
+2026-09-25T21:00:37  shot 20: verified — 10.0s 720x1280
+2026-09-25T21:14:47  attached + muted, 1 row(s) to attempt
+2026-09-25T21:15:07  shot 7: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.01 GB, 3.13 GB free — would leave < 4 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T21:18:10  attached + muted, 1 row(s) to attempt
+2026-09-25T21:18:30  shot 19: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.01 GB, 3.50 GB free — would leave < 4 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T21:25:32  attached + muted, 1 row(s) to attempt
+2026-09-25T21:25:52  shot 5: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.01 GB, 2.83 GB free — would leave < 4 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T21:30:20  attached + muted, 1 row(s) to attempt
+2026-09-25T21:30:39  shot 7: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.01 GB, 3.82 GB free — would leave < 4 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T21:33:11  attached + muted, 1 row(s) to attempt
+2026-09-25T21:33:36  shot 19: submitted (attempt 2, est 12 credits)
+2026-09-25T21:42:24    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T21:42:32  shot 19: failed — timeout
+2026-09-25T21:42:33  attached + muted, 1 row(s) to attempt
+2026-09-25T21:42:57  shot 5: submitted (attempt 2, est 12 credits)
+2026-09-25T21:44:08  shot 5: verified — 8.0s 720x1280
+2026-09-25T21:45:13  attached + muted, 1 row(s) to attempt
+2026-09-25T21:45:36  shot 7: submitted (attempt 2, est 12 credits)
+2026-09-25T21:54:24    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T21:54:32  shot 7: failed — timeout
+2026-09-25T21:54:33  attached + muted, 1 row(s) to attempt
+2026-09-25T21:54:51  shot 19: submitted (attempt 3, est 12 credits)
+2026-09-25T21:56:03  shot 19: verified — 8.0s 720x1280
+2026-09-25T21:56:50  attached + muted, 1 row(s) to attempt
+2026-09-25T21:57:14  shot 7: submitted (attempt 3, est 12 credits)
+2026-09-25T21:58:25  shot 7: verified — 8.0s 720x1280
+2026-09-25T21:58:26  attached + muted, 1 row(s) to attempt
+2026-09-25T21:58:59  shot 1: submitted (attempt 1, est 12 credits)
+2026-09-25T22:00:11  shot 1: verified — 8.0s 720x1280
+2026-09-25T22:00:12  attached + muted, 1 row(s) to attempt
+2026-09-25T22:00:42  shot 15: submitted (attempt 1, est 12 credits)
+2026-09-25T22:01:54  shot 15: verified — 8.0s 720x1280
+2026-09-25T22:04:26  attached + muted, 1 row(s) to attempt
+2026-09-25T22:04:49  shot 23: submitted (attempt 1, est 12 credits)
+2026-09-25T22:06:02  shot 23: verified — 8.0s 720x1280
+2026-09-25T22:37:05  attached + muted, 1 row(s) to attempt
+2026-09-25T22:37:44  DRY-RUN shot 46: settings={'model_omni': True, 'mode_ingredients': True, 'aspect_9_16': True, 'qty_x1': True, 'resolution': True, 'duration': True} chips=['@scaleman__work', '@sia__face', '@worker__work', '@fac__weigh', '@sia__factory'] resolution=720p dur_s=8 prompt_verified=True estimate=12 credits — stopping before Submit
+2026-09-25T22:40:08  attached + muted, 1 row(s) to attempt
+2026-09-25T22:40:40  shot 24: submitted (attempt 1, est 12 credits)
+2026-09-25T22:41:53  shot 24: verified — 8.0s 720x1280
+2026-09-25T22:41:57  attached + muted, 1 row(s) to attempt
+2026-09-25T22:42:27  shot 25: REFUSED (space) — stopping the whole run: InsufficientFreeSpace('expected output 0.01 GB, 2.85 GB free — would leave < 3 GB free (space_check, CEO ruling 2026-09-23 / Work/RULES.md rule 9)')
+2026-09-25T22:43:30  attached + muted, 1 row(s) to attempt
+2026-09-25T22:43:58  shot 26: submitted (attempt 1, est 12 credits)
+2026-09-25T22:46:45  shot 26: verified — 8.0s 720x1280
+2026-09-25T22:47:02  attached + muted, 1 row(s) to attempt
+2026-09-25T22:47:15    model select err: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("flow-prompt-box-settings").locator("button[aria-label=\\"เลือกกลุ่มผลิตภัณฑ์โมเดล\\"]").first\n')
+2026-09-25T22:47:19    resolution select err: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("flow-prompt-box-settings").locator("mat-button-toggle").filter(has_text="720p").first\n')
+2026-09-25T22:47:22    duration select err: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("flow-prompt-box-settings").locator("mat-button-toggle").filter(has_text="8 วินาที").first\n')
+2026-09-25T22:47:22  shot 27: needs_model — settings not confirmed: ['model_omni', 'resolution', 'duration']
+2026-09-25T22:47:49  attached + muted, 1 row(s) to attempt
+2026-09-25T22:48:22  shot 28: submitted (attempt 1, est 12 credits)
+2026-09-25T22:49:46  shot 28: verified — 8.0s 720x1280
+2026-09-25T22:50:31  attached + muted, 1 row(s) to attempt
+2026-09-25T22:51:14  shot 29: submitted (attempt 1, est 12 credits)
+2026-09-25T23:00:06    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T23:00:14  shot 29: failed — timeout
+2026-09-25T23:00:21  attached + muted, 1 row(s) to attempt
+2026-09-25T23:00:50  shot 30: submitted (attempt 1, est 12 credits)
+2026-09-25T23:09:39    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-25T23:09:47  shot 30: failed — timeout
+2026-09-25T23:09:50  attached + muted, 1 row(s) to attempt
+2026-09-25T23:30:47  attached + muted, 1 row(s) to attempt
+2026-09-25T23:31:16  shot 31: submitted (attempt 1, est 20 credits)
+2026-09-25T23:32:59  shot 31: verified — 8.0s 720x1280
+2026-09-25T23:33:02  attached + muted, 1 row(s) to attempt
+2026-09-25T23:33:27  shot 32: submitted (attempt 1, est 12 credits)
+2026-09-25T23:34:40  shot 32: verified — 8.0s 720x1280
+2026-09-25T23:34:42  attached + muted, 1 row(s) to attempt
+2026-09-25T23:35:11  shot 33: submitted (attempt 1, est 12 credits)
+2026-09-25T23:36:23  shot 33: verified — 8.0s 720x1280
+2026-09-25T23:36:31  attached + muted, 1 row(s) to attempt
+2026-09-25T23:37:01  shot 34: submitted (attempt 1, est 12 credits)
+2026-09-25T23:38:14  shot 34: verified — 8.0s 720x1280
+2026-09-25T23:38:28  attached + muted, 1 row(s) to attempt
+2026-09-25T23:38:51  shot 35: submitted (attempt 1, est 12 credits)
+2026-09-25T23:40:04  shot 35: verified — 8.0s 720x1280
+2026-09-25T23:40:06  attached + muted, 1 row(s) to attempt
+2026-09-25T23:40:38  shot 36: submitted (attempt 1, est 12 credits)
+2026-09-25T23:41:50  shot 36: verified — 8.0s 720x1280
+2026-09-25T23:41:51  attached + muted, 1 row(s) to attempt
+2026-09-25T23:42:19  shot 37: submitted (attempt 1, est 12 credits)
+2026-09-25T23:43:31  shot 37: verified — 8.0s 720x1280
+2026-09-25T23:43:33  attached + muted, 1 row(s) to attempt
+2026-09-25T23:44:01  shot 38: submitted (attempt 1, est 12 credits)
+2026-09-25T23:45:14  shot 38: verified — 8.0s 720x1280
+2026-09-25T23:45:16  attached + muted, 1 row(s) to attempt
+2026-09-25T23:45:16  shot 39: EXCEPTION Error('Page.goto: net::ERR_CONNECTION_CLOSED at https://flow.google.com/project/3366f1f0-c07e-4338-a316-7435d7975193\nCall log:\n  - navigating to "https://flow.google.com/project/3366f1f0-c07e-4338-a316-7435d7975193", waiting until "domcontentloaded"\n')
+2026-09-25T23:45:21  attached + muted, 1 row(s) to attempt
+2026-09-25T23:45:50  shot 40: submitted (attempt 1, est 12 credits)
+2026-09-25T23:47:03  shot 40: verified — 8.0s 720x1280
+2026-09-25T23:47:06  attached + muted, 1 row(s) to attempt
+2026-09-25T23:47:29  shot 41: submitted (attempt 1, est 12 credits)
+2026-09-25T23:48:42  shot 41: verified — 8.0s 720x1280
+2026-09-25T23:48:44  attached + muted, 1 row(s) to attempt
+2026-09-25T23:49:11  shot 42: submitted (attempt 1, est 12 credits)
+2026-09-25T23:50:23  shot 42: verified — 8.0s 720x1280
+2026-09-25T23:50:26  attached + muted, 1 row(s) to attempt
+2026-09-25T23:50:48  shot 43: submitted (attempt 1, est 12 credits)
+2026-09-25T23:52:31  shot 43: verified — 8.0s 720x1280
+2026-09-25T23:52:34  attached + muted, 1 row(s) to attempt
+2026-09-25T23:52:58  shot 44: submitted (attempt 1, est 12 credits)
+2026-09-25T23:54:10  shot 44: verified — 8.0s 720x1280
+2026-09-25T23:54:14  attached + muted, 1 row(s) to attempt
+2026-09-25T23:54:35  shot 45: submitted (attempt 1, est 12 credits)
+2026-09-25T23:55:48  shot 45: verified — 8.0s 720x1280
+2026-09-25T23:55:49  attached + muted, 1 row(s) to attempt
+2026-09-25T23:56:14  shot 46: submitted (attempt 1, est 12 credits)
+2026-09-25T23:57:27  shot 46: verified — 8.0s 720x1280
+2026-09-25T23:57:29  attached + muted, 1 row(s) to attempt
+2026-09-25T23:57:52  shot 47: submitted (attempt 1, est 12 credits)
+2026-09-25T23:59:04  shot 47: verified — 8.0s 720x1280
+2026-09-25T23:59:06  attached + muted, 1 row(s) to attempt
+2026-09-25T23:59:29  shot 48: submitted (attempt 1, est 12 credits)
+2026-09-26T00:00:41  shot 48: verified — 8.0s 720x1280
+2026-09-26T00:00:43  attached + muted, 1 row(s) to attempt
+2026-09-26T00:01:04  shot 49: submitted (attempt 1, est 12 credits)
+2026-09-26T00:02:15  shot 49: verified — 8.0s 720x1280
+2026-09-26T00:02:16  attached + muted, 1 row(s) to attempt
+2026-09-26T00:02:39  shot 50: submitted (attempt 1, est 12 credits)
+2026-09-26T00:18:41    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T00:18:49  shot 50: failed — timeout
+2026-09-26T00:18:51  attached + muted, 1 row(s) to attempt
+2026-09-26T00:19:19  shot 51: submitted (attempt 1, est 12 credits)
+2026-09-26T00:20:32  shot 51: verified — 8.0s 720x1280
+2026-09-26T00:20:33  attached + muted, 1 row(s) to attempt
+2026-09-26T00:21:06  shot 52: submitted (attempt 1, est 12 credits)
+2026-09-26T00:22:18  shot 52: verified — 8.0s 720x1280
+2026-09-26T00:22:22  attached + muted, 1 row(s) to attempt
+2026-09-26T00:22:55  shot 53: submitted (attempt 1, est 12 credits)
+2026-09-26T00:24:07  shot 53: verified — 8.0s 720x1280
+2026-09-26T00:24:15  attached + muted, 1 row(s) to attempt
+2026-09-26T00:24:53  shot 25: submitted (attempt 1, est 12 credits)
+2026-09-26T00:40:25    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T00:40:33  shot 25: failed — timeout
+2026-09-26T00:40:37  attached + muted, 1 row(s) to attempt
+2026-09-26T00:41:10  shot 27: submitted (attempt 1, est 20 credits)
+2026-09-26T00:43:24  shot 27: verified — 8.0s 720x1280
+2026-09-26T00:43:26  attached + muted, 1 row(s) to attempt
+2026-09-26T00:43:55  shot 29: submitted (attempt 2, est 20 credits)
+2026-09-26T00:45:39  shot 29: verified — 8.0s 720x1280
+2026-09-26T00:45:40  attached + muted, 1 row(s) to attempt
+2026-09-26T00:46:03  shot 30: submitted (attempt 2, est 12 credits)
+2026-09-26T01:02:05    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T01:02:13  shot 30: failed — timeout
+2026-09-26T01:02:54  shot 25: needs_model — card not found
+2026-09-26T01:03:08  shot 50: needs_model — card not found
+2026-09-26T01:03:22  shot 30: needs_model — card not found
+2026-09-26T01:04:20  attached + muted, 1 row(s) to attempt
+2026-09-26T01:04:46  shot 39: submitted (attempt 1, est 12 credits)
+2026-09-26T01:05:57  shot 39: verified — 8.0s 720x1280
+2026-09-26T01:05:58  attached + muted, 1 row(s) to attempt
+2026-09-26T01:06:23  shot 37: submitted (attempt 1, est 12 credits)
+2026-09-26T01:07:35  shot 37: verified — 8.0s 720x1280
+2026-09-26T01:07:36  attached + muted, 1 row(s) to attempt
+2026-09-26T01:08:01  shot 51: submitted (attempt 1, est 12 credits)
+2026-09-26T01:09:13  shot 51: verified — 8.0s 720x1280
+2026-09-26T01:11:49  attached + muted, 1 row(s) to attempt
+2026-09-26T01:12:11  shot 50: submitted (attempt 2, est 12 credits)
+2026-09-26T01:28:13    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T01:28:21  shot 50: failed — timeout
+2026-09-26T01:28:24  attached + muted, 1 row(s) to attempt
+2026-09-26T01:28:43  shot 30: submitted (attempt 3, est 12 credits)
+2026-09-26T01:29:55  shot 30: verified — 8.0s 720x1280
+2026-09-26T01:29:56  attached + muted, 1 row(s) to attempt
+2026-09-26T01:30:28  shot 25: submitted (attempt 2, est 12 credits)
+2026-09-26T01:46:30    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T01:46:38  shot 25: failed — timeout
+2026-09-26T01:46:41  attached + muted, 1 row(s) to attempt
+2026-09-26T01:47:09  shot 32: submitted (attempt 1, est 20 credits)
+2026-09-26T01:47:18  shot 32: verified — 8.0s 720x1280
+2026-09-26T01:49:18  shot 32: verified — 8.0s 720x1280
+2026-09-26T01:51:52  attached + muted, 1 row(s) to attempt
+2026-09-26T01:52:10  shot 50: submitted (attempt 3, est 12 credits)
+2026-09-26T01:53:22  shot 50: verified — 8.0s 720x1280
+2026-09-26T01:53:27  attached + muted, 1 row(s) to attempt
+2026-09-26T01:53:49  shot 25: submitted (attempt 3, est 12 credits)
+2026-09-26T02:09:51    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T02:09:59  shot 25: failed — timeout
+2026-09-26T02:10:45  shot 25: needs_model — card not found
+2026-09-26T02:12:00  attached + muted, 1 row(s) to attempt
+2026-09-26T02:12:22  shot 25: submitted (attempt 4, est 12 credits)
+2026-09-26T02:13:34  shot 25: verified — 8.0s 720x1280
+2026-09-26T04:34:08  attached + muted, 1 row(s) to attempt
+2026-09-26T04:34:42  shot 27: submitted (attempt 1, est 20 credits)
+2026-09-26T04:36:26  shot 27: verified — 8.0s 720x1280
+2026-09-26T04:36:29  attached + muted, 1 row(s) to attempt
+2026-09-26T04:36:57  shot 40: submitted (attempt 1, est 12 credits)
+2026-09-26T04:38:10  shot 40: verified — 8.0s 720x1280
+2026-09-26T04:40:50  attached + muted, 1 row(s) to attempt
+2026-09-26T04:41:21  shot 54: submitted (attempt 1, est 12 credits)
+2026-09-26T04:42:36  shot 54: verified — 8.0s 720x1280
+2026-09-26T04:42:41  attached + muted, 1 row(s) to attempt
+2026-09-26T04:43:13  shot 55: submitted (attempt 1, est 12 credits)
+2026-09-26T04:44:26  shot 55: verified — 8.0s 720x1280
+2026-09-26T04:44:30  attached + muted, 1 row(s) to attempt
+2026-09-26T04:44:58  shot 56: submitted (attempt 1, est 12 credits)
+2026-09-26T04:46:11  shot 56: verified — 8.0s 720x1280
+2026-09-26T04:46:14  attached + muted, 1 row(s) to attempt
+2026-09-26T04:46:49  shot 57: submitted (attempt 1, est 12 credits)
+2026-09-26T05:02:52    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T05:03:00  shot 57: failed — timeout
+2026-09-26T05:03:04  attached + muted, 1 row(s) to attempt
+2026-09-26T05:03:42  shot 58: submitted (attempt 1, est 12 credits)
+2026-09-26T05:19:14    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T05:19:22  shot 58: failed — timeout
+2026-09-26T05:19:32  attached + muted, 1 row(s) to attempt
+2026-09-26T05:20:05  shot 59: submitted (attempt 1, est 12 credits)
+2026-09-26T05:21:18  shot 59: verified — 8.0s 720x1280
+2026-09-26T05:21:22  attached + muted, 1 row(s) to attempt
+2026-09-26T05:21:43  shot 60: submitted (attempt 1, est 12 credits)
+2026-09-26T05:22:55  shot 60: verified — 8.0s 720x1280
+2026-09-26T05:23:15  attached + muted, 1 row(s) to attempt
+2026-09-26T05:23:49  shot 61: submitted (attempt 1, est 12 credits)
+2026-09-26T05:25:09  shot 61: verified — 8.0s 720x1280
+2026-09-26T05:26:18  attached + muted, 1 row(s) to attempt
+2026-09-26T05:27:07  shot 62: submitted (attempt 1, est 20 credits)
+2026-09-26T05:28:21  shot 62: verified — 8.0s 720x1280
+2026-09-26T05:28:25  attached + muted, 1 row(s) to attempt
+2026-09-26T05:29:00    attach_chip(@baan__inside) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n    - locator resolved to <button type="button" maticonbutton="" aria-haspopup="true" aria-expanded="false" cdk-describedby-host="ng-1" mat-ripple-loader-centered="" aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์" aria-describedby="cdk-describedby-message-ng-1-6" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-tooltip-trigger add-menu-trigger mat-unthemed">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n')
+2026-09-26T05:29:56    attach_chip(@baan__inside) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n    - locator resolved to <button type="button" maticonbutton="" aria-haspopup="true" aria-expanded="false" cdk-describedby-host="ng-1" mat-ripple-loader-centered="" aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์" aria-describedby="cdk-describedby-message-ng-1-6" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-tooltip-trigger add-menu-trigger mat-unthemed">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n')
+2026-09-26T05:30:04  shot 63: needs_model — chip never attached: @baan__inside
+2026-09-26T05:30:44  attached + muted, 1 row(s) to attempt
+2026-09-26T05:31:12  shot 64: submitted (attempt 1, est 12 credits)
+2026-09-26T05:47:15    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T05:47:23  shot 64: failed — timeout
+2026-09-26T05:47:28  attached + muted, 1 row(s) to attempt
+2026-09-26T05:47:55  shot 65: submitted (attempt 1, est 12 credits)
+2026-09-26T05:49:07  shot 65: verified — 8.0s 720x1280
+2026-09-26T05:49:31  attached + muted, 1 row(s) to attempt
+2026-09-26T05:49:57  shot 9064: submitted (attempt 1, est 6 credits)
+2026-09-26T06:05:58    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T06:06:06  shot 9064: failed — timeout
+2026-09-26T06:06:10  attached + muted, 1 row(s) to attempt
+2026-09-26T06:06:34  shot 9164: submitted (attempt 1, est 6 credits)
+2026-09-26T06:22:36    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T06:22:44  shot 9164: failed — timeout
+2026-09-26T06:22:47  attached + muted, 1 row(s) to attempt
+2026-09-26T06:23:14  shot 9074: submitted (attempt 1, est 6 credits)
+2026-09-26T06:39:16    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T06:39:24  shot 9074: failed — timeout
+2026-09-26T06:40:04  attached + muted, 1 row(s) to attempt
+2026-09-26T06:40:22  shot 66: submitted (attempt 1, est 12 credits)
+2026-09-26T06:41:34  shot 66: verified — 8.0s 720x1280
+2026-09-26T06:41:37  attached + muted, 1 row(s) to attempt
+2026-09-26T06:41:57  shot 67: submitted (attempt 1, est 12 credits)
+2026-09-26T06:43:09  shot 67: verified — 8.0s 720x1280
+2026-09-26T06:43:11  attached + muted, 1 row(s) to attempt
+2026-09-26T06:43:35  shot 68: submitted (attempt 1, est 12 credits)
+2026-09-26T06:44:47  shot 68: verified — 8.0s 720x1280
+2026-09-26T06:44:49  attached + muted, 1 row(s) to attempt
+2026-09-26T06:45:15  shot 70: submitted (attempt 1, est 12 credits)
+2026-09-26T07:01:17    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T07:01:25  shot 70: failed — timeout
+2026-09-26T07:01:27  attached + muted, 1 row(s) to attempt
+2026-09-26T07:01:57  shot 71: submitted (attempt 1, est 20 credits)
+2026-09-26T07:03:40  shot 71: verified — 8.0s 720x1280
+2026-09-26T07:03:42  attached + muted, 1 row(s) to attempt
+2026-09-26T07:04:05  shot 72: submitted (attempt 1, est 12 credits)
+2026-09-26T07:05:16  shot 72: verified — 8.0s 720x1280
+2026-09-26T07:05:20  attached + muted, 1 row(s) to attempt
+2026-09-26T07:05:48  shot 57: submitted (attempt 2, est 12 credits)
+2026-09-26T07:08:03  shot 57: verified — 8.0s 720x1280
+2026-09-26T07:08:05  attached + muted, 1 row(s) to attempt
+2026-09-26T07:08:28  shot 58: submitted (attempt 2, est 12 credits)
+2026-09-26T07:24:30    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T07:24:38  shot 58: failed — timeout
+2026-09-26T07:24:40  attached + muted, 1 row(s) to attempt
+2026-09-26T07:25:03  shot 63: submitted (attempt 1, est 20 credits)
+2026-09-26T07:26:15  shot 63: verified — 8.0s 720x1280
+2026-09-26T07:40:18  attached + muted, 1 row(s) to attempt
+2026-09-26T07:40:41  shot 9274: submitted (attempt 1, est 6 credits)
+2026-09-26T07:41:58  shot 9274: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-26T07:42:44  attached + muted, 1 row(s) to attempt
+2026-09-26T07:43:08  shot 9269: submitted (attempt 1, est 6 credits)
+2026-09-26T07:44:22  shot 9269: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-26T07:44:28  attached + muted, 1 row(s) to attempt
+2026-09-26T07:44:55  shot 9275: submitted (attempt 1, est 6 credits)
+2026-09-26T07:46:07  shot 9275: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-26T07:48:14  attached + muted, 1 row(s) to attempt
+2026-09-26T07:48:37  shot 74: submitted (attempt 1, est 20 credits)
+2026-09-26T08:04:39    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T08:04:47  shot 74: failed — timeout
+2026-09-26T08:04:51  attached + muted, 1 row(s) to attempt
+2026-09-26T08:05:12  shot 69: submitted (attempt 1, est 12 credits)
+2026-09-26T08:06:25  shot 69: verified — 8.0s 720x1280
+2026-09-26T08:06:47  attached + muted, 1 row(s) to attempt
+2026-09-26T08:07:05  shot 64: submitted (attempt 2, est 12 credits)
+2026-09-26T08:08:17  shot 64: verified — 8.0s 720x1280
+2026-09-26T08:08:19  attached + muted, 1 row(s) to attempt
+2026-09-26T08:08:37  shot 73: submitted (attempt 1, est 12 credits)
+2026-09-26T08:09:50  shot 73: verified — 8.0s 720x1280
+2026-09-26T08:09:51  attached + muted, 1 row(s) to attempt
+2026-09-26T08:10:10  shot 75: submitted (attempt 1, est 12 credits)
+2026-09-26T08:12:24  shot 75: verified — 8.0s 720x1280
+2026-09-26T08:12:26  attached + muted, 1 row(s) to attempt
+2026-09-26T08:12:52  shot 70: submitted (attempt 2, est 12 credits)
+2026-09-26T08:14:04  shot 70: verified — 8.0s 720x1280
+2026-09-26T08:20:17  attached + muted, 1 row(s) to attempt
+2026-09-26T08:20:40  shot 74: submitted (attempt 2, est 20 credits)
+2026-09-26T08:36:12    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T08:36:20  shot 74: failed — timeout
+2026-09-26T08:36:24  attached + muted, 1 row(s) to attempt
+2026-09-26T08:36:53  shot 70: submitted (attempt 1, est 12 credits)
+2026-09-26T08:52:55    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T08:53:03  shot 70: failed — timeout
+2026-09-26T08:53:04  attached + muted, 1 row(s) to attempt
+2026-09-26T08:54:05  shot 71: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-26T08:55:14  attached + muted, 1 row(s) to attempt
+2026-09-26T08:55:33  shot 75: submitted (attempt 1, est 12 credits)
+2026-09-26T09:11:35    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T09:11:43  shot 75: failed — timeout
+2026-09-26T09:11:56  attached + muted, 1 row(s) to attempt
+2026-09-26T09:12:24  shot 70: submitted (attempt 2, est 12 credits)
+2026-09-26T09:13:38  shot 70: verified — 8.0s 720x1280
+2026-09-26T09:13:41  attached + muted, 1 row(s) to attempt
+2026-09-26T09:14:36  shot 71: submitted (attempt 1, est 20 credits)
+2026-09-26T09:16:23  shot 71: verified — 8.0s 720x1280
+2026-09-26T09:16:29  attached + muted, 1 row(s) to attempt
+2026-09-26T09:16:50  shot 58: submitted (attempt 3, est 12 credits)
+2026-09-26T09:22:31    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T09:22:39  shot 58: failed — timeout
+2026-09-26T09:31:47  shot 75: needs_model — card not found
+2026-09-26T09:32:33  shot 58: verified — 8.0s 720x1280
+2026-09-26T09:47:25    shot 58: open 1 gave no video, re-finding the card
+2026-09-26T09:48:32    shot 58: open 2 gave no video, re-finding the card
+2026-09-26T09:49:39    shot 58: open 3 gave no video, re-finding the card
+2026-09-26T09:50:48    shot 58: open 4 gave no video, re-finding the card
+2026-09-26T09:50:52  shot 58: needs_model — card found but no video after retries: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T09:52:02    shot 73: open 1 gave no video, re-finding the card
+2026-09-26T09:53:09    shot 73: open 2 gave no video, re-finding the card
+2026-09-26T09:54:16    shot 73: open 3 gave no video, re-finding the card
+2026-09-26T09:55:30    shot 73: open 4 gave no video, re-finding the card
+2026-09-26T09:55:37  shot 73: needs_model — card found but no video after retries: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-26T10:01:07  shot 73: verified — 8.0s 720x1280
+2026-09-26T10:01:23  shot 58: verified — 8.0s 720x1280
+2026-09-26T10:08:33  attached + muted, 1 row(s) to attempt
+2026-09-26T10:08:46  CAP REACHED: spent=0 + estimate=20 > cap=12 — stopping the whole run
+2026-09-26T10:09:04  attached + muted, 1 row(s) to attempt
+2026-09-26T10:09:18  shot 74: submitted (attempt 3, est 12 credits)
+2026-09-26T10:10:08  shot 74: verified — 8.0s 720x1280
+2026-09-26T11:35:34  attached + muted, 1 row(s) to attempt
+2026-09-26T11:35:55  shot 75: submitted (attempt 2, est 12 credits)
+2026-09-26T11:36:50  shot 75: verified — 8.0s 720x1280

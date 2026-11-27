@@ -693,6 +693,44 @@ class ChatGPTBrowser:
             raise RuntimeError(f"image fetch failed: HTTP {resp.status} for {url}")
         return resp.body()
 
+    def delete_chat_and_files(self, chat_url: str) -> int:
+        """Delete the generated image file(s) from ChatGPT Library storage and hide
+        the temporary conversation after the image has been saved locally (CEO 2026-11-09)."""
+        m = re.search(r"/c/([0-9a-fA-F-]{16,})", chat_url or "")
+        thread_id = m.group(1) if m else ""
+        try:
+            return int(self.page.evaluate("""async (tid) => {
+                const s = await (await fetch("/api/auth/session")).json();
+                const tok = s.accessToken;
+                if (!tok) return 0;
+                const headers = {"Authorization": "Bearer " + tok, "Content-Type": "application/json"};
+                const url = "/backend-api/files/library/nodes?entry_surface=library&include_hidden_files=false&include_files=true&include_saved_entities=true&defer_sharing_badges=true&include_sites=false&include_folder_counts=false&include_onedrive=false&hydrate_folder_thumbnails=false";
+                const r = await (await fetch(url, {headers})).json();
+                const items = (r.items || []).filter(x => x.kind === "file" && (tid ? x.origination_thread_id === tid : true));
+                const targets = tid ? items : items.slice(0, 1);
+                let deleted = 0;
+                if (targets.length) {
+                    const batch = targets.map(n => ({
+                        library_file_id: n.id,
+                        file_id: n.file_id,
+                        parent_directory_id: n.parent_directory_id,
+                        file_name: n.name
+                    }));
+                    const delResp = await fetch("/backend-api/files/library/files/delete-batch", {
+                        method: "POST", headers, body: JSON.stringify({files: batch})
+                    });
+                    if (delResp.ok) deleted = batch.length;
+                }
+                if (tid) {
+                    await fetch(`/backend-api/conversation/${tid}`, {
+                        method: "PATCH", headers, body: JSON.stringify({is_visible: false})
+                    });
+                }
+                return deleted;
+            }""", thread_id) or 0)
+        except Exception:
+            return 0
+
 
 # ── orchestration ────────────────────────────────────────────────────────────
 

@@ -3,16 +3,7 @@ name: CMO_Knowledge_Film_Production
 kind: knowledge
 owner: CMO
 aka: [CTO_Film_Production]
-description: >-
-  KNOWLEDGE — How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one,
-  reference plates, what to re-shoot when something changes, tolerance, prose against reference, why a
-  prohibition fails, countable motion, reviewing by eye, the continuity check before firing, and what the
-  director decides. Trigger on /CMO_Knowledge_Film_Production and whenever a C-level directs a short film, trailer
-  or ad made of many generated shots: "ทำหนัง", "หนังสั้น", "trailer", "ตรวจความต่อเนื่อง", "ต้องยิงใหม่ฉากไหน",
-  "เปลี่ยน Element", "CAST". Engine facts (buttons, money, reference caps, what a scanner blocks) live in the
-  engine skills: CMO_Knowledge_Seedance2.5_Higgsfield, CMO_Knowledge_Flow_Omni1.1 (+ _Continuity, _FilmQC), CMO_Knowledge_MiniMax_H3,
-  CMO_Knowledge_Wan3.0_TopView. How a prompt file is written is CMO_Standard_Film_PromptFormat. Do NOT fire for a single
-  standalone clip or still-image work.
+description: "KNOWLEDGE — Running a multi-shot AI film on any engine so it stays one film: story gate, CAST.md, reference plates, what to re-shoot after a change, prose vs reference, why prohibitions fail, countable motion, reviewing by eye, the pre-fire continuity check, the director's calls. Trigger on /CMO_Knowledge_Film_Production, \"ทำหนัง\", \"หนังสั้น\", \"trailer\", \"ต้องยิงใหม่ฉากไหน\", \"เปลี่ยน Element\", \"CAST\". Engine facts live in the engine skills. Not for a single clip or stills."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 audience: [cmo, cto, cxo, script_writer]

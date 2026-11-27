@@ -101,6 +101,7 @@ ffmpeg -y -i <output.mp4> \
 2. **Face Clearance:** Zero subtitle or UI frame touches the speaker's eyes, nose, or mouth in Modes 1, 2, or 4.
 3. **380×380 Centered Avatar (Mode 3):** The speaker's entire head and `RICH` beanie sit dead-center inside the `380×380px` `#7CFF00` neon ring with zero border clipping.
 4. **Content Alignment:** Every B-roll window shows dark-mode trading/terminal visuals that directly illustrate the spoken words at that timestamp.
+5. **TikTok Queue, Telegram Description & `MoonieX Poster` Gmail Delivery:** Once the visual check passes, submit the episode through the shared org delivery skill `CMO_Procedure_MoonieXPoster_Queue` (`tools/mooniex_poster.py submit --channel "MyPasakon" --account mypasakon --project MYPASAKON ...`, first hashtag `#mypasakon`, max 5 `#tags`).
 
 ## Good vs bad
 

@@ -6,7 +6,8 @@ owner: CMO
 audience: [cmo, video_editor, script_writer, developer]
 created_by: agent
 author: {role: cmo, date: "2026-11-09"}
-improved_by: []
+improved_by:
+  - {role: project_head, date: "2026-11-18", what: "§4 BLACK LIQUIDITY 10-Track Channel BGM Library (BL01–BL10, Google Flow Music Lyria 3.5), BGM Semantic Naming Standard, -24.0 dB Ceiling + -3.0 dB Sidechain Ducking + Seamless Beat-Matched Loop (tools/bgm_bed.py), and How to Add New Tracks (tools/flow_music_gen.py) (CEO rulings Q-20261118-1023-871c, Q-20261118-1046-3f25, Q-20261118-1120-5270)"}
 aka: []
 ---
 
@@ -43,6 +44,7 @@ All 17 CEO-approved sounds are pre-normalized to **48 kHz Stereo PCM WAV (`-3.0 
    - **Transition Whoosh / Camera Shutter (Families 2 & 3):** `-8 dB` to `-10 dB`.
    - **UI Pop / Click / Switch / Ding (Families 4 & 6):** `-9 dB` to `-11 dB`.
    - **Typing Underlay:** `-11 dB` to `-14 dB` (ducks under speech).
+   - **Channel Background Music (BGM Bed):** **`-24.0 dB` ceiling** below active Voiceover RMS, with **`-3.0 dB` sidechain ducking** (`-27.0 dB` during speech), `4.0s` raised-cosine Fade-In from `-40 dB`, and `4.0s` cosine Fade-Out to `-60 dB` (`tools/bgm_bed.py`, CEO ruling `Q-20261118-1120-5270`).
    - **Final Master Export:** `-14.0 LUFS` (`±0.4 LU`), True Peak `<= -1.5 dBFS`.
 
 ---
@@ -108,6 +110,31 @@ Do NOT load or substitute any of these 9 rejected files:
 - `glitch_digital_01.wav` (rejected on `Q-20261109-0523-8802`) → use `record_scratch_03.wav` or `shatter_glass_02.wav` instead.
 - `chime_soft_02.wav` (rejected on `Q-20261109-0523-8802`) → use `ding_bright_01.wav` instead.
 
+---
+
+### 4. Channel Background Music (BGM) Library (`BL01–BL10`), Semantic Naming & `-24.0 dB` Envelope (`tools/bgm_bed.py` & `tools/flow_music_gen.py`)
+
+Full specification and Drive IDs live in `CMO_Procedure_BlackLiquidity_Cut` `§6h-8`:
+1. **Semantic Naming Rule**:
+   `BL_BGM_{NN}_({Title-EN})_({สถานการณ์ที่ใช้-TH})_({BPM}BPM)_({MMmSSs})_({DD-MM-YYYY})_(FlowMusic-Lyria3.5).{wav|m4a}`
+2. **Where the 10 Tracks Live**:
+   - **Google Drive**: `ALL DRAFT/BLACK LIQUIDITY/BLACK LIQUIDITY [62]/Audio` (`1kpG9wATvy0i3mGWz0pmcPCLaWv6xHWjO`, 10 `.wav` + 10 `.m4a` + `BGM_MANIFEST.json` `1kTIABrsSbYPP7ukO4UpuaoKfgCbHfjBI`) and `ALL DRAFT/ASSETS/Audio` (`1QxYqKsn2AqwujTH4It9NXKAsQvXmAOXH`, 10 `.m4a` + `BL_BGM_MANIFEST.json` `1_QDyIeuhct_WVPzgJzjf7PZ1mA8pYRdF`).
+   - **Local Cache**: `/Users/gob/MoonieXHQ/Assets/BlackLiquidity/channel-music-10/BGM_MANIFEST.json`.
+3. **10-Track Situational Summary (`BL01`..`BL10`, full `2:28–3:03` lengths)**:
+   - `BL01` (`bbook`, `92 BPM`, `02m28s`) — **Dark Liquidity Pulse (Default Signature)**: แฉกลไกโบรกเกอร์ B-Book, Dealing Desk, สเปรดถ่าง
+   - `BL02` (`dealing_desk`, `88 BPM`, `02m55s`) — **Shadow Dealing Desk**: ความลับหลังบ้านตลาด, Liquidity Provider, Order Book ลับ
+   - `BL03` (`drawdown`, `96 BPM`, `03m03s`) — **Margin Call Tension**: พอร์ตติดลบหนัก, กราฟลากกวาด Stop Loss (`Stop Hunt`)
+   - `BL04` (`volatility`, `100 BPM`, `02m50s`) — **Midnight Volatility**: ตลาดอเมริกาเปิด, ข่าวแรง `Non-Farm` / `CPI`, ทองคำสวิงแรง
+   - `BL05` (`late_night`, `82 BPM`, `02m47s`) — **02AM Chart Glare**: จิตวิทยาเทรดดึกตี 2, แสงจอหลอกสมอง, อาการล้าสะสม
+   - `BL06` (`reset`, `85 BPM`, `02m54s`) — **Cortisol Reset**: กลไกสมอง (`Cortisol` / `Dopamine`), หยุดหัวร้อน (`Revenge Trade`), ตั้งสติ
+   - `BL07` (`sniper`, `104 BPM`, `02m32s`) — **Sniper Execution**: วางแผนเทรดคมกริบ, จุดเข้าแม่นยำ, ตั้ง `Pending Order` / `SL`
+   - `BL08` (`math`, `98 BPM`, `02m41s`) — **The 1 Percent Math**: คำนวณ `Spread`, `Swap`, `Rebate`, `Risk-to-Reward`, สถิติคนรอด 1%
+   - `BL09` (`survivor`, `90 BPM`, `02m34s`) — **Disciplined Survivor**: กฎเหล็ก 3 ข้อเอาตัวรอดระยะยาว, `Money Management`
+   - `BL10` (`basket`, `94 BPM`, `02m50s`) — **Obsidian Gold Signature**: คลิปปักตะกร้าสินค้า (`Basket 5:1`), ไอเทมจัดโต๊ะเทรดโทน `Dark Luxury`
+4. **How to Mix & How to Add New Tracks**:
+   - Mix with `tools/bgm_bed.py --track BL01 --vo voice_and_sfx.wav --ceiling-db -24.0 --speech-duck-db -3.0 --fade-in 4.0 --fade-out 4.0 --out mixed.wav` (automatically loops via 3.0s beat-phase equal-power cosine crossfade if the video is longer than the song).
+   - Generate and register new tracks via `tools/flow_music_gen.py` on `winbox:9226` (`Google Flow Music` `Lyria 3.5`, `Instrumental = ON`).
+
 ## The check
 
 Run the verification check before delivering any cut:
@@ -130,3 +157,4 @@ And verify on the rendered MP4:
 
 ## Field notes
 - 2026-11-09 [MISSING] §1-3 — CEO audited all 26 candidate sounds across 3 multi-pick media cards on `/run` (`Q-20261109-0523-6020` picked `A,B,C,E,H,I`; `Q-20261109-0523-6b09` picked `A,B,C,E,F,G,H,I`; `Q-20261109-0523-8802` picked `B,D,E`), locking the 17 approved sounds and quarantining the 9 rejected ones · evidence: Run Inbox records `Q-20261109-0523-6020`, `Q-20261109-0523-6b09`, `Q-20261109-0523-8802` · status: promoted
+- 2026-11-18 [MISSING] §4 — CEO approved the 10-track BLACK LIQUIDITY Channel BGM Library (`BL01–BL10`, generated on Google Flow Music `Lyria 3.5` at `2:28–3:03` full length), selected `BL01` (`Dark Liquidity Pulse`) as the primary signature track (`Q-20261118-1046-3f25`), and locked `ระดับ A: -24.0 dB` ceiling + `-3.0 dB` speech ducking + `4.0s` fade-in/out + 3.0s beat-phase crossfade loop (`tools/bgm_bed.py`, `Q-20261118-1023-871c` & `Q-20261118-1120-5270`) · evidence: Run Inbox `Q-20261118-1023-871c`, `Q-20261118-1046-3f25`, `Q-20261118-1120-5270` → §1.4, §4 · status: promoted

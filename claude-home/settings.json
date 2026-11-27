@@ -1,10 +1,10 @@
 {
-  "autoCompactWindow": 300000,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "true"
   },
   "permissions": {
     "allow": [
+      "Bash(ClaudeFlow *)",
       "Bash(absence *)",
       "Bash(afplay *)",
       "Bash(cards *)",
@@ -21,6 +21,7 @@
       "Bash(git fetch *)",
       "Bash(git merge-base *)",
       "Bash(git push *)",
+      "Bash(lanes *)",
       "Bash(memory *)",
       "Bash(mooniex-agents__developer__task-f4c64dc6 *)",
       "Bash(mooniex-console__developer__task-a1fdd83e *)",
@@ -32,6 +33,9 @@
       "Bash(npm view *)",
       "Bash(npx tsc *)",
       "Bash(osascript *)",
+      "Bash(pixellab *)",
+      "Bash(pmset -g *)",
+      "Bash(pmset -g)",
       "Bash(pnpm add *)",
       "Bash(pnpm build *)",
       "Bash(pnpm exec tsc *)",
@@ -42,6 +46,7 @@
       "Bash(previz *)",
       "Bash(pytest *)",
       "Bash(rev-parse *)",
+      "Bash(scenes *)",
       "Bash(scratchpad *)",
       "Bash(sdef *)",
       "Bash(sips *)",
@@ -57,6 +62,7 @@
       "Bash(until ssh *)",
       "Bash(until tmux *)",
       "Bash(until vercel *)",
+      "Bash(vanilla_style *)",
       "Bash(vercel env ls *)",
       "Bash(vercel inspect *)",
       "Bash(vercel logs *)",
@@ -64,6 +70,9 @@
       "Bash(vercel rollback *)",
       "Bash(vercel whoami *)",
       "Bash(whois *)",
+      "Bash(wt-docs *)",
+      "Bash(wt-rev *)",
+      "Bash(wt-sprites *)",
       "mcp__Claude_Preview__preview_screenshot",
       "mcp__Claude_in_Chrome__find",
       "mcp__Claude_in_Chrome__get_page_text",
@@ -80,7 +89,7 @@
       "/Users/gob"
     ]
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "skillOverrides": {},
   "hooks": {
     "SessionStart": [
@@ -242,12 +251,13 @@
       "effortLevel": "high"
     },
     "claude-fable-5-1": {
-      "effortLevel": "xhigh"
+      "effortLevel": "high"
     },
     "claude-opus-5-5": {
-      "effortLevel": "xhigh"
+      "effortLevel": "medium"
     }
   },
+  "autoCompactWindow": 300000,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
@@ -256,13 +266,18 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(sqlite3 state/tasks.db *)"
+    ],
     "soft_deny": [
       "$defaults",
-      "Bash(sqlite3 state/tasks.db \"DELETE * ; DROP *\")"
+      "Bash(sqlite3 state/tasks.db \"DELETE * ; DROP *\")",
+      "Bash(rm -rf state/secretary_sessions.db)"
     ],
     "environment": [
       "### Org-wide",
-      "**Organization**: MoonieX / mooniex-org — solo-founder virtual org (CEO + AI agent roles: CTO, CFO, CMO, CGO, COO — the COO is SomPong, one always-on session on Contabo), repo `PASAKON/MoonieX-Agents`",
+      "**Organization**: MoonieX / mooniex-org — solo-founder virtual org (CEO + AI agent roles: CTO, CFO, CMO, CGO), repo `PASAKON/MoonieX-Agents`",
       "**Cloud provider(s)**: None configured",
       "**Repository visibility**: Private — `PASAKON/MoonieX-Agents` (confirmed via gh)",
       "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
@@ -280,11 +295,25 @@
       "**Sensitive remote targets**: any namespace/host/container with `prod` or `production` as a whole word/segment; Contabo VPS (`mooniex-vps`, `/opt/MoonieXHQ/Agents/Core`) is treated as a live prod-adjacent orchestrator per repo docs",
       "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
       "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "**Organization**: MoonieX / mooniex-org — solo-founder virtual org (CEO + AI agent roles: CTO, CFO, CMO, CGO), repo `PASAKON/Agents-Core`",
+      "**Repository visibility**: PUBLIC — `PASAKON/Agents-Core` (confirmed via gh) — any push here is publishing; do not treat as a private confidential store",
+      "**Secrets management**: Infisical (org `MoonieX`, one project per repo, envs `dev`/`prod`; org-wide credentials in `Org-Infra`) per `./CLAUDE.md`; also `.env`/`.env.bak-*` files, `config/secretary.mcp.json`, `state/secretary-api-key`, and related secretary paths flagged in the config scan — treat all as sensitive, never print, commit, or read contents; CI secret `GITHUB_TOKEN` referenced in workflows",
+      "**Default / protected branches**: default branch unknown (origin/HEAD unset); no protected branches or rulesets listed via gh for `PASAKON/Agents-Core` — not conclusive, verify before force-pushing or deleting branches",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine (the CEO's Mac) or, per `./CLAUDE.md`, on the Contabo VPS (`/opt/MoonieXHQ/Agents/Core`) via mobile Console chat — treat the Contabo VPS as a separate host with open internet, not a sealed box",
+      "**Source control**: The trusted repo (`PASAKON/Agents-Core`, this working directory) and its `origin` remote (`https://github.com/PASAKON/Agents-Core.git`) only — no additional orgs configured",
+      "**Trusted internal domains**: `terminal.mooniex.com`, `webhook.mooniex.com` (per this repo's skill docs; not corroborated by transcript-mining host contacts)",
+      "**Key internal services**: MoonieX Console / CTO orchestration runtime (this repo — `runners/`, `state/tasks.db`), LungNote (todo/reminder MCP), Contabo VPS (`/opt/MoonieXHQ/Agents/Core`, orchestrator host reached via `scripts/cto-claude.sh`)",
+      "**Sensitive data locations & audiences**: `.env` / `.env.bak-*` files, `config/secretary.mcp.json`, `state/secretary-api-key`, `state/secretary-telegram-offset.json`, `state/secretary_sessions.db`, `state/logs/secretary*.log` — credentials, API keys and personal chat data; share only with the CEO or explicitly cleared roles — never commit into this public repo",
+      "**Sensitive remote targets**: any namespace/host/container with `prod` or `production` as a whole word/segment; the Contabo VPS (`/opt/MoonieXHQ/Agents/Core`) is treated as a live production-adjacent orchestrator per this repo's own docs",
       "### User-specific",
       "**Primary use of Claude Code**: multi-agent orchestration / software development for a solo-founder AI product org (MoonieX)",
       "**Trusted repo**: `/Users/gob/Projects/Agents` (this repo, working directory), remote `origin` → `https://github.com/PASAKON/Agents-Core.git` (private) — confidential org material is fine to commit here; content ported from other repos/hosts is not this repo's own work",
       "**Org-specific CLIs**: `sqlite3` (routine — task queue at `state/tasks.db`), `osascript` (routine — macOS/iTerm automation for spawning agent tabs)",
-      "routine under `/Users/gob/Projects/` prefix — this Mac is the CEO's full dev machine per `./CLAUDE.md`, all sub-projects under this path are reachable without restriction; the Contabo VPS mirror at `/opt/MoonieXHQ/Agents/Core` and `/opt/MoonieXHQ/Projects/MoonieX/*` is scoped only to repos actually cloned there"
+      "routine under `/Users/gob/Projects/` prefix — this Mac is the CEO's full dev machine per `./CLAUDE.md`, all sub-projects under this path are reachable without restriction; the Contabo VPS mirror at `/opt/MoonieXHQ/Agents/Core` and `/opt/MoonieXHQ/Projects/MoonieX/*` is scoped only to repos actually cloned there",
+      "**Primary use of Claude Code**: multi-agent orchestration / software development for a solo-founder AI product org (MoonieX), this repo only",
+      "**Trusted repo**: `/Users/gob/MoonieXHQ/Agents/Core` (this repo, working directory), remote `origin` → `https://github.com/PASAKON/Agents-Core.git` — PUBLIC: only this repo's own work belongs here; content ported, repointed, or first read from outside this session's repo is not its own work; secrets and sensitive data are never cleared into it regardless of visibility",
+      "**Org-specific CLIs**: `sqlite3` (routine — task queue at `state/tasks.db`)",
+      "routine under `/Users/gob/MoonieXHQ/Agents/Core/` (and `/Users/gob/Projects/`) prefix on the Mac per `./CLAUDE.md` — the Contabo VPS mirror at `/opt/MoonieXHQ/Agents/Core` and `/opt/MoonieXHQ/Projects/MoonieX/*` is scoped only to repos actually cloned there"
     ]
   }
 }

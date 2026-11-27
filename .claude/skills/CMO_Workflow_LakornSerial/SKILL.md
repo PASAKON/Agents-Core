@@ -2,16 +2,7 @@
 name: CMO_Workflow_LakornSerial
 kind: workflow
 owner: CMO
-description: >-
-  WORKFLOW — The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio").
-  Since CEO 2026-10-26: EPs of 10–20 min, each a complete case with a 15-second hook, a twist and a pull into the
-  next EP, built with the channel kit (knowledge/brand-knowledge/brands/ilag) and an AI-mistake NG gag plus a
-  blooper reel. Story → plates → 360p test → Flow shoot on winbox → QC + NG bank → per-EP cut with the kit →
-  cover → post → Drive. Each step names the skill that owns its rules; the rules live there, not here.
-  Trigger on /CMO_Workflow_LakornSerial and whenever a ละครสั้นคุณธรรม story is made as EPs, "ทำทีละ EP",
-  "ซีรีส์ละครสั้น", "EP.2 ต่อ", "ตัด EP", "hook 15 วิ", "ฉากหลุด AI", "ตลาดนี้มีกรรม". Use instead of
-  CMO_Workflow_ShortFilm (that one is the ILAG festival short film on Seedance / H3 / Wan, a different channel and
-  engine).
+description: "WORKFLOW — Ordered workflow for a ละครสั้นคุณธรรม Facebook serial (ILAG Studio): 10-20 min EPs, each a complete case with a 15-second hook, twist and pull to the next EP, the channel kit and an AI NG blooper gag. Story → plates → 360p test → Flow shoot → QC → cut → cover → post → Drive. Trigger on /CMO_Workflow_LakornSerial, \"ทำทีละ EP\", \"ซีรีส์ละครสั้น\", \"ตัด EP\", \"hook 15 วิ\", \"ฉากหลุด AI\". Not CMO_Workflow_ShortFilm."
 created_by: agent
 author: {role: cto, date: "2026-10-01"}
 audience: [cmo, cto]

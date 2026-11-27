@@ -236,6 +236,10 @@ class StubBrowser:
     def fetch_image_bytes(self, url):
         return self.script[self._current]["bytes"]
 
+    def delete_chat_and_files(self, chat_url):
+        self.calls.append(("delete_chat_and_files", chat_url))
+        return 1
+
     def process(self, name):
         self._current = name
         self.seen_names.append(name)
@@ -455,6 +459,7 @@ def test_a_garbled_first_paste_is_cleared_before_the_retry(tmp_path):
     assert ("clear_composer",) in browser.calls
 
 
+<<<<<<< Updated upstream
 @pytest.mark.parametrize("text", ["คุณใช้โควต้าสร้างรูปภาพหมดแล้ว",
                                    "ถึงลิมิตของแพ็กเกจ Free", "รอสร้างเพิ่มเวลา 13:29"])
 def test_thai_usage_limit(text):
@@ -834,3 +839,19 @@ def test_submission_timestamp_excludes_preparation_and_includes_send_wait(tmp_pa
     next(work)
     assert received["submitted_at"] == 100
     assert received["timeout_s"] == 360
+=======
+def test_auto_delete_waits_until_continue_chain_completes(tmp_path):
+    images = [{"name": "a", "prompt": "logo"},
+              {"name": "b", "prompt": "bolder", "continue": "a"}]
+    script = {"a": {**_done("http://x/a.png", b"A"), "new_chat_url": "https://chatgpt.com/c/AAA"},
+              "b": _done("http://x/b.png", b"B")}
+    code, browser = _run(images, script, tmp_path)
+    assert code == 0
+    del_calls = [c for c in browser.calls if c[0] == "delete_chat_and_files"]
+    # Only deleted once after 'b' finishes, not prematurely after 'a'
+    assert del_calls == [("delete_chat_and_files", "https://chatgpt.com/c/AAA")]
+    ledger = ci.load_ledger(tmp_path / "ledger.json")
+    assert "deleted_from_chatgpt" not in ledger["a"]
+    assert ledger["b"]["deleted_from_chatgpt"] == 1
+
+>>>>>>> Stashed changes

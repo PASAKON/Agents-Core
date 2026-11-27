@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-75 org skills by kind — Rules 9 · Knowledge 19 · Workflow 6 · Procedure 15 · Standard 10 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+75 org skills by kind — Rules 9 · Knowledge 19 · Workflow 7 · Procedure 16 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -20,7 +20,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_Secrets` | CTO | all | One rule set for every credential: where it lives, its name, scope and expiry, how it is read, and what a leak sets off. |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
-| `CMO_Rules_YouTube_MultiLangAB` | CMO | cmo, cto, cgo | Mandatory YouTube multi-language publish & A/B/C test rules for Jade Tally (YT: คลิปจีน): 3 universal covers (A/B/C), 3 A/B/C titles per… |
+| `CMO_Rules_TikTok_Hashtags` | CMO | cmo, content_strategist, script_writer, video_editor, developer | Mandatory 5-hashtag rule for every TikTok clip, script, and client brief: max 5 #tags, Slot #1 is always our channel/brand tag… |
 | `CTO_Rules_Bedrock_References` | CTO | cto, worker | Every link, picture, video, pack or data file handed over as a reference for Minecraft Bedrock work is recorded with its URL and our… |
 | `CXO_Rules_GDrive_Filing` | COO | cxo | Filing rules for the CEO's Google Drive — read before ANY Drive action (create/upload/move/rename/delete, rclone, the gdrive-bridge, the… |
 
@@ -32,11 +32,11 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Knowledge_RunnerPicks` | CTO | all | Which runner:model:effort to send each job kind to (code, fix, review, research, docs, decision …), read from reviewers' verdicts on real… |
 | `BROWSER_OPERATOR_Knowledge_XmPartners` | COO | cxo, worker | How to navigate the XM Partner Area (mypartners.xm.com) on winbox port 9224 in read-only mode: entry URLs, hash routes, exact CSS… |
 | `CMO_Knowledge_CinematicPrompts` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | Pick ready cinematic video prompts: job -> style -> model -> prompt across 66 verified entries with free weekly source updates. |
-| `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Professional cinematography for a SHORT MOVIE (หนังสั้น, cinema grammar) made with AI video engines: lighting setups, portrait patterns… |
-| `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one, reference plates, what to… |
-| `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |
+| `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Sourced cinematography for an AI SHORT MOVIE: lighting setups, contrast, colour temperature, shot sizes, angles, camera movement, lens and… |
+| `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | Running a multi-shot AI film on any engine so it stays one film: story gate, CAST.md, reference plates, what to re-shoot after a change… |
+| `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (Omni Flash, Veo 3.1) on the CEO's Google AI account: credit costs, model choice, settings, reference chips, Omni… |
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
-| `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and credit lanes), the 2.0 / 2.0 Fast / 2.0… |
+| `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Generating with Seedance (2.5 Unlimited and credit lanes, 2.0 tiers) and image models on Higgsfield.ai: money rules (never Rerun, one… |
 | `CMO_Knowledge_ThaiHumor` | CMO | cmo, script_writer, content_strategist, video_editor, project_head | What Thai viewers find funny and why (12 measured comedy mechanisms with clip evidence, timing, voice, sound cues), the decode-a-real-bit… |
 | `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 20,000-character… |
 | `CTO_Knowledge_AGY` | CTO | cxo | What Antigravity (agy) is in the org (its two weekly buckets, the file-only headless contract, the agy_browse lane) and how it has… |
@@ -54,10 +54,11 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
 | `CMO_Workflow_KhaoHomEpisode` | CMO | cmo, project_head, video_editor, browser_operator, researcher, script_writer, content_strategist | Make one episode of "เอาชีวิตรอดกับข้าวหอม" (vertical 9:16 Short, ข้าวหอม vs a foil) from facts to a posted clip, the way EP1 shipped on… |
-| `CMO_Workflow_LakornSerial` | CMO | cmo, cto | The ordered workflow for a ละครสั้นคุณธรรม Facebook SERIAL (Page "ละครสั้นคุณธรรม by ILAG Studio"). Since CEO 2026-10-26: EPs of 10–20… |
+| `CMO_Workflow_LakornSerial` | CMO | cmo, cto | Ordered workflow for a ละครสั้นคุณธรรม Facebook serial (ILAG Studio): 10-20 min EPs, each a complete case with a 15-second hook, twist and… |
+| `CMO_Workflow_MYPASAKON` | CMO | cmo, cto, project_head, video_editor, developer | End-to-end MYPASAKON (@mypasakon) TikTok episode loop: script & client handoff -> raw CEO voice (.mp4/.mov) Dead-Air & retake trim -> Gate… |
 | `CMO_Workflow_MimiPage_Weekly` | CMO | cmo, script_writer, content_strategist, browser_operator, video_editor | Weekly rhythm of the Mimi page "บ้านนี้มีมีมี่": 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and… |
 | `CMO_Workflow_PromptFormula` | CMO | cmo, project_head, script_writer, prompt_engineer, browser_operator, video_editor, web_designer | How every CMO-lane prompt is born and how a hit becomes a formula: look up the channel's formula index first; with no formula, search… |
-| `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |
+| `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | Day-by-day workflow for an ILAG festival short film on Seedance 2.5, MiniMax H3 and Wan 3.0: brief → idea → story → plates → shot plan →… |
 
 ## Procedure
 
@@ -65,13 +66,14 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `ALL_Procedure_UseALease` | CTO | all | Acquire, check and release an org resource lease. |
 | `CMO_Procedure_BlackLiquidity_Cut` | CMO | cmo, video_editor | Cut a BLACK LIQUIDITY episode — an AI-avatar talking-head video for the channel's TikTok — from a delivered Drive project folder into a… |
-| `CMO_Procedure_BlackLiquidity_JevEditor` | CMO | cmo, video_editor, cto | Run Jev (TypeSafe's typed-decision model, ALL_Knowledge_Jev SKILL.md) per BLACK LIQUIDITY script line to make the per-line editorial calls… |
-| `CMO_Procedure_BlackLiquidity_RealEventFootage` | CMO | cmo, cto, developer, browser_operator, video_editor | Build 9:16 Mobile View real-event news broadcast & live web footage REFs for BLACK LIQUIDITY (Script-First, fact-checked, 0.00px centered… |
+| `CMO_Procedure_BlackLiquidity_JevEditor` | CMO | cmo, video_editor, cto | Run Jev (ALL_Knowledge_Jev) per BLACK LIQUIDITY script line for the editorial calls an editor made by eye: beat, plate entry, focus… |
 | `CMO_Procedure_Blender_Previz` | CMO | cmo, cto | Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead… |
 | `CMO_Procedure_CharacterSheet` | CMO | cmo, worker | Generate a neutral, reusable AI character reference sheet (white-background emotion grid + one full-body panel) for any film/video project… |
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on 'จุดจบของเจ้าหนี้นอกระบบ' (2026-09-24): people from… |
+| `CMO_Procedure_ClientScript_Handoff` | CMO | cmo, content_strategist, script_writer, developer | Write, revise, and file client/broker video scripts as shared Google Docs, sending 1 pure Topic/Tags/Script block per clip to Telegram and… |
 | `CMO_Procedure_Colab_DirectRender` | CMO | cmo, cto | Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac: write one take spec (JSON: scenes, refs… |
-| `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
+| `CMO_Procedure_MYPASAKON_Cut` | CMO | cmo, cto, project_head, video_editor, developer | Cut a MYPASAKON (@mypasakon) 9:16 TikTok episode combining the channel's measured viral visual grammar (2-layer RVM cutout Hook, headroom… |
+| `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture real web footage (a company logo, its live site, a WikiFX page) as vertical clips and stills, censored by position so viewers… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
 | `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
 | `CTO_Procedure_Bedrock_SkyScene` | CTO | cto | Make one Minecraft Bedrock sky scene match its concept image in the running game, scored against a 90 target. |
@@ -84,13 +86,11 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Standard_BlackLiquidity_Script` | CMO | cmo, cto, script_writer, developer | Write the Thai script for a BLACK LIQUIDITY episode — the AI-avatar TikTok channel that exposes Forex and Ponzi scams. Use this whenever… |
-| `CMO_Standard_EditorSFX` | CMO | cmo, video_editor, script_writer, developer | Mass-editor free SFX library, situation mapping, pre-roll peak alignment, and -14 LUFS mixing rules for vertical reels and shorts. |
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
-| `CMO_Standard_GhostChannel_DNA` | CMO | cmo, video_editor, script_writer, developer | Story-synced beat-by-beat visual DNA, episode-specific cast generation, Hook-to-Full-Bleed framing, -14 LUFS horror SFX, and… |
 | `CMO_Standard_HumanVoice_TH` | CMO | cmo, content_strategist, script_writer, browser_operator | Final pass on Thai text we publish for outsiders (captions, first comments, comment replies, LINE groups, chatbot templates): Thai AI… |
 | `CMO_Standard_MYPASAKON_NeonDNA` | CMO | cmo, video_editor, script_writer, developer | Minimalist luxury Neon Green DNA for MYPASAKON (@mypasakon) 9:16 videos: Style A Razor Chamfer frame (12px-4px-1px), @keanu.visuals… |
 | `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page 'บ้านนี้มีมีมี่' — who Mimi the black dog is, the CEO's… |
-| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page "ละครสั้นคุณธรรม" — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
+| `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | Story format for the ILAG page "ละครสั้นคุณธรรม": Thai moral short films (ฟ้ามีตา), one complete story per EP: beat structure, who the… |
 | `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
 | `CTO_Standard_Bedrock_WorkLayout` | CTO | cto | How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. |
 
@@ -99,7 +99,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CMO_Gate_Champa_Seedance2.0_ShortMovieQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for every clip of a SHORT MOVIE (one continuous story world, creatures, VFX, English dialogue) shot on champa Seedance… |
-| `CMO_Gate_Flow_Omni1.1_Continuity` | CMO | cmo, cto, script_writer, browser_operator | Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1 Flash, องค์ประกอบ mode): one table of time, place, who… |
+| `CMO_Gate_Flow_Omni1.1_Continuity` | CMO | cmo, cto, script_writer, browser_operator | Continuity sheet and pre-shoot gate for an AI film in Google Flow: per shot time, place, who, wardrobe, props; flags for night on a day… |
 | `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of "จุดจบของเจ้าหนี้นอกระบบ"… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
 | `CTO_Gate_MergeChecklist` | CTO | cto | Pre-merge verification gate — refuses merge_task if any check fails. |
@@ -110,7 +110,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `ALL_Protocol_EmailCEO` | CTO | cxo | Email the CEO (pass.gob1@gmail.com) through the org MCP tool `email_ceo` / tools/email_ceo.py, the only sanctioned way. Four kinds only… |
-| `ALL_Protocol_RunInbox` | CTO | cxo, worker | Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact… |
+| `ALL_Protocol_RunInbox` | CTO | cxo, worker | Run Inbox (terminal.mooniex.com/run): CEO taps one exact command/script; results return by mailbox. Trigger: /ALL_Protocol_RunInbox… |
 | `ALL_Protocol_SkillAuthor` | COO | all | Create, update, rename, split or retire an org skill — the 7 kinds, the <ROLE>_<Kind>_<Topic> name, step-by-step procedures and a body… |
 | `BROWSER_OPERATOR_Protocol_Playbook` | CTO | browser_operator | Cost-disciplined browser driving for the org's `browser_operator` role — the step order that keeps a browser task from burning context… |
 | `COO_Protocol_SkillCurator` | COO | cxo | Review skill telemetry and act on stale/unused skills without touching anyone else's repo. |
@@ -203,5 +203,5 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 
 | name | owner | audience | what it is |
 |---|---|---|---|
-| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page 'ละครสั้นคุณธรรม by ILAG Studio'): gold, white and black since the CEO's ruling of… |
+| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | ILAG ละครสั้นคุณธรรม theme: gold, white, black (CEO 2026-10-26); tools/ilag_theme.py still draws old navy. Daily 'รู้หรือไม่?' poster… |
 | `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |

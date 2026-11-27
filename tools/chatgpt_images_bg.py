@@ -30,7 +30,22 @@ class BgBrowser(ci.ChatGPTBrowser):
             bsess.send("Target.createTarget", {"url": "about:blank", "background": True})
         self.page = info.value
         self._own = self.page
+        self._owned_pages.append(self.page)
         return self.page
+
+    def new_tab(self):
+        tab = BgBrowser(self.cdp_url)
+        ctx = self._browser.contexts[0]
+        bsess = self._browser.new_browser_cdp_session()
+        with ctx.expect_page() as info:
+            bsess.send("Target.createTarget", {"url": "about:blank", "background": True})
+        tab.page = info.value
+        tab._own = tab.page
+        self._owned_pages.append(tab.page)
+        return tab
+
+    def bring_to_front(self):
+        pass
 
     def close(self):
         try:

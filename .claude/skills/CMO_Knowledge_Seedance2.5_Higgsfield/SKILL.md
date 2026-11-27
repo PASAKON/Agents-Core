@@ -3,21 +3,7 @@ name: CMO_Knowledge_Seedance2.5_Higgsfield
 kind: knowledge
 owner: CMO
 aka: [CTO_Seedance2.5_Higgsfield]
-description: >-
-  KNOWLEDGE — Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and
-  credit lanes), the 2.0 / 2.0 Fast / 2.0 Mini tiers, and Higgsfield's image models for plates. The
-  money rules (never Rerun, read the struck-through price, one click on a paid control, Usage History
-  after any error), Confirm Rights, the one-at-a-time Unlimited slot, the desktop-width lock, the
-  Lexical prompt box and the duration slider, Elements and @Image1 references, a previz attached as
-  @Video 1, what the face/copyright scanner kills, reference caps, model tiers and cost per second,
-  the review loop, render-wait and wave rules for operators, and the "Sorry, Sir" A/B ledger
-  (AB-LEDGER.md). Trigger on "Higgsfield", "Seedance", "Unlimited mode", "AI video generation
-  credits", "jump-cut pass", "Confirm Rights", "ยิง Seedance", "ยิง Higgsfield", a Higgsfield History
-  Recreate or Rerun button and /CMO_Knowledge_Seedance2.5_Higgsfield. Do NOT fire for Google Flow
-  (CMO_Knowledge_Flow_Omni1.1, CMO_Gate_Flow_Omni1.1_Continuity, CMO_Gate_Flow_Omni1.1_FilmQC), MiniMax H3
-  (CMO_Knowledge_MiniMax_H3), Wan 3.0 on TopView (CMO_Knowledge_Wan3.0_TopView), fal.ai, Kling or Veo; how a
-  multi-shot film is run is CMO_Knowledge_Film_Production and how a prompt file is laid out is
-  CMO_Standard_Film_PromptFormat.
+description: "KNOWLEDGE — Generating with Seedance (2.5 Unlimited and credit lanes, 2.0 tiers) and image models on Higgsfield.ai: money rules (never Rerun, one click on a paid control, check Usage History after an error), Confirm Rights, the Unlimited slot, the prompt box, Elements and @Image references, what the face/copyright scanner blocks, cost per second, render waits and the Sorry Sir A/B ledger. Trigger on /CMO_Knowledge_Seedance2.5_Higgsfield, \"Higgsfield\", \"Seedance\", \"Unlimited mode\", \"Confirm Rights\", \"ยิง Seedance\", \"ยิง Higgsfield\". Do NOT fire for Google Flow, MiniMax H3, Wan 3.0, fal.ai, Kling or Veo."
 created_by: agent
 author: {role: developer, date: "2026-09-25"}
 audience: [cto, cmo, cfo, cgo, browser_operator]

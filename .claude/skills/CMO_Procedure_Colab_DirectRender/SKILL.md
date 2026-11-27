@@ -5,6 +5,8 @@ created_by: human
 origin: mooniex-org
 name: CMO_Procedure_Colab_DirectRender
 kind: procedure
+improved_by:
+  - {role: cmo, date: "2026-11-09", what: "Updated by Antigravity (AGY session f22cf62a): linked Step 6 publish gate to CMO_Rules_YouTube_MultiLangAB (3 Universal A/B/C Covers, 18 A/B/C Titles across 6 languages, zero AI mentions/tells)"}
 description: >-
   PROCEDURE — Render AI video clips (not 18+) on Google Colab straight from Contabo, with no studio and no Mac:
   write one take spec (JSON: scenes, refs, size, caps), run ComfyRunpod scripts/colab/run_take.py, check that no
@@ -62,8 +64,10 @@ account, so 18+ scenes stay on the Mac studio's guarded path (memory `project_h3
    `colab sessions` and tell the CTO. Never leave a VM listed.
 5. **Stage it on Drive:** `python3 scripts/gdrive-bridge/colab_stage.py <take dir> --clear`, run from Agents-Core.
    It checks every md5 by id and deletes only the local clips that matched.
-6. **Sort for the edit:** move the clips you use from staging into `EP<nn> <ชื่อเรื่อง>/All Scene/`, and put the
-   finished cut in `Final Draft/` (`CXO_Rules_GDrive_Filing` §YT: คลิปจีน).
+6. **Sort for the edit & publish:** move the clips you use from staging into `EP<nn> <ชื่อเรื่อง>/All Scene/`, and put the
+   finished cut in `Final Draft/` (`CXO_Rules_GDrive_Filing` §YT: คลิปจีน). Before publishing to YouTube (`@JadeTally`),
+   read and pass **`CMO_Rules_YouTube_MultiLangAB`** (`/opt/MoonieXHQ/Work/cn-series/publish/validate_publish_pack.py ALL`
+   must pass: 3 Universal A/B/C Thumbnails, 3 A/B/C Titles in all 6 languages = 18 titles, and zero `"AI"` mentions or AI-tells in descriptions/tags).
 
 ## What stops a VM by itself (read in the code, measured live on 2026-10-23)
 
@@ -106,3 +110,4 @@ The live test was card RUN-20261023-0944-96fe:
 - 2026-10-30 [MISSING] §Spec — `workflow: openjutsu_object` (ComfyRunpod #41) swaps one object in a source clip: `target`, `change_to`, one ref, 480p. Measured: 6 s clip on G4 = setup 218 s (7 weights, 52 GB), render ~53 s, wall 346 s, 0.69 CU. The new tests need websocket-client in the venv · evidence: RUN-20261030-0219-7768 timings.json · status: pending
 - 2026-10-30 [COSTLY] §Spend card — tap the merge+pull card and wait for its result before the run card. bb09 ran 10 s before the pull landed and hit "no workflows/<name>.json" on the old code (0 CU, one card lost) · evidence: RUN-20261029-2233-bb09 · status: pending
 - 2026-10-30 [MISSING] §Spec — look at the source clip before writing `change_to`. IMG_6014 shows only the cabin, so a "car" swap had nothing to change. The ref's colour beats the text: a red-rim ref gave a red rim although the text said black · evidence: openjutsu-wheel-001 compare.png · status: pending
+- 2026-11-09 [MISSING] §Steps 6 — publishing `YT: คลิปจีน` (`@JadeTally`) episodes without a binding publish rule led to single-title setups, local Thai text on global A/B covers, and `"Made with AI"` / `"สร้างเป็นแอนิเมชันด้วย AI"` lines in descriptions; authored `CMO_Rules_YouTube_MultiLangAB` and `/opt/MoonieXHQ/Work/cn-series/publish/validate_publish_pack.py` by Antigravity (AGY session f22cf62a) → §Steps 6 · evidence: f22cf62a-b227-4201-a5c4-5af72edf44e9 · status: promoted

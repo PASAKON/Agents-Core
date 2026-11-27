@@ -3,7 +3,7 @@ name: ALL_Protocol_RunInbox
 kind: protocol
 owner: CTO
 aka: [CXO_Run_Inbox]
-description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does. Also fire for any QUESTION or blocker for the CEO (a choice, go/no-go, 'which one?', 'is this the right account?'), even when he is typing in this chat (CEO 2026-10-30): that goes on a question card he answers with a tap (ask_ceo / ask_run.py ask, CEO 2026-10-13) — never for a command, money or a secret."
+description: "PROTOCOL — Run Inbox (terminal.mooniex.com/run): CEO taps one exact command/script; results return by mailbox. Trigger: /ALL_Protocol_RunInbox, human-at-machine steps, '!' commands, CLI login (claude /login, gh auth login, device code), operator scripts, auto-mode refusals (secrets into .env, systemctl restart, deploy), 'CEO please run this on <box>', 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (terminal.mooniex.com/relay) or commands your sandbox can run. Phone ONLY; never hand '!' commands in chat. Any CEO QUESTION/blocker (choice, go/no-go, 'which one?', 'is this the right account?') needs a question card immediately, even during chat: ask_ceo / ask_run.py ask. Question cards are never for commands, money or secrets."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 improved_by:
@@ -35,13 +35,15 @@ card also emails him as a reminder (Console `scripts/run-mail-sender.mjs`).
 | host | runs cards | how |
 |---|---|---|
 | `contabo` | **yes** (P1 live since 2026-09-25 17:05 UTC) | the hub's own executor |
-| `winbox` | no — hub answers `501 peer_exec_not_yet` at creation | P2: executor on the peer |
+| `winbox` | no executor — a `host=winbox` card gets `501 peer_exec_not_yet`; since 2026-11-18 winbox holds the Run Inbox token, so its sessions raise question cards and `--host contabo` cards that run over `ssh winbox` themselves | P2: executor on the peer |
 | `mac` | **yes** (P2 live since 2026-11-02) | Contabo dispatches over the tailnet to `https://macbook-pro--gob.tail400676.ts.net/api/peer/run` (`RUN_PEER_EXECUTOR=1`, `RUN_PEER_DISPATCH=mac-3ecb3784`). Wait for the result with `tools/ask_run.py wait <id>` |
 
 A card for winbox never reaches the phone — the hub refuses it before storing anything.
 winbox's Claude CLI is already logged in (CEO 2026-09-28: "Window Login Claude นานแล้ว"), so no desk
 login is waiting on P2 there.
 The Mac has `~/.config/mooniex/run-inbox.token` and `RUN_PEER_EXECUTOR=1` (2026-11-02): sessions on the Mac raise question and command cards directly with `tools/ask_run.py` and wait with `tools/ask_run.py wait <id>`.
+**Since 2026-11-18 a winbox session (a PH included) raises its own cards** with `python tools\ask_run.py` from `C:\Users\passg\mooniex\org` (token installed by RUN-20261117-2034-6e3f; test Q-20261117-2050-dedb). CEO: "การส่ง Card RUN PH สามารถ ส่งได้ ไม่ต้องผ่าน CTO เลย เพราะ ฉันเป็นคนอนุมัติ". The blocker-letter routes below are now the fallback for when `ask_run.py` fails on winbox.
+
 There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2 lands on winbox, a step on
 winbox goes one of these ways, and never as a `!` line:
 

@@ -145,6 +145,22 @@ line, then one line on what it is (from a source, e.g. WikiFX's company profile)
 picture already shows it, say less and point at it ("มึงดูภาพเอาเอง"). Never describe its selling
 points (leverage, spreads, bonuses): that reads as promotion.
 
+**Explain hard financial terms with a 5-second everyday analogy for beginners** (CEO ruling 2026-11-24:
+"การที่เราอธิบาย สิ่งยาก ศัพท์ อยากให้อธิบายด้วยแบบง่ายๆ สั้นๆ ว่าคำๆ นั้นมันหมายถึงอะไร เปรียบเทียบง่ายๆ
+ให้กับมือใหม่ให้เข้าใจง่าย"). Whenever a script introduces technical trading/market jargon (`Short Sell`,
+`Short Squeeze`, `Futures`, `Total Return Swap`, `Spoofing`, `Margin Call`), follow it immediately in
+the next breath with one concrete everyday comparison any non-trader grasps at once (e.g. `Short Sell` =
+ยืมไอโฟนเพื่อนไปขายร้านตู้สี่หมื่น รอราคาร่วงเหลือสองหมื่นค่อยซื้อคืนกินส่วนต่าง; `Futures` = วางเงินมัดจำก้อนเล็ก
+เพื่อพนันผลขึ้นลงก้อนใหญ่หลายสิบเท่า).
+
+**Translate massive numbers into tangible everyday comparisons + visual motion** (CEO ruling 2026-11-24:
+"สำหรับตัวเลขเยอะๆ แล้วคนไม่รู้ว่ามันเยอะแค่ไหน ก็ให้เปรียบเทียบกับสิ่งที่ทุกคนรู้อยู่แล้วว่ามันเยอะแค่ไหน
+หรือทำเป็น Motion เปรียบเทียบเป็นจำนวนให้คนเห็นภาพแทนก็ได้"). Never leave a billion/trillion figure as an
+abstract number: pair it in the script AND on screen (via animated GSAP scale bars, rolling counters, or
+quantity visualizers) with something the audience feels viscerally — years of a 25,000-baht monthly salary,
+tonnes of gold / elephants, Mount Everest stacks of 1,000-baht notes, or an iconic everyday item price
+(e.g. a 233-year bank sold for 1 pound = 45 baht, cheaper than one plate of กะเพราไข่ดาว).
+
 ## Writing Thai that a TTS can read
 
 The script is read aloud by `fal-ai/gemini-3.1-flash-tts`, so it is an input to a
