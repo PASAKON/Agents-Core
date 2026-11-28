@@ -185,3 +185,136 @@ def test_care_runner_idle_spends_zero_tokens_and_processes_ready_rows(tmp_path, 
         ]
     finally:
         conn.close()
+
+
+
+def test_invoke_care_agy_turn_flag_order_settings_and_denied_actions(tmp_path, monkeypatch):
+    import subprocess as sp
+    import pytest
+
+    media_dir = tmp_path / "round-media" / "cid1"
+    media_dir.mkdir(parents=True)
+    img_file = media_dir / "qr.png"
+    img_file.write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    monkeypatch.setattr(care_runner, "ISOLATED_CARE_CWD", tmp_path / "cwd")
+    monkeypatch.setattr(care_runner, "_find_agy_bin", lambda: "/usr/bin/false-agy")
+    monkeypatch.setattr(care_runner.ph_brain, "select_model_chain", lambda _m: ["gemini-4-argon-high"])
+
+    seen_cmds = []
+
+    def fake_run_ok(cmd, **kwargs):
+        seen_cmds.append(cmd)
+        out = json.dumps(
+            {
+                "status": "SUCCESS",
+                "structured_output": {
+                    "action": "escalate",
+                    "bubbles": ["รับทราบข้อมูลบัญชีแล้วครับ"],
+                    "reason": "KBANK 741-2-99881-5",
+                },
+            },
+            ensure_ascii=False,
+        )
+        return sp.CompletedProcess(cmd, 0, stdout=out, stderr="")
+
+    monkeypatch.setattr(care_runner.subprocess, "run", fake_run_ok)
+    dec = care_runner.invoke_care_agy_turn(
+        customer_id="U_SYNTH_QR",
+        display_name="SynthQR",
+        history_data={},
+        events_data=[{"care_queue_id": 1, "type": "image"}],
+        media_dir=media_dir,
+        media_files=[str(img_file)],
+    )
+    assert dec["action"] == "escalate"
+    assert "KBANK" in dec["reason"]
+    cmd = seen_cmds[0]
+    # Prompt MUST immediately follow -p at the end of argv
+    assert cmd[-2] == "-p"
+    assert "SynthQR" in cmd[-1]
+    # --settings MUST scope read_file strictly to media_dir and deny command(*)
+    settings_idx = cmd.index("--settings")
+    settings_obj = json.loads(cmd[settings_idx + 1])
+    assert settings_obj["permissions"]["allow"] == [f"read_file({media_dir.resolve()})"]
+    assert "command(*)" in settings_obj["permissions"]["deny"]
+
+    # If agy auto-denies read_file, _extract_json_object MUST raise RuntimeError
+    def fake_run_denied(cmd, **kwargs):
+        out = json.dumps(
+            {
+                "status": "SUCCESS",
+                "denied_actions": [{"action": "read_file"}],
+                "structured_output": {"action": "reply", "bubbles": ["ตอบมั่วโดยไม่อ่านรูป"]},
+            }
+        )
+        return sp.CompletedProcess(cmd, 0, stdout=out, stderr="")
+
+    monkeypatch.setattr(care_runner.subprocess, "run", fake_run_denied)
+    with pytest.raises(RuntimeError, match="agy_permission_denied"):
+        care_runner.invoke_care_agy_turn(
+            customer_id="U_SYNTH_QR",
+            display_name="SynthQR",
+            history_data={},
+            events_data=[{"care_queue_id": 1, "type": "image"}],
+            media_dir=media_dir,
+            media_files=[str(img_file)],
+        )
+
+
+def test_winbox_playwright_driver_send_items_streams_buffer_and_clicks_modal(tmp_path):
+    from lib.care.browser_sender import WinboxPlaywrightDriver
+
+    slip = tmp_path / "slip_payout.png"
+    raw_bytes = b"\x89PNG\r\n\x1a\nSLIPDATA"
+    slip.write_bytes(raw_bytes)
+
+    uploaded_payloads = []
+    modal_clicks = []
+
+    class FakeLocator:
+        def __init__(self, kind, count_val=1):
+            self.kind = kind
+            self._count = count_val
+            self.first = self
+
+        def count(self):
+            return self._count
+
+        def set_input_files(self, payload):
+            uploaded_payloads.append(payload)
+
+        def click(self, timeout=None):
+            modal_clicks.append(self.kind)
+
+        def inner_text(self, timeout=None):
+            return "MoonieX Officials"
+
+    class FakePage:
+        url = "https://chat.line.biz/U1434/chat/U9999"
+
+        def locator(self, sel):
+            if "type='file'" in sel:
+                return FakeLocator("file_input")
+            if ".modal.d-block" in sel:
+                return FakeLocator("modal_confirm")
+            return FakeLocator(sel)
+
+        def wait_for_timeout(self, _ms):
+            pass
+
+        def evaluate(self, _js):
+            return "SynthUser"
+
+    drv = WinboxPlaywrightDriver()
+    drv._page = FakePage()
+    drv.bind_expected_recipient("U_SYNTH_01", "SynthUser")
+    ok, _snap, reason = drv.send_items([{"type": "image", "file_path": str(slip)}], JitterPacer())
+    assert ok is True
+    assert reason == "ok"
+    assert len(uploaded_payloads) == 1
+    assert isinstance(uploaded_payloads[0], dict)
+    assert uploaded_payloads[0]["name"] == "slip_payout.png"
+    assert uploaded_payloads[0]["mimeType"] == "image/png"
+    assert uploaded_payloads[0]["buffer"] == raw_bytes
+    assert modal_clicks == ["modal_confirm"]

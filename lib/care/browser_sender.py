@@ -763,14 +763,53 @@ class WinboxPlaywrightDriver:
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(f"http://127.0.0.1:{self.local_cdp_port}")
         ctx = self._browser.contexts[0]
-        self._page = ctx.new_page()
-        self._page.goto(self.OA_CHAT_URL, timeout=45000)
-        self._page.wait_for_timeout(5500)
+        if ctx.pages:
+            self._page = ctx.pages[0]
+            self._owns_page = False
+            if "chat.line.biz" not in (self._page.url or ""):
+                self._page.goto(self.OA_CHAT_URL, timeout=45000)
+                self._page.wait_for_timeout(4500)
+        else:
+            self._page = ctx.new_page()
+            self._owns_page = True
+            self._page.goto(self.OA_CHAT_URL, timeout=45000)
+            self._page.wait_for_timeout(5500)
+        self._try_auto_sso_login()
         return self
+
+    def _try_auto_sso_login(self) -> None:
+        """Resume existing LINE SSO session automatically when OAuth bounces to account.line.biz/login."""
+        pg = self._page
+        if pg is None:
+            return
+        cur_url = (pg.url or "").lower()
+        if "account.line.biz/login" not in cur_url:
+            return
+        if pg.locator("iframe[src*='captcha'], .g-recaptcha, .h-captcha").count() > 0:
+            return
+        for sel in (
+            "button:has-text('LINE account')",
+            "a[href*='/login/line']",
+            "button:has-text('บัญชี LINE')",
+            "a:has-text('บัญชี LINE')",
+        ):
+            loc = pg.locator(sel)
+            if loc.count() > 0:
+                loc.first.click(timeout=5000)
+                pg.wait_for_timeout(3500)
+                break
+        if "access.line.me" in (pg.url or "").lower():
+            if pg.locator("iframe[src*='captcha'], .g-recaptcha, .h-captcha").count() > 0:
+                return
+            if pg.locator("input[type='password']:visible").count() == 0:
+                sub = pg.locator("button[type='submit']").first
+                if sub.count() > 0 and sub.is_visible():
+                    sub.click(timeout=5000)
+                    pg.wait_for_timeout(5500)
 
     def close(self) -> None:
         try:
-            if self._page is not None:
+            if self._page is not None and getattr(self, "_owns_page", False):
                 self._page.close()
         except Exception:
             pass
@@ -838,16 +877,21 @@ class WinboxPlaywrightDriver:
             return PageSnapshot(html=synth, url=cur_url)
 
         active_name = pg.evaluate(
-            "(() => { const a = document.querySelector('.list-group-item.active'); return a ? a.innerText.split('\\n')[0].trim() : ''; })()"
+            """(() => {
+                const h4 = document.querySelector('#content-secondary h4');
+                if (h4 && h4.innerText.trim()) return h4.innerText.trim();
+                const a = document.querySelector('.list-group-item.active');
+                return a ? a.innerText.split('\\n')[0].trim() : '';
+            })()"""
         ) or ""
-        ta_count = pg.locator("textarea:not([disabled])").count()
-        send_count = pg.locator("input.btn-primary:not([disabled]), button[type='submit']:not([disabled])").count()
+        ta_count = pg.locator("textarea-ex#editor textarea, textarea:not([disabled])").count()
+        send_count = pg.locator(".send-group input.btn-primary:not([disabled]), input.btn-primary:not([disabled]), button[type='submit']:not([disabled])").count()
         rec_id_out = self._expected_recipient_id if active_name == self._expected_recipient_name else "MISMATCH"
         bubbles_html = "".join(
             f'<div class="chat-bubble-outbound" data-outbound-bubble="true">{html.escape(b)}</div>'
             for b in self._confirmed_bubbles
         )
-        ta_html = '<textarea data-composer-input="1"></textarea>' if ta_count == 1 else ""
+        ta_html = '<textarea data-composer-input="1"></textarea>' if ta_count >= 1 else ""
         btn_html = '<button data-send-button="1">Send</button>' if send_count >= 1 else ""
         synth = (
             f'<header data-oa-header="1" data-basic-id="{basic_attr}" '
@@ -858,6 +902,14 @@ class WinboxPlaywrightDriver:
         )
         return PageSnapshot(html=synth, url=cur_url)
 
+    def _composer(self):
+        assert self._page is not None
+        return self._page.locator("textarea-ex#editor textarea, textarea:not([disabled])").first
+
+    def _send_button(self):
+        assert self._page is not None
+        return self._page.locator(".send-group input.btn-primary, input.btn-primary[type='submit'], button[type='submit']").first
+
     def get_page(self) -> PageSnapshot:
         return self._build_snapshot(require_thread=False)
 
@@ -865,56 +917,88 @@ class WinboxPlaywrightDriver:
         pg = self._page
         assert pg is not None
         target_name = self._expected_recipient_name or recipient_id
-        pg.get_by_text(target_name, exact=True).first.click(timeout=10000)
-        pg.wait_for_timeout(3500)
+        cur_h4 = pg.evaluate("() => document.querySelector('#content-secondary h4')?.innerText?.trim() || ''") or ""
+        if cur_h4 != target_name:
+            item = pg.locator(".list-group-item-chat").filter(has_text=target_name)
+            if item.count() > 0:
+                pg.get_by_text(target_name, exact=True).first.click(timeout=10000)
+                pg.wait_for_timeout(2500)
+            else:
+                search_inp = pg.locator("#chatListSearchInput, input.chatlist-search").first
+                if search_inp.count() > 0:
+                    search_inp.fill(target_name)
+                    pg.wait_for_timeout(1800)
+                    pg.get_by_text(target_name, exact=True).first.click(timeout=10000)
+                    pg.wait_for_timeout(2500)
+                    search_inp.fill("")
+                    pg.wait_for_timeout(400)
+                else:
+                    pg.get_by_text(target_name, exact=True).first.click(timeout=10000)
+                    pg.wait_for_timeout(2500)
         return self._build_snapshot(require_thread=True)
 
     def stage_text(self, text: str) -> PageSnapshot:
         pg = self._page
         assert pg is not None
-        pg.locator("textarea").first.fill(text)
+        self._composer().fill(text)
         pg.wait_for_timeout(400)
         return self._build_snapshot(require_thread=True)
 
     def click_send(self) -> PageSnapshot:
         pg = self._page
         assert pg is not None
-        staged = pg.locator("textarea").first.input_value()
-        pg.locator("input.btn-primary, button[type='submit']").last.click(timeout=8000)
+        comp = self._composer()
+        staged = comp.input_value()
+        self._send_button().click(timeout=8000)
         pg.wait_for_timeout(3200)
         body_now = pg.locator("body").inner_text(timeout=5000)
         probe = staged.strip()[:24]
-        if probe and probe in body_now and pg.locator("textarea").first.input_value() == "":
+        if probe and probe in body_now and comp.input_value() == "":
             self._confirmed_bubbles.append(staged.strip())
         return self._build_snapshot(require_thread=True)
 
     def send_items(self, items: list[dict], pacer: JitterPacer) -> tuple[bool, PageSnapshot, str]:
         """Send multi-bubble text items and optional slip images one by one with human jitter."""
+        import mimetypes
+
         pg = self._page
         assert pg is not None
+        comp = self._composer()
         for idx, item in enumerate(items):
             if item["type"] == "text":
                 txt = item["text"]
                 pacer.pause_stage_typing(len(txt))
-                pg.locator("textarea").first.fill(txt)
+                comp.fill(txt)
                 pg.wait_for_timeout(500)
                 snap_mid = self._build_snapshot(require_thread=True)
                 if inspect_oa_dom(snap_mid.html, snap_mid.url).page_state in KILL_TRIGGERS:
                     return False, snap_mid, "kill_switch_mid_send"
-                pg.locator("input.btn-primary, button[type='submit']").last.click(timeout=8000)
+                self._send_button().click(timeout=8000)
                 pg.wait_for_timeout(3200)
                 pacer.pause_cooldown()
                 body_now = pg.locator("body").inner_text(timeout=5000)
                 probe = txt[:24]
-                if not (probe in body_now and pg.locator("textarea").first.input_value() == ""):
+                if not (probe in body_now and comp.input_value() == ""):
                     return False, self._build_snapshot(require_thread=True), f"bubble_{idx+1}_unconfirmed"
                 self._confirmed_bubbles.append(txt)
             elif item["type"] == "image":
                 fpath = Path(item["file_path"])
                 if not fpath.is_file():
                     return False, self._build_snapshot(require_thread=True), "slip_file_missing"
+                mime_type = mimetypes.guess_type(fpath.name)[0] or "image/jpeg"
                 file_inp = pg.locator("input[type='file']").first
-                file_inp.set_input_files(str(fpath))
+                file_inp.set_input_files(
+                    {
+                        "name": fpath.name,
+                        "mimeType": mime_type,
+                        "buffer": fpath.read_bytes(),
+                    }
+                )
+                pg.wait_for_timeout(1800)
+                modal_send = pg.locator(".modal.d-block button.btn-primary, .modal.show button.btn-primary").first
+                if modal_send.count() == 0:
+                    return False, self._build_snapshot(require_thread=True), "file_confirm_modal_missing"
+                modal_send.click(timeout=8000)
                 pg.wait_for_timeout(4500)
                 pacer.pause_cooldown()
         return True, self._build_snapshot(require_thread=True), "ok"

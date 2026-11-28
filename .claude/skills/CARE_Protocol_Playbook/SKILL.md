@@ -76,6 +76,13 @@ Whenever a customer reports missing XM rebates, execute this exact 7-step flow w
    - **10:30 TH Tuesday:** CTO checks XM Partner read-only whether Monday's trades on all fixed accounts credited rebate into `MyWallet` (fixing any issue before messaging customers).
    - **~11:00 TH Tuesday:** Proactively message each customer (`"รีเบตเมื่อวานเข้า MyWallet แล้วไหมครับ"`) to confirm end-to-end resolution.
 
+## Runtime & Operator CLI Reference (Contabo)
+
+- **Hourly Care Batch Timer (`08:00–22:00 TH`):** `systemctl status org-care-mooniex.timer org-care-mooniex.service` (runs `tools/care_runner.py --live-send`; zero tokens spent when `care_queue` has `0` `ready` rows).
+- **Inspect Inbound Queue / Reconcile Dual-Path:** `python3 tools/care_inbox.py list --mode both --limit 20` and `python3 tools/care_inbox.py read --chat <sender_id> --mode auto`.
+- **Inspect Outbox / Drain via Winbox (`0` LINE OA Quota):** `python3 tools/care_outbox.py status` and `python3 tools/care_outbox.py drain --live`.
+- **COO/CTO Approved Payout & Slip Enqueue (`winbox:9285`):** `python3 tools/care_outbox.py enqueue-operator --customer-id <U...> --display-name "<Name>" --slip-image <path.jpg> --text "<message>" --ceo-approved-amount`.
+
 ## What This Protocol Never Does
 
 - Never guesses whether an MT4/MT5 account is in our network without an XM check via COO/CTO.
@@ -85,3 +92,4 @@ Whenever a customer reports missing XM rebates, execute this exact 7-step flow w
 ## Field notes
 
 - 2026-11-28 [MISSING] Multi-account customers (customer replying about a second MT5 ID without sending the QR for the fixed primary MT5 ID) require handling both threads in the next reply · evidence: Work/MoonieXCare/check-2026-11-28 · status: pending
+- 2026-11-28 [MISSING] runtime operator CLI reference — added Contabo systemd timer and care_inbox / care_outbox / enqueue-operator CLI commands for 0-quota Winbox outbound · evidence: Q-20261128-0926-a657, tools/care_outbox.py, tools/care_runner.py · status: promoted

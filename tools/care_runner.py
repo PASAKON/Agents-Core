@@ -139,18 +139,31 @@ def _extract_json_object(raw: str) -> dict[str, Any]:
     text = raw.strip()
     try:
         parsed = json.loads(text)
-        if isinstance(parsed, dict) and "action" in parsed:
-            return parsed
-        if isinstance(parsed, dict) and isinstance(parsed.get("result"), str):
-            inner = json.loads(parsed["result"].strip())
-            if isinstance(inner, dict) and "action" in inner:
-                return inner
+        if isinstance(parsed, dict):
+            denied = parsed.get("denied_actions") or []
+            if denied:
+                raise RuntimeError(f"agy_permission_denied:{json.dumps(denied, ensure_ascii=False)}")
+            status = parsed.get("status")
+            if status and status != "SUCCESS":
+                raise RuntimeError(f"agy_status_error:{status}")
+            if isinstance(parsed.get("structured_output"), dict) and "action" in parsed["structured_output"]:
+                return dict(parsed["structured_output"])
+            if "action" in parsed:
+                return parsed
+            for str_key in ("response", "result"):
+                if isinstance(parsed.get(str_key), str) and parsed[str_key].strip():
+                    inner = json.loads(parsed[str_key].strip())
+                    if isinstance(inner, dict) and "action" in inner:
+                        return inner
     except ValueError:
         pass
     start = text.find("{")
     end = text.rfind("}")
     if start >= 0 and end > start:
-        return json.loads(text[start : end + 1])
+        obj = json.loads(text[start : end + 1])
+        if isinstance(obj, dict) and (obj.get("denied_actions") or (obj.get("status") and obj.get("status") != "SUCCESS")):
+            raise RuntimeError(f"agy_envelope_rejected:{obj.get('status')}:{obj.get('denied_actions')}")
+        return obj
     raise ValueError(f"could not parse care decision JSON from output (len={len(text)})")
 
 
@@ -196,20 +209,29 @@ def invoke_care_agy_turn(
         "Never include %, $, บาท, or markdown in bubbles."
     )
 
+    resolved_media_dir = media_dir.resolve()
+    agy_settings = json.dumps(
+        {
+            "permissions": {
+                "allow": [f"read_file({resolved_media_dir})"],
+                "deny": ["command(*)", "write_file(/)", "mcp(*)", "read_url(*)"],
+            }
+        }
+    )
     cmd = [
         _find_agy_bin(),
-        "-p",
         "--output-format",
         "json",
         "--model",
         chosen_model,
-        "--mode",
-        "auto",
         "--disable-slash-commands",
+        "--settings",
+        agy_settings,
         "--json-schema",
         CARE_TURN_SCHEMA,
         "--add-dir",
-        str(media_dir),
+        str(resolved_media_dir),
+        "-p",
         prompt,
     ]
     proc = subprocess.run(
