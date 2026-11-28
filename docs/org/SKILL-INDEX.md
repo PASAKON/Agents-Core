@@ -204,5 +204,7 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 
 | name | owner | audience | what it is |
 |---|---|---|---|
+| `CARE_Protocol_Playbook` | - | - |  |
+| `CARE_Rules_MoonieX` | - | - |  |
 | `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | ILAG ละครสั้นคุณธรรม theme: gold, white, black (CEO 2026-10-26); tools/ilag_theme.py still draws old navy. Daily 'รู้หรือไม่?' poster… |
 | `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |
