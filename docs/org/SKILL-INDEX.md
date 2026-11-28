@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-76 org skills by kind — Rules 10 · Knowledge 19 · Workflow 7 · Procedure 16 · Standard 8 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+78 org skills by kind — Rules 11 · Knowledge 19 · Workflow 7 · Procedure 16 · Standard 8 · Gate 6 · Protocol 11 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -19,6 +19,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_HQ_Filing` | COO | all | Filing rules for MoonieX HQ — read before creating/moving/cloning/renaming/deleting any project folder on the Mac, before `git clone`… |
 | `ALL_Rules_Secrets` | CTO | all | One rule set for every credential: where it lives, its name, scope and expiry, how it is read, and what a leak sets off. |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
+| `CARE_Rules_MoonieX` | COO | care, coo | Binding CEO rules for น้องมูน (role=care) and COO when answering @mooniex ("MoonieX Officials" @587kfqpt) customer chats — rebates… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
 | `CMO_Rules_TikTok_Hashtags` | CMO | cmo, content_strategist, script_writer, video_editor, developer | Mandatory 5-hashtag rule for every TikTok clip, script, and client brief: max 5 #tags, Slot #1 is always our channel/brand tag… |
 | `COO_Rules_MoonieXCare` | COO | worker | How น้องมูน (role `care`) answers @mooniex customers on LINE OA "MoonieX Officials" (@587kfqpt): CEO rulings on rebates, amounts, service… |
@@ -114,6 +115,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Protocol_RunInbox` | CTO | cxo, worker | Run Inbox (terminal.mooniex.com/run): CEO taps one exact command/script; results return by mailbox. Trigger: /ALL_Protocol_RunInbox… |
 | `ALL_Protocol_SkillAuthor` | COO | all | Create, update, rename, split or retire an org skill — the 7 kinds, the <ROLE>_<Kind>_<Topic> name, step-by-step procedures and a body… |
 | `BROWSER_OPERATOR_Protocol_Playbook` | CTO | browser_operator | Cost-disciplined browser driving for the org's `browser_operator` role — the step order that keeps a browser task from burning context… |
+| `CARE_Protocol_Playbook` | COO | care, coo | Autonomous turn-by-turn operating playbook for น้องมูน (role=care) on LINE OA @mooniex — reading full chat + every media attachment… |
 | `COO_Protocol_SkillCurator` | COO | cxo | Review skill telemetry and act on stale/unused skills without touching anyone else's repo. |
 | `CTO_Protocol_SpawnWebDesigner` | CTO | cto | Open the Web Designer surface for the CEO to design directly. |
 | `CXO_Protocol_DelegateExternal` | CTO | cxo, worker | Hand a task to an agent that is NOT Claude Code — Codex CLI, Antigravity, or a human — by writing a self-contained brief, shipping only… |
