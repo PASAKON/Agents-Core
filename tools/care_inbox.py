@@ -196,6 +196,7 @@ def _parse_claudeflow_env(env_path: Path = CLAUDEFLOW_ENV_CONTABO) -> dict[str, 
         "SUPABASE_SERVICE_KEY",
         "SUPABASE_KEY",
         "LINE_CHANNEL_ACCESS_TOKEN",
+        "CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET",
     }
     parsed: dict[str, str] = {}
     if not env_path.is_file():
@@ -236,13 +237,59 @@ def _default_http_bytes(url: str, headers: dict[str, str], timeout: int = 20) ->
         return resp.read(), ctype
 
 
+def _decrypt_claudeflow_enc_v1(
+    ciphertext: str,
+    *,
+    tenant_slug: str,
+    platform: str,
+    account_slug: str,
+    field: str,
+    keyring_raw: str | None,
+) -> str | None:
+    """Decrypt `enc:v1:<kid>:<iv_b64url>:<ct_tag_b64url>` when `CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET` is available."""
+    if not keyring_raw or not ciphertext.startswith("enc:v1:"):
+        return None
+    parts = ciphertext.split(":")
+    if len(parts) != 5:
+        return None
+    _, _, kid, iv_b64, ct_tag_b64 = parts
+    ring: dict[str, bytes] = {}
+    import base64
+
+    for entry in keyring_raw.split(","):
+        entry = entry.strip()
+        if "=" not in entry:
+            continue
+        k, _, b64val = entry.partition("=")
+        try:
+            raw_key = base64.b64decode(b64val.strip())
+            if len(raw_key) == 32:
+                ring[k.strip()] = raw_key
+        except Exception:  # noqa: BLE001
+            continue
+    key = ring.get(kid)
+    if not key:
+        return None
+    try:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+        pad = lambda s: s + "=" * ((4 - len(s) % 4) % 4)
+        iv = base64.urlsafe_b64decode(pad(iv_b64))
+        ct_tag = base64.urlsafe_b64decode(pad(ct_tag_b64))
+        aad = f"claudeflow:v1:{tenant_slug}:{platform}:{account_slug}:{field}".encode("utf-8")
+        plain = AESGCM(key).decrypt(iv, ct_tag, aad)
+        return plain.decode("utf-8").strip()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _load_line_access_token(
     *,
     account_slug: str = "mooniex",
     env_path: Path = CLAUDEFLOW_ENV_CONTABO,
     http_json: HttpJsonFn = _default_http_json,
 ) -> str | None:
-    """Resolve @mooniex LINE channel access token (env override -> claudeflow_accounts -> ClaudeFlow .env).
+    """Resolve @mooniex LINE channel access token (env override -> claudeflow_webhook_accounts -> ClaudeFlow .env).
 
     Never logs or returns secret values in error messages.
     """
@@ -250,34 +297,50 @@ def _load_line_access_token(
     if override and override.strip():
         return override.strip()
 
+    parsed_env = _parse_claudeflow_env(env_path)
+    keyring_raw = os.environ.get("CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET") or parsed_env.get(
+        "CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET"
+    )
+
     sb_url, sb_key = _load_claudeflow_supabase_creds(env_path)
     if sb_url and sb_key:
         qs = urllib.parse.urlencode(
             [
                 ("platform", "eq.line"),
                 ("account_slug", f"eq.{account_slug}"),
-                ("select", "credentials"),
+                ("select", "platform,account_slug,tenant_slug,credentials"),
                 ("limit", "1"),
             ]
         )
-        try:
-            rows = http_json(
-                f"{sb_url.rstrip('/')}/rest/v1/claudeflow_accounts?{qs}",
-                {"apikey": sb_key, "Authorization": f"Bearer {sb_key}", "Accept": "application/json"},
-                8,
-            )
-            if isinstance(rows, list) and rows:
-                creds = rows[0].get("credentials") or {}
-                if isinstance(creds, dict):
-                    for field in ("channel_access_token", "access_token", "token"):
-                        tok = creds.get(field)
-                        if isinstance(tok, str) and tok and not tok.startswith("enc:"):
-                            return tok.strip()
-        except Exception:  # noqa: BLE001
-            pass
+        headers = {"apikey": sb_key, "Authorization": f"Bearer {sb_key}", "Accept": "application/json"}
+        for table in ("claudeflow_webhook_accounts", "claudeflow_accounts"):
+            try:
+                rows = http_json(f"{sb_url.rstrip('/')}/rest/v1/{table}?{qs}", headers, 8)
+                if isinstance(rows, list) and rows:
+                    row = rows[0]
+                    creds = row.get("credentials") or {}
+                    tslug = str(row.get("tenant_slug") or account_slug)
+                    if isinstance(creds, dict):
+                        for field in ("channel_access_token", "access_token", "token"):
+                            tok = creds.get(field)
+                            if not isinstance(tok, str) or not tok:
+                                continue
+                            if not tok.startswith("enc:"):
+                                return tok.strip()
+                            dec = _decrypt_claudeflow_enc_v1(
+                                tok,
+                                tenant_slug=tslug,
+                                platform="line",
+                                account_slug=account_slug,
+                                field=field,
+                                keyring_raw=keyring_raw,
+                            )
+                            if dec:
+                                return dec
+            except Exception:  # noqa: BLE001
+                continue
 
-    parsed = _parse_claudeflow_env(env_path)
-    tok = parsed.get("LINE_CHANNEL_ACCESS_TOKEN")
+    tok = parsed_env.get("LINE_CHANNEL_ACCESS_TOKEN")
     if tok and " " not in tok and len(tok) >= 20:
         return tok
     return None

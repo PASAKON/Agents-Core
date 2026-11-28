@@ -81,7 +81,8 @@ def test_list_and_read_cascade_fall_back_to_db_when_oa_signed_out(tmp_path):
     env_file.write_text(
         "SUPABASE_URL=https://fixture.supabase.co\n"
         "SUPABASE_SERVICE_KEY=fixture-service-key-not-real\n"
-        "LINE_CHANNEL_ACCESS_TOKEN=fixture-line-access-token-not-real\n",
+        "# malformed env line without valid LINE_CHANNEL_ACCESS_TOKEN -> must read claudeflow_webhook_accounts\n"
+        "LINE_CHANNEL_ACCESS_TOKEN=broken token with spaces\n",
         encoding="utf-8",
     )
 
@@ -89,6 +90,15 @@ def test_list_and_read_cascade_fall_back_to_db_when_oa_signed_out(tmp_path):
     sid_b = "Ubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
     def fake_http_json(url: str, headers: dict[str, str], timeout: int = 10):
+        if "/rest/v1/claudeflow_webhook_accounts" in url:
+            return [
+                {
+                    "platform": "line",
+                    "account_slug": "mooniex",
+                    "tenant_slug": "mooniex",
+                    "credentials": {"channel_access_token": "fixture-webhook-account-token-not-real"},
+                }
+            ]
         if "/rest/v1/claudeflow_accounts" in url:
             return []
         if "/rest/v1/claudeflow_conversations" in url:
@@ -128,13 +138,13 @@ def test_list_and_read_cascade_fall_back_to_db_when_oa_signed_out(tmp_path):
         if "/rest/v1/claudeflow_contacts" in url:
             return [{"sender_id": sid_a, "display_name": "Synthetic Trader A", "username": None}]
         if f"api.line.me/v2/bot/profile/{sid_b}" in url:
-            assert headers["Authorization"] == "Bearer fixture-line-access-token-not-real"
+            assert headers["Authorization"] == "Bearer fixture-webhook-account-token-not-real"
             return {"displayName": "Synthetic Trader B"}
         raise AssertionError(f"unexpected URL: {url}")
 
     def fake_http_bytes(url: str, headers: dict[str, str], timeout: int = 20):
         if "api-data.line.me/v2/bot/message/9988776655/content" in url:
-            assert headers["Authorization"] == "Bearer fixture-line-access-token-not-real"
+            assert headers["Authorization"] == "Bearer fixture-webhook-account-token-not-real"
             return b"\x89PNG\r\n\x1a\npngbytes", "image/png"
         if "/storage/v1/object/claudeflow_user_images/imgref_100_abcd.jpg" in url:
             return b"\xff\xd8\xffjpegbytes", "image/jpeg"
