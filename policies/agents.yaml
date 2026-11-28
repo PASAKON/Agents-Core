@@ -151,7 +151,7 @@ roles:
     can_ask_ceo: false
     workspace_only: true
     skills_profile: worker-baseline   # tools stay limited by allowed_tools below
-    allowed_tools: [reply, skip, history, escalate]
+    allowed_tools: [reply, skip, history, escalate, media]
 
   developer:
     display: Developer

@@ -1585,23 +1585,35 @@ def send(
     # 4. Resume the conversation ON ITS OWN HOST (local if target_host == here, else over SSH)
     pid: int | None = None
     remote_res: dict[str, Any] | None = None
+    woke_via_app = False
     if route == "local":
-        pid = _spawn_detached_local_agy(
-            prompt,
-            box=box,
-            to_role=to_role,
-            to_sid=to_sid,
-            conversation_id=conv_id,
-            model=target_model,
-            mode=target_mode,
-            cwd=target_cwd,
-            add_dirs=rec.get("add_dirs"),
-            app_data_dir=app_data_dir,
-            surface=surface,
-            sessions_dir=sdir,
-            agy_bin=agy_bin,
-            env=env,
-        )
+        if surface == "App" and rec.get("ls_address") and rec.get("csrf_token") and agy_bin is None:
+            wake_res = agy_card_run.wake_session(
+                box,
+                sessions_dir=sdir,
+                inbox_root=inbox_root,
+            )
+            if wake_res.get("ok") and wake_res.get("woke"):
+                woke_via_app = True
+        if not woke_via_app:
+            fallback_models = ph_brain.select_model_chain(target_model)
+            chosen_model = fallback_models[0] if fallback_models else target_model
+            pid = _spawn_detached_local_agy(
+                prompt,
+                box=box,
+                to_role=to_role,
+                to_sid=to_sid,
+                conversation_id=conv_id,
+                model=chosen_model,
+                mode=target_mode,
+                cwd=target_cwd,
+                add_dirs=rec.get("add_dirs"),
+                app_data_dir=app_data_dir,
+                surface=surface,
+                sessions_dir=sdir,
+                agy_bin=agy_bin,
+                env=env,
+            )
     else:
         remote_res = _resume_remote_agy(
             target_host=target_host,
