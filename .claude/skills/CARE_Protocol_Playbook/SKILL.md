@@ -12,6 +12,7 @@ created_by: agent
 author: {role: coo, date: "2026-11-28"}
 improved_by:
   - {role: coo, date: "2026-11-28", what: "CEO 28 Nov end-to-end 7-step Rebate Resolution SOP (instant slip send vs 3-7d large-payout SLA, active account ID confirmation, Tue check-back)"}
+  - {role: coo, date: "2026-11-28", what: "CEO Card Q-20261128-0926-a657: dedicated Contabo care session + 100% care_outbox -> Winbox OA Script delivery (zero LINE OA quota)"}
 aka: []
 ---
 
@@ -26,9 +27,9 @@ This protocol lets **น้องมูน (`role=care`, defined in `policies/ag
 
 ## Who Is Involved
 
-- **`care` (น้องมูน):** Reads full thread + all images/videos, answers in-scope questions turn-by-turn, collects required info (MT4/MT5 ID, QR image, trade screenshots), and escalates money/account-fix cases with complete structured facts.
+- **`care` (น้องมูน — Dedicated Contabo Session):** Runs in her own isolated session on Contabo (separate from COO `SomPong`; uses `agy-gemini` while Claude subscription quota is at `0%` and switches to Claude `Sonnet 5.5` on reset). Reads full thread + all images/videos/transcripts, answers in-scope questions turn-by-turn, collects required info (MT4/MT5 ID, QR image, trade screenshots), and escalates money/account-fix cases with complete structured facts. Calls only `CareGate` tools (`history`, `media`, `reply`, `escalate`, `skip`) — never touches the Winbox browser directly; `reply`/`escalate` enqueue into `care_outbox` for **100% Winbox OA Script delivery (`0` LINE OA quota)**.
 - **`COO` (SomPong):** Receives escalations, verifies partner data / calculates back-pay, raises 3-option CEO cards for money/policy rulings, and folds new rulings back into `CARE_Rules_MoonieX`.
-- **`CTO`:** Owns webhook/queue (`docs/design/mooniex-care.md`), OA Browser Home relay, and XM Partner read/write execution.
+- **`CTO`:** Owns webhook/queue (`docs/design/mooniex-care.md`), `care_outbox` → `winbox:9285` (`line-oa-win`) OA Browser Sender service & Relay Login, and XM Partner read/write execution.
 
 ## Step-by-Step Procedure (Every Customer Thread)
 
