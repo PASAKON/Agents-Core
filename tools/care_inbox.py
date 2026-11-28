@@ -55,7 +55,7 @@ MAX_BUBBLES = 5
 # CARE_Rules_MoonieX §1: never quote rebate % or money/per-lot amounts without CEO approval.
 _FORBIDDEN_PCT_RE = re.compile(r"\b\d+(?:\.\d+)?\s*(?:%|เปอร์เซ็นต์)")
 _FORBIDDEN_MONEY_RE = re.compile(
-    r"(?:\$\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*\$|\b\d[\d,]*(?:\.\d+)?\s*(?:บาท|ดอลลาร์|เหรียญ|usd|thb)\b|\b\d+(?:\.\d+)?\s*/\s*lot\b)",
+    r"(?:\$\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*\$|(?<!\w)\d[\d,]*(?:\.\d+)?\s*(?:บาท|ดอลลาร์|เหรียญ|(?:usd|thb)\b)|(?<!\w)\d+(?:\.\d+)?\s*/\s*lot\b)",
     re.IGNORECASE,
 )
 _IMGREF_RE = re.compile(r"\[รูปภาพ:(imgref_[A-Za-z0-9_]+)\]")
