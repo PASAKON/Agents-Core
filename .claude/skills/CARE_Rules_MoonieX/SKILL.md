@@ -10,7 +10,8 @@ owner: COO
 audience: [care, coo]
 created_by: agent
 author: {role: coo, date: "2026-11-28"}
-improved_by: []
+improved_by:
+  - {role: coo, date: "2026-11-28", what: "CEO 28 Nov complete rebate payout SOP: XM FX spread (-2.0% to -2.5%), slip send + active account ID + apology, 3-7d large-payout SLA, Tue follow-up"}
 aka: [CARE_Playbook_MoonieX]
 ---
 
@@ -31,11 +32,19 @@ Every rule here comes from a dated CEO ruling for LINE Official Account **Moonie
   2. A friend asking on behalf of an account owner counts as **one case** paid only to the account owner.
   3. Every back-pay row requires the customer's own chat line as proof. Accounts nobody asked about are never paid.
   - **Why hard:** Summing all accounts in XM inflated an earlier unverified table (caught by CEO 2026-11-27).
-- **HARD — Post-fix reply, QR collection, and next-working-day follow-up** (CEO 2026-11-27):
-  1. Once the CTO confirms the customer's rebate plan is fixed, tell the customer their plan is fixed, ask for a **PromptPay / bank QR code** in chat to receive back-pay, and include: `"ถ้าเทรดวันจันทร์ รีเบตจะเข้า MyWallet วันอังคารนะครับ"`.
-  2. For **large back-pay** (e.g. >\$30, like the `BUA` case): ask for MT4/MT5 trade history screenshots for the affected window **before** asking for a QR code or paying.
-  3. Follow up proactively at **~11:00 TH on Tuesday** (after CTO checks XM read-only at 10:30 TH): ask `"รีเบตเมื่อวานเข้า MyWallet แล้วไหมครับ"`.
-  - **Why hard:** Closes the loop without making customers chase us twice.
+- **HARD — Post-fix reply, QR collection, FX rate, slip delivery, and next-working-day follow-up** (CEO 2026-11-27 & 2026-11-28):
+  1. Once the CTO confirms the customer's rebate plan (`MNVIP30`) is fixed, tell the customer their plan is fixed, ask for a **PromptPay / bank QR code** in chat to receive back-pay, and include: `"ถ้าเทรดวันจันทร์ รีเบตจะเข้า MyWallet วันอังคารนะครับ"`.
+  2. **FX conversion rate for THB payouts (CEO 2026-11-28):** Convert approved USD back-pay to THB using **XM's real Local Bank withdrawal rate (`Spot − 2.0% to 2.5%` PSP FX spread; `-2.5%` on weekends)** rather than raw mid-market spot, matching the net THB received after XM's PSP conversion spread.
+  3. **Instant payout confirmation + slip image (small cases, e.g. ≤\$30, CEO 2026-11-28):** Once the CEO transfers via QR and hands over the slip:
+     - Send the **actual transfer slip image** to that exact customer (double-checking recipient name + masked PromptPay/account number on the slip against that customer's QR).
+     - State the **exact MT4/MT5 account number(s)** that are now linked to the rebate plan and ready to trade normally.
+     - **Apologize** politely for the delay (`"ต้องขออภัยที่ดำเนินการล่าช้าด้วยนะครับ"`).
+     - Remind them that Monday trades credit rebate to `MyWallet` on Tuesday, and log the Tuesday check-back.
+  4. **Large back-pay SLA (e.g. >\$30, CEO 2026-11-27 & 2026-11-28):**
+     - Ask for MT4/MT5 trade history screenshots first and reconcile day-by-day against XM Partner (`#/reports/traders-trades`, verifying XM already excluded credit-bonus lot fractions) **before** quoting or asking for QR.
+     - Once the CEO approves the USD amount and the customer sends their QR code, tell the customer: (a) the transfer will arrive within **3–7 days** and admin will notify immediately with the slip once transferred, (b) their **exact MT4/MT5 account number** is already fixed on the rebate plan so new trades receive rebate normally (`ไม่ต้องเปลี่ยนรหัสพันธมิตร`), (c) apologize for the delay, and (d) include them in the **Tuesday ~11:00 TH** check-back as well (plus create a LungNote to-do for the 3–7 day payout).
+  5. **Tuesday ~11:00 TH proactive follow-up (CEO 2026-11-27 & 2026-11-28):** At **10:30 TH** on Tuesday, CTO checks XM read-only whether Monday's trades on every fixed account credited rebate; if any missed, fix first and notify COO; at **~11:00 TH**, message each customer (`"รีเบตเมื่อวานเข้า MyWallet แล้วไหมครับ"`).
+  - **Why hard:** Closes the entire recovery loop with bank proof, active-account clarity, and next-cycle verification so customers stay trading confidently under MoonieX.
 
 ## 2 · Service Time & Escalation Boundary (CEO 2026-11-26 & 2026-11-27)
 
@@ -63,4 +72,4 @@ Every rule here comes from a dated CEO ruling for LINE Official Account **Moonie
 
 ## Field notes
 
-- 2026-11-28 [MISSING] Live check of 79 inbound @mooniex events showed customers send burst media (BUA sent 72 MT5 screenshots in 75s); group consecutive media from one sender_id into one turn · evidence: Work/MoonieXCare/check-2026-11-28 · status: pending
+- 2026-11-28 [MISSING] Live check of 79 inbound @mooniex events showed customers send burst media (one customer sent 72 MT5 screenshots in 75s); group consecutive media from one sender_id into one turn · evidence: Work/MoonieXCare/check-2026-11-28 · status: pending
