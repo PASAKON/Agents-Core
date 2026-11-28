@@ -645,6 +645,281 @@ def _extract_texts_from_payload(payload_json: str) -> Optional[list[str]]:
     return texts
 
 
+def _extract_outbox_items(payload_json: str) -> Optional[list[dict]]:
+    """Extract 1..6 outbound items (`text` bubbles and optional `image` transfer slips)."""
+    try:
+        data = json.loads(payload_json)
+    except Exception:
+        return None
+    if isinstance(data, dict):
+        data = [data]
+    if not isinstance(data, list) or not data or len(data) > 6:
+        return None
+    items: list[dict] = []
+    for item in data:
+        if not isinstance(item, dict):
+            return None
+        kind = item.get("type")
+        if kind == "text":
+            txt = item.get("text")
+            if not isinstance(txt, str) or not txt.strip():
+                return None
+            items.append({"type": "text", "text": txt.strip()})
+        elif kind == "image":
+            fp = item.get("file_path")
+            if not isinstance(fp, str) or not fp.strip():
+                return None
+            items.append({"type": "image", "file_path": fp.strip()})
+        else:
+            return None
+    return items
+
+
+class WinboxPlaywrightDriver:
+    """Live Playwright CDP driver for `winbox:9285` (`line-oa-win` via `127.0.0.1:19285`).
+
+    Hard rules (CEO Q-20261128-0926-a657 & design §4):
+    - Zero LINE OA API calls: 100% browser delivery on `chat.line.biz`.
+    - Wraps session in `home_lock('home:winbox:9285')` when available.
+    - Never attempts automated login, never solves or clicks CAPTCHAs, never touches `terminal64`.
+    - Verifies `MoonieX Officials` header + exact active recipient display name before sending.
+    """
+
+    OA_CHAT_URL = "https://chat.line.biz/U1434fa89bc696a8ba3e84e6fd6f8e70b"
+
+    def __init__(
+        self,
+        *,
+        local_cdp_port: int = 19285,
+        winbox_cdp_port: int = 9285,
+        channel_basic_id: str = DEFAULT_BASIC_ID,
+        channel_display_name: str = DEFAULT_DISPLAY_NAME,
+        channel_account_name: str = DEFAULT_ACCOUNT_NAME,
+    ):
+        self.local_cdp_port = local_cdp_port
+        self.winbox_cdp_port = winbox_cdp_port
+        self.channel_basic_id = channel_basic_id
+        self.channel_display_name = channel_display_name
+        self.channel_account_name = channel_account_name
+        self._pw = None
+        self._browser = None
+        self._page = None
+        self._lock_cm = None
+        self._expected_recipient_id: str = ""
+        self._expected_recipient_name: str = ""
+        self._confirmed_bubbles: list[str] = []
+
+    def _ensure_tunnel(self) -> bool:
+        import subprocess
+        import urllib.request
+
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{self.local_cdp_port}/json/version", timeout=2).read()
+            return True
+        except Exception:
+            pass
+        subprocess.run(
+            [
+                "ssh",
+                "-n",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ConnectTimeout=5",
+                "-o",
+                "ExitOnForwardFailure=yes",
+                "-f",
+                "-N",
+                "-L",
+                f"127.0.0.1:{self.local_cdp_port}:127.0.0.1:{self.winbox_cdp_port}",
+                "winbox",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{self.local_cdp_port}/json/version", timeout=3).read()
+            return True
+        except Exception:
+            return False
+
+    def open(self) -> "WinboxPlaywrightDriver":
+        if not self._ensure_tunnel():
+            raise RuntimeError("winbox_9285_tunnel_unreachable")
+        try:
+            from tools.home_lock import home_lock
+
+            self._lock_cm = home_lock(
+                f"home:winbox:{self.winbox_cdp_port}",
+                purpose="mooniex_care_outbox",
+                wait_s=120,
+            )
+            self._lock_cm.__enter__()
+        except Exception:
+            self._lock_cm = None
+
+        from playwright.sync_api import sync_playwright
+
+        self._pw = sync_playwright().start()
+        self._browser = self._pw.chromium.connect_over_cdp(f"http://127.0.0.1:{self.local_cdp_port}")
+        ctx = self._browser.contexts[0]
+        self._page = ctx.new_page()
+        self._page.goto(self.OA_CHAT_URL, timeout=45000)
+        self._page.wait_for_timeout(5500)
+        return self
+
+    def close(self) -> None:
+        try:
+            if self._page is not None:
+                self._page.close()
+        except Exception:
+            pass
+        try:
+            if self._pw is not None:
+                self._pw.stop()
+        except Exception:
+            pass
+        if self._lock_cm is not None:
+            try:
+                self._lock_cm.__exit__(None, None, None)
+            except Exception:
+                pass
+            self._lock_cm = None
+
+    def __enter__(self) -> "WinboxPlaywrightDriver":
+        return self.open()
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    def bind_expected_recipient(self, recipient_id: str, recipient_display_name: str) -> None:
+        self._expected_recipient_id = recipient_id.strip()
+        self._expected_recipient_name = recipient_display_name.strip()
+        self._confirmed_bubbles = []
+
+    def _build_snapshot(self, *, require_thread: bool = False) -> PageSnapshot:
+        pg = self._page
+        if pg is None:
+            return PageSnapshot(html='<div data-page-state="logout"></div>', url="https://account.line.biz/login")
+        cur_url = pg.url or ""
+        url_low = cur_url.lower()
+        body_txt = ""
+        try:
+            body_txt = pg.locator("body").inner_text(timeout=5000)
+        except Exception:
+            body_txt = ""
+        body_low = body_txt.lower()
+
+        if pg.locator("iframe[src*='captcha'], iframe[src*='recaptcha'], iframe[src*='hcaptcha'], .g-recaptcha, .h-captcha").count() > 0 or "/captcha" in url_low:
+            return PageSnapshot(html='<div data-page-state="captcha"></div>', url=cur_url)
+
+        if "account.line.biz" in url_low or "/login" in url_low or "line business id" in body_low:
+            return PageSnapshot(html='<div data-page-state="logout"></div>', url=cur_url)
+
+        if any(w in body_low for w in ("automated activity warning", "policy warning", "account restriction warning")):
+            return PageSnapshot(html='<div data-page-state="warning"></div>', url=cur_url)
+
+        has_oa = self.channel_display_name in body_txt
+        disp_attr = html.escape(self.channel_display_name if has_oa else "WRONG_OA")
+        basic_attr = html.escape(self.channel_basic_id if has_oa else "")
+        acct_attr = html.escape(self.channel_account_name if has_oa else "")
+
+        if not require_thread:
+            # Pre-navigation check before a specific customer thread is clicked
+            rec_name = html.escape(self._expected_recipient_name or "IDLE")
+            rec_id = html.escape(self._expected_recipient_id or "IDLE")
+            synth = (
+                f'<header data-oa-header="1" data-basic-id="{basic_attr}" '
+                f'data-display-name="{disp_attr}" data-account-name="{acct_attr}"></header>'
+                f'<div data-chat-header="1" data-recipient-id="{rec_id}" data-recipient-display-name="{rec_name}"></div>'
+                '<textarea data-composer-input="1"></textarea>'
+                '<button data-send-button="1">Send</button>'
+            )
+            return PageSnapshot(html=synth, url=cur_url)
+
+        active_name = pg.evaluate(
+            "(() => { const a = document.querySelector('.list-group-item.active'); return a ? a.innerText.split('\\n')[0].trim() : ''; })()"
+        ) or ""
+        ta_count = pg.locator("textarea:not([disabled])").count()
+        send_count = pg.locator("input.btn-primary:not([disabled]), button[type='submit']:not([disabled])").count()
+        rec_id_out = self._expected_recipient_id if active_name == self._expected_recipient_name else "MISMATCH"
+        bubbles_html = "".join(
+            f'<div class="chat-bubble-outbound" data-outbound-bubble="true">{html.escape(b)}</div>'
+            for b in self._confirmed_bubbles
+        )
+        ta_html = '<textarea data-composer-input="1"></textarea>' if ta_count == 1 else ""
+        btn_html = '<button data-send-button="1">Send</button>' if send_count >= 1 else ""
+        synth = (
+            f'<header data-oa-header="1" data-basic-id="{basic_attr}" '
+            f'data-display-name="{disp_attr}" data-account-name="{acct_attr}"></header>'
+            f'<div data-chat-header="1" data-recipient-id="{html.escape(rec_id_out)}" '
+            f'data-recipient-display-name="{html.escape(active_name)}"></div>'
+            f"{ta_html}{btn_html}{bubbles_html}"
+        )
+        return PageSnapshot(html=synth, url=cur_url)
+
+    def get_page(self) -> PageSnapshot:
+        return self._build_snapshot(require_thread=False)
+
+    def select_thread(self, recipient_id: str) -> PageSnapshot:
+        pg = self._page
+        assert pg is not None
+        target_name = self._expected_recipient_name or recipient_id
+        pg.get_by_text(target_name, exact=True).first.click(timeout=10000)
+        pg.wait_for_timeout(3500)
+        return self._build_snapshot(require_thread=True)
+
+    def stage_text(self, text: str) -> PageSnapshot:
+        pg = self._page
+        assert pg is not None
+        pg.locator("textarea").first.fill(text)
+        pg.wait_for_timeout(400)
+        return self._build_snapshot(require_thread=True)
+
+    def click_send(self) -> PageSnapshot:
+        pg = self._page
+        assert pg is not None
+        staged = pg.locator("textarea").first.input_value()
+        pg.locator("input.btn-primary, button[type='submit']").last.click(timeout=8000)
+        pg.wait_for_timeout(3200)
+        body_now = pg.locator("body").inner_text(timeout=5000)
+        probe = staged.strip()[:24]
+        if probe and probe in body_now and pg.locator("textarea").first.input_value() == "":
+            self._confirmed_bubbles.append(staged.strip())
+        return self._build_snapshot(require_thread=True)
+
+    def send_items(self, items: list[dict], pacer: JitterPacer) -> tuple[bool, PageSnapshot, str]:
+        """Send multi-bubble text items and optional slip images one by one with human jitter."""
+        pg = self._page
+        assert pg is not None
+        for idx, item in enumerate(items):
+            if item["type"] == "text":
+                txt = item["text"]
+                pacer.pause_stage_typing(len(txt))
+                pg.locator("textarea").first.fill(txt)
+                pg.wait_for_timeout(500)
+                snap_mid = self._build_snapshot(require_thread=True)
+                if inspect_oa_dom(snap_mid.html, snap_mid.url).page_state in KILL_TRIGGERS:
+                    return False, snap_mid, "kill_switch_mid_send"
+                pg.locator("input.btn-primary, button[type='submit']").last.click(timeout=8000)
+                pg.wait_for_timeout(3200)
+                pacer.pause_cooldown()
+                body_now = pg.locator("body").inner_text(timeout=5000)
+                probe = txt[:24]
+                if not (probe in body_now and pg.locator("textarea").first.input_value() == ""):
+                    return False, self._build_snapshot(require_thread=True), f"bubble_{idx+1}_unconfirmed"
+                self._confirmed_bubbles.append(txt)
+            elif item["type"] == "image":
+                fpath = Path(item["file_path"])
+                if not fpath.is_file():
+                    return False, self._build_snapshot(require_thread=True), "slip_file_missing"
+                file_inp = pg.locator("input[type='file']").first
+                file_inp.set_input_files(str(fpath))
+                pg.wait_for_timeout(4500)
+                pacer.pause_cooldown()
+        return True, self._build_snapshot(require_thread=True), "ok"
+
+
 def manual_reenable_sender(outbox: Outbox, *, operator_id: str) -> None:
     """Explicit human operator re-enable of the browser sender kill switch (design §4.6).
 
@@ -672,6 +947,7 @@ class BrowserSender:
         token: Optional[str] = None,
         dry_run: bool = False,
         clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        winbox_only: bool = False,
     ):
         self.outbox = outbox
         self.driver = driver
@@ -680,7 +956,11 @@ class BrowserSender:
         self.pacer = pacer if pacer is not None else JitterPacer(cfg.pacing)
         self.dry_run = dry_run
         self.clock = clock
-        self._reply_backend = ReplyBackend(http, token) if (http is not None and token) else None
+        self.winbox_only = winbox_only
+        # CEO Q-20261128-0926-a657: when winbox_only=True, zero LINE OA API calls are ever permitted.
+        self._reply_backend = (
+            None if winbox_only else (ReplyBackend(http, token) if (http is not None and token) else None)
+        )
 
     def is_enabled(self) -> bool:
         flag = self.outbox.get_flag(SENDER_ENABLED_FLAG)
@@ -706,6 +986,10 @@ class BrowserSender:
 
     def _fallback_when_off(self, row: dict, reason: str) -> str:
         rid = row["id"]
+        if self.winbox_only:
+            if not self.dry_run:
+                self.outbox.mark_deferred(rid, f"winbox_only_hold:{reason}")
+            return "defer_winbox_only"
         if self._reply_backend is not None and self._token_valid(row):
             if self.dry_run:
                 return "would_fallback_reply"
@@ -757,11 +1041,16 @@ class BrowserSender:
             return self._fallback_when_off(row, "sender_disabled_fallback_reply_token")
 
         # 2. Validate payload structure before touching browser or claiming sending.
+        items = _extract_outbox_items(row["payload_json"])
         texts = _extract_texts_from_payload(row["payload_json"])
-        if not texts:
+        use_multi_items = hasattr(self.driver, "send_items")
+        if (not items) if use_multi_items else (not texts):
             if not self.dry_run:
                 self.outbox.mark_failed(row_id, "invalid_payload")
             return "failed_invalid_payload"
+
+        if hasattr(self.driver, "bind_expected_recipient"):
+            self.driver.bind_expected_recipient(row["recipient_id"], row["recipient_display_name"])
 
         # 3. Check rolling per-hour and per-day throttle ceilings.
         throttle = self._check_throttle()
@@ -806,6 +1095,26 @@ class BrowserSender:
         if self.dry_run:
             return "would_send_browser"
 
+        if use_multi_items and items is not None:
+            if not self.outbox.claim_sending(row_id, "oa_browser"):
+                return "skip_claimed"
+            try:
+                ok_multi, post_snap, err_reason = self.driver.send_items(items, self.pacer)
+            except Exception:
+                self.outbox.mark_failed(row_id, "browser_click_exception")
+                return "failed"
+            post_insp = inspect_oa_dom(post_snap.html, post_snap.url)
+            if post_insp.page_state in KILL_TRIGGERS:
+                self._trip_kill_switch(post_insp.page_state)
+                self.outbox.mark_failed(row_id, f"post_click_kill_switch_{post_insp.page_state}")
+                return f"kill_switch_{post_insp.page_state}"
+            if not ok_multi:
+                self.outbox.mark_failed(row_id, err_reason)
+                return "failed_unconfirmed"
+            self.outbox.mark_sent(row_id)
+            return "sent_browser"
+
+        assert texts is not None
         # 8. Stage message text with human-like proportional typing jitter.
         combined_text = "\n".join(texts)
         self.pacer.pause_stage_typing(len(combined_text))

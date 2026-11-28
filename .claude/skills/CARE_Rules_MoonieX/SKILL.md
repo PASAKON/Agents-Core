@@ -12,6 +12,7 @@ created_by: agent
 author: {role: coo, date: "2026-11-28"}
 improved_by:
   - {role: coo, date: "2026-11-28", what: "CEO 28 Nov complete rebate payout SOP: XM FX spread (-2.0% to -2.5%), slip send + active account ID + apology, 3-7d large-payout SLA, Tue follow-up"}
+  - {role: coo, date: "2026-11-28", what: "CEO Card Q-20261128-0926-a657: 100% Winbox OA Script outbound via care_outbox (zero LINE OA quota) + dedicated Contabo care session"}
 aka: [CARE_Playbook_MoonieX]
 ---
 
@@ -58,11 +59,15 @@ Every rule here comes from a dated CEO ruling for LINE Official Account **Moonie
 - **HARD — Never advise opening a duplicate account to bypass a broker restriction** (e.g. Exness `PMT... บัญชีถูกจำกัด`). Advise the customer to tap `"เปิดคำขอฝ่ายบริการลูกค้า"` in the broker app first to withdraw remaining funds or verify payment ownership, and never ask for their password in chat. If they want an alternative trading account after resolving their funds, offer an XM account under MoonieX (own-name Thai QR supported + automatic rebate).
   - **Why hard:** Encouraging multi-account evasion violates broker KYC/AML rules and risks freezing customer funds.
 
-## 4 · Dual-Path Inbox Operation (CEO Card `Q-20261128-0625-e55d`, 2026-11-28)
+## 4 · Dual-Path Inbox & 100% Winbox Script Outbound (CEO Cards `Q-20261128-0625-e55d` & `Q-20261128-0926-a657`, 2026-11-28)
 
-- **HARD — Operate both paths cooperatively:**
-  1. **Primary path (when steady):** `API Auto` (`care_queue` webhook ingestion + LINE Content API).
-  2. **Fallback & Cross-Check path:** Read-only OA Manager script (`chat.line.biz` Browser Home on `winbox`). Use it immediately whenever the webhook/DB path is down or lagging, and use it to cross-check/reconcile whenever `API Auto` hits a limit (e.g. pre-cutover history or manual admin replies).
+- **HARD — Zero LINE OA Quota on Outbound (`0` LINE Push / OA Quota):**
+  1. Every outbound message and transfer-slip image to a customer MUST be delivered **100% via the Winbox OA Manager Script** (`chat.line.biz` on Browser Home `line-oa-win`, `winbox:9285` reached via `care_outbox` → `BrowserSender`). Never use `POST /v2/bot/message/push` or consume LINE OA messaging quota.
+  2. `น้องมูน (role=care)` runs in her own dedicated session on Contabo and **never drives the Winbox browser directly**: she calls `reply` / `escalate` through `CareGate`, which writes validated plain-text bubbles into `care_outbox`; the backend Winbox Sender Worker verifies `"MoonieX Officials"` (`@587kfqpt`) + exact recipient thread header before clicking Send, and halts via kill-switch (`care_sender_enabled="false"`) with an alert to COO/CTO if `winbox:9285` logs out or shows a captcha.
+  - **Why hard:** Preserves 100% of `@mooniex` LINE OA monthly quota at zero messaging cost while isolating the browser session behind deterministic header/recipient safety checks.
+- **HARD — Operate both inbound paths cooperatively:**
+  1. **Primary inbound path (when steady):** `API Auto` (`care_queue` webhook ingestion + LINE Content API for images, audio STT, and video frames).
+  2. **Fallback & Cross-Check inbound path:** Read-only OA Manager script (`chat.line.biz` Browser Home on `winbox:9285`). Use it immediately whenever the webhook/DB path is down or lagging, and use it to cross-check/reconcile whenever `API Auto` hits a limit (e.g. pre-cutover history or manual admin replies).
   - **Why hard:** Measured 2026-11-28: `winbox:9285` logged out on the exact morning `care_queue` was still pending deployment — having both paths prevented blind spots.
 
 ## 5 · Admin Voice (`@mooniex` CEO Voice, 2026-11-27)
