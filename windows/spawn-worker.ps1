@@ -571,12 +571,14 @@ git -C '$wt' diff --cached --quiet
 if (`$LASTEXITCODE -ne 0) {
     if (`$mediaKept.Count -gt 0) {
         `$keptBody = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
-        git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task" -m `$keptBody
+        `$commitOutput = @(git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task" -m `$keptBody 2>&1)
     } else {
-        git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task"
+        `$commitOutput = @(git -C '$wt' -c "user.name=${Runner}-worker" -c "user.email=${Runner}-worker@localhost" commit -q -m "${Runner}: task $Task" 2>&1)
     }
 }
-if (`$LASTEXITCODE -ne 0) { throw 'launcher commit failed' }
+`$commitExit = `$LASTEXITCODE
+if (`$commitOutput) { `$commitOutput | ForEach-Object { Write-Output "`$_" } }
+if (`$commitExit -ne 0) { throw "launcher commit failed (exit `$commitExit): `$(`$commitOutput -join [Environment]::NewLine)" }
 `$publishHead = git -C '$wt' rev-parse HEAD
 if (`$LASTEXITCODE -ne 0) { throw 'launcher HEAD failed' }
 `$publishGitDir = git -C '$wt' rev-parse --absolute-git-dir
@@ -778,8 +780,47 @@ Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
 `$heartbeatPath = '$heartbeatPathLiteral'
 $heartbeatStart
 . '$nativeArgsPath'
+# Save only this linked worktree's existing DACLs before the sandbox starts.
+# Keep the snapshot in the parent process: the worker must not supply ACLs.
+`$taskGitDir = (git -C '$wt' rev-parse --absolute-git-dir)
+if (`$LASTEXITCODE -ne 0) { throw 'cannot resolve task gitdir' }
+`$taskGitDir = [IO.Path]::GetFullPath(`$taskGitDir.Trim())
+`$repoGitDir = (git -C '$RepoPath' rev-parse --absolute-git-dir)
+if (`$LASTEXITCODE -ne 0) { throw 'cannot resolve repository gitdir' }
+`$worktreesDir = Join-Path ([IO.Path]::GetFullPath(`$repoGitDir.Trim())) 'worktrees'
+if ([IO.Path]::GetDirectoryName(`$taskGitDir) -ne `$worktreesDir) {
+    throw 'refusing ACL snapshot outside a linked task gitdir'
+}
+`$accessSection = [Security.AccessControl.AccessControlSections]::Access
+`$savedTaskAcls = [ordered]@{}
+`$aclQueue = New-Object 'System.Collections.Generic.Queue[string]'
+`$aclQueue.Enqueue(`$taskGitDir)
+while (`$aclQueue.Count) {
+    `$aclPath = `$aclQueue.Dequeue()
+    `$aclItem = Get-Item -LiteralPath `$aclPath -Force -ErrorAction Stop
+    if (`$aclItem.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'refusing gitdir reparse point' }
+    `$savedTaskAcls[`$aclPath] = (Get-Acl -LiteralPath `$aclPath -ErrorAction Stop).GetSecurityDescriptorSddlForm(`$accessSection)
+    if (`$aclItem.PSIsContainer) {
+        Get-ChildItem -LiteralPath `$aclPath -Force -ErrorAction Stop | ForEach-Object { `$aclQueue.Enqueue(`$_.FullName) }
+    }
+}
+try {
 Invoke-WithStdin -Exe `$exe -Arguments `$argArray -Text ([System.IO.File]::ReadAllText('$codexPromptPath')) *> '$codexJsonLog'
 `$cliExit = `$LASTEXITCODE
+} finally {
+    # Codex is a child process, not the owner of this finish step. Restore
+    # pre-run DACLs (including legitimate denies), never reset the repo root.
+    foreach (`$aclPath in `$savedTaskAcls.Keys) {
+        if (-not (Test-Path -LiteralPath `$aclPath)) { continue }
+        `$aclItem = Get-Item -LiteralPath `$aclPath -Force -ErrorAction Stop
+        if (`$aclItem.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'refusing gitdir reparse point' }
+        `$acl = Get-Acl -LiteralPath `$aclPath -ErrorAction Stop
+        if (`$acl.GetSecurityDescriptorSddlForm(`$accessSection) -ne `$savedTaskAcls[`$aclPath]) {
+            `$acl.SetSecurityDescriptorSddlForm(`$savedTaskAcls[`$aclPath], `$accessSection)
+            Set-Acl -LiteralPath `$aclPath -AclObject `$acl -ErrorAction Stop
+        }
+    }
+}
 $heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
 
