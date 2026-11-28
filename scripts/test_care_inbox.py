@@ -33,10 +33,10 @@ def test_validate_reply_bubbles_enforces_care_playbook_gates():
     assert ok_pct is False
     assert any("forbidden_rebate_pct" in e for e in errs_pct)
 
-    # Money / per-lot amount refused without --ceo-approved-amount
-    ok_amt, errs_amt = care_inbox.validate_reply_bubbles(["ยอดคืน $42.50 ครับ"])
+    # Money / per-lot amount refused without --ceo-approved-amount (including Thai 'บาทครับ' without space)
+    ok_amt, errs_amt = care_inbox.validate_reply_bubbles(["ยอดคืน $42.50 ครับ", "โอนคืน 500 บาทครับ"])
     assert ok_amt is False
-    assert any("forbidden_money_amount" in e for e in errs_amt)
+    assert len([e for e in errs_amt if "forbidden_money_amount" in e]) == 2
 
     # Allowed when CEO explicitly approved the amount
     ok_app, errs_app = care_inbox.validate_reply_bubbles(

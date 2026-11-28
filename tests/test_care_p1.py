@@ -135,13 +135,47 @@ def test_gate_scope_injection_and_escalation(setup):
     assert p.conn.execute("SELECT count(*) FROM care_escalations").fetchone()[0] == 1
 
 
-@pytest.mark.parametrize("bubbles", [[], ["x"]*6, [""], [{"type": "image"}], "text", ["x"*5001]])
+@pytest.mark.parametrize(
+    "bubbles",
+    [
+        [],
+        ["x"] * 6,
+        [""],
+        [{"type": "image"}],
+        "text",
+        ["x" * 5001],
+        ["รีเบต 50% ครับ"],
+        ["คืนเงิน $100 ครับ"],
+        ["ยอดโอน 500 บาทครับ"],
+        ["**สวัสดีครับ**"],
+    ],
+)
 def test_invalid_reply(setup, bubbles):
     p, _, _ = setup
     ingest(p)
     rid = p.tick(lambda *x: None)
     with pytest.raises(ValueError):
         CareGate(p, rid, "synthetic-1").call("reply", bubbles=bubbles)
+    assert p.conn.execute("SELECT count(*) FROM care_turns").fetchone()[0] == 0
+
+
+def test_escalate_with_custom_plain_bubbles(setup):
+    p, _, _ = setup
+    ingest(p)
+    rid = p.tick(lambda *x: None)
+    g = CareGate(p, rid, "synthetic-1")
+    with pytest.raises(ValueError):
+        g.call("escalate", reason="qr_received", bubbles=["คืนเงิน $25 ครับ"])
+    res = g.call(
+        "escalate",
+        reason="qr_received",
+        bubbles=["ได้รับ QR code เรียบร้อยครับ", "เดี๋ยวแอดมินตรวจสอบยอดให้ครับ"],
+    )
+    payload = json.loads(p.outbox.get(res["outbox_id"])["payload_json"])
+    assert [m["text"] for m in payload] == [
+        "ได้รับ QR code เรียบร้อยครับ",
+        "เดี๋ยวแอดมินตรวจสอบยอดให้ครับ",
+    ]
 
 
 def test_skip_and_dry_run(setup):
