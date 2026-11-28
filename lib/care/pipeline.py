@@ -166,7 +166,7 @@ class CareGate:
             raise PermissionError("inactive thread")
 
     def call(self, op, **args):
-        fields = {"reply": {"bubbles"}, "skip": set(), "history": set(), "escalate": {"reason"}}
+        fields = {"reply": {"bubbles"}, "skip": set(), "history": set(), "escalate": {"reason"}, "media": {"event_id"}}
         if op not in fields or set(args) != fields[op]:
             raise PermissionError("operation or fields denied")
         p, cid, rid = self.pipeline, self.customer_id, self.round_id
@@ -174,6 +174,14 @@ class CareGate:
             inbound = p.conn.execute("SELECT text,media,received_at FROM care_queue WHERE customer_id=? ORDER BY received_at,event_id", (cid,)).fetchall()
             outbound = p.conn.execute("SELECT payload_json,state FROM care_outbox WHERE recipient_id=? ORDER BY id", (cid,)).fetchall()
             return {"untrusted_inbound": inbound, "outbound": outbound}
+        if op == "media":
+            eid = args["event_id"]
+            if not isinstance(eid, str) or not eid:
+                raise ValueError("event_id required")
+            row = p.conn.execute("SELECT media,received_at FROM care_queue WHERE event_id=? AND customer_id=?", (eid, cid)).fetchone()
+            if not row:
+                raise PermissionError("event_id outside customer scope")
+            return {"event_id": eid, "untrusted_media": json.loads(row[0]), "received_at": row[1]}
         bubbles = args.get("bubbles", [HOLD] if op == "escalate" else [])
         if op != "skip" and (not isinstance(bubbles, list) or not 1 <= len(bubbles) <= 5 or any(not isinstance(b, str) or not b.strip() or len(b) > 5000 for b in bubbles)):
             raise ValueError("one to five nonempty plain-text bubbles required")
