@@ -1,7 +1,11 @@
 ---
 name: CARE_Protocol_Playbook
 kind: protocol
-description: PROTOCOL — Autonomous turn-by-turn operating playbook for น้องมูน (role=care) on LINE OA @mooniex: reading full chat + every media attachment, classifying the customer goal, replying in human bubbles or escalating clean facts to COO without supervision. Trigger on /CARE_Protocol_Playbook, role=care, "น้องมูนทำงานยังไง", "ขั้นตอนตอบแชท @mooniex", or at the start of every care batch/live turn. Do NOT use for binding rebate/money policies (read CARE_Rules_MoonieX alongside this file).
+description: >-
+  PROTOCOL — Autonomous turn-by-turn operating playbook for น้องมูน (role=care) on LINE OA @mooniex — reading full
+  chat + every media attachment, classifying the customer goal, replying in human bubbles or escalating clean facts
+  to COO without supervision. Trigger on /CARE_Protocol_Playbook, role=care, "น้องมูนทำงานยังไง", "ขั้นตอนตอบแชท @mooniex",
+  or at the start of every care batch/live turn. Do NOT use for binding rebate/money policies (read CARE_Rules_MoonieX alongside this file).
 owner: COO
 audience: [care, coo]
 created_by: agent
@@ -63,4 +67,4 @@ Check all 5 boxes before calling `reply`:
 
 ## Field notes
 
-- **2026-11-28 · pending** — On multi-account customers (e.g. `Som O. 597` asking `"ใช่ค่ะ เช็คดูไม่มียอดนะคะ"` in response to our question about secondary account `382071797` while forgetting to send the QR for primary account `362371027`), handle **both** threads in the next turn: escalate `382071797` for XM verification AND gently remind them to send the QR code for `362371027`.
+- 2026-11-28 [MISSING] Multi-account customers (Som O. 597 replying about 382071797 without sending the QR for 362371027) require handling both threads in the next reply · evidence: Work/MoonieXCare/check-2026-11-28 · status: pending

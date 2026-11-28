@@ -1,7 +1,11 @@
 ---
 name: CARE_Rules_MoonieX
 kind: rules
-description: RULES — Binding CEO rules for น้องมูน (role=care) and COO when answering @mooniex ("MoonieX Officials" @587kfqpt) customer chats: rebates, back-pay, SLA, escalation, dual-path inbox, broker restrictions, and admin voice. Trigger on /CARE_Rules_MoonieX, role=care, "น้องมูน", "ตอบแชท @mooniex", "ลูกค้ารีเบต", "MNVIP30", "บัญชีถูกจำกัด". Do NOT use for step-by-step turn execution (see CARE_Protocol_Playbook).
+description: >-
+  RULES — Binding CEO rules for น้องมูน (role=care) and COO when answering @mooniex ("MoonieX Officials" @587kfqpt)
+  customer chats — rebates, back-pay, SLA, escalation, dual-path inbox, broker restrictions, and admin voice.
+  Trigger on /CARE_Rules_MoonieX, role=care, "น้องมูน", "ตอบแชท @mooniex", "ลูกค้ารีเบต", "MNVIP30", "บัญชีถูกจำกัด".
+  Do NOT use for step-by-step turn execution (see CARE_Protocol_Playbook).
 owner: COO
 audience: [care, coo]
 created_by: agent
@@ -59,4 +63,4 @@ Every rule here comes from a dated CEO ruling for LINE Official Account **Moonie
 
 ## Field notes
 
-- **2026-11-28 · pending** — Live check of 79 inbound `@mooniex` events showed customers often reply with a bare QR image (`[image]`) or 60+ rapid MT5 screenshots (`BUA` sent 72 images in 75 seconds). Always group consecutive media from one `sender_id` into one turn before replying or escalating.
+- 2026-11-28 [MISSING] Live check of 79 inbound @mooniex events showed customers send burst media (BUA sent 72 MT5 screenshots in 75s); group consecutive media from one sender_id into one turn · evidence: Work/MoonieXCare/check-2026-11-28 · status: pending
